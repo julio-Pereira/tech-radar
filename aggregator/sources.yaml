@@ -49,3 +49,13 @@ sources:
     name: Building Nubank
     category: Engineering
     url: https://building.nubank.com/feed/
+
+  - id: go-blog
+    name: The Go Blog
+    category: Go
+    url: https://go.dev/blog/feed.atom
+
+  - id: dave-cheney
+    name: Dave Cheney
+    category: Go
+    url: https://dave.cheney.net/feed

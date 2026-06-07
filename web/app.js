@@ -10,17 +10,27 @@ let debounceTimer = null;
 
 /** @typedef {{ id: string, name: string, category: string }} Source */
 /** @typedef {{ id: string, title: string, url: string, sourceId: string, sourceName: string, category: string, publishedAt: string, summary: string, author?: string }} Item */
+/** @typedef {{ id: string, label: string, sourceId?: string, category?: string }} Theme */
 
 async function init() {
   try {
-    const resp = await fetch('./data/feed.json');
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    feedData = await resp.json();
+    const [feedResp, themesResp] = await Promise.all([
+      fetch('./data/feed.json'),
+      fetch('./themes.json').catch(() => null),
+    ]);
+
+    if (!feedResp.ok) throw new Error(`HTTP ${feedResp.status}`);
+    feedData = await feedResp.json();
 
     document.getElementById('loading').classList.add('hidden');
     renderMeta();
     renderFilters();
     renderArticles();
+
+    if (themesResp && themesResp.ok) {
+      const { themes } = await themesResp.json();
+      renderDaily(themes);
+    }
   } catch (err) {
     document.getElementById('loading').classList.add('hidden');
     const errEl = document.getElementById('error');
@@ -28,6 +38,99 @@ async function init() {
     errEl.classList.remove('hidden');
   }
 }
+
+// ── Daily reading ─────────────────────────────────────────────────────────────
+
+function renderDaily(themes) {
+  const container = document.getElementById('daily-cards');
+  const section = document.getElementById('daily');
+  container.innerHTML = '';
+
+  const today = localDateISO();
+  let hasAny = false;
+
+  for (const theme of themes) {
+    const item = pickDaily(feedData.items, theme, today);
+    const card = buildDailyCard(item, theme);
+    container.appendChild(card);
+    if (item) hasAny = true;
+  }
+
+  if (hasAny) section.classList.remove('hidden');
+}
+
+/** Deterministic daily pick: same day + theme → same article. Changes next day. */
+function pickDaily(items, theme, today) {
+  const pool = items.filter(i =>
+    (!theme.sourceId || i.sourceId === theme.sourceId) &&
+    (!theme.category || i.category === theme.category)
+  );
+  if (pool.length === 0) return null;
+  const idx = cyrb53(`${today}:${theme.id}`) % pool.length;
+  return pool[idx];
+}
+
+function buildDailyCard(item, theme) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'daily-card';
+
+  const themeLabel = document.createElement('span');
+  themeLabel.className = 'daily-theme-label';
+  themeLabel.textContent = theme.label;
+  wrapper.appendChild(themeLabel);
+
+  if (!item) {
+    const empty = document.createElement('p');
+    empty.className = 'daily-empty';
+    empty.textContent = 'No articles available for this topic yet.';
+    wrapper.appendChild(empty);
+    return wrapper;
+  }
+
+  const title = document.createElement('a');
+  title.href = item.url;
+  title.target = '_blank';
+  title.rel = 'noopener noreferrer';
+  title.className = 'daily-card-title';
+  title.textContent = item.title; // textContent — safe
+
+  const meta = document.createElement('p');
+  meta.className = 'daily-card-meta';
+  meta.textContent = `${item.sourceName} · ${formatRelative(new Date(item.publishedAt))}`;
+
+  const summary = document.createElement('p');
+  summary.className = 'daily-card-summary';
+  summary.textContent = item.summary; // textContent — safe
+
+  wrapper.appendChild(title);
+  wrapper.appendChild(meta);
+  if (item.summary) wrapper.appendChild(summary);
+
+  return wrapper;
+}
+
+/** cyrb53 non-cryptographic hash — stable across JS engines. */
+function cyrb53(str, seed = 0) {
+  let h1 = 0xdeadbeef ^ seed;
+  let h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+}
+
+/** Returns "YYYY-MM-DD" in the user's local timezone. */
+function localDateISO() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
 
 function renderMeta() {
   const el = document.getElementById('generated-at');
@@ -88,6 +191,8 @@ function toggleFilter(set, value) {
   else set.add(value);
 }
 
+// ── Article list ──────────────────────────────────────────────────────────────
+
 function renderArticles() {
   const filtered = applyFilters(feedData.items);
 
@@ -136,11 +241,11 @@ function buildCard(item) {
 
   const sourceSpan = document.createElement('span');
   sourceSpan.className = 'source-badge';
-  sourceSpan.textContent = item.sourceName; // textContent — safe
+  sourceSpan.textContent = item.sourceName;
 
   const categorySpan = document.createElement('span');
   categorySpan.className = 'category-badge';
-  categorySpan.textContent = item.category; // textContent — safe
+  categorySpan.textContent = item.category;
 
   const dateSpan = document.createElement('span');
   dateSpan.className = 'date';
@@ -156,7 +261,7 @@ function buildCard(item) {
   titleLink.href = item.url;
   titleLink.target = '_blank';
   titleLink.rel = 'noopener noreferrer';
-  titleLink.textContent = item.title; // textContent — safe
+  titleLink.textContent = item.title;
 
   const h2 = document.createElement('h2');
   h2.className = 'card-title';
@@ -168,7 +273,7 @@ function buildCard(item) {
   if (item.author) {
     const authorEl = document.createElement('p');
     authorEl.className = 'card-author';
-    authorEl.textContent = `By ${item.author}`; // textContent — safe
+    authorEl.textContent = `By ${item.author}`;
     header.appendChild(authorEl);
   }
 
@@ -177,12 +282,14 @@ function buildCard(item) {
   if (item.summary) {
     const summary = document.createElement('p');
     summary.className = 'card-summary';
-    summary.textContent = item.summary; // textContent — safe
+    summary.textContent = item.summary;
     article.appendChild(summary);
   }
 
   return article;
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatRelative(date) {
   const now = Date.now();
