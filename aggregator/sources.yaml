@@ -44,3 +44,8 @@ sources:
     name: Engineering at Meta
     category: Engineering
     url: https://engineering.fb.com/feed/
+
+  - id: nubank
+    name: Building Nubank
+    category: Engineering
+    url: https://building.nubank.com/feed/
