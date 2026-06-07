@@ -1,0 +1,67 @@
+# Curated Baeldung "series" — evergreen guide hubs that are NOT in the RSS feed.
+# Injected into feed.json as Baeldung items with kind: "series" so they appear
+# in the dedicated "Baeldung Series" daily card and in search / source filter.
+# Edit freely — add or remove series here, then re-run the aggregator.
+source_id: baeldung
+source_name: Baeldung
+
+series:
+  - id: java-concurrency
+    title: "Java Concurrency Series"
+    url: https://www.baeldung.com/java-concurrency
+    category: Java/Spring
+    summary: "Threads, executors, locks, synchronizers and the java.util.concurrent toolkit."
+
+  - id: maven
+    title: "Maven Series"
+    url: https://www.baeldung.com/maven
+    category: Java/Spring
+    summary: "Build lifecycle, dependencies, plugins and multi-module project setup with Maven."
+
+  - id: spring-boot
+    title: "Spring Boot Series"
+    url: https://www.baeldung.com/spring-boot
+    category: Java/Spring
+    summary: "Auto-configuration, starters, properties, actuator and production-ready Spring Boot."
+
+  - id: spring-security
+    title: "Spring Security Series"
+    url: https://www.baeldung.com/security-spring
+    category: Java/Spring
+    summary: "Authentication, authorization, OAuth2, JWT and method security with Spring Security."
+
+  - id: rest-with-spring
+    title: "REST with Spring Series"
+    url: https://www.baeldung.com/rest-with-spring-series
+    category: Java/Spring
+    summary: "Building, securing, testing and documenting REST APIs with Spring."
+
+  - id: jackson
+    title: "Jackson Series"
+    url: https://www.baeldung.com/jackson
+    category: Java/Spring
+    summary: "JSON serialization and deserialization with Jackson — annotations, modules and custom mappers."
+
+  - id: junit
+    title: "JUnit Series"
+    url: https://www.baeldung.com/junit
+    category: Java/Spring
+    summary: "Unit testing with JUnit 4 and 5 — assertions, lifecycle, parameterized and nested tests."
+
+  - id: java-streams
+    title: "Java Streams Series"
+    url: https://www.baeldung.com/java-streams
+    category: Java/Spring
+    summary: "The Stream API — map/filter/reduce, collectors, parallel streams and functional pipelines."
+
+  - id: spring-data
+    title: "Spring Data Series"
+    url: https://www.baeldung.com/spring-data
+    category: Java/Spring
+    summary: "Repositories, queries, paging and persistence with Spring Data JPA and friends."
+
+  - id: java-collections
+    title: "Java Collections Series"
+    url: https://www.baeldung.com/java-collections
+    category: Java/Spring
+    summary: "Lists, maps, sets, queues and the algorithms behind the Java Collections Framework."

@@ -80,6 +80,12 @@ func limitPerSource(items []model.FeedItem, max int) []model.FeedItem {
 	count := make(map[string]int)
 	out := make([]model.FeedItem, 0, len(items))
 	for _, item := range items {
+		// Curated series are always kept — they bypass the recency cap so the
+		// full set stays available for the dedicated daily card and search.
+		if item.Kind == model.KindSeries {
+			out = append(out, item)
+			continue
+		}
 		if count[item.SourceID] < max {
 			out = append(out, item)
 			count[item.SourceID]++

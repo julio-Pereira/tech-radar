@@ -25,6 +25,7 @@ func main() {
 
 func run() error {
 	configPath := envOrDefault("SOURCES_FILE", "sources.yaml")
+	seriesPath := envOrDefault("SERIES_FILE", "series.yaml")
 	outputPath := envOrDefault("OUTPUT_FILE", filepath.Join("..", "web", "data", "feed.json"))
 	cacheDir := envOrDefault("CACHE_DIR", "cache")
 
@@ -70,6 +71,14 @@ func run() error {
 
 	if failCount == len(cfg.Sources) {
 		return fmt.Errorf("all %d sources failed with no cache fallback", failCount)
+	}
+
+	// Inject curated evergreen series (not present in any RSS feed).
+	if series, serr := loadSeries(seriesPath); serr != nil {
+		log.Printf("WARN could not load series from %s: %v", seriesPath, serr)
+	} else {
+		log.Printf("INFO injecting %d curated series from %s", len(series), seriesPath)
+		allItems = append(allItems, series...)
 	}
 
 	maxPerSource := cfg.Settings.MaxItemsPerSource
@@ -126,6 +135,35 @@ func loadCache(dir, sourceID string) ([]model.FeedItem, error) {
 	}
 	var items []model.FeedItem
 	return items, json.Unmarshal(data, &items)
+}
+
+func loadSeries(path string) ([]model.FeedItem, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var sc model.SeriesConfig
+	if err := yaml.Unmarshal(data, &sc); err != nil {
+		return nil, err
+	}
+
+	items := make([]model.FeedItem, 0, len(sc.Series))
+	for _, s := range sc.Series {
+		items = append(items, model.FeedItem{
+			ID:         "series-" + s.ID,
+			Title:      s.Title,
+			URL:        s.URL,
+			SourceID:   sc.SourceID,
+			SourceName: sc.SourceName,
+			Category:   s.Category,
+			Summary:    s.Summary,
+			Kind:       model.KindSeries,
+			// PublishedAt intentionally left zero: series are evergreen, so they
+			// sort to the bottom of the recency list and are surfaced via the
+			// dedicated daily card, search, and source filter instead.
+		})
+	}
+	return items, nil
 }
 
 func loadConfig(path string) (*model.Config, error) {

@@ -9,6 +9,12 @@ type Source struct {
 	URL      string `yaml:"url"      json:"-"`
 }
 
+// Kind values for FeedItem.
+const (
+	KindArticle = "article"
+	KindSeries  = "series"
+)
+
 type FeedItem struct {
 	ID         string    `json:"id"`
 	Title      string    `json:"title"`
@@ -19,6 +25,23 @@ type FeedItem struct {
 	PublishedAt time.Time `json:"publishedAt"`
 	Summary    string    `json:"summary"`
 	Author     string    `json:"author,omitempty"`
+	// Kind is "article" for normal feed entries or "series" for curated
+	// evergreen guides injected from series.yaml. Empty implies "article".
+	Kind string `json:"kind,omitempty"`
+}
+
+type Series struct {
+	ID       string `yaml:"id"`
+	Title    string `yaml:"title"`
+	URL      string `yaml:"url"`
+	Category string `yaml:"category"`
+	Summary  string `yaml:"summary"`
+}
+
+type SeriesConfig struct {
+	SourceID   string   `yaml:"source_id"`
+	SourceName string   `yaml:"source_name"`
+	Series     []Series `yaml:"series"`
 }
 
 type Feed struct {

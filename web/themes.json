@@ -2,6 +2,7 @@
   "themes": [
     { "id": "java-spring", "label": "Java & Spring", "sourceId": "baeldung" },
     { "id": "go",          "label": "Go",            "category": "Go" },
-    { "id": "architecture","label": "Architecture",  "category": "Architecture" }
+    { "id": "architecture","label": "Architecture",  "category": "Architecture" },
+    { "id": "baeldung-series", "label": "Baeldung Series", "kind": "series" }
   ]
 }

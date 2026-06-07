@@ -9,8 +9,8 @@ const activeFilters = { categories: new Set(), sources: new Set(), search: '' };
 let debounceTimer = null;
 
 /** @typedef {{ id: string, name: string, category: string }} Source */
-/** @typedef {{ id: string, title: string, url: string, sourceId: string, sourceName: string, category: string, publishedAt: string, summary: string, author?: string }} Item */
-/** @typedef {{ id: string, label: string, sourceId?: string, category?: string }} Theme */
+/** @typedef {{ id: string, title: string, url: string, sourceId: string, sourceName: string, category: string, publishedAt: string, summary: string, author?: string, kind?: string }} Item */
+/** @typedef {{ id: string, label: string, sourceId?: string, category?: string, kind?: string }} Theme */
 
 async function init() {
   try {
@@ -61,10 +61,15 @@ function renderDaily(themes) {
 
 /** Deterministic daily pick: same day + theme → same article. Changes next day. */
 function pickDaily(items, theme, today) {
-  const pool = items.filter(i =>
-    (!theme.sourceId || i.sourceId === theme.sourceId) &&
-    (!theme.category || i.category === theme.category)
-  );
+  // A theme without an explicit kind targets normal articles only, so series
+  // surface exclusively through the dedicated "Baeldung Series" card.
+  const wantKind = theme.kind || 'article';
+  const pool = items.filter(i => {
+    if ((i.kind || 'article') !== wantKind) return false;
+    if (theme.sourceId && i.sourceId !== theme.sourceId) return false;
+    if (theme.category && i.category !== theme.category) return false;
+    return true;
+  });
   if (pool.length === 0) return null;
   const idx = cyrb53(`${today}:${theme.id}`) % pool.length;
   return pool[idx];
@@ -96,7 +101,9 @@ function buildDailyCard(item, theme) {
 
   const meta = document.createElement('p');
   meta.className = 'daily-card-meta';
-  meta.textContent = `${item.sourceName} · ${formatRelative(new Date(item.publishedAt))}`;
+  meta.textContent = item.kind === 'series'
+    ? `${item.sourceName} · Series guide`
+    : `${item.sourceName} · ${formatRelative(new Date(item.publishedAt))}`;
 
   const summary = document.createElement('p');
   summary.className = 'daily-card-summary';
@@ -249,9 +256,14 @@ function buildCard(item) {
 
   const dateSpan = document.createElement('span');
   dateSpan.className = 'date';
-  const published = new Date(item.publishedAt);
-  dateSpan.textContent = formatRelative(published);
-  dateSpan.title = published.toLocaleString();
+  if (item.kind === 'series') {
+    dateSpan.textContent = 'Series guide';
+    dateSpan.classList.add('series-tag');
+  } else {
+    const published = new Date(item.publishedAt);
+    dateSpan.textContent = formatRelative(published);
+    dateSpan.title = published.toLocaleString();
+  }
 
   meta.appendChild(sourceSpan);
   meta.appendChild(categorySpan);

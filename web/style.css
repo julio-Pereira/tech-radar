@@ -180,7 +180,7 @@ main {
 
 .daily-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
 }
 
@@ -289,6 +289,18 @@ main {
   font-size: 0.75rem;
   color: var(--text-muted);
   margin-left: auto;
+}
+
+.date.series-tag {
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .card-title {
