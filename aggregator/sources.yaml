@@ -1,0 +1,46 @@
+settings:
+  max_items_per_source: 20
+  max_total_items: 200
+  fetch_timeout_seconds: 15
+  user_agent: "tech-radar/1.0 (+https://github.com/julio-pereira/tech-radar)"
+
+sources:
+  - id: baeldung
+    name: Baeldung
+    category: Java/Spring
+    url: https://www.baeldung.com/feed/
+
+  - id: martin-fowler
+    name: Martin Fowler
+    category: Architecture
+    url: https://martinfowler.com/feed.atom
+
+  - id: spring-blog
+    name: Spring Blog
+    category: Java/Spring
+    url: https://spring.io/blog.atom
+
+  - id: infoq
+    name: InfoQ
+    category: Architecture
+    url: https://feed.infoq.com/
+
+  - id: thoughtworks
+    name: ThoughtWorks
+    category: Architecture
+    url: https://www.thoughtworks.com/rss/insights.xml
+
+  - id: dzone-java
+    name: DZone Java
+    category: Java/Spring
+    url: https://feeds.dzone.com/java
+
+  - id: netflix-tech
+    name: Netflix Tech Blog
+    category: Engineering
+    url: https://netflixtechblog.com/feed
+
+  - id: engineering-at-meta
+    name: Engineering at Meta
+    category: Engineering
+    url: https://engineering.fb.com/feed/

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+  <title>Tech Radar</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Tech Radar</h1>
+      <span id="generated-at" class="meta"></span>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <div class="filter-group">
+        <label for="search">Search</label>
+        <input id="search" type="search" placeholder="Filter articles…" autocomplete="off" />
+      </div>
+
+      <div class="filter-group">
+        <label>Category</label>
+        <div id="category-filters" class="chip-list"></div>
+      </div>
+
+      <div class="filter-group">
+        <label>Source</label>
+        <div id="source-filters" class="chip-list"></div>
+      </div>
+
+      <div class="filter-group">
+        <button id="clear-btn" class="clear-btn">Clear filters</button>
+      </div>
+    </aside>
+
+    <section class="feed">
+      <div id="summary" class="summary"></div>
+      <div id="articles" class="articles"></div>
+      <div id="loading" class="loading">Loading articles…</div>
+      <div id="error" class="error hidden"></div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
