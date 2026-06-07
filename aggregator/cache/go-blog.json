@@ -1,0 +1,112 @@
+[
+  {
+    "id": "tag:blog.golang.org,2013:blog.golang.org/pkgsite-api",
+    "title": "Introducing the pkg.go.dev API",
+    "url": "https://go.dev/blog/pkgsite-api",
+    "sourceId": "go-blog",
+    "sourceName": "The Go Blog",
+    "category": "Go",
+    "publishedAt": "2026-05-21T00:00:00Z",
+    "summary": "Introducing the new programmatic API for pkg.go.dev, allowing developers to fetch package and module data directly.",
+    "author": "Ethan Lee, Hana Kim, and Jonathan Amsterdam"
+  },
+  {
+    "id": "tag:blog.golang.org,2013:blog.golang.org/type-construction-and-cycle-detection",
+    "title": "Type Construction and Cycle Detection",
+    "url": "https://go.dev/blog/type-construction-and-cycle-detection",
+    "sourceId": "go-blog",
+    "sourceName": "The Go Blog",
+    "category": "Go",
+    "publishedAt": "2026-03-24T00:00:00Z",
+    "summary": "Go 1.26 simplifies type construction and enhances cycle detection for certain kinds of recursive types.",
+    "author": "Mark Freeman"
+  },
+  {
+    "id": "tag:blog.golang.org,2013:blog.golang.org/inliner",
+    "title": "//go:fix inline and the source-level inliner",
+    "url": "https://go.dev/blog/inliner",
+    "sourceId": "go-blog",
+    "sourceName": "The Go Blog",
+    "category": "Go",
+    "publishedAt": "2026-03-10T00:00:00Z",
+    "summary": "How Go 1.26\u0026#39;s source-level inliner works, and how it can help you with self-service API migrations.",
+    "author": "Alan Donovan"
+  },
+  {
+    "id": "tag:blog.golang.org,2013:blog.golang.org/allocation-optimizations",
+    "title": "Allocating on the Stack",
+    "url": "https://go.dev/blog/allocation-optimizations",
+    "sourceId": "go-blog",
+    "sourceName": "The Go Blog",
+    "category": "Go",
+    "publishedAt": "2026-02-27T00:00:00Z",
+    "summary": "A description of some of the recent changes to do allocations on the stack instead of the heap.",
+    "author": "Keith Randall"
+  },
+  {
+    "id": "tag:blog.golang.org,2013:blog.golang.org/gofix",
+    "title": "Using go fix to modernize Go code",
+    "url": "https://go.dev/blog/gofix",
+    "sourceId": "go-blog",
+    "sourceName": "The Go Blog",
+    "category": "Go",
+    "publishedAt": "2026-02-17T00:00:00Z",
+    "summary": "Go 1.26 includes a new implementation of go fix that can help you use more modern features of Go.",
+    "author": "Alan Donovan"
+  },
+  {
+    "id": "tag:blog.golang.org,2013:blog.golang.org/go1.26",
+    "title": "Go 1.26 is released",
+    "url": "https://go.dev/blog/go1.26",
+    "sourceId": "go-blog",
+    "sourceName": "The Go Blog",
+    "category": "Go",
+    "publishedAt": "2026-02-10T00:00:00Z",
+    "summary": "Go 1.26 adds a new garbage collector, cgo overhead reduction, experimental simd/archsimd package, experimental runtime/secret package, and more.",
+    "author": "Carlos Amedee, on behalf of the Go team"
+  },
+  {
+    "id": "tag:blog.golang.org,2013:blog.golang.org/survey2025",
+    "title": "Results from the 2025 Go Developer Survey",
+    "url": "https://go.dev/blog/survey2025",
+    "sourceId": "go-blog",
+    "sourceName": "The Go Blog",
+    "category": "Go",
+    "publishedAt": "2026-01-21T00:00:00Z",
+    "summary": "The 2025 Go Developer Survey results, focused on developer sentiment towards Go, use cases, challenges, and developer environments.",
+    "author": "Todd Kulesza, on behalf of the Go team"
+  },
+  {
+    "id": "tag:blog.golang.org,2013:blog.golang.org/16years",
+    "title": "Go’s Sweet 16",
+    "url": "https://go.dev/blog/16years",
+    "sourceId": "go-blog",
+    "sourceName": "The Go Blog",
+    "category": "Go",
+    "publishedAt": "2025-11-14T00:00:00Z",
+    "summary": "Happy Birthday, Go!",
+    "author": "Austin Clements, for the Go team"
+  },
+  {
+    "id": "tag:blog.golang.org,2013:blog.golang.org/greenteagc",
+    "title": "The Green Tea Garbage Collector",
+    "url": "https://go.dev/blog/greenteagc",
+    "sourceId": "go-blog",
+    "sourceName": "The Go Blog",
+    "category": "Go",
+    "publishedAt": "2025-10-29T00:00:00Z",
+    "summary": "Go 1.25 includes a new experimental garbage collector, Green Tea.",
+    "author": "Michael Knyszek and Austin Clements"
+  },
+  {
+    "id": "tag:blog.golang.org,2013:blog.golang.org/flight-recorder",
+    "title": "Flight Recorder in Go 1.25",
+    "url": "https://go.dev/blog/flight-recorder",
+    "sourceId": "go-blog",
+    "sourceName": "The Go Blog",
+    "category": "Go",
+    "publishedAt": "2025-09-26T00:00:00Z",
+    "summary": "Go 1.25 introduces a new tool in the diagnostic toolbox, flight recording.",
+    "author": "Carlos Amedee and Michael Knyszek"
+  }
+]

@@ -1,0 +1,167 @@
+[
+  {
+    "id": "https://www.infoq.com/news/2026/06/extenddb-dynamodb-adapter/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "ExtendDB: Open Source Amazon DynamoDB Compatible Adapter with Pluggable Storage Backends",
+    "url": "https://www.infoq.com/news/2026/06/extenddb-dynamodb-adapter/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-07T06:25:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/news/2026/06/extenddb-dynamodb-adapter/en/headerimage/generatedHeaderImage-1779640650229.jpg\"/\u003e\u003cp\u003eAWS recently announced ExtendDB, a DynamoDB-compatible adapter that lets developers use the DynamoDB API with different storage backends, starting with PostgreSQL. The project supports existing SDKs and tools without modification, giving teams greater flexibility to run DynamoDB-style workloads outside of native DynamoDB while maintaining compatibility with current applications and workflows.\u003c/p\u003e \u003ci\u003eBy Renato Losio\u003c/i\u003e",
+    "author": "Renato Losio"
+  },
+  {
+    "id": "https://www.infoq.com/news/2026/06/cloudflare-clickhouse-bottleneck/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "Cloudflare Identifies Query Planning Bottleneck in ClickHouse",
+    "url": "https://www.infoq.com/news/2026/06/cloudflare-clickhouse-bottleneck/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-06T04:55:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/news/2026/06/cloudflare-clickhouse-bottleneck/en/headerimage/generatedHeaderImage-1779253744444.jpg\"/\u003e\u003cp\u003eCloudflare recently described how a slowdown in its billing pipeline was traced to contention inside the query planning stage of ClickHouse. The team profiled the bottleneck and patched ClickHouse to replace an exclusive lock with a shared lock, drop the per-query copy of the parts list, and improve part filtering.\u003c/p\u003e \u003ci\u003eBy Renato Losio\u003c/i\u003e",
+    "author": "Renato Losio"
+  },
+  {
+    "id": "https://www.infoq.com/news/2026/06/codex-windows-sandbox-design/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "How OpenAI Built a Secure Windows Sandbox for Codex Agents",
+    "url": "https://www.infoq.com/news/2026/06/codex-windows-sandbox-design/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-05T14:37:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/news/2026/06/codex-windows-sandbox-design/en/headerimage/generatedHeaderImage-1780184710031.jpg\"/\u003e\u003cp\u003eOpenAI details Codex Windows sandbox architecture, showing how SIDs, ACLs, restricted tokens, and dedicated sandbox accounts enable safe execution of autonomous coding tasks. The design balances isolation with real developer workflows and shows how OS security primitives must be composed for AI agents on local development environments.\u003c/p\u003e \u003ci\u003eBy Leela Kumili\u003c/i\u003e",
+    "author": "Leela Kumili"
+  },
+  {
+    "id": "https://www.infoq.com/presentations/ai-multi-agentic-tools/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "Presentation: Platform Teams Enabling AI - MCP/Multi-Agentic Tools across Linkedin",
+    "url": "https://www.infoq.com/presentations/ai-multi-agentic-tools/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-05T12:23:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/presentations/ai-multi-agentic-tools/en/mediumimage/medium-1779867927919.jpg\"/\u003e\u003cp\u003eLinkedIn’s Karthik Ramgopal and Prince Valluri discuss leveraging AI as a new execution model for large-scale engineering. They explain how to move beyond fragmented implementations by building platform abstractions for orchestration, structured context, and safe tooling like MCP. They share architectural insights from real-world coding, observation, and UI testing agents built at LinkedIn.\u003c/p\u003e \u003ci\u003eBy Karthik Ramgopal, Prince Valluri\u003c/i\u003e",
+    "author": "Karthik Ramgopal, Prince Valluri"
+  },
+  {
+    "id": "https://www.infoq.com/news/2026/06/dropbox-nova-ai-coding-agents/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "Dropbox Introduces Nova, an Internal Platform for Running AI Coding Agents at Scale",
+    "url": "https://www.infoq.com/news/2026/06/dropbox-nova-ai-coding-agents/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-05T12:00:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/news/2026/06/dropbox-nova-ai-coding-agents/en/headerimage/generatedHeaderImage-1779952906697.jpg\"/\u003e\u003cp\u003eDropbox has unveiled Nova, an internal platform designed to orchestrate and operationalize AI coding agents across the company's engineering workflows.\u003c/p\u003e \u003ci\u003eBy Craig Risi\u003c/i\u003e",
+    "author": "Craig Risi"
+  },
+  {
+    "id": "https://www.infoq.com/news/2026/06/netflix-microservices-realtime/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "How Netflix Maps Thousands of Microservices in Real-Time",
+    "url": "https://www.infoq.com/news/2026/06/netflix-microservices-realtime/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-05T12:00:00Z",
+    "summary": "\u003cimg src=\"https://www.infoq.com/styles/static/images/logo/logo_bigger.jpg\"/\u003e\u003cp\u003eNetflix has shared details about Service Topology. This internal system creates and updates a live dependency graph for thousands of microservices. It helps engineers see how services connect and resolve issues more quickly. The system merges three separate data sources into a single, queryable graph. It updates almost in real-time as traffic patterns shift.\u003c/p\u003e \u003ci\u003eBy Claudio Masolo\u003c/i\u003e",
+    "author": "Claudio Masolo"
+  },
+  {
+    "id": "https://www.infoq.com/articles/secure-ai-stack-model-production-series/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "Article Series: Securing the AI Stack: from Model to Production",
+    "url": "https://www.infoq.com/articles/secure-ai-stack-model-production-series/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-05T09:00:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/articles/secure-ai-stack-model-production-series/en/headerimage/Article-Series-Securing-the-AI-Stack-From-Model-to-Production-header-image-1780040531515.jpg\"/\u003e\u003cp\u003eThis series provides your roadmap for the machine age, exploring how to move from vulnerable prototypes to resilient systems through layered defense, robust MLOps, and integrated governance.\u003c/p\u003e \u003ci\u003eBy Claudio Masolo\u003c/i\u003e",
+    "author": "Claudio Masolo"
+  },
+  {
+    "id": "https://www.infoq.com/news/2026/06/google-litertlm-gemma4/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "Google LiteRT-LM Speeds up Local Inference up to 2.2x with Gemma 4 Multi-Token Prediction",
+    "url": "https://www.infoq.com/news/2026/06/google-litertlm-gemma4/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-05T09:00:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/news/2026/06/google-litertlm-gemma4/en/headerimage/google-litert-ml-gemma4-1780649451174.jpeg\"/\u003e\u003cp\u003eLiteRT-LM brings native support for Gemma 4 Multi-Token Prediction (MTP) drafters, enabling up to 2.2x faster inference. The framework is expanding beyond Kotlin and C++ adding support for new Swift and a JavaScript APIs.\u003c/p\u003e \u003ci\u003eBy Sergio De Simone\u003c/i\u003e",
+    "author": "Sergio De Simone"
+  },
+  {
+    "id": "https://www.infoq.com/news/2026/06/typeorm-1-released/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "TypeORM Reaches 1.0 after Nearly a Decade, Signalling Renewed Maintenance",
+    "url": "https://www.infoq.com/news/2026/06/typeorm-1-released/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-05T06:52:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/news/2026/06/typeorm-1-released/en/headerimage/generatedHeaderImage-1780570519122.jpg\"/\u003e\u003cp\u003eTypeORM 1.0 is the first major release of the open-source TypeScript and JavaScript ORM since its inception in 2016. This version modernizes platform requirements, removes deprecated APIs, and introduces numerous bug fixes and new features. TypeORM now supports ECMAScript 2023, dropping older Node.js versions and dependencies while enhancing security and migration processes.\u003c/p\u003e \u003ci\u003eBy Daniel Curtis\u003c/i\u003e",
+    "author": "Daniel Curtis"
+  },
+  {
+    "id": "https://www.infoq.com/news/2026/06/uber-payment-batching-system/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "30+ Updates per Second per Account: Uber Scales Ledger Processing with Batching",
+    "url": "https://www.infoq.com/news/2026/06/uber-payment-batching-system/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-04T14:02:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/news/2026/06/uber-payment-batching-system/en/headerimage/generatedHeaderImage-1779570527807.jpg\"/\u003e\u003cp\u003eUber introduced a high-throughput financial ledger processing system designed to handle hot account write contention at scale. Using 250ms batching, Redis coordination, and optimistic atomic updates, the system supports 30+ updates per second per account while preserving consistency and auditability, reducing multi-hour processing pipelines to minutes in its distributed accounting infrastructure.\u003c/p\u003e \u003ci\u003eBy Leela Kumili\u003c/i\u003e",
+    "author": "Leela Kumili"
+  },
+  {
+    "id": "https://www.infoq.com/news/2026/06/data-driven-platform-engineering/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "How a Culture of Data-Driven Conversations Can Support Platform Engineering",
+    "url": "https://www.infoq.com/news/2026/06/data-driven-platform-engineering/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-04T11:54:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/news/2026/06/data-driven-platform-engineering/en/headerimage/generatedHeaderImage-1780255652688.jpg\"/\u003e\u003cp\u003eTo provide SRE as a service, a team built a center of excellence, introducing Federated SREs and roles like production manager and technical tribe lead. They created a culture of data-driven conversations where SLOs and SLAs were democratised. Surviving growing cognitive load meant continuously simplifying architecture and embedding sovereignty and resilience into platform design decisions.\u003c/p\u003e \u003ci\u003eBy Ben Linders\u003c/i\u003e",
+    "author": "Ben Linders"
+  },
+  {
+    "id": "https://www.infoq.com/presentations/architecting-deletion-system/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "Presentation: Architecting a Centralized Platform for Data Deletion at Netflix",
+    "url": "https://www.infoq.com/presentations/architecting-deletion-system/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-04T10:26:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/presentations/architecting-deletion-system/en/mediumimage/medium-1779869686290.jpg\"/\u003e\u003cp\u003eThe speakers discuss the architectural challenges of executing safe data deletion across distributed datastores. Balancing durability, availability \u0026  correctness, they explain how to orchestrate multi-system deletion propagation without impacting live traffic. They share lessons on controlling tombstone accumulation, building continuous audit loops, and gaining trust with a centralized platform.\u003c/p\u003e \u003ci\u003eBy Vidhya Arvind, Shawn Liu\u003c/i\u003e",
+    "author": "Vidhya Arvind, Shawn Liu"
+  },
+  {
+    "id": "https://www.infoq.com/articles/architectural-change-cases/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "Article: Architectural Change Cases: a Practical Tool for Evolutionary Architectures",
+    "url": "https://www.infoq.com/articles/architectural-change-cases/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-04T09:00:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/articles/architectural-change-cases/en/headerimage/architectural-change-cases-header-1780316814045.jpg\"/\u003e\u003cp\u003eArchitectural change cases extend architecture decision record (ADR) thinking by evaluating how decisions may evolve over time. Change cases expose hidden assumptions and help teams estimate the reversibility and cost of change.\u003c/p\u003e \u003ci\u003eBy Pierre Pureur, Kurt Bittner\u003c/i\u003e",
+    "author": "Pierre Pureur, Kurt Bittner"
+  },
+  {
+    "id": "https://www.infoq.com/news/2026/06/aws-random-graph-data-center/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "AWS Replaces Fat-Tree Data Center Networks with Random Graph Theory, Cutting Routers by 69%",
+    "url": "https://www.infoq.com/news/2026/06/aws-random-graph-data-center/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-04T08:25:00Z",
+    "summary": "\u003cimg src=\"https://res.infoq.com/news/2026/06/aws-random-graph-data-center/en/headerimage/generatedHeaderImage-1780475849954.jpg\"/\u003e\u003cp\u003eAWS disclosed that Resilient Network Graphs, a flat network architecture based on quasi-random graph theory, is now the default for most new data center builds. The design replaces fat-tree hierarchies with direct ToR-to-ToR mesh connections using passive optical ShuffleBoxes, cutting routers by 69%, boosting throughput by 33%, and reducing network power consumption by 40%.\u003c/p\u003e \u003ci\u003eBy Steef-Jan Wiggers\u003c/i\u003e",
+    "author": "Steef-Jan Wiggers"
+  },
+  {
+    "id": "https://www.infoq.com/news/2026/06/nextjs-6-2/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "title": "Next.js 16.2: 400% Faster Dev Startup, Faster Rendering, and Deeper Tooling for AI Agents",
+    "url": "https://www.infoq.com/news/2026/06/nextjs-6-2/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=global",
+    "sourceId": "infoq",
+    "sourceName": "InfoQ",
+    "category": "Architecture",
+    "publishedAt": "2026-06-04T06:47:00Z",
+    "summary": "\u003cimg src=\"https://www.infoq.com/styles/static/images/logo/logo_bigger.jpg\"/\u003e\u003cp\u003eVercel has released Next.js 16.2, featuring performance enhancements that make development startup 400% faster and rendering up to 60% quicker. The update includes AI-assisted development tools, improved Turbopack efficiency, and better error reporting. Migration from Next.js 15 is supported, and compatibility is set for Node.js 20.9 and TypeScript 5.1 or newer.\u003c/p\u003e \u003ci\u003eBy Daniel Curtis\u003c/i\u003e",
+    "author": "Daniel Curtis"
+  }
+]

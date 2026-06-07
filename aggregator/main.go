@@ -26,6 +26,7 @@ func main() {
 func run() error {
 	configPath := envOrDefault("SOURCES_FILE", "sources.yaml")
 	outputPath := envOrDefault("OUTPUT_FILE", filepath.Join("..", "web", "data", "feed.json"))
+	cacheDir := envOrDefault("CACHE_DIR", "cache")
 
 	cfg, err := loadConfig(configPath)
 	if err != nil {
@@ -48,16 +49,27 @@ func run() error {
 
 	for _, r := range results {
 		if r.Err != nil {
-			log.Printf("WARN source %s failed: %v", r.Source.ID, r.Err)
-			failCount++
+			log.Printf("WARN source %s failed: %v — trying cache", r.Source.ID, r.Err)
+			cached, cerr := loadCache(cacheDir, r.Source.ID)
+			if cerr != nil {
+				log.Printf("WARN no cache for %s: %v", r.Source.ID, cerr)
+				failCount++
+				continue
+			}
+			log.Printf("INFO using %d cached items for %s", len(cached), r.Source.ID)
+			allItems = append(allItems, cached...)
+			activeSources = append(activeSources, r.Source)
 			continue
+		}
+		if err := saveCache(cacheDir, r.Source.ID, r.Items); err != nil {
+			log.Printf("WARN could not save cache for %s: %v", r.Source.ID, err)
 		}
 		allItems = append(allItems, r.Items...)
 		activeSources = append(activeSources, r.Source)
 	}
 
 	if failCount == len(cfg.Sources) {
-		return fmt.Errorf("all %d sources failed", failCount)
+		return fmt.Errorf("all %d sources failed with no cache fallback", failCount)
 	}
 
 	maxPerSource := cfg.Settings.MaxItemsPerSource
@@ -88,12 +100,32 @@ func fetchAll(ctx context.Context, client *http.Client, cfg *model.Config) []fet
 		i, src := i, src
 		g.Go(func() error {
 			results[i] = fetch.FetchSource(ctx, client, cfg.Settings.UserAgent, src)
-			return nil // errors are captured in Result.Err, not propagated
+			return nil // errors captured in Result.Err, not propagated
 		})
 	}
 
 	_ = g.Wait()
 	return results
+}
+
+func saveCache(dir, sourceID string, items []model.FeedItem) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(items, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dir, sourceID+".json"), data, 0o644)
+}
+
+func loadCache(dir, sourceID string) ([]model.FeedItem, error) {
+	data, err := os.ReadFile(filepath.Join(dir, sourceID+".json"))
+	if err != nil {
+		return nil, err
+	}
+	var items []model.FeedItem
+	return items, json.Unmarshal(data, &items)
 }
 
 func loadConfig(path string) (*model.Config, error) {
@@ -102,10 +134,7 @@ func loadConfig(path string) (*model.Config, error) {
 		return nil, err
 	}
 	var cfg model.Config
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, err
-	}
-	return &cfg, nil
+	return &cfg, yaml.Unmarshal(data, &cfg)
 }
 
 func writeFeed(path string, feed model.Feed) error {

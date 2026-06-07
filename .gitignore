@@ -1,2 +1,4 @@
 web/data/feed.json
 aggregator/tech-radar
+# cache/ is intentionally NOT ignored — committed to repo so CI can use it
+

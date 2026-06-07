@@ -1,0 +1,222 @@
+[
+  {
+    "id": "https://dave.cheney.net/?p=4428",
+    "title": "Pop quiz: what time was it?",
+    "url": "https://dave.cheney.net/2025/12/18/pop-quiz-what-time-was-it",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2025-12-18T00:38:52Z",
+    "summary": "Here\u0026#8217;s a small quiz derived from some incorrect advice from an AI coding assistant. This program prints two timestamps; will they be a. Roughly the same time (ie, the same second)b. Roughly 10 seconds apartc. Something else Answer after the fold",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4412",
+    "title": "Pointer pop quiz",
+    "url": "https://dave.cheney.net/2025/11/27/pointer-pop-quiz",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2025-11-27T11:18:55Z",
+    "summary": "Here\u0026#8217;s a silly example extracted from real code. Does this program print true or false?",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4373",
+    "title": "Microblog: TestMain can cause one to question reality",
+    "url": "https://dave.cheney.net/2024/02/22/microblog-testmain-can-cause-one-to-question-reality",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2024-02-21T21:04:26Z",
+    "summary": "This morning a one line change had several of us tearing up the fabric of reality trying to understand why a failing test wasn\u0026#8217;t failing, or, in fact, being run at all. Increasingly frantic efforts to upgrade/downgrade Go, run the tests on another machine, run the tests in CI, all served to only unnerve us [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4231",
+    "title": "A few bytes here, a few there, pretty soon you’re talking real memory",
+    "url": "https://dave.cheney.net/2021/01/05/a-few-bytes-here-a-few-there-pretty-soon-youre-talking-real-memory",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2021-01-05T12:39:20Z",
+    "summary": "Today\u0026#8217;s post comes from a recent Go pop quiz. Consider this benchmark fragment. A convenience wrapper around sort.Sort(sort.StringSlice(s)), sort.Strings sorts the input in place, so it isn\u0026#8217;t expected to allocate (or at least that\u0026#8217;s what 43% of the tweeps who responded thought). However it turns out that, at least in recent versions of Go, each [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4221",
+    "title": "The story of the one line fix",
+    "url": "https://dave.cheney.net/2020/12/15/the-story-of-the-one-line-fix",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2020-12-15T04:45:54Z",
+    "summary": "Picture yourself, an engineer working at the hottest distributed microservices de jour, assigned to fix a bug. You jump into an unfamiliar codebase and quickly locate the line where the problem occurred. The fix is simple, just return early or substitute a default value in the case that one cannot be determined from your input. [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4188",
+    "title": "How to dump the GOSSAFUNC graph for a method",
+    "url": "https://dave.cheney.net/2020/06/19/how-to-dump-the-gossafunc-graph-for-a-method",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2020-06-19T03:36:57Z",
+    "summary": "The Go compiler\u0026#8217;s SSA backend contains a facility to produce HTML debugging output of the compilation phases. This post covers how to print the SSA output for function and methods. Let\u0026#8217;s start with a sample program which contains a function, a value method, and a pointer method: Control of the SSA debugging output is via [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4179",
+    "title": "Diamond interface composition in Go 1.14",
+    "url": "https://dave.cheney.net/2020/05/24/diamond-interface-composition-in-go-1-14",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2020-05-24T08:49:01Z",
+    "summary": "Per the overlapping interfaces proposal, Go 1.14 now permits embedding of interfaces with overlapping method sets. This is a brief post explain what this change means: Let\u0026#8217;s start with the definition of the three key interfaces from the io package; io.Reader, io.Writer, and io.Closer: Just as embedding a type inside a struct allows the embedded type\u0026#8217;s [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4153",
+    "title": "Fatih’s question",
+    "url": "https://dave.cheney.net/2020/05/16/fatihs-question",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2020-05-16T11:31:37Z",
+    "summary": "A few days ago Fatih posted this question on twitter. I’m going to attempt to give my answer, however to do that I need to apply some simplifications as my previous attempts to answer it involved a lot of phrases like a pointer to a pointer, and other unhelpful waffling. Hopefully my simplified answer can [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4116",
+    "title": "Ensmallening Go binaries by prohibiting comparisons",
+    "url": "https://dave.cheney.net/2020/05/09/ensmallening-go-binaries-by-prohibiting-comparisons",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2020-05-09T10:23:17Z",
+    "summary": "Conventional wisdom dictates that the larger the number of types declared in a Go program, the larger the resulting binary. Intuitively this makes sense, after all, what\u0026#8217;s the point in defining a bunch of types if you\u0026#8217;re not going to write code that operates on them. However, part of the job of a linker is [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4076",
+    "title": "Mid-stack inlining in Go",
+    "url": "https://dave.cheney.net/2020/05/02/mid-stack-inlining-in-go",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2020-05-02T05:09:15Z",
+    "summary": "In the previous post I discussed how leaf inlining allows the Go compiler to reduce the overhead of function calls and extend optimisation opportunities across function boundaries. In this post I\u0026#8217;ll discuss the limits of inlining and leaf vs mid-stack inlining. The limits of inlining Inlining a function into its caller removes the call\u0026#8217;s overhead [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4053",
+    "title": "Inlining optimisations in Go",
+    "url": "https://dave.cheney.net/2020/04/25/inlining-optimisations-in-go",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2020-04-25T06:38:17Z",
+    "summary": "This is a post about how the Go compiler implements inlining and how this optimisation affects your Go code. n.b. This article focuses on gc, the de facto Go compiler from golang.org. The concepts discussed apply broadly to other Go compilers like gccgo and tinygo but may differ in implementation and efficacy. What is inlining? [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4048",
+    "title": "go test -v streaming output",
+    "url": "https://dave.cheney.net/2020/03/10/go-test-v-streaming-output",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2020-03-10T07:03:03Z",
+    "summary": "The testing package is one of my favourite packages in the Go standard library, not just because of its low noise approach to unit testing, but, over the lifetime of Go, it has received a steady stream of quality of life improvements driven by real world usage. The most recent example of this is, in [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=4041",
+    "title": "Are large slices more expensive than smaller ones?",
+    "url": "https://dave.cheney.net/2020/03/01/are-large-slices-more-expensive-than-smaller-ones",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2020-03-01T05:35:26Z",
+    "summary": "Programmers have a tendency to be superstitious. Particularly, when a programmer hears that copies are expensive, they start to see them everywhere, especially when they learn that, in Go, every assignment is a copy. Consider this code; x is three orders of magnitude larger than y, is the assignment of x to a more expensive [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=3936",
+    "title": "The Zen of Go",
+    "url": "https://dave.cheney.net/2020/02/23/the-zen-of-go",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2020-02-23T06:46:10Z",
+    "summary": "This article was derived from my GopherCon Israel 2020 presentation. It\u0026#8217;s also quite long. If you\u0026#8217;d prefer a shorter version, head over to the-zen-of-go.netlify.com. A recording of the presentation is available on YouTube. How should I write good code? Something that I’ve been thinking about a lot recently, when reflecting on the body of my [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=3897",
+    "title": "Dynamically scoped variables in Go",
+    "url": "https://dave.cheney.net/2019/12/08/dynamically-scoped-variables-in-go",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2019-12-08T01:36:27Z",
+    "summary": "This is a thought experiment in API design. It starts with the classic Go unit testing idiom: func TestOpenFile(t *testing.T) { f, err := os.Open(\"notfound\") if err != nil { t.Fatal(err) } // ... } What\u0026#8217;s the problem with this code? The assertion. if err != nil { ... } is repetitive and in the [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=3894",
+    "title": "Internets of Interest #15: The Queen of the Skies",
+    "url": "https://dave.cheney.net/2019/12/05/internets-of-interest-15-the-queen-of-the-skies",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2019-12-05T06:49:41Z",
+    "summary": "If, like me, you\u0026#8217;re a commercial aviation otaku, this walkthrough of an enthusiast built 747 cockpit simulator should be highly relevant to your interests.",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=3882",
+    "title": "Complementary engineering indicators",
+    "url": "https://dave.cheney.net/2019/12/04/complementary-engineering-indicators",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2019-12-04T09:46:26Z",
+    "summary": "Last year I had the opportunity to watch Cat Swetel\u0026#8217;s presentation The Development Metrics You Should Use (but Don’t). The information that could be gleaned from just tracking the start and finish date of work items was eye opening. If you\u0026#8217;re using an issue tracker this information is probably already (perhaps with some light data [\u0026#8230;]",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=3876",
+    "title": "Internets of interest #14: UNIX v0",
+    "url": "https://dave.cheney.net/2019/11/18/internets-of-interest-14-unix-v0",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2019-11-17T16:04:20Z",
+    "summary": "Read more over at the Living Computer Museum’s restoration page.",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=3873",
+    "title": "Internets of interest: Warner Losh on the first ten years of UNIX",
+    "url": "https://dave.cheney.net/2019/11/16/internets-of-interest-warner-losh-on-the-first-ten-years-of-unix",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2019-11-16T11:21:46Z",
+    "summary": "UNIX turns 50 this year which means 7th edition Research UNIX is that 40.",
+    "author": "Dave Cheney"
+  },
+  {
+    "id": "https://dave.cheney.net/?p=3848",
+    "title": "Use internal packages to reduce your public API surface",
+    "url": "https://dave.cheney.net/2019/10/06/use-internal-packages-to-reduce-your-public-api-surface",
+    "sourceId": "dave-cheney",
+    "sourceName": "Dave Cheney",
+    "category": "Go",
+    "publishedAt": "2019-10-06T04:43:54Z",
+    "summary": "In the beginning, before the go tool, before Go 1.0, the Go distribution stored the standard library in a subdirectory called pkg/ and the commands which built upon it in cmd/. This wasn\u0026#8217;t so much a deliberate taxonomy but a by product of the original make based build system. In September 2014, the Go distribution [\u0026#8230;]",
+    "author": "Dave Cheney"
+  }
+]
