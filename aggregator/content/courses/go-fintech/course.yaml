@@ -1,0 +1,24 @@
+slug: go-fintech
+title: "Go para Fintech"
+subtitle: "Do código idiomático ao microservice production-grade, com um produto de pagamentos que evolui fase a fase."
+category: "Go/Backend"
+tags: [go, golang, backend, fintech]
+level: advanced
+lang: pt-BR
+estimatedHours: 8
+sources:
+  - title: "Effective Go (documento oficial)"
+    url: https://go.dev/doc/effective_go
+  - title: "Go Code Review Comments"
+    url: https://go.dev/wiki/CodeReviewComments
+  - title: "Standard Go Project Layout"
+    url: https://github.com/golang-standards/project-layout
+milestones:
+  - 01-introducao.md
+  - 02-fundamentos.md
+  - 03-concorrencia.md
+  - 04-rest-bff.md
+  - 05-grpc-antifraude.md
+  - 06-production-observabilidade.md
+  - 07-performance.md
+  - 08-java-vs-go.md
