@@ -7,48 +7,59 @@
         content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';" />
   <title>Tech Radar</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="course.css" />
 </head>
 <body>
   <header>
     <div class="header-inner">
       <h1>Tech Radar</h1>
+      <nav class="main-nav" aria-label="Primary">
+        <a href="#/" class="nav-link" data-route="radar">Radar</a>
+        <a href="#/learn" class="nav-link" data-route="learn">Trilhas</a>
+      </nav>
       <span id="generated-at" class="meta"></span>
     </div>
   </header>
 
   <main>
-    <aside class="sidebar">
-      <div class="filter-group">
-        <label for="search">Search</label>
-        <input id="search" type="search" placeholder="Filter articles…" autocomplete="off" />
-      </div>
+    <!-- Radar view (default route #/) -->
+    <div id="view-radar" class="view view-radar">
+      <aside class="sidebar">
+        <div class="filter-group">
+          <label for="search">Search</label>
+          <input id="search" type="search" placeholder="Filter articles…" autocomplete="off" />
+        </div>
 
-      <div class="filter-group">
-        <label>Category</label>
-        <div id="category-filters" class="chip-list"></div>
-      </div>
+        <div class="filter-group">
+          <label>Category</label>
+          <div id="category-filters" class="chip-list"></div>
+        </div>
 
-      <div class="filter-group">
-        <label>Source</label>
-        <div id="source-filters" class="chip-list"></div>
-      </div>
+        <div class="filter-group">
+          <label>Source</label>
+          <div id="source-filters" class="chip-list"></div>
+        </div>
 
-      <div class="filter-group">
-        <button id="clear-btn" class="clear-btn">Clear filters</button>
-      </div>
-    </aside>
+        <div class="filter-group">
+          <button id="clear-btn" class="clear-btn">Clear filters</button>
+        </div>
+      </aside>
 
-    <section class="feed">
-      <section id="daily" class="daily hidden">
-        <h2 class="daily-title">Today's Reading</h2>
-        <div id="daily-cards" class="daily-cards"></div>
+      <section class="feed">
+        <section id="daily" class="daily hidden">
+          <h2 class="daily-title">Today's Reading</h2>
+          <div id="daily-cards" class="daily-cards"></div>
+        </section>
+
+        <div id="summary" class="summary"></div>
+        <div id="articles" class="articles"></div>
+        <div id="loading" class="loading">Loading articles…</div>
+        <div id="error" class="error hidden"></div>
       </section>
+    </div>
 
-      <div id="summary" class="summary"></div>
-      <div id="articles" class="articles"></div>
-      <div id="loading" class="loading">Loading articles…</div>
-      <div id="error" class="error hidden"></div>
-    </section>
+    <!-- Learn view (routes #/learn and #/learn/<slug>) -->
+    <div id="view-learn" class="view hidden"></div>
   </main>
 
   <script type="module" src="app.js"></script>

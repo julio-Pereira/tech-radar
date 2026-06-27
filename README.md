@@ -34,6 +34,81 @@ Baeldung's evergreen "series" (Java Concurrency, Maven, Spring Boot, …) are no
 
 `web/themes.json` defines the daily cards. Each theme matches items by `sourceId`, `category`, and/or `kind`; a deterministic per-day pick (`cyrb53(localDate + themeId)`) keeps each card stable for the day and rotates it the next.
 
+## Trilhas de Aprendizado (learning tracks)
+
+Beyond aggregating articles, the radar hosts **authored learning tracks** — linear,
+progressive courses per technology, with examples adapted to a fintech context. The
+content is original and the source material is **referenced by link only** (never copied
+or stored). The SPA renders each track as a vertical **timeline** of milestones with
+per-browser progress tracking (`localStorage`).
+
+Routes (hash-based, so they work under the `/tech-radar/` Pages prefix):
+
+| Route | View |
+|---|---|
+| `#/` | Radar (article aggregator) |
+| `#/learn` | Track catalog |
+| `#/learn/<slug>` | A track's timeline |
+
+### Authoring a track
+
+One folder per track under `aggregator/content/courses/<slug>/`:
+
+```
+aggregator/content/courses/spring-boot/
+  course.yaml              # manifest
+  01-introducao.md         # one milestone = one markdown file (with frontmatter)
+  02-auto-config.md
+  03-actuator-observabilidade.md
+```
+
+`course.yaml` (manifest):
+
+```yaml
+slug: spring-boot
+title: "Spring Boot para Fintech"
+subtitle: "Do zero a produção, com exemplos de pagamentos e Open Finance."
+category: "Java/Spring"          # reuses the radar categories
+tags: [java, spring, backend]
+level: intermediate              # beginner | intermediate | advanced
+lang: pt-BR
+estimatedHours: 6
+sources:                         # attribution — links only, no copied text
+  - title: "Baeldung — Spring Boot"
+    url: https://www.baeldung.com/spring-boot
+milestones:                      # timeline order = this list's order
+  - 01-introducao.md
+  - 02-auto-config.md
+  - 03-actuator-observabilidade.md
+```
+
+Each milestone file is YAML frontmatter + authored markdown body:
+
+```markdown
+---
+id: auto-config
+title: "Auto-configuração e Starters"
+summary: "Short one-liner shown collapsed on the timeline."
+estimatedMinutes: 25
+references:                      # optional, milestone-specific links
+  - title: "Spring Boot Reference — Auto-configuration"
+    url: https://docs.spring.io/spring-boot/reference/using/auto-configuration.html
+---
+
+## Section heading
+
+Authored content… include a `## Exemplo numa fintech` section per milestone.
+```
+
+### Compiling
+
+The same `go run .` that builds the feed also compiles tracks: it renders each
+milestone's markdown to HTML (goldmark, GFM), **sanitizes it at build time**
+(`bluemonday`), and writes `web/data/courses/<slug>.json` plus a lightweight
+`index.json` catalog. A malformed track is logged and skipped — it never aborts the
+feed build (and vice versa). Validation failures: missing/duplicate `slug`, a milestone
+file listed but absent, a duplicate milestone `id`, or invalid frontmatter.
+
 ## Running locally
 
 ```bash
@@ -63,3 +138,5 @@ Environment variables (override `sources.yaml` defaults):
 | `SERIES_FILE` | `series.yaml` | Path to curated Baeldung series |
 | `OUTPUT_FILE` | `../web/data/feed.json` | Output path for feed JSON |
 | `CACHE_DIR` | `cache` | Per-source fetch cache directory |
+| `COURSES_CONTENT_DIR` | `content/courses` | Source folder for authored tracks |
+| `COURSES_OUTPUT_DIR` | `../web/data/courses` | Output dir for compiled track JSON |

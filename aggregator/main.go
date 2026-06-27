@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/julio-pereira/tech-radar/internal/course"
 	"github.com/julio-pereira/tech-radar/internal/fetch"
 	"github.com/julio-pereira/tech-radar/internal/model"
 	"github.com/julio-pereira/tech-radar/internal/normalize"
@@ -98,7 +99,19 @@ func run() error {
 		Items:       processed,
 	}
 
-	return writeFeed(outputPath, feed)
+	if err := writeFeed(outputPath, feed); err != nil {
+		return err
+	}
+
+	// Compile learning tracks. This is independent of the feed: a broken course
+	// must not fail the build, so course errors are logged, not returned.
+	coursesContentDir := envOrDefault("COURSES_CONTENT_DIR", filepath.Join("content", "courses"))
+	coursesOutputDir := envOrDefault("COURSES_OUTPUT_DIR", filepath.Join("..", "web", "data", "courses"))
+	if _, cerr := course.Compile(coursesContentDir, coursesOutputDir); cerr != nil {
+		log.Printf("WARN course compilation failed: %v", cerr)
+	}
+
+	return nil
 }
 
 func fetchAll(ctx context.Context, client *http.Client, cfg *model.Config) []fetch.Result {

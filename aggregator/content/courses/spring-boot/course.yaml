@@ -1,0 +1,19 @@
+slug: spring-boot
+title: "Spring Boot para Fintech"
+subtitle: "Do zero a produção, com exemplos de pagamentos e Open Finance."
+category: "Java/Spring"
+tags: [java, spring, backend]
+level: intermediate
+lang: pt-BR
+estimatedHours: 6
+sources:
+  - title: "Baeldung — Spring Boot"
+    url: https://www.baeldung.com/spring-boot
+  - title: "Spring Boot Reference Documentation"
+    url: https://docs.spring.io/spring-boot/index.html
+  - title: "spring-projects/spring-boot (GitHub)"
+    url: https://github.com/spring-projects/spring-boot
+milestones:
+  - 01-introducao.md
+  - 02-auto-config.md
+  - 03-actuator-observabilidade.md
