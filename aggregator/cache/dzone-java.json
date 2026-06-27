@@ -1,5 +1,104 @@
 [
   {
+    "id": "https://dzone.com/articles/3659575",
+    "title": "Jakarta NoSQL: Why JPA Is Not Enough for the AI Era",
+    "url": "https://dzone.com/articles/jakarta-nosql-jpa-ai-era",
+    "sourceId": "dzone-java",
+    "sourceName": "DZone Java",
+    "category": "Java/Spring",
+    "publishedAt": "2026-06-19T14:00:00Z",
+    "summary": "\u003cp\u003eThe most effective way to present this idea is to begin with the challenge architects face: AI has transformed the persistence landscape. Enterprise applications were once built almost exclusively on relational databases, making JPA a keystone of Jakarta EE.\u0026nbsp;\u003c/p\u003e\n\u003cp\u003eToday, modern systems use a mix of relational databases, document stores, caches, graph engines, and increasingly, vector databases that support semantic search, \u003ca href=\"https://dzone.com/articles/mastering-retrieval-augmented-generation\"\u003eretrieval-augmented generation\u003c/a\u003e (RAG), and AI-powered applications. Polyglot persistence is now the industry standard. While Jakarta EE standardized relational persistence through JPA, it still lacks a vendor-neutral standard for non-relational persistence. This gap forces developers to rely on fragmented, proprietary solutions, creating barriers to portability, productivity, and innovation.\u003c/p\u003e",
+    "author": "Otavio Santana"
+  },
+  {
+    "id": "https://dzone.com/articles/3659566",
+    "title": "From printTriangularNumber to Duff’s Device: Mastering Java Switch Statements Old and New",
+    "url": "https://dzone.com/articles/java-switch-duff-device",
+    "sourceId": "dzone-java",
+    "sourceName": "DZone Java",
+    "category": "Java/Spring",
+    "publishedAt": "2026-06-19T12:00:04Z",
+    "summary": "\u003cp\u003eIn this blog post, we will see how the humble Java \u003ccode\u003eswitch\u003c/code\u003e statement evolved from a fall-through curiosity into a powerful expression, and how understanding its mechanics unlocks classic techniques like Duff's Device.\u003c/p\u003e\n\u003cdiv class=\"wp-block-group ai-summarization-summary\"\u003e\n \u003c!-- wp:paragraph --\u003e\n \u003cp\u003eJava's switch statement has evolved from a fall-through-prone construct into a modern expression syntax introduced in Java 14. The post traces this evolution using a concrete example, a method that computes triangular numbers by intentionally allowing execution to cascade through cases without break statements.\u003c/p\u003e",
+    "author": "NaveenKumar Namachivayam"
+  },
+  {
+    "id": "https://dzone.com/articles/3658567",
+    "title": "Top Java Security Vulnerabilities and How to Prevent Them in Modern Java",
+    "url": "https://dzone.com/articles/java-security-vulnerabilities-prevention",
+    "sourceId": "dzone-java",
+    "sourceName": "DZone Java",
+    "category": "Java/Spring",
+    "publishedAt": "2026-06-18T16:00:00Z",
+    "summary": "\u003cp\u003eWith the increasing number of security threats, organizations have invested heavily in cybersecurity initiatives to protect their applications, infrastructure, and sensitive data. Security vulnerabilities are rarely introduced intentionally. Most of them creep into applications through shortcuts, overlooked edge cases, outdated libraries, or some bad coding habits.\u003c/p\u003e\n\u003cp\u003eModern Java has significantly improved its security capabilities, but no framework or JVM version can completely protect an application from insecure coding practices. As developers, we still need to understand where vulnerabilities originate and how to prevent them before they reach production.\u003c/p\u003e",
+    "author": "Muhammed Harris Kodavath"
+  },
+  {
+    "id": "https://dzone.com/articles/3656726",
+    "title": "OpenAPI, ORM, SVG, and Lottie",
+    "url": "https://dzone.com/articles/openapi-orm-svg-and-lottie",
+    "sourceId": "dzone-java",
+    "sourceName": "DZone Java",
+    "category": "Java/Spring",
+    "publishedAt": "2026-06-17T19:00:00Z",
+    "summary": "\u003cp\u003eThis is the third follow-up to \u003ca href=\"https://www.codenameone.com/blog/metal-default-new-build-cloud-and-a-new-format/\" rel=\"noopener noreferrer\" target=\"_blank\"\u003eFriday's release post\u003c/a\u003e. Saturday's was about how you iterate; yesterday's was about new platform APIs in the core; today's is about a run of pieces that change how you write the structural parts of an app.\u003c/p\u003e\n\u003cp\u003eThe pieces are an OpenAPI client generator, a SQLite ORM, JSON and XML mappers, a component binder with validation, build-time SVG and Lottie transcoders, and a declarative router with deep links. All ride on a single \u003cstrong\u003ebuild-time codegen pipeline\u003c/strong\u003e: a Maven-plugin pass that reads annotations or declarative source files at build time and emits typed Java that compiles into your binary. No reflection, no service loader, no \u003ccode\u003eClass.forName\u003c/code\u003e. The \"How it works\" section at the end of this post covers the codegen plumbing once you have seen what it powers.\u003c/p\u003e",
+    "author": "Shai Almog"
+  },
+  {
+    "id": "https://dzone.com/articles/3656694",
+    "title": "On-Device Debugging and JUnit 5",
+    "url": "https://dzone.com/articles/on-device-debugging-and-junit-5",
+    "sourceId": "dzone-java",
+    "sourceName": "DZone Java",
+    "category": "Java/Spring",
+    "publishedAt": "2026-06-17T15:00:00Z",
+    "summary": "\u003cp\u003eThis is the first follow-up to \u003ca href=\"https://www.codenameone.com/blog/metal-default-new-build-cloud-and-a-new-format/\"\u003eFriday's release post\u003c/a\u003e, and it covers the two changes from this release that affect how you iterate on a Codename One app rather than what the app itself does. On-device debugging that treats Java as Java on a real iPhone or a real Android device, and standard JUnit 5 against the JavaSE simulator. The first is the one we have been wanting for a long time, and is the one that takes the most explaining, so most of the post is about it.\u003c/p\u003e\n\u003ch2\u003eOn-Device Debugging That Treats Java as Java\u003c/h2\u003e\n\u003cp\u003eCodename One has always supported on-device debugging in the strict technical sense. You could attach Xcode to a \u003ccode\u003e.ipa\u003c/code\u003e, you could attach Android Studio to a running APK, you could read the native call stack, you could step through Objective-C or the C that ParparVM emits. What you could not do was set a breakpoint in \u003ccode\u003eMyForm.java\u003c/code\u003e, hit it on a real iPhone, and inspect a Java field on a Java object as a Java object. You also could not debug an iOS app without a Mac in the loop somewhere, because the only debugger that understood the binary was Xcode. The translation step between the Java you wrote and the C that ParparVM produces left no way back across the gap on the device.\u003c/p\u003e",
+    "author": "Shai Almog"
+  },
+  {
+    "id": "https://dzone.com/articles/3658595",
+    "title": "A Spring Boot App With Half the Startup Time",
+    "url": "https://dzone.com/articles/spring-boot-startup-time",
+    "sourceId": "dzone-java",
+    "sourceName": "DZone Java",
+    "category": "Java/Spring",
+    "publishedAt": "2026-06-12T16:00:00Z",
+    "summary": "\u003cp\u003eThe \u003ca href=\"https://github.com/Angular2Guy/MovieManager\" rel=\"noopener noreferrer\" target=\"_blank\"\u003eMovieManager\u003c/a\u003e project has been updated to use JDK 25 and the AOT cache from project \u003ca href=\"https://openjdk.org/projects/leyden/\" rel=\"noopener noreferrer\" target=\"_blank\"\u003eLeyden\u003c/a\u003e. Project Leyden is part of the OpenJDK project and provides cached linking and cached performance statistics. That means the time spent linking at startup is moved to build time, and the statistics are created during a test run at build time as well.\u0026nbsp;\u003c/p\u003e\n\u003cp\u003eBecause of that, the JVM loads the needed classes already linked and starts compiling the hot code paths immediately. The MovieManager application starts in less than half the time with these optimizations without any code changes.\u003c/p\u003e",
+    "author": "Sven Loesekann"
+  },
+  {
+    "id": "https://dzone.com/articles/3656697",
+    "title": "Implementing the Planning Pattern With Java Enterprise and LangChain4j",
+    "url": "https://dzone.com/articles/planning-pattern-java-langchain4j",
+    "sourceId": "dzone-java",
+    "sourceName": "DZone Java",
+    "category": "Java/Spring",
+    "publishedAt": "2026-06-12T14:00:00Z",
+    "summary": "\u003cp\u003eArtificial intelligence is evolving beyond basic chat interfaces to play an active role in enterprise applications. While initial AI integrations often focus on text generation, summarization, or retrieval-augmented generation (RAG), many business challenges demand more advanced solutions. These require breaking down complex objectives into sequenced tasks and coordinating their execution. The Planning Pattern addresses this need by enabling AI to function as both a content generator and a strategist that creates execution plans.\u003c/p\u003e\n\u003cp\u003eFor software engineers and architects, the Planning Pattern marks a significant advancement in intelligent systems. It separates reasoning from execution, allowing applications to use large language models while ensuring governance, observability, and reliability in enterprise settings.\u0026nbsp;\u003c/p\u003e",
+    "author": "Otavio Santana"
+  },
+  {
+    "id": "https://dzone.com/articles/3654913",
+    "title": "Native SQL in Java Without JDBC Boilerplate — Meet Ujorm3",
+    "url": "https://dzone.com/articles/ujorm3-native-sql-java",
+    "sourceId": "dzone-java",
+    "sourceName": "DZone Java",
+    "category": "Java/Spring",
+    "publishedAt": "2026-06-11T18:00:00Z",
+    "summary": "\u003cp\u003eIf you've ever written raw JDBC, you know what's coming. Open a connection, create a \u003ccode\u003ePreparedStatement\u003c/code\u003e, set parameters \u003cstrong\u003eby index\u003c/strong\u003e (hope you counted right), iterate a \u003ccode\u003eResultSet\u003c/code\u003e, close everything in a \u003ccode\u003efinally\u003c/code\u003e block, declare \u003ccode\u003eSQLException\u003c/code\u003e on every method signature… It's a lot of ceremony for \"give me some rows.\"\u003c/p\u003e\n\u003cp\u003eI've been experimenting with \u003ca href=\"https://github.com/pponec/ujorm#-ujorm3-library\" rel=\"noopener noreferrer\" target=\"_blank\"\u003eUjorm3\u003c/a\u003e, a new lightweight ORM library for Java 17+. Here's a realistic example — a JOIN query that maps results including a nested relation:\u003c/p\u003e",
+    "author": "Pavel Ponec"
+  },
+  {
+    "id": "https://dzone.com/articles/3650506",
+    "title": "Rust-Native Alternatives to Spark SQL and DataFrame Workloads",
+    "url": "https://dzone.com/articles/rust-sql-alternatives-dataframe-workloads",
+    "sourceId": "dzone-java",
+    "sourceName": "DZone Java",
+    "category": "Java/Spring",
+    "publishedAt": "2026-06-11T15:00:00Z",
+    "summary": "\u003cp\u003eApache Spark is one of the most powerful tools in the data and AI engineering world. It helps process massive datasets and is widely used across industries, irrespective of cloud platforms.\u003c/p\u003e\n\u003cp\u003eBut when you move from learning Spark to running it in production, you start seeing real challenges.\u003c/p\u003e",
+    "author": "Srinivasarao Rayankula"
+  },
+  {
     "id": "https://dzone.com/articles/3655800",
     "title": "Skills, Java 17, and Theme Accents",
     "url": "https://dzone.com/articles/skills-java-17-theme-accents",
@@ -118,105 +217,6 @@
     "category": "Java/Spring",
     "publishedAt": "2026-05-20T18:00:00Z",
     "summary": "\u003cp\u003eThe security audit report landed unexpectedly. It highlighted a critical vulnerability in our payment processing module. We had passed all unit tests. We had passed all integration tests. The code review looked clean. Yet the auditors found a hardcoded API key hidden in a utility class. This key allowed access to our third-party payment gateway. Anyone with access to the repository could see it. We were lucky the auditors found it before a malicious actor did. This incident was a wake-up call. We realized manual code reviews were not enough. We needed automated static analysis. We needed SonarQube.\u003c/p\u003e\n\u003cp\u003eIn this article, I will share how we integrated SonarQube into our Java development workflow. I will explain the specific rules that exposed our vulnerabilities. I will detail how we configured quality gates to prevent future regressions. This is not a generic installation guide. It is a record of how we shifted security left in our pipeline. Static analysis is not just about finding bugs. It is about building a culture of quality.\u003c/p\u003e",
-    "author": "Ramya vani Rayala"
-  },
-  {
-    "id": "https://dzone.com/articles/3654633",
-    "title": "Introduction to Tactical DDD With Java: Steps to Build Semantic Code",
-    "url": "https://dzone.com/articles/tactical-ddd-with-java",
-    "sourceId": "dzone-java",
-    "sourceName": "DZone Java",
-    "category": "Java/Spring",
-    "publishedAt": "2026-05-20T15:30:00Z",
-    "summary": "\u003cp\u003eModern software systems rarely fail due to poor coding skills. Most failures occur when teams lose sight of the business problem they are addressing. As systems evolve, requirements shift, teams expand, and new integrations are added, codebases often become collections of technical decisions that lack business context. Classes become generic managers and services, methods devolve into procedural scripts, and communication between developers and domain experts diminishes. \u003ca href=\"https://dzone.com/articles/tactical-domain-driven-design-bringing-strategy-to\"\u003eTactical Domain-Driven Design\u003c/a\u003e (DDD) addresses this issue by emphasizing software that directly reflects business language in code, rather than focusing solely on infrastructure or frameworks.\u003c/p\u003e\n\u003cp\u003eThe term “semantic” comes from the Greek semantikos, meaning “significant” or “meaningful,” which is central to Tactical DDD. The objective is not just to reorganize classes, but to ensure code communicates intent clearly to both engineers and business experts. In modern Java systems, where complexity increases due to distributed architectures, integrations, and ongoing business changes, this clarity is essential for long-term maintainability.\u0026nbsp;\u003c/p\u003e",
-    "author": "Otavio Santana"
-  },
-  {
-    "id": "https://dzone.com/articles/3640425",
-    "title": "AI Agents in Java: Architecting Intelligent Health Data Systems",
-    "url": "https://dzone.com/articles/ai-agents-in-java-architecting-intelligent-health",
-    "sourceId": "dzone-java",
-    "sourceName": "DZone Java",
-    "category": "Java/Spring",
-    "publishedAt": "2026-05-20T15:00:00Z",
-    "summary": "\u003ch2 data-end=\"688\" data-start=\"175\"\u003e\u003cstrong data-end=\"197\" data-start=\"175\"\u003eExecutive Summary\u003c/strong\u003e\u003c/h2\u003e\n\u003cp data-end=\"688\" data-start=\"175\"\u003eModern \u003ca href=\"https://dzone.com/articles/advancements-in-ai-for-health-data-analysis\"\u003ehealth data analytics increasingly leverage AI\u003c/a\u003e agent software components that process information and make decisions, often using large language models (LLMs) or machine learning models. In Java, you can build agentic systems using libraries like DJL (Deep Java Library), \u003ca href=\"https://dzone.com/articles/aspects-to-advisors-modular-cross-cutting-spring-ai\"\u003eSpring AI\u003c/a\u003e, or by integrating LLM APIs. This document includes Maven setup, minimal Spring Boot code (controllers and services), a simple agent example, diagrams, and a comparison of different agent approaches.\u003c/p\u003e\n\u003ch2 data-end=\"688\" data-start=\"175\"\u003eFlowchart\u003c/h2\u003e\n\u003cp\u003e\u003cimg style=\"width: 757px;\" class=\"fr-fic fr-dib lazyload\" data-image=\"true\" data-new=\"false\" data-sizeformatted=\"79.4 kB\" data-mimetype=\"image/png\" data-creationdate=\"1776425104400\" data-creationdateformatted=\"04/17/2026 11:25 AM\" data-type=\"temp\" data-url=\"https://dz2cdn1.dzone.com/storage/temp/18991552-mermaid-diagram.png\" data-modificationdate=\"null\" data-size=\"79350\" data-name=\"mermaid-diagram.png\" data-id=\"18991552\" alt=\"Flowchart image\" data-src=\"https://dz2cdn1.dzone.com/storage/temp/18991552-mermaid-diagram.png\"\u003e\u003c/p\u003e",
-    "author": "Ramya vani Rayala"
-  },
-  {
-    "id": "https://dzone.com/articles/3650248",
-    "title": "Ujorm3: A New Lightweight ORM for JavaBeans and Records",
-    "url": "https://dzone.com/articles/ujorm3-lightweight-orm-java",
-    "sourceId": "dzone-java",
-    "sourceName": "DZone Java",
-    "category": "Java/Spring",
-    "publishedAt": "2026-05-19T18:00:00Z",
-    "summary": "\u003cblockquote\u003e\n \u003cp\u003e\"Do the simplest thing that could possibly work.\"\u003c/p\u003e\n \u003cp\u003e— Kent Beck, creator of Extreme Programming and pioneer of Test-Driven Development.\u003c/p\u003e",
-    "author": "Pavel Ponec"
-  },
-  {
-    "id": "https://dzone.com/articles/3649980",
-    "title": "OpenAPI From Code With Spring and Java: A Recipe for Your CI",
-    "url": "https://dzone.com/articles/openapi-ci-spring-java",
-    "sourceId": "dzone-java",
-    "sourceName": "DZone Java",
-    "category": "Java/Spring",
-    "publishedAt": "2026-05-19T14:00:00Z",
-    "summary": "\u003cp\u003eThis is not \"just another article about Springdoc,\" I promise. This is a ready-to-use recipe I was struggling to find one day, and had to build it from scratch.\u003c/p\u003e\n\u003cp\u003eHave you ever needed to generate OpenAPI documentation directly from your code and, more importantly, do it in a way that fits cleanly into a CI pipeline? \u003ca href=\"https://dzone.com/articles/test-a-web-service-using-swagger-ui\"\u003eSwagger UI\u003c/a\u003e is commonly used in Spring Boot applications to visualize and test APIs from the browser. It can also expose the generated OpenAPI definition through a configurable endpoint, and that endpoint is exactly what we will use in this article.\u003c/p\u003e",
-    "author": "Roman Dubinin"
-  },
-  {
-    "id": "https://dzone.com/articles/3646826",
-    "title": "Building an Image Classification Pipeline With Apache Camel and Deep Java Library (DJL)",
-    "url": "https://dzone.com/articles/image-classification-pipeline-camel-djl",
-    "sourceId": "dzone-java",
-    "sourceName": "DZone Java",
-    "category": "Java/Spring",
-    "publishedAt": "2026-05-15T20:00:00Z",
-    "summary": "\u003cp\u003eImage classification is now a key part of many applications. Whether you’re automating photo organization, filtering uploaded content, or enriching product catalogs with visual tags, knowing what’s in an image can be just as important as knowing what a user typed.\u003c/p\u003e\n\u003cp\u003eFor Java developers, the challenge is familiar: most computer vision examples live in Python notebooks, while the systems that actually need image classification run on the JVM. Bridging that gap usually means standing up a separate Python microservice, managing REST calls, and dealing with serialization overhead. That’s a lot of ceremony for what should be a single processing step.\u003c/p\u003e",
-    "author": "Vignesh Durai"
-  },
-  {
-    "id": "https://dzone.com/articles/3654489",
-    "title": "How to Test a DELETE API Request With REST-Assured Java",
-    "url": "https://dzone.com/articles/test-delete-api-rest-assured-java",
-    "sourceId": "dzone-java",
-    "sourceName": "DZone Java",
-    "category": "Java/Spring",
-    "publishedAt": "2026-05-14T14:30:00Z",
-    "summary": "\u003cp name=\"eb45\"\u003eAPI testing has become increasingly popular in recent times. Since it doesn’t involve a UI, it is generally faster and easier to execute. This makes API testing a preferred choice for validating end-to-end system functionality. Additionally, integrating automated API tests into CI/CD pipelines enables teams to receive quicker feedback on their builds.\u003c/p\u003e\n\u003cp name=\"f9bd\"\u003eIn this tutorial, we will explore DELETE API requests and learn how to handle them with Rest-Assured in Java for automated testing. The following topics will be covered:\u003c/p\u003e",
-    "author": "Faisal Khatri"
-  },
-  {
-    "id": "https://dzone.com/articles/3654488",
-    "title": "How to Test a PATCH API Request With REST-Assured Java",
-    "url": "https://dzone.com/articles/test-patch-api-rest-assured-java",
-    "sourceId": "dzone-java",
-    "sourceName": "DZone Java",
-    "category": "Java/Spring",
-    "publishedAt": "2026-05-13T13:30:06Z",
-    "summary": "\u003cp name=\"d2ab\"\u003eTesting is an essential step in the API development process to ensure that APIs are working correctly. There are multiple HTTP methods in RESTful APIs, including POST, GET, PUT, PATCH, and DELETE. In our earlier articles, we learned how to perform automated testing of \u003ca data-href=\"https://medium.com/javarevisited/how-to-test-post-requests-with-rest-assured-java-for-api-testing-part-ii-30dfe04a533a\" href=\"https://dzone.com/articles/rest-assured-java-test-post-requests-part-ii\" rel=\"noopener noreferrer\" target=\"_blank\"\u003ePOST\u003c/a\u003e, \u003ca data-href=\"https://medium.com/@iamfaisalkhatri/how-to-test-put-api-request-using-rest-assured-java-da58fa361217\" href=\"https://dzone.com/articles/test-put-api-rest-assured-java\" rel=\"noopener noreferrer\" target=\"_blank\"\u003ePUT\u003c/a\u003e, and \u003ca data-href=\"https://medium.com/javarevisited/how-to-test-a-get-api-request-using-rest-assured-java-90c75eaccdd0\" href=\"https://dzone.com/articles/test-get-api-rest-assured-java\" rel=\"noopener noreferrer\" target=\"_blank\"\u003eGET\u003c/a\u003e APIs using Rest-Assured Java.\u003c/p\u003e\n\u003cp name=\"18d6\"\u003eIn this tutorial article, we will discuss and cover the following points:\u003c/p\u003e",
-    "author": "Faisal Khatri"
-  },
-  {
-    "id": "https://dzone.com/articles/3638995",
-    "title": "Solving the Mystery: Why Java RSS Grows in Docker on M1 Macs",
-    "url": "https://dzone.com/articles/java-rss-growth-docker-m1",
-    "sourceId": "dzone-java",
-    "sourceName": "DZone Java",
-    "category": "Java/Spring",
-    "publishedAt": "2026-05-12T19:00:00Z",
-    "summary": "\u003ch2\u003eThe Problem\u003c/h2\u003e\n\u003cp\u003eYou're running a Java application in a Docker container on your M1 Mac. Everything works fine, but you notice something strange: The \u003ca href=\"https://dzone.com/articles/how-to-decrease-jvm-memory-consumption-in-docker-u\"\u003eresident set size\u003c/a\u003e (RSS) keeps growing, even though your heap usage is stable. After hours of investigation, you find mysterious \u003ccode\u003erwxp\u003c/code\u003e memory regions, each exactly 128 MB, accumulating in your process memory map.\u003c/p\u003e\n\u003cp\u003eWhat's causing this? Is it a memory leak? A JVM bug? Something else entirely?\u003c/p\u003e",
-    "author": "Sumeet Sharma"
-  },
-  {
-    "id": "https://dzone.com/articles/3641540",
-    "title": "Improving Java Application Reliability with Dynatrace AI Engine",
-    "url": "https://dzone.com/articles/improving-java-application-reliability-with-dyna",
-    "sourceId": "dzone-java",
-    "sourceName": "DZone Java",
-    "category": "Java/Spring",
-    "publishedAt": "2026-05-11T12:00:17Z",
-    "summary": "\u003cp\u003eModern Java applications require \u003cstrong\u003erobust observability and automated intelligence\u003c/strong\u003e to ensure reliability at scale. Dynatrace’s AI-driven platform continuously learns application behavior, establishes statistical baselines and applies deterministic, causation based analysis to detect anomalies and pinpoint root causes.\u003c/p\u003e\n\u003cp\u003eBy correlating metrics, logs, traces, and topology context across applications, services and infrastructure, \u003ca href=\"https://dzone.com/articles/opentelemetry-vs-dynatrace\"\u003eDynatrace\u003c/a\u003e can automatically highlight the true source of problems and assess their impact. This drastically reduces alert noise and \u003cem\u003eMTTR\u003c/em\u003e .\u003c/p\u003e",
     "author": "Ramya vani Rayala"
   }
 ]

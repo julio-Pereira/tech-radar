@@ -1,5 +1,35 @@
 [
   {
+    "id": "https://engineering.fb.com/?p=24095",
+    "title": "Privacy-Aware Infrastructure in the AI-Native Era: An Asset Classification Case Study",
+    "url": "https://engineering.fb.com/2026/06/25/security/privacy-aware-infrastructure-in-the-ai-native-era-an-asset-classification-case-study/",
+    "sourceId": "engineering-at-meta",
+    "sourceName": "Engineering at Meta",
+    "category": "Engineering",
+    "publishedAt": "2026-06-25T22:30:51Z",
+    "summary": "\u003cp\u003e Privacy controls — systems that enforce retention, access, allowed-purpose, downstream-sharing, or anonymization policies — require a reliable understanding of data to function. Before such a control can operate effectively, it must know exactly what it is looking at. This can be complex, as demonstrated by a field simply named \u0026#8220;age\u0026#8220;: In one context, it might [...]\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"btn btn-secondary understrap-read-more-link\" href=\"https://engineering.fb.com/2026/06/25/security/privacy-aware-infrastructure-in-the-ai-native-era-an-asset-classification-case-study/\"\u003eRead More...\u003c/a\u003e\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://engineering.fb.com/2026/06/25/security/privacy-aware-infrastructure-in-the-ai-native-era-an-asset-classification-case-study/\"\u003ePrivacy-Aware Infrastructure in the AI-Native Era: An Asset Classification Case Study\u003c/a\u003e appeared first on \u003ca href=\"https://engineering.fb.com\"\u003eEngineering at Meta\u003c/a\u003e.\u003c/p\u003e\n"
+  },
+  {
+    "id": "https://engineering.fb.com/?p=24113",
+    "title": "How Meta Engineered Ultra-Narrow Batteries for AI Glasses",
+    "url": "https://engineering.fb.com/2026/06/23/production-engineering/how-meta-built-ultra-narrow-batteries-for-ai-glasses-meta-tech-podcast/",
+    "sourceId": "engineering-at-meta",
+    "sourceName": "Engineering at Meta",
+    "category": "Engineering",
+    "publishedAt": "2026-06-23T16:00:38Z",
+    "summary": "\u003cp\u003eSmart glasses like the Ray-Ban Meta and Oakley Meta Vanguards need to pack enough energy to power features like cameras, speakers, AI workloads, and even a display. But it all has to fit into the glasses’ temple arms. So how do you place a battery with enough power to run a pair of smart glasses [...]\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"btn btn-secondary understrap-read-more-link\" href=\"https://engineering.fb.com/2026/06/23/production-engineering/how-meta-built-ultra-narrow-batteries-for-ai-glasses-meta-tech-podcast/\"\u003eRead More...\u003c/a\u003e\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://engineering.fb.com/2026/06/23/production-engineering/how-meta-built-ultra-narrow-batteries-for-ai-glasses-meta-tech-podcast/\"\u003eHow Meta Engineered Ultra-Narrow Batteries for AI Glasses\u003c/a\u003e appeared first on \u003ca href=\"https://engineering.fb.com\"\u003eEngineering at Meta\u003c/a\u003e.\u003c/p\u003e\n"
+  },
+  {
+    "id": "https://engineering.fb.com/?p=24054",
+    "title": "Adopting AV1 for Real-Time Communication (RTC) at Scale",
+    "url": "https://engineering.fb.com/2026/06/22/video-engineering/adopting-av1-for-real-time-communication-rtc-meta/",
+    "sourceId": "engineering-at-meta",
+    "sourceName": "Engineering at Meta",
+    "category": "Engineering",
+    "publishedAt": "2026-06-22T16:00:08Z",
+    "summary": "\u003cp\u003eAdopting AV1 for real-time communication at Meta has been a multi-year effort spanning codec selection, device eligibility, rate control, and error resilience. We’re sharing the technical and operational challenges while deploying AV1 and expanding coverage, and how we addressed them for real-time communication. We’re presenting several technologies for improving AV1 call quality, including rate control [...]\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"btn btn-secondary understrap-read-more-link\" href=\"https://engineering.fb.com/2026/06/22/video-engineering/adopting-av1-for-real-time-communication-rtc-meta/\"\u003eRead More...\u003c/a\u003e\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://engineering.fb.com/2026/06/22/video-engineering/adopting-av1-for-real-time-communication-rtc-meta/\"\u003eAdopting AV1 for Real-Time Communication (RTC) at Scale\u003c/a\u003e appeared first on \u003ca href=\"https://engineering.fb.com\"\u003eEngineering at Meta\u003c/a\u003e.\u003c/p\u003e\n"
+  },
+  {
     "id": "https://engineering.fb.com/?p=24022",
     "title": "Lights Out, Systems On: Validating Instant Power Loss Readiness",
     "url": "https://engineering.fb.com/2026/06/03/data-center-engineering/lights-out-systems-on-validating-instant-power-loss-readiness/",
@@ -58,35 +88,5 @@
     "category": "Engineering",
     "publishedAt": "2026-05-01T16:00:58Z",
     "summary": "\u003cp\u003eThe HSM-based Backup Key Vault Meta\u0026#8217;s HSM-based Backup Key Vault provides the foundation for end-to-end encrypted backups for WhatsApp and Messenger. The system allows people to protect their backed-up message history with a recovery code, ensuring that the recovery code is stored in tamper-resistant hardware security modules (HSMs) and is inaccessible to Meta, cloud storage [...]\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"btn btn-secondary understrap-read-more-link\" href=\"https://engineering.fb.com/2026/05/01/security/meta-strengthening-end-to-end-encrypted-backups/\"\u003eRead More...\u003c/a\u003e\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://engineering.fb.com/2026/05/01/security/meta-strengthening-end-to-end-encrypted-backups/\"\u003eHow Meta Is Strengthening End-to-End Encrypted Backups\u003c/a\u003e appeared first on \u003ca href=\"https://engineering.fb.com\"\u003eEngineering at Meta\u003c/a\u003e.\u003c/p\u003e\n"
-  },
-  {
-    "id": "https://engineering.fb.com/?p=23909",
-    "title": "Modernizing the Facebook Groups Search to Unlock the Power of Community Knowledge",
-    "url": "https://engineering.fb.com/2026/04/21/ml-applications/modernizing-the-facebook-groups-search-to-unlock-the-power-of-community-knowledge/",
-    "sourceId": "engineering-at-meta",
-    "sourceName": "Engineering at Meta",
-    "category": "Engineering",
-    "publishedAt": "2026-04-21T16:00:19Z",
-    "summary": "\u003cp\u003eWe’ve fundamentally transformed Facebook Groups Search to help people more reliably discover, sort through, and validate community content that’s most relevant to them. We’ve adopted a new hybrid retrieval architecture and implemented automated model-based evaluation to address the major friction points people experience when searching community content. Under this new framework, we’ve made tangible improvements [...]\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"btn btn-secondary understrap-read-more-link\" href=\"https://engineering.fb.com/2026/04/21/ml-applications/modernizing-the-facebook-groups-search-to-unlock-the-power-of-community-knowledge/\"\u003eRead More...\u003c/a\u003e\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://engineering.fb.com/2026/04/21/ml-applications/modernizing-the-facebook-groups-search-to-unlock-the-power-of-community-knowledge/\"\u003eModernizing the Facebook Groups Search to Unlock the Power of Community Knowledge\u003c/a\u003e appeared first on \u003ca href=\"https://engineering.fb.com\"\u003eEngineering at Meta\u003c/a\u003e.\u003c/p\u003e\n"
-  },
-  {
-    "id": "https://engineering.fb.com/?p=23898",
-    "title": "Capacity Efficiency at Meta: How Unified AI Agents Optimize Performance at Hyperscale",
-    "url": "https://engineering.fb.com/2026/04/16/developer-tools/capacity-efficiency-at-meta-how-unified-ai-agents-optimize-performance-at-hyperscale/",
-    "sourceId": "engineering-at-meta",
-    "sourceName": "Engineering at Meta",
-    "category": "Engineering",
-    "publishedAt": "2026-04-16T16:00:34Z",
-    "summary": "\u003cp\u003eWe\u0026#8217;re sharing insights into Meta\u0026#8217;s Capacity Efficiency Program, where we\u0026#8217;ve built an AI agent platform that helps automate finding and fixing performance issues throughout our infrastructure. By leveraging encoded domain expertise across a unified, standardized tool interface these agents help save power and free up engineers\u0026#8217; time away from addressing performance issues to innovating on [...]\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"btn btn-secondary understrap-read-more-link\" href=\"https://engineering.fb.com/2026/04/16/developer-tools/capacity-efficiency-at-meta-how-unified-ai-agents-optimize-performance-at-hyperscale/\"\u003eRead More...\u003c/a\u003e\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://engineering.fb.com/2026/04/16/developer-tools/capacity-efficiency-at-meta-how-unified-ai-agents-optimize-performance-at-hyperscale/\"\u003eCapacity Efficiency at Meta: How Unified AI Agents Optimize Performance at Hyperscale\u003c/a\u003e appeared first on \u003ca href=\"https://engineering.fb.com\"\u003eEngineering at Meta\u003c/a\u003e.\u003c/p\u003e\n"
-  },
-  {
-    "id": "https://engineering.fb.com/?p=23883",
-    "title": "Post-Quantum Cryptography Migration at Meta: Framework, Lessons, and Takeaways",
-    "url": "https://engineering.fb.com/2026/04/16/security/post-quantum-cryptography-migration-at-meta-framework-lessons-and-takeaways/",
-    "sourceId": "engineering-at-meta",
-    "sourceName": "Engineering at Meta",
-    "category": "Engineering",
-    "publishedAt": "2026-04-16T14:59:44Z",
-    "summary": "\u003cp\u003eWe’re sharing lessons learned from Meta’s post-quantum cryptography (PQC) migration to help other organizations strengthen their resilience as industry transitions to post-quantum cryptography standards. We’re proposing the idea of PQC Migration Levels to help teams within organizations manage the complexity of PQC migration for their various use cases. By outlining Meta’s approach to this work [...]\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"btn btn-secondary understrap-read-more-link\" href=\"https://engineering.fb.com/2026/04/16/security/post-quantum-cryptography-migration-at-meta-framework-lessons-and-takeaways/\"\u003eRead More...\u003c/a\u003e\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://engineering.fb.com/2026/04/16/security/post-quantum-cryptography-migration-at-meta-framework-lessons-and-takeaways/\"\u003ePost-Quantum Cryptography Migration at Meta: Framework, Lessons, and Takeaways\u003c/a\u003e appeared first on \u003ca href=\"https://engineering.fb.com\"\u003eEngineering at Meta\u003c/a\u003e.\u003c/p\u003e\n"
   }
 ]

@@ -1,5 +1,38 @@
 [
   {
+    "id": "https://building.nubank.com/?p=37080",
+    "title": "From feature to platform: how Nubank reinvented its conversation architecture",
+    "url": "https://building.nubank.com/from-feature-to-platform-how-nubank-reinvented-its-conversation-architecture/",
+    "sourceId": "nubank",
+    "sourceName": "Building Nubank",
+    "category": "Engineering",
+    "publishedAt": "2026-06-24T15:30:00Z",
+    "summary": "\u003cp\u003eHow the engineering team transformed a monolithic support system into a conversational infrastructure ready for AI and multiple channels\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://building.nubank.com/from-feature-to-platform-how-nubank-reinvented-its-conversation-architecture/\"\u003eFrom feature to platform: how Nubank reinvented its conversation architecture\u003c/a\u003e appeared first on \u003ca href=\"https://building.nubank.com\"\u003eBuilding Nubank\u003c/a\u003e.\u003c/p\u003e\n",
+    "author": "Nubank Editorial"
+  },
+  {
+    "id": "https://building.nubank.com/?p=36998",
+    "title": "Feature stores for real-time ML: Part 2 – Lessons learned from production",
+    "url": "https://building.nubank.com/feature-stores-for-real-time-ml-part-2-lessons-learned-from-production/",
+    "sourceId": "nubank",
+    "sourceName": "Building Nubank",
+    "category": "Engineering",
+    "publishedAt": "2026-06-18T12:09:16Z",
+    "summary": "\u003cp\u003eAfter years operating feature stores across several workflows, here are some lessons that shaped our approach.\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://building.nubank.com/feature-stores-for-real-time-ml-part-2-lessons-learned-from-production/\"\u003eFeature stores for real-time ML: Part 2 – Lessons learned from production\u003c/a\u003e appeared first on \u003ca href=\"https://building.nubank.com\"\u003eBuilding Nubank\u003c/a\u003e.\u003c/p\u003e\n",
+    "author": "Nubank Editorial"
+  },
+  {
+    "id": "https://building.nubank.com/?p=36833",
+    "title": "Feature stores for real-time ML: Why and when to centralize feature logic",
+    "url": "https://building.nubank.com/feature-stores-for-real-time-ml-why-and-when-to-centralize-feature-logic/",
+    "sourceId": "nubank",
+    "sourceName": "Building Nubank",
+    "category": "Engineering",
+    "publishedAt": "2026-06-10T19:26:27Z",
+    "summary": "\u003cp\u003eWhat it looks like to use feature stores in real-time machine learning systems, along with their pros and cons.\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://building.nubank.com/feature-stores-for-real-time-ml-why-and-when-to-centralize-feature-logic/\"\u003eFeature stores for real-time ML: Why and when to centralize feature logic\u003c/a\u003e appeared first on \u003ca href=\"https://building.nubank.com\"\u003eBuilding Nubank\u003c/a\u003e.\u003c/p\u003e\n",
+    "author": "Nubank Editorial"
+  },
+  {
     "id": "https://building.nubank.com/?p=36736",
     "title": "The principles that uphold Nubank’s culture",
     "url": "https://building.nubank.com/the-principles-that-uphold-nubanks-culture/",
@@ -74,39 +107,6 @@
     "category": "Engineering",
     "publishedAt": "2026-03-23T16:43:15Z",
     "summary": "\u003cp\u003eLessons from Modeling State, Change, and Complexity with Values and Functions\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://building.nubank.com/building-ai-agents-for-131-million-customers/\"\u003eBuilding AI agents for 131 million customers\u003c/a\u003e appeared first on \u003ca href=\"https://building.nubank.com\"\u003eBuilding Nubank\u003c/a\u003e.\u003c/p\u003e\n",
-    "author": "Nubank Editorial"
-  },
-  {
-    "id": "https://building.nubank.com/?p=36416",
-    "title": "FinConnect: Building a standardized global connectivity platform for financial services",
-    "url": "https://building.nubank.com/finconnect-building-a-standardized-global-connectivity-platform-for-financial-services/",
-    "sourceId": "nubank",
-    "sourceName": "Building Nubank",
-    "category": "Engineering",
-    "publishedAt": "2026-03-16T10:00:00Z",
-    "summary": "\u003cp\u003eEvolving fragmented, country-specific integrations into a unified architectural layer for secure and compliant connectivity\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://building.nubank.com/finconnect-building-a-standardized-global-connectivity-platform-for-financial-services/\"\u003eFinConnect: Building a standardized global connectivity platform for financial services\u003c/a\u003e appeared first on \u003ca href=\"https://building.nubank.com\"\u003eBuilding Nubank\u003c/a\u003e.\u003c/p\u003e\n",
-    "author": "Nubank Editorial"
-  },
-  {
-    "id": "https://building.nubank.com/?p=36310",
-    "title": "The Nu way to start: Discover the Colombia 2026 Internship Program",
-    "url": "https://building.nubank.com/the-nu-way-to-start-discover-the-colombia-2026-internship-program/",
-    "sourceId": "nubank",
-    "sourceName": "Building Nubank",
-    "category": "Engineering",
-    "publishedAt": "2026-03-09T14:36:20Z",
-    "summary": "\u003cp\u003eA real experience to learn by doing, grow as a team, and discover the Nu way to start your career. If you don\u0026#8217;t settle for the status quo and are looking for more than a traditional internship, this is your moment. The Nu Colombia 2026 Internship Program is open for students who want to take [\u0026#8230;]\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://building.nubank.com/the-nu-way-to-start-discover-the-colombia-2026-internship-program/\"\u003eThe Nu way to start: Discover the Colombia 2026 Internship Program\u003c/a\u003e appeared first on \u003ca href=\"https://building.nubank.com\"\u003eBuilding Nubank\u003c/a\u003e.\u003c/p\u003e\n",
-    "author": "Nubank Editorial"
-  },
-  {
-    "id": "https://building.nubank.com/?p=36207",
-    "title": "What changes when your product reaches 127 million people",
-    "url": "https://building.nubank.com/what-changes-when-your-product-reaches-127-million-people/",
-    "sourceId": "nubank",
-    "sourceName": "Building Nubank",
-    "category": "Engineering",
-    "publishedAt": "2026-02-16T10:00:00Z",
-    "summary": "\u003cp\u003eReflections from inside Nubank on absorbing complexity so customers don’t have to\u003c/p\u003e\n\u003cp\u003eThe post \u003ca href=\"https://building.nubank.com/what-changes-when-your-product-reaches-127-million-people/\"\u003eWhat changes when your product reaches 127 million people\u003c/a\u003e appeared first on \u003ca href=\"https://building.nubank.com\"\u003eBuilding Nubank\u003c/a\u003e.\u003c/p\u003e\n",
     "author": "Nubank Editorial"
   }
 ]
