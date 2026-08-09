@@ -1,0 +1,30 @@
+slug: kubernetes
+title: "Kubernetes para Fintech"
+subtitle: "Do loop de reconciliação ao cluster auditável: uma plataforma de pagamentos que você constrói marco a marco."
+category: "Cloud/Infra"
+tags: [kubernetes, k8s, cloud-native, sre, fintech]
+level: advanced
+lang: pt-BR
+estimatedHours: 26
+sources:
+  - title: "Kubernetes Documentation"
+    url: https://kubernetes.io/docs/home/
+  - title: "Kubernetes Releases"
+    url: https://kubernetes.io/releases/
+  - title: "Gateway API"
+    url: https://gateway-api.sigs.k8s.io/
+  - title: "Pod Security Standards"
+    url: https://kubernetes.io/docs/concepts/security/pod-security-standards/
+  - title: "CNCF Cloud Native Landscape"
+    url: https://landscape.cncf.io/
+  - title: "Google SRE Book"
+    url: https://sre.google/books/
+milestones:
+  - 01-arquitetura-e-modelo-declarativo.md
+  - 02-objetos-essenciais.md
+  - 03-configuracao-e-segredos.md
+  - 04-rede-services-e-gateway-api.md
+  - 05-scheduling-recursos-e-qos.md
+  - 06-ciclo-de-vida-e-zero-downtime.md
+  - 07-escala-hpa-keda-autoscaler.md
+  - 08-estado-statefulset-e-operators.md
