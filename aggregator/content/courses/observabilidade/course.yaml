@@ -1,0 +1,34 @@
+slug: observabilidade
+title: "Observabilidade para Fintech"
+subtitle: "Do conceito ao plantão: vocabulário de confiabilidade, OpenTelemetry e a stack Grafana aplicados ao sistema que você construiu."
+category: "SRE/Observabilidade"
+tags: [observability, sre, opentelemetry, prometheus, grafana, fintech]
+level: advanced
+lang: pt-BR
+estimatedHours: 28
+sources:
+  - title: "OpenTelemetry Documentation"
+    url: https://opentelemetry.io/docs/
+  - title: "OpenTelemetry — Semantic Conventions"
+    url: https://opentelemetry.io/docs/concepts/semantic-conventions/
+  - title: "Prometheus Documentation"
+    url: https://prometheus.io/docs/introduction/overview/
+  - title: "Grafana Loki Documentation"
+    url: https://grafana.com/docs/loki/latest/
+  - title: "Grafana Tempo Documentation"
+    url: https://grafana.com/docs/tempo/latest/
+  - title: "Google SRE Book — Monitoring Distributed Systems"
+    url: https://sre.google/sre-book/monitoring-distributed-systems/
+  - title: "Google SRE Book — Service Level Objectives"
+    url: https://sre.google/sre-book/service-level-objectives/
+  - title: "Google SRE Workbook — Alerting on SLOs"
+    url: https://sre.google/workbook/alerting-on-slos/
+  - title: "Brendan Gregg — The USE Method"
+    url: https://www.brendangregg.com/usemethod.html
+milestones:
+  - 01-observabilidade-vs-monitoramento.md
+  - 02-vocabulario-de-confiabilidade.md
+  - 03-frameworks-golden-signals-red-use.md
+  - 04-sinais-modelos-de-dado-e-estatistica.md
+  - 05-opentelemetry-fundamentos.md
+  - 06-collector-e-pipelines.md
