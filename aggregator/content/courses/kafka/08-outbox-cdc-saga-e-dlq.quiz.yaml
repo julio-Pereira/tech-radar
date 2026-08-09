@@ -1,0 +1,41 @@
+questions:
+  - question: "Por que inverter a ordem (publicar no Kafka antes de salvar no banco) não resolve o dual-write?"
+    options:
+      - "Resolve, desde que o producer use acks=all"
+      - "Não resolve: se o banco fizer rollback depois, existe um evento de um pagamento que não existe"
+      - "Resolve, porque o Kafka é mais confiável"
+      - "Não resolve porque o Kafka não aceita rollback"
+    answer: 1
+    explanation: "Você só troca qual das duas inconsistências vai ter. O problema é estrutural: não há commit atômico entre dois sistemas. A saída é escrever em um e derivar o outro."
+  - question: "Qual é o modo de falha característico do CDC que derruba o banco de produção?"
+    options:
+      - "O conector consome CPU demais"
+      - "Slot de replicação que não avança faz o WAL crescer e encher o disco do banco"
+      - "O CDC bloqueia as tabelas durante a leitura"
+      - "O binlog é reescrito pelo conector"
+    answer: 1
+    explanation: "Enquanto o slot não confirma consumo, o banco precisa reter o log de replicação. Conector parado por horas vira disco cheio — e o que cai é o banco, não o conector."
+  - question: "Por que fazer retry com Thread.sleep dentro do próprio consumidor provoca rebalance?"
+    options:
+      - "Porque o sleep desconecta o cliente do broker"
+      - "Porque bloquear entre polls estoura max.poll.interval.ms e o broker considera o consumidor morto"
+      - "Porque o sleep zera o offset"
+      - "Porque o Kafka proíbe threads bloqueadas"
+    answer: 1
+    explanation: "O poll é o que mantém a sessão viva. Retry escalonado em tópicos separados existe justamente para o consumidor principal nunca bloquear — bloquear provoca rebalance no meio do incidente."
+  - question: "Uma DLQ com 4.000 mensagens acumuladas há três meses indica o quê?"
+    options:
+      - "Que a DLQ está funcionando como projetada"
+      - "Que são 4.000 operações de negócio que não aconteceram e ninguém percebeu — DLQ é incidente, não estatística"
+      - "Que a retenção da DLQ está alta demais"
+      - "Que o retry escalonado está mal dimensionado"
+    answer: 1
+    explanation: "Cada mensagem ali é um pagamento que não foi processado. DLQ precisa de dono, alerta na primeira mensagem e um caminho de reprocessamento testado."
+  - question: "Uma saga compensa um pagamento que falhou no antifraude. O que o cliente vê no extrato?"
+    options:
+      - "Nada — a compensação apaga o lançamento original"
+      - "Dois lançamentos: a reserva e o estorno, porque compensação é transação nova, não rollback"
+      - "Apenas o estorno"
+      - "Um lançamento com valor zero"
+    answer: 1
+    explanation: "Em contabilidade double-entry lançamento não se apaga. Tentar esconder a reserva quebra a conciliação contábil — e o cliente vai ligar perguntando pelos dois, o que é problema de comunicação, não de engenharia."

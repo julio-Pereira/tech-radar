@@ -28,3 +28,9 @@ milestones:
   - 06-ciclo-de-vida-e-zero-downtime.md
   - 07-escala-hpa-keda-autoscaler.md
   - 08-estado-statefulset-e-operators.md
+  - 09-seguranca-do-workload.md
+  - 10-rbac-identidade-e-auditoria.md
+  - 11-networkpolicy-e-service-mesh.md
+  - 12-observabilidade-e-debugging.md
+  - 13-gitops-entrega-e-dr.md
+  - 14-custo-multi-tenancy-e-quando-nao-usar.md

@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que trace_id vai no conteúdo do log e não como label do Loki?"
+    options:
+      - "Porque labels não aceitam strings longas"
+      - "Porque cada valor distinto de label cria um stream, e trace_id é altíssima cardinalidade — o Loki degrada como o Prometheus"
+      - "Porque o trace_id muda de formato entre serviços"
+      - "Porque o LogQL não filtra por label"
+    answer: 1
+    explanation: "O Loki herdou a lição da cardinalidade. E a busca por trace_id no conteúdo continua rápida, porque a varredura já foi restringida pelos labels."
+  - question: "O que o Loki indexa, e qual a consequência para a consulta?"
+    options:
+      - "Todo o conteúdo, o que torna qualquer busca instantânea"
+      - "Apenas os labels; o conteúdo é comprimido e varrido em paralelo, então filtrar bem por label primeiro é o que dá desempenho"
+      - "Apenas o timestamp"
+      - "O conteúdo, com atraso de alguns minutos"
+    answer: 1
+    explanation: "É a escolha de projeto que torna armazenamento e ingestão baratos, com o custo de exigir bons labels na consulta."
+  - question: "Quando gerar métrica a partir de log com LogQL é aceitável?"
+    options:
+      - "Sempre, é mais flexível que o Prometheus"
+      - "Para exploração e para o que é raro; o que virar painel permanente ou alerta deve virar uma métrica de verdade"
+      - "Nunca"
+      - "Apenas para contagem de erros"
+    answer: 1
+    explanation: "Calcular métrica varrendo log é ordens de magnitude mais caro. É uma armadilha de custo justamente porque funciona bem em pequena escala."
+  - question: "Guardar a trilha de auditoria no Loki com 15 dias de retenção — qual o problema?"
+    options:
+      - "O Loki é lento demais para auditoria"
+      - "Auditoria precisa ser completa, imutável e retida por anos; o Loki é telemetria descartável, amostrável e de retenção curta"
+      - "O LogQL não consulta dados antigos"
+      - "Não há problema, é a prática recomendada"
+    answer: 1
+    explanation: "É um erro de categoria. A pergunta que separa os dois: se essa linha sumir, é um incômodo no debug ou um problema com o regulador?"

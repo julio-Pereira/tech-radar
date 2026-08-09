@@ -1,0 +1,33 @@
+questions:
+  - question: "Seu container usa 20% de CPU na média e o p99 está péssimo. Qual métrica você olha?"
+    options:
+      - "container_memory_working_set_bytes"
+      - "A fração container_cpu_cfs_throttled_periods_total / container_cpu_cfs_periods_total"
+      - "node_load1"
+      - "kube_pod_container_status_restarts_total"
+    answer: 1
+    explanation: "Throttling acontece com uso médio baixo: a carga é feita de rajadas curtas que estouram a cota de 100ms do cgroup. O gráfico de uso mostra 20% e o processo está congelado dezenas de vezes por minuto."
+  - question: "Por que limits.memory deve existir sempre e limits.cpu é discutível?"
+    options:
+      - "Porque memória é mais cara"
+      - "Porque memória é incompressível: sem limite, um vazamento consome o nó e faz o kubelet despejar pods vizinhos. CPU só é adiada, e o limite apenas impede usar CPU ociosa"
+      - "Porque o scheduler ignora limits.cpu"
+      - "Porque o cgroup não suporta limite de CPU"
+    answer: 1
+    explanation: "O limite de memória protege os outros; o de CPU só restringe você. Para serviço sensível a latência, requests bem definidos já garantem a fatia sob disputa."
+  - question: "Um pod BestEffort sumiu durante o pico. Por quê?"
+    options:
+      - "Porque o scheduler o remove sob carga"
+      - "Porque ele é o primeiro a ser despejado quando o nó fica sob pressão de recurso"
+      - "Porque não tem readinessProbe"
+      - "Porque o HPA o removeu"
+    answer: 1
+    explanation: "A ordem de despejo é BestEffort, depois Burstable que excedeu o request, depois Guaranteed. É o valor padrão de quem esqueceu de declarar recursos, e ele some justamente quando você mais precisa dele."
+  - question: "Qual PDB torna o upgrade do cluster impossível?"
+    options:
+      - "minAvailable: 1 com 3 réplicas"
+      - "minAvailable igual ao número de réplicas — nenhum pod pode ser removido, e o drain bloqueia para sempre"
+      - "maxUnavailable: 1 com 3 réplicas"
+      - "Qualquer PDB com selector por label"
+    answer: 1
+    explanation: "O drain respeita o PDB e espera. Se nenhum pod pode sair, ele nunca completa — e o upgrade de nó, que depende de drain, para em cima disso."

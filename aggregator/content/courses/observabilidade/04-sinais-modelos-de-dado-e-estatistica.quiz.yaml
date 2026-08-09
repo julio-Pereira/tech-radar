@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que a média dos p99 de 3 pods subestima o p99 real?"
+    options:
+      - "Porque os pods têm cargas diferentes"
+      - "Porque percentil não é operação linear: não há como recuperar o percentil do todo a partir dos percentis das partes"
+      - "Porque o scrape interval difere entre pods"
+      - "Não subestima, é uma boa aproximação"
+    answer: 1
+    explanation: "Um pod com uma requisição de 1000ms entre 10, e outro com 10 de 20ms: a média dos p99 dá ~510ms e o p99 real é ~1000ms. A saída é somar buckets de histograma, que é linear, e calcular o percentil no fim."
+  - question: "Seu benchmark travou por 10 segundos e o p99 melhorou. O que aconteceu?"
+    options:
+      - "O sistema otimizou o cache"
+      - "Coordinated omission: as requisições que teriam sido lentas nunca foram enviadas e sumiram da amostra"
+      - "O gerador de carga reduziu a taxa automaticamente"
+      - "O p99 foi calculado antes do travamento"
+    answer: 1
+    explanation: "Quanto pior o travamento, melhor o relatório. A correção conceitual é medir do ponto de vista de quem esperava, não de quem foi atendido."
+  - question: "A latência de uma dependência dobrou e a fila explodiu. Qual conta explica, e por que o retry piora?"
+    options:
+      - "Lei de Amdahl; o retry consome CPU"
+      - "Little's Law (L = λ × W): a concorrência dobra com W, e o retry dobra o λ, acelerando o colapso"
+      - "Teorema CAP; o retry viola consistência"
+      - "Lei de Moore; o retry satura a rede"
+    answer: 1
+    explanation: "A fila não é um efeito misterioso, é aritmética. Um retry mal configurado é a diferença entre uma lentidão e uma queda completa."
+  - question: "p99 de 200ms com 10 mil requisições por minuto significa quantos clientes insatisfeitos por hora?"
+    options:
+      - "Praticamente nenhum, é só 1%"
+      - "Cerca de 6.000 — e pior por sessão, já que uma jornada de 20 chamadas tem ~18% de chance de encontrar a cauda"
+      - "Cerca de 100"
+      - "Depende apenas do SLA"
+    answer: 1
+    explanation: "1% de 10 mil por minuto são 100 por minuto. Por isso o SLO precisa dizer sobre qual unidade fala: requisição, sessão ou cliente — três números muito diferentes."

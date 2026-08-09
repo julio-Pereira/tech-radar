@@ -1,0 +1,33 @@
+questions:
+  - question: "Você configurou tasks.max=20 num sink cujo tópico tem 6 partições. Quantas tasks efetivamente processam?"
+    options:
+      - "20, dividindo as partições"
+      - "No máximo 6 — o paralelismo de um sink continua limitado pelas partições"
+      - "1, porque sinks são single-threaded"
+      - "20, mas com throughput reduzido"
+    answer: 1
+    explanation: "tasks.max é um teto, e o conector decide quantas criar. Para um sink, o limite real é o mesmo dos consumer groups: uma partição por consumidor."
+  - question: "O que um SMT não consegue fazer?"
+    options:
+      - "Renomear um campo"
+      - "Mascarar um valor"
+      - "Fazer join, agregação ou lookup externo — ele opera em uma mensagem por vez, sem estado"
+      - "Rotear para outro tópico"
+    answer: 2
+    explanation: "SMT é transformação por mensagem, sem estado. Quando você encadeia seis SMTs para simular lógica, o trabalho pertence ao Streams ou a um consumidor."
+  - question: "Por que um sink JDBC sem insert.mode=upsert quebra o relatório depois de um replay?"
+    options:
+      - "Porque o conector perde a conexão"
+      - "Porque o Connect é at-least-once: o replay reinsere linhas e a base analítica passa a divergir do ledger"
+      - "Porque o schema muda"
+      - "Porque o Postgres rejeita a segunda inserção"
+    answer: 1
+    explanation: "O worker pode entregar ao destino e morrer antes de commitar o offset. Sem upsert com chave vinda do evento, a duplicata entra e é descoberta semanas depois, pela contabilidade."
+  - question: "Qual é a configuração mais perigosa do Connect?"
+    options:
+      - "errors.tolerance=none"
+      - "errors.tolerance=all sem DLQ configurada — mensagens são descartadas em silêncio"
+      - "tasks.max muito alto"
+      - "Um converter Avro sem Schema Registry"
+    answer: 1
+    explanation: "Tolerar todos os erros sem destino para eles é perder dado sem rastro no log de nível normal. É fácil de escrever por acidente e difícil de descobrir."

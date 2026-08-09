@@ -23,6 +23,25 @@ type Manifest struct {
 	EstimatedHours int      `yaml:"estimatedHours"`
 	Sources        []Ref    `yaml:"sources"`
 	Milestones     []string `yaml:"milestones"`
+	// Glossary optionally names a markdown file in the course directory that is
+	// rendered as an appendix. It is not a milestone: it carries no id and does
+	// not count towards progress.
+	Glossary string `yaml:"glossary"`
+}
+
+// QuizQuestion is one multiple-choice question. Answer is the 0-based index of
+// the correct entry in Options. All three text fields are plain text — the SPA
+// sets them via textContent, so they are never interpreted as HTML.
+type QuizQuestion struct {
+	Question    string   `yaml:"question"    json:"question"`
+	Options     []string `yaml:"options"     json:"options"`
+	Answer      int      `yaml:"answer"      json:"answer"`
+	Explanation string   `yaml:"explanation" json:"explanation,omitempty"`
+}
+
+// QuizFile maps a <milestone>.quiz.yaml sibling file.
+type QuizFile struct {
+	Questions []QuizQuestion `yaml:"questions"`
 }
 
 // MilestoneFrontmatter maps the YAML frontmatter of a milestone markdown file.
@@ -36,13 +55,14 @@ type MilestoneFrontmatter struct {
 
 // CompiledMilestone is one timeline node with body HTML already sanitized.
 type CompiledMilestone struct {
-	ID               string `json:"id"`
-	Order            int    `json:"order"`
-	Title            string `json:"title"`
-	Summary          string `json:"summary"`
-	EstimatedMinutes int    `json:"estimatedMinutes"`
-	HTML             string `json:"html"`
-	References       []Ref  `json:"references,omitempty"`
+	ID               string         `json:"id"`
+	Order            int            `json:"order"`
+	Title            string         `json:"title"`
+	Summary          string         `json:"summary"`
+	EstimatedMinutes int            `json:"estimatedMinutes"`
+	HTML             string         `json:"html"`
+	References       []Ref          `json:"references,omitempty"`
+	Quiz             []QuizQuestion `json:"quiz,omitempty"`
 }
 
 // CompiledCourse is the full track written to web/data/courses/<slug>.json.
@@ -57,6 +77,8 @@ type CompiledCourse struct {
 	EstimatedHours int                 `json:"estimatedHours"`
 	Sources        []Ref               `json:"sources,omitempty"`
 	Milestones     []CompiledMilestone `json:"milestones"`
+	// Glossary is sanitized HTML rendered from the manifest's glossary file.
+	Glossary string `json:"glossary,omitempty"`
 }
 
 // IndexEntry is the lightweight catalog row for the courses index.

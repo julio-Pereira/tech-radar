@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que ReadWriteOnce limita a alta disponibilidade que o topology spread prometia?"
+    options:
+      - "Porque impede mais de uma réplica no cluster"
+      - "Porque o disco de bloco existe numa AZ: se o pod precisar reagendar e a zona estiver fora, ele fica Pending"
+      - "Porque o volume não suporta expansão"
+      - "Porque o StatefulSet ignora topology spread"
+    answer: 1
+    explanation: "Espalhar pods entre zonas não espalha o dado. A alta disponibilidade do workload sem estado não se aplica automaticamente ao workload com estado."
+  - question: "Por que snapshot não é backup?"
+    options:
+      - "Porque é lento demais para restaurar"
+      - "Porque costuma viver no mesmo sistema de armazenamento do dado original — perdeu a conta ou o storage, perdeu os dois"
+      - "Porque não preserva permissões"
+      - "Porque não funciona com PVC"
+    answer: 1
+    explanation: "Backup é cópia fora do domínio de falha, com restore testado. Replicação também não é backup: ela copia o DELETE errado para todas as réplicas em milissegundos."
+  - question: "O que o operator Strimzi faz num rolling restart que um StatefulSet cru não faria?"
+    options:
+      - "Reiniciar os pods na ordem inversa"
+      - "Esperar o ISR se recompor antes de reiniciar o próximo broker, entre outras verificações de saúde específicas do Kafka"
+      - "Fazer backup dos volumes"
+      - "Criar os tópicos automaticamente"
+    answer: 1
+    explanation: "O StatefulSet garante mecânica (identidade, ordem, disco); a semântica do software é do operator. É o conhecimento operacional virando código que reconcilia, em vez de runbook executado às 3h."
+  - question: "Você deletou o StatefulSet e os dados continuam lá. Bug ou feature?"
+    options:
+      - "Bug — deveria limpar os PVCs"
+      - "Feature deliberada: PVCs não são deletados junto, e recriar o StatefulSet reconecta aos dados antigos"
+      - "Depende da StorageClass"
+      - "Bug do kind"
+    answer: 1
+    explanation: "É proteção contra perda acidental de dado. Ótimo quando é o que você quer, e uma surpresa desagradável quando você achou que tinha limpado o ambiente de desenvolvimento."

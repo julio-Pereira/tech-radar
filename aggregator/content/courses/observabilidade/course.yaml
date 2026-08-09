@@ -25,8 +25,16 @@ sources:
     url: https://sre.google/workbook/alerting-on-slos/
   - title: "Brendan Gregg — The USE Method"
     url: https://www.brendangregg.com/usemethod.html
+glossary: GLOSSARIO.md
 milestones:
   - 01-observabilidade-vs-monitoramento.md
   - 02-vocabulario-de-confiabilidade.md
   - 03-frameworks-golden-signals-red-use.md
   - 04-sinais-modelos-de-dado-e-estatistica.md
+  - 05-opentelemetry-fundamentos.md
+  - 06-collector-e-pipelines.md
+  - 07-metricas-e-prometheus.md
+  - 08-metricas-de-negocio.md
+  - 09-logs-e-loki.md
+  - 10-traces-e-tempo.md
+  - 11-profiling-continuo.md

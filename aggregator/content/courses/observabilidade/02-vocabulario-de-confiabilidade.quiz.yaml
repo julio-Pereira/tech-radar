@@ -1,0 +1,41 @@
+questions:
+  - question: "Por que o SLO deve ser mais apertado que o SLA?"
+    options:
+      - "Por exigência regulatória"
+      - "Porque a diferença é a sua margem de manobra: o alarme interno dispara antes de haver consequência contratual"
+      - "Porque o SLA é medido de forma diferente"
+      - "Não deve — os dois devem ser iguais para consistência"
+    answer: 1
+    explanation: "SLO igual ao SLA significa que o primeiro sinal de problema já é uma multa. SLO de 99,9% com SLA de 99,5% dá tempo de reagir."
+  - question: "O time gastou apenas 8% do error budget no mês. Isso é bom?"
+    options:
+      - "Sim, quanto menos melhor"
+      - "Não necessariamente: budget sistematicamente não gasto indica SLO conservador demais e velocidade deixada na mesa"
+      - "Sim, indica maturidade operacional"
+      - "É irrelevante"
+    answer: 1
+    explanation: "Error budget é recurso a gastar, não meta a atingir. Nunca gastá-lo significa que você está investindo em confiabilidade que o usuário não percebe."
+  - question: "Três incidentes no mês: 4min, 6min e 5h. Qual número você leva para a diretoria?"
+    options:
+      - "MTTR de 1h43min"
+      - "A distribuição: mediana, p90 e a lista dos piores — a média esconde que houve uma catástrofe"
+      - "O total de 5h10min"
+      - "O MTBF"
+    answer: 1
+    explanation: "É a mesma crítica que se aplica à latência média no marco 04: um agregado no lugar de uma distribuição. Dois arranhões e uma catástrofe não são 'média de 1h43'."
+  - question: "Quatro serviços de 99,9% em série entregam qual disponibilidade ao fluxo?"
+    options:
+      - "99,9%"
+      - "Cerca de 99,6% — as disponibilidades se multiplicam, passando de 43min para quase 3h por mês"
+      - "99,99%, porque há redundância"
+      - "Depende apenas do mais lento"
+    answer: 1
+    explanation: "Você não pode prometer para um fluxo mais do que o produto das disponibilidades do caminho crítico. É a conta que justifica contratar um segundo PSP."
+  - question: "Aprovar acesso manualmente toda sexta é toil. Investigar um incidente novo é toil?"
+    options:
+      - "Sim, todo trabalho operacional é toil"
+      - "Não — toil é manual, repetitivo, automatizável e sem valor duradouro; investigar algo novo é o trabalho"
+      - "Sim, se durar mais de uma hora"
+      - "Depende da severidade"
+    answer: 1
+    explanation: "Executar pela 40ª vez o mesmo runbook de 6 passos é toil. A distinção importa porque medir toil é a defesa do time contra virar operação."

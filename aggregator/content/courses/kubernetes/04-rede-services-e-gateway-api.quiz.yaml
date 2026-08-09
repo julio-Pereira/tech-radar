@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que um Service type LoadBalancer fica <pending> para sempre no kind?"
+    options:
+      - "Porque falta configurar o kube-proxy"
+      - "Porque não há provedor de nuvem para atender ao pedido e criar o balanceador externo"
+      - "Porque o kind não suporta Services"
+      - "Porque falta uma NetworkPolicy"
+    answer: 1
+    explanation: "O tipo LoadBalancer é um pedido ao provedor. Localmente use port-forward ou extraPortMappings — e é a diferença de nuvem mais visível da trilha."
+  - question: "O timeout do Gateway é menor que o do backend e o cliente recebeu 504. O pagamento aconteceu?"
+    options:
+      - "Não, o 504 aborta o processamento"
+      - "Possivelmente sim — o backend continua processando e pode concluir, enquanto o cliente vê erro"
+      - "Não, o Gateway faz rollback"
+      - "Só se o backend usar transação"
+    answer: 1
+    explanation: "É o pior desfecho: o usuário vê erro e o dinheiro saiu. Timeout da borda deve ser maior ou igual ao do backend, e a operação precisa ser idempotente de qualquer forma."
+  - question: "Por que a Gateway API separa Gateway de HTTPRoute?"
+    options:
+      - "Por razões de desempenho"
+      - "Porque são donos diferentes: a plataforma controla listeners e certificados, o time da aplicação controla o roteamento no seu namespace"
+      - "Porque o Ingress não permitia TLS"
+      - "Para permitir mais de um controller por cluster"
+    answer: 1
+    explanation: "É uma decisão de governança tanto quanto de rede. O time edita HTTPRoute sem tocar em nada compartilhado, e o que antes era anotação proprietária virou campo da spec — revisável em PR e verificável por policy."
+  - question: "Seu antifraude decide por IP e o rate limit conta por IP. O que externalTrafficPolicy=Cluster faz com isso?"
+    options:
+      - "Nada, o IP de origem é preservado"
+      - "O segundo salto entre nós faz SNAT e o backend passa a ver o IP do nó — todos os clientes parecem os mesmos poucos endereços"
+      - "Bloqueia o tráfego externo"
+      - "Distribui melhor a carga preservando o IP"
+    answer: 1
+    explanation: "Com Cluster o tráfego pode ser reencaminhado para um pod em outro nó, e o SNAT apaga o IP do cliente. O rate limit para de funcionar ou bloqueia todo mundo junto."

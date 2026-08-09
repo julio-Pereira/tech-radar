@@ -1,0 +1,33 @@
+questions:
+  - question: "Todos os endpoints retornam 200, a latência está ótima e a receita do dia caiu 30%. Que sinal pega isso?"
+    options:
+      - "Saturação"
+      - "Métrica de negócio — a taxa de autorização, que RED e USE não cobrem porque medem transporte, não conteúdo"
+      - "Profiling contínuo"
+      - "Logs de erro"
+    answer: 1
+    explanation: "Um PSP respondendo 200 com recusa é, do ponto de vista de HTTP, sucesso. Métrica de negócio costuma ser a primeira a detectar os incidentes mais caros."
+  - question: "Por que account_id não pode ser label de uma métrica de negócio?"
+    options:
+      - "Porque viola a LGPD"
+      - "Porque cria uma série por conta e a explosão de cardinalidade mata o Prometheus por OOM"
+      - "Porque não é um valor numérico"
+      - "Porque o Grafana não consegue exibir"
+    answer: 1
+    explanation: "Métrica de negócio é agregada por natureza. O caso individual pertence a log e trace, onde a alta cardinalidade cabe."
+  - question: "Por que a taxa de autorização é mais útil quebrada por PSP?"
+    options:
+      - "Porque reduz a cardinalidade"
+      - "Porque transforma 'algo está errado' em 'é o parceiro X' em segundos"
+      - "Porque o SLA é por PSP"
+      - "Porque facilita o cálculo do TPV"
+    answer: 1
+    explanation: "psp tem cardinalidade baixa (poucos valores) e altíssimo valor diagnóstico — é o recorte que responde 'é o Itaú ou é a gente?'."
+  - question: "Qual alerta de negócio nunca tem falso positivo aceitável?"
+    options:
+      - "Queda no TPV"
+      - "Invariante contábil violada — a soma dos lançamentos não fecha em zero"
+      - "Taxa de autorização abaixo da média"
+      - "Fila de liquidação crescendo"
+    answer: 1
+    explanation: "Os outros dependem de sazonalidade e contexto. Uma invariante violada significa que a contabilidade está errada, e é o tipo de alerta que quase nenhuma empresa tem."

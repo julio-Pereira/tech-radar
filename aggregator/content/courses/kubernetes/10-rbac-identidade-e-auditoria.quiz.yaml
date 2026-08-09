@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que create pods num namespace equivale, na prática, a ler todos os Secrets dele?"
+    options:
+      - "Porque o RBAC concede secrets junto com pods"
+      - "Porque quem cria um pod pode montar qualquer Secret do namespace e assumir qualquer ServiceAccount dele"
+      - "Porque os Secrets são montados automaticamente em todos os pods"
+      - "Porque o kubelet expõe os Secrets via API"
+    answer: 1
+    explanation: "É o que torna a separação por namespace uma fronteira de segurança real e 'dar deploy' uma permissão muito mais forte do que parece."
+  - question: "Qual a diferença entre RoleBinding apontando para um ClusterRole e ClusterRoleBinding apontando para o mesmo ClusterRole?"
+    options:
+      - "Nenhuma, são equivalentes"
+      - "O RoleBinding concede as permissões apenas dentro do seu namespace; o ClusterRoleBinding concede no cluster inteiro"
+      - "O RoleBinding só funciona com Role, não com ClusterRole"
+      - "O ClusterRoleBinding é mais restritivo"
+    answer: 1
+    explanation: "A combinação RoleBinding→ClusterRole é útil e pouco conhecida: define a regra uma vez e concede namespace a namespace. Trocar por ClusterRoleBinding por engano abre o cluster inteiro."
+  - question: "Por que o verbo escalate é equivalente a cluster-admin?"
+    options:
+      - "Porque permite editar o API server"
+      - "Porque quem o tem em roles pode conceder a si mesmo qualquer permissão"
+      - "Porque desabilita o RBAC"
+      - "Porque permite criar ClusterRoleBindings apenas"
+    answer: 1
+    explanation: "escalate e bind passam despercebidos em review porque parecem verbos técnicos inofensivos. Na prática são a chave do cofre."
+  - question: "Por que o audit log precisa sair do cluster?"
+    options:
+      - "Por questão de desempenho do etcd"
+      - "Porque quem compromete o cluster pode apagar a prova — a trilha precisa estar fora do alcance de quem ela audita"
+      - "Porque o formato não é legível localmente"
+      - "Porque o kubelet o rotaciona a cada hora"
+    answer: 1
+    explanation: "Idealmente em storage write-once. E a policy precisa ser seletiva por nível, senão o volume fica caro o bastante para alguém decidir desligá-la."

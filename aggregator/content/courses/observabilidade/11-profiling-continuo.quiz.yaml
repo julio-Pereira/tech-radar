@@ -1,0 +1,33 @@
+questions:
+  - question: "Num flame graph, o que a largura de um bloco representa e o que a altura não representa?"
+    options:
+      - "Largura é profundidade; altura é tempo"
+      - "Largura é tempo total naquele caminho de pilha; altura é apenas profundidade de aninhamento, não lentidão"
+      - "Largura é número de chamadas; altura é uso de memória"
+      - "Ambas representam tempo, em escalas diferentes"
+    answer: 1
+    explanation: "Pilha alta e estreita é código aninhado e barato. Bloco largo no topo é onde a CPU está sendo gasta pela própria função."
+  - question: "Por que o eixo horizontal de um flame graph não é uma linha do tempo?"
+    options:
+      - "Porque o profile é amostrado"
+      - "Porque é uma agregação ordenada alfabeticamente para agrupar caminhos iguais"
+      - "Porque o tempo é representado na vertical"
+      - "Porque as amostras chegam fora de ordem"
+    answer: 1
+    explanation: "Ler o eixo horizontal como cronologia é o erro nº 1 de interpretação. Nada ali indica que uma função rodou antes da outra."
+  - question: "O trace mostra 800ms num span e os spans filhos somam 200ms. Qual sinal você abre?"
+    options:
+      - "Logs daquele período"
+      - "O profile do pod e do período — é o que responde 'por quê, em qual linha'"
+      - "Métricas de saturação do nó"
+      - "O service graph"
+    answer: 1
+    explanation: "Os 600ms estão fora do instrumentado. Serialização, regex em laço ou GC não têm span próprio, e só aparecem no profile."
+  - question: "Qual a vantagem do profiling por eBPF e qual o custo num cluster com Pod Security restricted?"
+    options:
+      - "Perfila sem instrumentar nada, mas exige kernel recente e um DaemonSet privilegiado que precisa ser justificado como exceção"
+      - "É mais preciso e não tem custo"
+      - "Funciona apenas com Go, sem restrições de segurança"
+      - "Reduz o overhead a zero, exigindo apenas uma annotation"
+    answer: 0
+    explanation: "Sem SDK, sem recompilar, funcionando até para binários de terceiros. O custo é precisão de símbolos em algumas linguagens e uma exceção de segurança no nó."

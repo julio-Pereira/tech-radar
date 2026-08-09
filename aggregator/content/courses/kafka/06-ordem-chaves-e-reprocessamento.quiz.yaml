@@ -1,0 +1,33 @@
+questions:
+  - question: "Você aumenta um tópico de 6 para 12 partições. O que acontece com a ordem por conta?"
+    options:
+      - "Nada, o Kafka remapeia preservando a ordem"
+      - "Quebra: hash(chave) % nº de partições muda, e por um período há eventos da mesma conta em duas partições"
+      - "Quebra apenas para chaves novas"
+      - "Nada, desde que o producer use acks=all"
+    answer: 1
+    explanation: "O módulo muda com o número de partições. Aumentar partição num tópico com ordem por chave não é operação de escala, é migração — por isso o dimensionamento pede folga desde o começo."
+  - question: "Lag alto numa única partição e praticamente zero nas outras. Qual o diagnóstico mais provável?"
+    options:
+      - "Broker daquela partição com disco cheio"
+      - "Partição quente: uma chave concentra volume desproporcional"
+      - "Rebalance em andamento"
+      - "min.insync.replicas mal configurado"
+    answer: 1
+    explanation: "Uma partição tem um consumidor. Se um cliente é 30% do volume, aquela partição é 30% da carga e nenhum número de consumidores resolve — é por isso que se observa lag por partição, não o total."
+  - question: "Um estorno chega antes do débito correspondente. Qual o comportamento correto do ledger?"
+    options:
+      - "Rejeitar o estorno, já que não há lançamento a estornar"
+      - "Aceitar em estado pendente e resolver quando o par chegar"
+      - "Descartar silenciosamente e aguardar o reenvio"
+      - "Inverter a ordem dos eventos no tópico"
+    answer: 1
+    explanation: "Evento fora de ordem é normal, não é bug — o estorno pode ter vindo de outro canal com atraso diferente. Rejeitar é perder dinheiro do cliente."
+  - question: "Qual é o pré-requisito antes de rodar kafka-consumer-groups --reset-offsets --execute?"
+    options:
+      - "Aumentar a retenção do tópico"
+      - "Parar o grupo (o comando falha com membro ativo), rodar --dry-run antes e ter consumidor idempotente"
+      - "Desligar a compactação"
+      - "Reduzir o número de partições"
+    answer: 1
+    explanation: "O grupo parado é uma proteção do próprio comando, não um obstáculo. O --dry-run mostra o efeito, e a idempotência é o que torna o replay seguro — sem ela, reset de offset é decisão de reexecutar efeitos."

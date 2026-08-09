@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -104,6 +105,16 @@ func compileCourse(dir string) (CompiledCourse, error) {
 		}
 		seenIDs[fm.ID] = struct{}{}
 
+		// Optional sibling: 01-foo.md → 01-foo.quiz.yaml. Absent is normal.
+		var quiz []QuizQuestion
+		quizPath := filepath.Join(dir, strings.TrimSuffix(file, ".md")+".quiz.yaml")
+		if _, statErr := os.Stat(quizPath); statErr == nil {
+			quiz, err = ParseQuiz(quizPath)
+			if err != nil {
+				return CompiledCourse{}, err
+			}
+		}
+
 		milestones = append(milestones, CompiledMilestone{
 			ID:               fm.ID,
 			Order:            i + 1,
@@ -112,7 +123,16 @@ func compileCourse(dir string) (CompiledCourse, error) {
 			EstimatedMinutes: fm.EstimatedMinutes,
 			HTML:             html,
 			References:       fm.References,
+			Quiz:             quiz,
 		})
+	}
+
+	var glossary string
+	if manifest.Glossary != "" {
+		glossary, err = ParseGlossary(filepath.Join(dir, manifest.Glossary))
+		if err != nil {
+			return CompiledCourse{}, err
+		}
 	}
 
 	return CompiledCourse{
@@ -126,6 +146,7 @@ func compileCourse(dir string) (CompiledCourse, error) {
 		EstimatedHours: manifest.EstimatedHours,
 		Sources:        manifest.Sources,
 		Milestones:     milestones,
+		Glossary:       glossary,
 	}, nil
 }
 

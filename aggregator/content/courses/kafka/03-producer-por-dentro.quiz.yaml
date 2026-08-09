@@ -1,0 +1,45 @@
+questions:
+  - question: "Você habilitou enable.idempotence=true no producer. Se a sua API HTTP reprocessar a mesma requisição de pagamento, o evento aparece duplicado no tópico?"
+    options:
+      - "Não — a idempotência do producer deduplica pelo conteúdo da mensagem"
+      - "Sim — a idempotência do producer só cobre o retry interno dele, não um segundo send() da aplicação"
+      - "Não — o broker deduplica por chave da mensagem"
+      - "Depende do valor de acks"
+    answer: 1
+    explanation: "A idempotência do producer numera as mensagens por sessão e partição para descartar o retry interno. Dois send() distintos da aplicação são dois eventos legítimos do ponto de vista do Kafka. Idempotência de negócio mora na chave de idempotência no banco."
+
+  - question: "Sem enable.idempotence, por que max.in.flight.requests.per.connection > 1 combinado com retry pode reordenar mensagens?"
+    options:
+      - "Porque o particionador muda de partição no retry"
+      - "Porque o lote 2 pode ser aceito enquanto o lote 1 está sendo reenviado, chegando ao log antes dele"
+      - "Porque o broker reordena lotes por timestamp"
+      - "Porque o acumulador embaralha os lotes ao comprimir"
+    answer: 1
+    explanation: "Com vários lotes em voo, uma falha no primeiro faz o producer reenviá-lo depois que o segundo já foi gravado. Com idempotência ligada o broker usa a numeração para reordenar, e por isso max.in.flight<=5 continua seguro."
+
+  - question: "Numa fintech que precisa ordenar débito e estorno da mesma conta, qual chave você usa e o que perde?"
+    options:
+      - "paymentId — distribuição perfeita, e ordem por conta garantida"
+      - "accountId — ordena o que importa, ao custo de risco de partição quente"
+      - "Nenhuma chave — o Kafka ordena globalmente por timestamp"
+      - "agencia — melhor equilíbrio entre ordem e paralelismo"
+    answer: 1
+    explanation: "Ordem existe por partição. accountId põe todos os eventos da conta na mesma partição, ordenando débito e estorno. O custo é que um cliente muito grande vira uma partição quente, que nenhum número de consumidores resolve."
+
+  - question: "Qual é o efeito mais provável de subir linger.ms de 0 para 20 num producer com bom volume?"
+    options:
+      - "p50 sobe alguns ms, throughput sobe, e o p99 frequentemente melhora"
+      - "p50 e p99 pioram proporcionalmente"
+      - "Nada muda, linger.ms só afeta o consumidor"
+      - "O throughput cai porque cada mensagem espera mais"
+    answer: 0
+    explanation: "O linger junta mais mensagens por lote: menos requisições, melhor compressão e broker menos sobrecarregado. Você paga alguns ms no p50 e costuma ganhar no p99, que é dominado pela fila no broker."
+
+  - question: "O que acontece com um erro de envio se você chamar send() e ignorar o Future/callback?"
+    options:
+      - "O send() lança exceção sincronamente, então o try/catch pega"
+      - "O erro é perdido silenciosamente — o send() só enfileira e a falha chega depois"
+      - "O Kafka reenvia para sempre até funcionar"
+      - "A mensagem vai para a DLQ automaticamente"
+    answer: 1
+    explanation: "send() coloca a mensagem no acumulador e retorna. Broker fora do ar, tópico inexistente ou mensagem grande demais voltam no callback. Ignorá-lo é aceitar perder pagamento sem rastro."

@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que o pod continua recebendo requisições depois de receber SIGTERM?"
+    options:
+      - "Porque o kubelet reenvia o tráfego"
+      - "Porque a remoção do EndpointSlice e a propagação para o kube-proxy de cada nó são assíncronas em relação ao SIGTERM"
+      - "Porque o Service faz cache de endpoints"
+      - "Porque o SIGTERM só chega depois do drain"
+    answer: 1
+    explanation: "São dois caminhos paralelos sem sincronia. Por isso o preStop que espera alguns segundos é a prática recomendada — não existe sinal de 'a rede convergiu'."
+  - question: "Qual a diferença de efeito entre liveness e readiness falhando?"
+    options:
+      - "São equivalentes; readiness é apenas mais rápida"
+      - "Liveness reinicia o container; readiness apenas tira o pod do balanceamento"
+      - "Liveness tira do balanceamento; readiness reinicia"
+      - "Ambas reiniciam, com timeouts diferentes"
+    answer: 1
+    explanation: "Confundir as duas é o erro clássico: uma liveness que depende do banco transforma lentidão em reinício em massa, e o reinício derruba o que ainda funcionava."
+  - question: "Sua readiness checa o PSP externo e ele caiu. O que acontece com o tráfego que não precisa do PSP?"
+    options:
+      - "Continua sendo atendido normalmente"
+      - "Para também: todos os pods ficam NotReady ao mesmo tempo e o Service fica sem endpoint nenhum"
+      - "É roteado para outra região"
+      - "Fica em fila até o PSP voltar"
+    answer: 1
+    explanation: "Readiness responde 'eu estou pronto', não 'o mundo está bem'. Checar dependência externa transforma a falha do parceiro numa indisponibilidade total sua."
+  - question: "kubectl rollout undo desfez o deploy. O que ele não desfez?"
+    options:
+      - "A imagem do container"
+      - "A migração de banco aplicada pela versão nova"
+      - "As variáveis de ambiente"
+      - "O número de réplicas"
+    answer: 1
+    explanation: "Por isso toda migração precisa ser compatível com a versão anterior — expandir, migrar, contrair. Rollback automático de canary não te salva de um schema incompatível."
