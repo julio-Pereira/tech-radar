@@ -68,11 +68,62 @@ func ParseMilestone(path string) (MilestoneFrontmatter, string, error) {
 		return MilestoneFrontmatter{}, "", fmt.Errorf("parse frontmatter %s: %w", path, err)
 	}
 
-	var buf bytes.Buffer
-	if err := markdown.Convert(match[2], &buf); err != nil {
+	html, err := renderMarkdown(match[2])
+	if err != nil {
 		return MilestoneFrontmatter{}, "", fmt.Errorf("render markdown %s: %w", path, err)
 	}
-
-	html := bodyPolicy.Sanitize(buf.String())
 	return fm, html, nil
+}
+
+// renderMarkdown converts a markdown body to sanitized HTML.
+func renderMarkdown(src []byte) (string, error) {
+	var buf bytes.Buffer
+	if err := markdown.Convert(src, &buf); err != nil {
+		return "", err
+	}
+	return bodyPolicy.Sanitize(buf.String()), nil
+}
+
+// ParseGlossary reads a plain markdown file (no frontmatter) and returns
+// sanitized HTML. Used for the optional per-course glossary appendix.
+func ParseGlossary(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("read glossary %s: %w", path, err)
+	}
+	html, err := renderMarkdown(data)
+	if err != nil {
+		return "", fmt.Errorf("render glossary %s: %w", path, err)
+	}
+	return html, nil
+}
+
+// ParseQuiz reads a <milestone>.quiz.yaml sibling and validates every question.
+// A malformed quiz is an error: it fails the course at build time rather than
+// shipping a question the reader cannot answer correctly.
+func ParseQuiz(path string) ([]QuizQuestion, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read quiz %s: %w", path, err)
+	}
+	var qf QuizFile
+	if err := yaml.Unmarshal(data, &qf); err != nil {
+		return nil, fmt.Errorf("parse quiz %s: %w", path, err)
+	}
+	if len(qf.Questions) == 0 {
+		return nil, fmt.Errorf("quiz %s has no questions", path)
+	}
+	for i, q := range qf.Questions {
+		if q.Question == "" {
+			return nil, fmt.Errorf("quiz %s: question %d has empty text", path, i+1)
+		}
+		if len(q.Options) < 2 {
+			return nil, fmt.Errorf("quiz %s: question %d needs at least 2 options", path, i+1)
+		}
+		if q.Answer < 0 || q.Answer >= len(q.Options) {
+			return nil, fmt.Errorf("quiz %s: question %d has answer %d out of range (0..%d)",
+				path, i+1, q.Answer, len(q.Options)-1)
+		}
+	}
+	return qf.Questions, nil
 }

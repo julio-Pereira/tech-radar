@@ -430,12 +430,141 @@
   align-items: center;
 }
 
+/* ── Quiz ────────────────────────────────────────────────────────────────── */
+.milestone-quiz {
+  margin-top: 1.4rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.milestone-quiz-title {
+  margin: 0 0 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.quiz-question {
+  margin: 0 0 1.1rem;
+  padding: 0;
+  border: 0;
+}
+
+.quiz-question legend {
+  padding: 0;
+  margin-bottom: 0.55rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.quiz-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.3rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.quiz-option label {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.quiz-option input { margin-top: 0.25rem; cursor: pointer; }
+.quiz-option input:disabled + label { cursor: default; }
+
+/* Result state. The ✓ / ✗ prefix carries the meaning for anyone who cannot
+   distinguish the colors — never color alone. */
+.quiz-option.correct {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.quiz-option.correct label { color: var(--text); font-weight: 600; }
+.quiz-option.correct label::before { content: '✓ '; }
+
+.quiz-option.incorrect { border-color: var(--text-muted); }
+.quiz-option.incorrect label { text-decoration: line-through; }
+.quiz-option.incorrect label::before { content: '✗ '; }
+
+.quiz-explanation {
+  margin: 0.5rem 0 0;
+  padding-left: 0.45rem;
+  border-left: 2px solid var(--border);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.quiz-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.quiz-check-btn,
+.quiz-retry-btn {
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.quiz-check-btn:hover,
+.quiz-retry-btn:hover { border-color: var(--accent); color: var(--text); }
+
+.quiz-score {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Glossary appendix ───────────────────────────────────────────────────── */
+.course-glossary {
+  margin-top: 1.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.course-glossary-summary {
+  padding: 0.85rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.course-glossary[open] .course-glossary-summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.course-glossary .milestone-body { padding: 0.4rem 1.1rem 1.1rem; }
+
 /* ── Accessibility: visible focus ────────────────────────────────────────── */
 .node-toggle:focus-visible,
 .nav-link:focus-visible,
 .back-link:focus-visible,
 .reset-btn:focus-visible,
 .course-card:focus-visible,
+.quiz-check-btn:focus-visible,
+.quiz-retry-btn:focus-visible,
+.quiz-option input:focus-visible,
+.course-glossary-summary:focus-visible,
 .node-complete input:focus-visible {
   outline: 2px solid var(--accent-hover);
   outline-offset: 2px;
