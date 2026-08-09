@@ -1,0 +1,28 @@
+slug: kafka
+title: "Kafka para Fintech"
+subtitle: "Do log distribuído ao backbone de eventos auditável: corretude, contrato e operação onde cada mensagem é dinheiro."
+category: "Dados/Streaming"
+tags: [kafka, streaming, event-driven, backend, fintech]
+level: advanced
+lang: pt-BR
+estimatedHours: 28
+sources:
+  - title: "Apache Kafka Documentation"
+    url: https://kafka.apache.org/documentation/
+  - title: "Apache Kafka — Release Announcements"
+    url: https://kafka.apache.org/blog/releases/
+  - title: "Kafka Improvement Proposals (KIPs)"
+    url: https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Improvement+Proposals
+  - title: "Spring for Apache Kafka"
+    url: https://docs.spring.io/spring-kafka/reference/
+  - title: "Strimzi — Kafka on Kubernetes"
+    url: https://strimzi.io/documentation/
+milestones:
+  - 01-log-distribuido-e-kraft.md
+  - 02-anatomia-topicos-particoes-replicacao.md
+  - 03-producer-por-dentro.md
+  - 04-consumer-e-consumer-groups.md
+  - 05-semantica-de-entrega-e-transacoes.md
+  - 06-ordem-chaves-e-reprocessamento.md
+  - 07-contratos-schema-e-evolucao.md
+  - 08-outbox-cdc-saga-e-dlq.md
