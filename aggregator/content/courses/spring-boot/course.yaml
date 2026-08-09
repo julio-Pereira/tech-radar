@@ -1,19 +1,35 @@
 slug: spring-boot
 title: "Spring Boot para Fintech"
-subtitle: "Do zero a produção, com exemplos de pagamentos e Open Finance."
+subtitle: "Dos internals do container à produção regulada: um gateway de pagamentos Open Finance que evolui marco a marco."
 category: "Java/Spring"
-tags: [java, spring, backend]
-level: intermediate
+tags: [java, spring, backend, fintech]
+level: advanced
 lang: pt-BR
-estimatedHours: 6
+estimatedHours: 22
 sources:
-  - title: "Baeldung — Spring Boot"
-    url: https://www.baeldung.com/spring-boot
   - title: "Spring Boot Reference Documentation"
     url: https://docs.spring.io/spring-boot/index.html
+  - title: "Spring Framework Reference"
+    url: https://docs.spring.io/spring-framework/reference/
+  - title: "Spring Security Reference"
+    url: https://docs.spring.io/spring-security/reference/
+  - title: "Baeldung — Spring Boot"
+    url: https://www.baeldung.com/spring-boot
   - title: "spring-projects/spring-boot (GitHub)"
     url: https://github.com/spring-projects/spring-boot
+  - title: "Micrometer — Application Observability"
+    url: https://micrometer.io/
 milestones:
   - 01-introducao.md
   - 02-auto-config.md
-  - 03-actuator-observabilidade.md
+  - 03-configuracao-e-perfis.md
+  - 04-container-e-proxies.md
+  - 05-persistencia-e-transacoes.md
+  - 06-idempotencia-e-outbox.md
+  - 07-runtime-web-e-virtual-threads.md
+  - 08-resiliencia.md
+  - 09-seguranca-oauth2-fapi.md
+  - 10-actuator-observabilidade.md
+  - 11-testes-de-integracao.md
+  - 12-producao-e-deploy.md
+  - 13-arquitetura-modulith.md
