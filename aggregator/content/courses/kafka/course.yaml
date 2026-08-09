@@ -26,3 +26,6 @@ milestones:
   - 06-ordem-chaves-e-reprocessamento.md
   - 07-contratos-schema-e-evolucao.md
   - 08-outbox-cdc-saga-e-dlq.md
+  - 09-kafka-streams.md
+  - 10-share-groups-e-alternativas.md
+  - 11-kafka-connect.md

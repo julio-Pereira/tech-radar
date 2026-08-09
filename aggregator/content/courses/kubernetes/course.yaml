@@ -31,3 +31,6 @@ milestones:
   - 09-seguranca-do-workload.md
   - 10-rbac-identidade-e-auditoria.md
   - 11-networkpolicy-e-service-mesh.md
+  - 12-observabilidade-e-debugging.md
+  - 13-gitops-entrega-e-dr.md
+  - 14-custo-multi-tenancy-e-quando-nao-usar.md
