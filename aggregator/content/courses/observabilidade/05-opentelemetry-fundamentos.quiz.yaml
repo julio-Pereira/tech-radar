@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que uma biblioteca pode usar a API do OTel sem impor custo a quem a consome?"
+    options:
+      - "Porque a API é assíncrona"
+      - "Porque sem um SDK configurado pela aplicação, a API é no-op"
+      - "Porque a biblioteca embute seu próprio exporter"
+      - "Porque o Collector filtra o que não é usado"
+    answer: 1
+    explanation: "A separação API/SDK não é academicismo: é o que torna seguro instrumentar código compartilhado. Quem não configura SDK não paga quase nada."
+  - question: "O que quebra se dois serviços nomearem o mesmo conceito de formas diferentes?"
+    options:
+      - "A exportação via OTLP falha"
+      - "A correlação: painel genérico e consulta que atravessa stacks deixam de funcionar, porque o dado não é comparável"
+      - "O contexto do trace se perde"
+      - "O Collector rejeita os spans"
+    answer: 1
+    explanation: "Semantic conventions são aborrecidas e são o que permite um painel de RED servir para qualquer serviço, e uma consulta TraceQL atravessar Java e Go sem tradução."
+  - question: "Num fluxo assíncrono via Kafka, onde viaja o contexto do trace?"
+    options:
+      - "No corpo da mensagem"
+      - "Nos headers da mensagem"
+      - "Num tópico separado de metadados"
+      - "Não viaja — o trace necessariamente se parte"
+    answer: 1
+    explanation: "Sem propagar nos headers, o consumidor abre um trace novo e a cadeia se parte exatamente no ponto mais difícil de investigar. O consumo se liga ao produtor por span link."
+  - question: "Por que colocar tenant_id em baggage é útil e perigoso ao mesmo tempo?"
+    options:
+      - "Porque aumenta o tamanho do header além do limite"
+      - "Porque ele fica disponível em toda a cadeia — e vira atributo em todo lugar, com o custo de cardinalidade e o risco de vazar PII"
+      - "Porque o baggage não é propagado por HTTP"
+      - "Porque só funciona com traces amostrados"
+    answer: 1
+    explanation: "Baggage é lido por qualquer serviço adiante. Nunca ponha dado sensível ali — ele se espalha por toda a telemetria e depois é praticamente impossível de remover."

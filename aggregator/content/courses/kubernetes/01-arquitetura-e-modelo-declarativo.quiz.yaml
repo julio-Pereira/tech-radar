@@ -1,0 +1,33 @@
+questions:
+  - question: "Quem escreve o campo nodeName de um pod, e quem cria o container?"
+    options:
+      - "O kubelet escreve nodeName e o scheduler cria o container"
+      - "O scheduler escreve nodeName e o kubelet pede ao CRI que crie o container"
+      - "O controller-manager faz os dois"
+      - "O API server faz os dois"
+    answer: 1
+    explanation: "O scheduler só decide e escreve o campo. O kubelet do nó observa que há um pod atribuído a ele e pede ao runtime (containerd/CRI-O) que o crie. Separação de responsabilidades típica do modelo de controllers."
+  - question: "Por que kubectl apply retornar sucesso não significa que a mudança aconteceu?"
+    options:
+      - "Porque o apply é assíncrono por bug conhecido"
+      - "Porque o apply só registra o estado desejado na API; a convergência é feita depois por controllers, e pode demorar ou nunca completar"
+      - "Porque o etcd tem replicação atrasada"
+      - "Porque o kubectl faz cache local"
+    answer: 1
+    explanation: "Não existe transação 'deu certo' no Kubernetes, existe convergência. Um pod pode ficar Pending para sempre sem que nada tenha falhado — o estado desejado simplesmente não é satisfazível."
+  - question: "O que o etcd ser o único componente com estado implica?"
+    options:
+      - "Que ele precisa rodar em todos os nós"
+      - "Que ele é o alvo de backup, de encryption at rest e do controle de acesso"
+      - "Que ele pode ser reiniciado sem consequência"
+      - "Que o scheduler o consulta diretamente"
+    answer: 1
+    explanation: "Nada fala com o etcd direto — só o API server. E como ele guarda tudo, inclusive Secrets em texto claro por padrão, ele concentra as decisões de backup, criptografia em repouso e acesso."
+  - question: "Qual é a lição da aposentadoria do Ingress NGINX em 2026?"
+    options:
+      - "Que o Kubernetes é instável"
+      - "Que dependência de plataforma tem prazo de validade, e saber qual é o de cada uma é trabalho de techlead"
+      - "Que Ingress nunca deveria ter existido"
+      - "Que é melhor não usar controllers de terceiros"
+    answer: 1
+    explanation: "O controller de entrada mais usado do ecossistema por quase uma década foi aposentado sem sucessor drop-in. Quem tratou 'Ingress' como permanente herdou uma migração não planejada."

@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que memory_limiter deve ser o primeiro processor e batch o último?"
+    options:
+      - "Por convenção de nomenclatura"
+      - "Porque o memory_limiter precisa aplicar backpressure antes de qualquer processamento acumular memória, e o batch agrupa depois de tudo já ter sido transformado"
+      - "Porque o batch depende do memory_limiter"
+      - "Porque a ordem não importa, é apenas legibilidade"
+    answer: 1
+    explanation: "Collector morto por OOM derruba a telemetria de todo mundo exatamente durante o incidente que a gerou. Descartar antes de morrer é a escolha certa."
+  - question: "Por que head sampling é ruim para investigar incidente?"
+    options:
+      - "Porque é mais caro"
+      - "Porque a decisão é tomada antes de saber o que aconteceu, e é aleatória em relação ao que interessa: o trace do erro tem a mesma chance de qualquer outro"
+      - "Porque não funciona com OTLP"
+      - "Porque quebra a propagação de contexto"
+    answer: 1
+    explanation: "Com 10% de head sampling, o trace daquele erro específico tem 10% de chance de existir. Tail sampling decide com o trace completo em mãos e guarda 100% dos erros."
+  - question: "O que acontece com o tail sampling se os spans de um trace caírem em gateways diferentes?"
+    options:
+      - "Os gateways se coordenam automaticamente"
+      - "Cada um decide sobre um trace parcial — silenciosamente errado, e você perde parte dos traces que importam"
+      - "O trace é descartado inteiro"
+      - "Nada, a decisão é por span"
+    answer: 1
+    explanation: "É a razão nº 1 de o gateway existir como camada separada, com o loadbalancing exporter roteando por trace-id. A configuração parece certa e está perdendo justamente os erros."
+  - question: "Por que se amostra trace e não métrica?"
+    options:
+      - "Porque métrica não suporta amostragem tecnicamente"
+      - "Porque métrica já é agregada e barata; amostrá-la destruiria o sinal que dispara o alerta"
+      - "Porque traces são mais importantes"
+      - "Porque o Prometheus não aceita dado amostrado"
+    answer: 1
+    explanation: "Métrica tem cardinalidade baixa por construção e custo baixo. O trace é que é caro por guardar cada evento — e por isso é ele que se amostra."

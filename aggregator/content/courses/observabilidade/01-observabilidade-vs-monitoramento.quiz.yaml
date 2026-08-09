@@ -1,0 +1,33 @@
+questions:
+  - question: "Todas as suas métricas estão verdes e o cliente não consegue pagar. Que tipo de sinal falta?"
+    options:
+      - "Mais métricas de infraestrutura"
+      - "Black-box: uma sonda externa que executa a jornada de negócio como um cliente"
+      - "Logs com mais detalhe"
+      - "Profiling contínuo"
+    answer: 1
+    explanation: "Se o DNS quebrou, o certificado expirou ou o balanceador devolve 502, nenhuma requisição chega na sua app e todas as métricas internas ficam verdes. O black-box é o que detecta o que a instrumentação não previu."
+  - question: "Por que 'temos Grafana' não é resposta para 'somos observáveis?'"
+    options:
+      - "Porque o Grafana é só visualização e faltaria o Prometheus"
+      - "Porque observabilidade é uma propriedade do que o sistema emite, não uma ferramenta que se compra"
+      - "Porque o Grafana não suporta traces"
+      - "Porque falta configurar alertas"
+    answer: 1
+    explanation: "Comprar um osciloscópio não torna um circuito observável. O teste é: você consegue responder a uma pergunta nova sobre a produção, agora, sem fazer deploy?"
+  - question: "Qual tipo de problema dashboards e alertas estruturalmente não cobrem?"
+    options:
+      - "Known-knowns"
+      - "Known-unknowns"
+      - "Unknown-unknowns — a condição que ninguém sabia existir, e que não tem dashboard porque ninguém a previu"
+      - "Falhas de infraestrutura"
+    answer: 2
+    explanation: "Incidente sério é quase sempre o terceiro tipo. Responder a ele exige poder fatiar o dado por dimensões arbitrárias no momento da investigação — daí a importância de alta dimensionalidade."
+  - question: "Quando monitoramento simples é suficiente e não vale instrumentar mais?"
+    options:
+      - "Nunca — tudo deve ser observável"
+      - "Quando o custo de uma hora sem saber o que está acontecendo ali é baixo, como num cron job interno cujo único modo de falha relevante é 'não rodou'"
+      - "Quando o serviço é escrito em Go"
+      - "Quando não há orçamento"
+    answer: 1
+    explanation: "Observabilidade é decisão de engenharia com orçamento, não dogma. O critério é o custo do desconhecido."

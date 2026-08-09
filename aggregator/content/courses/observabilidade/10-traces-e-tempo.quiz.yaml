@@ -1,0 +1,33 @@
+questions:
+  - question: "O que significa um buraco entre o fim de um span e o começo do próximo no waterfall?"
+    options:
+      - "Erro de sincronização de relógio"
+      - "Tempo gasto fora do que está instrumentado: espera por pool de conexões, fila de executor, GC"
+      - "Um span perdido pela amostragem"
+      - "Latência de rede entre serviços"
+    answer: 1
+    explanation: "É a leitura menos óbvia do waterfall e frequentemente onde está o problema real. Quando os filhos não somam o tempo do pai, o profile (marco 11) é o próximo passo."
+  - question: "Por que o consumidor Kafka usa span link em vez de span filho?"
+    options:
+      - "Porque o Kafka não propaga contexto"
+      - "Porque o consumo pode ocorrer minutos depois, e um span filho com duração de 'espera' seria enganoso"
+      - "Porque links são mais baratos"
+      - "Porque o span pai já foi amostrado"
+    answer: 1
+    explanation: "O link registra a relação causal sem fingir que foi uma chamada síncrona. A UI mostra a ligação e a duração continua honesta."
+  - question: "Por que span metrics precisa ser calculado antes do tail sampling?"
+    options:
+      - "Por questão de desempenho do Collector"
+      - "Porque depois da amostragem a população fica enviesada — se você guarda 100% dos erros e 5% do resto, a taxa de erro derivada fica absurda"
+      - "Porque o Tempo não aceita métricas"
+      - "Porque o sampling remove os atributos"
+    answer: 1
+    explanation: "As métricas derivadas herdam o viés da amostragem. É um erro fácil de cometer e que produz um painel confiantemente errado."
+  - question: "O cliente reclama de uma transação e o trace não existe. Por quê, e o que você configura?"
+    options:
+      - "O Tempo apagou por retenção; aumente a retenção"
+      - "Ela foi rápida e bem-sucedida, e caiu fora da amostra; políticas por atributo (ex.: valor acima de R$50 mil) garantem que transações importantes sempre sejam guardadas"
+      - "O trace_id foi perdido no Kafka"
+      - "O serviço não estava instrumentado"
+    answer: 1
+    explanation: "Com tail sampling você guarda erros e lentidão. Transação de valor alto que deu certo só é investigável se houver uma política explícita para ela."

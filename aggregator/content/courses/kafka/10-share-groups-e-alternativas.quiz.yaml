@@ -1,0 +1,33 @@
+questions:
+  - question: "O que um share group permite que um consumer group tradicional não permite?"
+    options:
+      - "Ordem garantida entre partições"
+      - "Vários consumidores na mesma partição, com ack por registro e paralelismo desacoplado do número de partições"
+      - "Retenção maior das mensagens"
+      - "Replicação entre clusters"
+    answer: 1
+    explanation: "É semântica de fila com o log por baixo. O preço é a ordem, que deixa de ser garantida — e é por isso que ele serve para tarefa sem ordem, não para o caminho do dinheiro."
+  - question: "Uma tarefa de geração de PDF leva 30 segundos e o volume é irregular. Por que um tópico particionado é a escolha ruim?"
+    options:
+      - "Porque o Kafka não suporta mensagens grandes"
+      - "Porque numa partição a tarefa de 30s bloqueia todas as que estão atrás dela, e o paralelismo tem teto no número de partições"
+      - "Porque a retenção seria insuficiente"
+      - "Porque o Kafka não garante entrega"
+    answer: 1
+    explanation: "Ordem é exatamente o que você não quer aqui, e é o que está te custando o paralelismo. Share group ou SQS resolvem com ack individual e workers independentes."
+  - question: "Qual a limitação mais importante do RabbitMQ e do SQS em relação ao Kafka?"
+    options:
+      - "Não escalam além de alguns milhares de mensagens por segundo"
+      - "A mensagem some ao ser confirmada: não há replay nem múltiplos consumidores independentes do mesmo fluxo"
+      - "Não suportam DLQ"
+      - "Não garantem entrega"
+    answer: 1
+    explanation: "É a diferença estrutural entre fila e log. Se você precisa reprocessar o histórico ou tem três consumidores independentes do mesmo evento, a fila não serve."
+  - question: "Quando escolher Flink em vez de Kafka Streams?"
+    options:
+      - "Sempre que o volume passar de mil mensagens por segundo"
+      - "Quando um requisito concreto exigir — várias fontes e destinos, escala grande, ou semântica de tempo que o Streams não dá"
+      - "Quando a equipe for de Java"
+      - "Quando for preciso exactly-once"
+    answer: 1
+    explanation: "Streams não tem cluster para operar; Flink tem. Escolher Flink por ser mais poderoso é adquirir uma especialidade e um cluster sem requisito que os justifique."

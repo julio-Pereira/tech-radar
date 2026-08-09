@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que a CPU pode cair quando um serviço I/O-bound satura?"
+    options:
+      - "Porque o kernel reduz a frequência do processador"
+      - "Porque as threads ficam bloqueadas esperando I/O em vez de trabalhando — o que cresce é a fila, não o uso de CPU"
+      - "Porque o HPA já removeu réplicas"
+      - "Porque o GC entra em modo econômico"
+    answer: 1
+    explanation: "É por isso que HPA por CPU não escala um serviço em colapso, e ainda escala depois, na recuperação, quando o backlog é processado. Escale por RPS, concorrência ou lag."
+  - question: "Do pico começar até a capacidade nova atender, o tempo típico é de:"
+    options:
+      - "Poucos segundos"
+      - "2 a 7 minutos, somando reação do HPA, provisionamento de nó, pull da imagem e boot da aplicação"
+      - "Menos de 1 minuto com Karpenter"
+      - "Depende apenas do scrape interval"
+    answer: 1
+    explanation: "Se o seu pico sobe em 30 segundos, nenhuma configuração de autoscaler resolve. Pico previsível se resolve com pré-escala agendada."
+  - question: "Por que escalar por latência pode piorar o incidente?"
+    options:
+      - "Porque latência é uma métrica cara de coletar"
+      - "Porque a latência alta pode vir da dependência, e mais pods multiplicam a carga sobre quem já está sofrendo"
+      - "Porque o HPA não suporta latência"
+      - "Porque a latência oscila demais"
+    answer: 1
+    explanation: "É o retry storm em outro formato. Escalar por latência sem entender a causa é adicionar pressão exatamente onde ela não cabe."
+  - question: "Por que maxReplicaCount do KEDA nunca deve passar do número de partições do tópico?"
+    options:
+      - "Porque o KEDA falha ao criar o HPA"
+      - "Porque consumidores além do número de partições ficam ociosos, custam dinheiro e ainda participam de cada rebalance, piorando a recuperação"
+      - "Porque o broker rejeita conexões extras"
+      - "Porque o lag deixa de ser calculado"
+    answer: 1
+    explanation: "Uma partição vai para no máximo um consumidor. O KEDA não te protege desse erro, e o tempo para zerar o backlog não melhora — costuma piorar."

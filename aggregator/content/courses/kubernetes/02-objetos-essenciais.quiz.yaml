@@ -1,0 +1,33 @@
+questions:
+  - question: "Um Service com selector errado não gera nenhum evento de erro. Por quê?"
+    options:
+      - "Porque o Service valida o selector na criação"
+      - "Porque o conjunto vazio é um resultado válido: o Service existe, tem IP e simplesmente não tem endpoints"
+      - "Porque os eventos ficam desabilitados por padrão"
+      - "Porque o erro aparece só no log do kube-proxy"
+    answer: 1
+    explanation: "Labels são o único mecanismo de ligação e não há integridade referencial. kubectl get endpointslices é o diagnóstico, e é o primeiro comando quando 'o Service não responde'."
+  - question: "O que torna o rollback de um Deployment instantâneo?"
+    options:
+      - "Um snapshot do estado anterior no etcd"
+      - "O ReplicaSet antigo continua existindo com 0 réplicas — o rollback só reescala os dois"
+      - "As imagens ficam em cache no nó"
+      - "O Deployment guarda o YAML anterior numa annotation"
+    answer: 1
+    explanation: "O Deployment gerencia ReplicaSets; o antigo não é deletado. Por isso o rollback é uma mudança de contagem, e não um redeploy — mas ele não desfaz migração de banco."
+  - question: "Você escalou um Deployment com kubectl scale durante um pico. O que precisa acontecer antes de ir dormir?"
+    options:
+      - "Nada, a mudança está no etcd"
+      - "Um PR que torne a mudança permanente — senão o próximo apply, ou o Argo CD, a desfaz"
+      - "Reiniciar o controller-manager"
+      - "Anotar no wiki do time"
+    answer: 1
+    explanation: "Imperativo para investigar, declarativo para mudar. Mudança que só existe no cluster é desfeita no pior momento, não sobrevive à recriação do ambiente, e não tem revisor nem justificativa para a auditoria."
+  - question: "Por que labels de time e centro de custo devem entrar no dia 1?"
+    options:
+      - "Porque melhoram o desempenho do scheduler"
+      - "Porque o selector de um Deployment é imutável: retrofitar depois exige recriar o workload"
+      - "Porque são obrigatórios na API"
+      - "Porque o kubectl os exige no apply"
+    answer: 1
+    explanation: "Além do custo de recriação, cada label vira insumo depois: rateio de FinOps, policies de admissão e desenho de NetworkPolicy."

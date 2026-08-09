@@ -1,0 +1,33 @@
+questions:
+  - question: "Você consome um tópico com --group teste, e ao rodar o mesmo comando de novo nada aparece. Onde ficou guardada a posição de leitura?"
+    options:
+      - "Num arquivo local do cliente"
+      - "No tópico interno __consumer_offsets, no próprio Kafka"
+      - "No ZooKeeper"
+      - "Em memória do broker, perdida no restart"
+    answer: 1
+    explanation: "O offset do grupo é commitado num tópico interno do próprio Kafka. Sem --group, o console consumer não pertence a grupo nenhum e por isso relê do começo quando você pede --from-beginning."
+  - question: "Qual é a diferença estrutural entre um log append-only e uma fila tradicional?"
+    options:
+      - "O log é mais rápido porque usa memória"
+      - "A mensagem não some ao ser lida — quem guarda a posição é o consumidor"
+      - "O log garante ordem global entre todas as mensagens"
+      - "A fila não suporta múltiplos produtores"
+    answer: 1
+    explanation: "Leitura não destrói. Daí saem replay, múltiplos consumidores independentes e auditoria natural — e daí sai também a responsabilidade pelo offset, que é onde nascem duplicidade e perda."
+  - question: "O que o KRaft mudou em relação à série 3.x com ZooKeeper?"
+    options:
+      - "Metadados passaram a viver no próprio Kafka, replicados por Raft entre controllers"
+      - "As mensagens passaram a ser replicadas por Raft"
+      - "O Kafka deixou de precisar de replicação"
+      - "Os offsets passaram a ser guardados no cliente"
+    answer: 0
+    explanation: "KRaft move os metadados (tópicos, líderes, ACLs) para um log interno mantido por nós controllers. Um sistema a menos para operar e failover de metadados mais rápido. O ZooKeeper foi removido na série 4.x."
+  - question: "Em qual destes casos o Kafka é a ferramenta errada?"
+    options:
+      - "Vários consumidores independentes precisam do mesmo fluxo de eventos"
+      - "É preciso reprocessar o histórico de ontem após um bug"
+      - "O produtor publica e aguarda resposta num tópico de retorno para responder ao cliente HTTP"
+      - "É preciso ordem por conta em movimentações financeiras"
+    answer: 2
+    explanation: "Isso é RPC síncrono disfarçado: caro, frágil e com latência pior que uma chamada direta. Se você não precisa de múltiplos consumidores, ordem e replay, provavelmente não é Kafka."

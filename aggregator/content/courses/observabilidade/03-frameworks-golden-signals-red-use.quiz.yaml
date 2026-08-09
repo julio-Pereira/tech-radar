@@ -1,0 +1,33 @@
+questions:
+  - question: "Sua taxa de erro subiu e o p99 melhorou. O que provavelmente aconteceu?"
+    options:
+      - "O sistema se recuperou sozinho"
+      - "Latência de erro está sendo medida junto com a de sucesso — erros são rápidos e puxam o percentil para baixo"
+      - "O cache aqueceu"
+      - "O autoscaler adicionou réplicas"
+    answer: 1
+    explanation: "Um 500 por conexão recusada volta em 2ms. Num histograma único, uma tempestade de erros melhora o p99 no exato momento em que o sistema está pior — e já foi lido em reunião como 'a latência normalizou'."
+  - question: "Qual a diferença entre o pool a 100% de utilização com 3 threads na fila e com 300?"
+    options:
+      - "Nenhuma, os dois estão saturados"
+      - "Enorme: utilização tem teto de 100% e não expressa 'quão pior está ficando'; a fila é que dói e não tem teto"
+      - "A segunda usa mais memória apenas"
+      - "A primeira é pior, porque há menos trabalho pronto"
+    answer: 1
+    explanation: "É a lição do USE: utilization satura em 100%, saturation não. Por isso a saturação é o único sinal que avisa antes do incidente."
+  - question: "Por que alertar por saturação de CPU é ruim, mas medir saturação de CPU é essencial?"
+    options:
+      - "Porque a métrica é cara de coletar"
+      - "Porque alerta deve ser por sintoma que o usuário sente; a saturação é causa, e serve para explicar durante a investigação"
+      - "Porque a CPU não satura de fato"
+      - "Porque só a memória importa"
+    answer: 1
+    explanation: "RED detecta, USE explica. O alerta de CPU dispara em batch noturno sem incidente e fica calado durante o incidente de I/O-bound."
+  - question: "Todos os endpoints retornam 200 e a conciliação contábil não fecha. Que sinal pega isso?"
+    options:
+      - "RED"
+      - "USE"
+      - "Nenhum dos frameworks — é preciso métrica de negócio e invariante, porque eles medem transporte, não corretude"
+      - "Golden signals, pela saturação"
+    answer: 2
+    explanation: "Um sistema pode ter RED impecável e estar liquidando o valor errado. Invariante violada (a soma dos lançamentos fecha em zero) é o único sinal que pega erro de cálculo."
