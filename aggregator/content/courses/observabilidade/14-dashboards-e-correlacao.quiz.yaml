@@ -1,0 +1,33 @@
+questions:
+  - question: "Qual pergunta cada um dos três níveis de painel responde?"
+    options:
+      - "Todos respondem \"o que está errado?\", com detalhe crescente"
+      - "Executivo: \"estamos bem?\"; serviço: \"o que está errado?\"; debug: \"por quê?\" — e os três se ligam, formando o caminho de uma investigação"
+      - "Executivo: \"quanto custou?\"; serviço: \"quem é o dono?\"; debug: \"quando começou?\""
+      - "Executivo e serviço respondem ao negócio; debug responde ao regulador"
+    answer: 1
+    explanation: "O painel único com 60 gráficos falha porque tenta as três de uma vez e não responde bem a nenhuma. Cada nível tem um leitor e uma pergunta."
+  - question: "Para que serve um exemplar num histograma?"
+    options:
+      - "Para guardar um valor de exemplo usado no cálculo do p99"
+      - "Para ligar o ponto da métrica ao trace daquela requisição específica — você vê o pico no p99, clica, e abre o trace, sem anotar horário e procurar à mão"
+      - "Para reduzir a cardinalidade do histograma"
+      - "Para permitir comparação com o período anterior"
+    answer: 1
+    explanation: "É o salto métrica → trace. Cada salto que não existe vira trabalho manual às 3h, e é exatamente aí que o MTTR é ganho ou perdido."
+  - question: "Por que um painel construído apenas na UI do Grafana é um problema?"
+    options:
+      - "Porque a UI gera JSON ineficiente"
+      - "Porque ninguém sabe quem mudou o quê, não há revisão em PR, e o ambiente novo não tem o painel — é o `kubectl edit` da observabilidade"
+      - "Porque painéis da UI não suportam exemplars"
+      - "Porque o Grafana perde os painéis a cada atualização"
+    answer: 1
+    explanation: "O fluxo que funciona é editar na UI, exportar e commitar. O ponto não é o formato — é que a fonte da verdade esteja no Git."
+  - question: "Qual é o teste definitivo de um painel de plantão?"
+    options:
+      - "Ter todos os golden signals presentes"
+      - "Carregar em menos de 2 segundos"
+      - "Alguém que não o construiu chegar à direção certa em um minuto, durante um incidente simulado — se falhar, o problema é o painel, não a pessoa"
+      - "Ter linha de referência do SLO em todos os gráficos"
+    answer: 2
+    explanation: "Vale mais que qualquer regra de layout, e é o único critério que mede o painel pelo que ele existe para fazer."

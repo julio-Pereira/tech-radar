@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que alertar por \"lag acima de 10.000\" erra nos dois sentidos?"
+    options:
+      - "Porque a métrica de lag não é confiável em consumidores Java"
+      - "Porque grita no pico legítimo de fim de mês e fica calado num consumidor lento de baixo volume — o limiar fixo não sabe nada sobre a taxa de consumo"
+      - "Porque o lag só é exposto por partição, nunca no total"
+      - "Porque o lag é sempre alto logo após um rebalance"
+    answer: 1
+    explanation: "Alerte pela derivada (lag crescendo há N minutos) e pelo tempo estimado de recuperação (lag ÷ taxa de consumo) — que é o número que responde \"vamos furar o SLA?\"."
+  - question: "`UnderReplicatedPartitions` está diferente de zero. O que isso significa?"
+    options:
+      - "Que o cluster está rebalanceando e é normal"
+      - "Que há partições sem líder e o tópico está indisponível"
+      - "Que réplicas ficaram para trás do líder: você está mais perto de perder dado do que imagina, e uma queda a mais pode furar o `min.insync.replicas`"
+      - "Que o RF configurado é maior que o número de brokers"
+    answer: 2
+    explanation: "É o alerta mais importante do cluster. Indisponibilidade explícita é o `OfflinePartitionsCount`; os dois devem ser zero."
+  - question: "Por que a heap do broker deve ser modesta, mesmo numa máquina com muita RAM?"
+    options:
+      - "Porque o Kafka guarda os dados no page cache do SO, não na heap — RAM sobrando é o que mantém os consumidores lendo da memória, e heap grande só alonga as pausas de GC"
+      - "Porque o KRaft limita a heap a 6GB"
+      - "Porque heap grande aumenta a latência de fsync"
+      - "Porque a JVM do broker não usa mais de 4GB de qualquer forma"
+    answer: 0
+    explanation: "Pausa longa de GC tira o broker do ISR e provoca eleição de líder. \"O broker tem só 6GB de heap\" não significa que a máquina deva ter 8GB."
+  - question: "Um requisito chega escrito como \"os eventos precisam ser processados na ordem\". Qual pergunta você faz antes de aceitar?"
+    options:
+      - "Quantas mensagens por segundo o sistema precisa suportar?"
+      - "Ordem entre o quê e o quê, exatamente? — quase sempre o requisito real é ordem por entidade, não ordem global"
+      - "Podemos usar `acks=all`?"
+      - "O consumidor é idempotente?"
+    answer: 1
+    explanation: "Ordem global custa uma partição e um consumidor, sem escala. Ordem por chave dá a mesma garantia onde ela importa e mantém o paralelismo."

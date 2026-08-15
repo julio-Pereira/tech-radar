@@ -38,3 +38,9 @@ milestones:
   - 09-logs-e-loki.md
   - 10-traces-e-tempo.md
   - 11-profiling-continuo.md
+  - 12-sli-slo-e-error-budget.md
+  - 13-alertas-e-on-call.md
+  - 14-dashboards-e-correlacao.md
+  - 15-incidente-do-alerta-ao-rca.md
+  - 16-custo-cardinalidade-e-escala.md
+  - 17-telemetria-pii-e-auditoria.md

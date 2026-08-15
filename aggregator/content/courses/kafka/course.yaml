@@ -29,3 +29,6 @@ milestones:
   - 09-kafka-streams.md
   - 10-share-groups-e-alternativas.md
   - 11-kafka-connect.md
+  - 12-operacao-dimensionamento-e-dr.md
+  - 13-seguranca-governanca-e-lgpd.md
+  - 14-observabilidade-performance-e-antipadroes.md
