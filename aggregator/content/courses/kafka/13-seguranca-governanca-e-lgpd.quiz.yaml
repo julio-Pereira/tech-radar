@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que tombstone + compaction não resolve sozinho um pedido de eliminação da LGPD?"
+    options:
+      - "Porque o tombstone só funciona em tópico compactado, é assíncrono, e apaga apenas o registro daquela chave — o CPF dentro de eventos de outras chaves continua lá"
+      - "Porque o tombstone não é suportado por consumidores Java"
+      - "Porque a compaction reescreve o offset das mensagens"
+      - "Porque o tombstone exige RF=1"
+    answer: 0
+    explanation: "É a solução ingênua mais comum. Ela cobre um caso estreito e deixa o dado pessoal espalhado por todos os eventos que não têm aquela chave."
+  - question: "O que o crypto-shredding preserva que a reescrita do tópico destrói?"
+    options:
+      - "O throughput do produtor"
+      - "A integridade e a imutabilidade do log — os offsets e o payload bruto seguem idênticos, só o conteúdo pessoal vira bytes irrecuperáveis"
+      - "A compatibilidade com o Schema Registry"
+      - "A retenção configurada no tópico"
+    answer: 1
+    explanation: "É o que reconcilia as duas obrigações: o registro contábil permanece para o regulador, e o dado pessoal deixa de ser recuperável para a LGPD. O custo é gerir uma chave por titular."
+  - question: "Por que minimizar PII no evento é mais eficaz que criptografá-la?"
+    options:
+      - "Porque criptografia moderna é lenta demais para o caminho do pagamento"
+      - "Porque o dado que não existe no evento não precisa ser cifrado, apagado, nem aparece na DLQ, no data lake, no log do consumidor ou no trace — resolve em todos os lugares de uma vez"
+      - "Porque a LGPD não aceita criptografia como medida de proteção"
+      - "Porque cifrar quebra a compactação por chave"
+    answer: 1
+    explanation: "Criptografia protege o campo onde ele está; minimização remove o problema de todos os lugares por onde o dado passaria. E boa parte dos campos está no evento só porque alguém copiou o objeto de domínio inteiro."
+  - question: "Qual é o risco concreto de manter `allow.everyone.if.no.acl.found=true`?"
+    options:
+      - "O cluster rejeita conexões sem certificado"
+      - "As ACLs existentes deixam de valer"
+      - "Todo recurso sem ACL criada fica aberto a todo mundo — 'esqueci de criar a ACL' vira 'qualquer um pode ler o tópico de pagamentos'"
+      - "O authorizer para de registrar as decisões"
+    answer: 2
+    explanation: "Numa fintech isso fica `false`, e a consequência — toda integração nova precisa de ACL explícita — é o comportamento desejado, não um incômodo."

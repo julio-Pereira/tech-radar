@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que um alerta de \"taxa de erro acima de 1%\" erra nos dois sentidos?"
+    options:
+      - "Porque 1% é um limiar alto demais para uma fintech"
+      - "Porque grita num pico de 30 segundos que não consome budget relevante, e fica calado numa degradação de 0,5% que consome o mês inteiro"
+      - "Porque a taxa de erro não é um sintoma, é uma causa"
+      - "Porque ele depende de recording rules que ficam lentas durante o incidente"
+    answer: 1
+    explanation: "Limiar fixo não sabe nada sobre o orçamento. Burn rate normaliza a velocidade de consumo pelo SLO, e é isso que faz o alerta acertar nos dois casos."
+  - question: "Para que serve o `and` com a janela curta no alerta de burn rate?"
+    options:
+      - "Para reduzir o custo da consulta no Prometheus"
+      - "Para confirmar que a degradação ainda está acontecendo — a janela longa demora a esfriar, e sem o `and` o alerta continua tocando depois que o incidente passou"
+      - "Para dar significância estatística ao alerta"
+      - "Para evitar que o alerta dispare durante um deploy"
+    answer: 1
+    explanation: "A janela longa dá significância; a curta dá atualidade. É a diferença entre um sistema de alerta que o time confia e um que ele silencia."
+  - question: "Um alerta disparou 40 vezes nos últimos 90 dias e nunca exigiu ação. O que fazer?"
+    options:
+      - "Aumentar o limiar e manter"
+      - "Deletar ou reescrever — cada alerta assim é contribuição direta para o alert fatigue, que é a causa nº 1 de MTTA alto"
+      - "Rebaixar para severidade média e manter no pager"
+      - "Manter: pode ser útil no futuro"
+    answer: 1
+    explanation: "Revisão periódica de alertas é o que quase ninguém faz. A auditoria costuma remover mais da metade dos alertas de um time."
+  - question: "Por que uma taxa de acionáveis abaixo de ~50% quebra o sistema de alerta inteiro?"
+    options:
+      - "Porque o Alertmanager começa a agrupar notificações incorretamente"
+      - "Porque o time passa a ignorar o pager — e a partir daí nenhum alerta funciona, por melhor que esteja configurado, inclusive o que importa"
+      - "Porque a rotação de plantão fica pequena demais"
+      - "Porque o custo de armazenamento dos alertas cresce"
+    answer: 1
+    explanation: "É uma propriedade do sistema humano, não do técnico. Junto com acionamentos por turno, é a métrica que diz se o plantão é sustentável."

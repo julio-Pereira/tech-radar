@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que não existe comando para diminuir o número de partições de um tópico?"
+    options:
+      - "Existe, mas só com o cluster parado"
+      - "Porque não há para onde mandar as mensagens da partição removida sem quebrar offset e ordem — o caminho é criar um tópico novo e migrar todo mundo"
+      - "Porque o KRaft removeu essa operação na série 4.x"
+      - "Porque exigiria RF=1 temporariamente"
+    answer: 1
+    explanation: "Aumentar é uma chamada de API (que já quebra a ordem por chave). Diminuir não tem resposta boa: partição é a decisão de dimensionamento difícil de desfazer, então dimensione com folga medida."
+  - question: "Você tem RF=3 e acha que sobrevive à perda de uma zona de disponibilidade. O que `broker.rack` acrescenta?"
+    options:
+      - "Nada, RF=3 já garante réplicas em zonas diferentes"
+      - "Ele distribui as réplicas entre racks/AZs — sem isso as três réplicas podem cair na mesma zona, e a durabilidade que você acha que tem não existe"
+      - "Ele aumenta o RF automaticamente quando uma zona cai"
+      - "Ele reduz a latência de replicação entre zonas"
+    answer: 1
+    explanation: "RF=3 é uma contagem, não uma topologia. Rack awareness é o que transforma o número em garantia real contra a perda de uma zona."
+  - question: "No failover para o cluster de DR, por que o consumidor não pode simplesmente reusar o offset que tinha na origem?"
+    options:
+      - "Porque o MirrorMaker não replica mensagens, só configurações"
+      - "Porque os offsets não coincidem entre clusters — a replicação começou depois, então a mesma mensagem tem números diferentes nos dois lados"
+      - "Porque os offsets expiram durante o failover"
+      - "Porque o cluster de destino usa outro formato de offset"
+    answer: 1
+    explanation: "O MirrorMaker 2 mantém checkpoints que traduzem de um cluster para o outro. Plano de failover que ignora esse mapeamento reprocessa ou pula horas de eventos — e num ledger os dois são incidente."
+  - question: "Numa replicação assíncrona, qual é o seu RPO real?"
+    options:
+      - "O valor contratado no documento de DR"
+      - "Zero, porque o MirrorMaker replica continuamente"
+      - "O lag do MirrorMaker no momento da queda — por isso ele precisa estar em painel, com alerta"
+      - "O intervalo entre backups do cluster"
+    answer: 2
+    explanation: "O RPO é o que você perde, e o que você perde é exatamente o que ainda não tinha sido replicado. Meça o lag continuamente; o número do documento é uma intenção."

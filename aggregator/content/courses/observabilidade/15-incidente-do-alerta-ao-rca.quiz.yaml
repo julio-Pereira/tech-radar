@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que mitigar vem antes de diagnosticar?"
+    options:
+      - "Porque o diagnóstico exige logs que só existem depois da mitigação"
+      - "Porque a indisponibilidade custa dinheiro por minuto — reverter o deploy ou trocar de PSP restaura o serviço agora, e entender a causa fica para depois, com você descansado"
+      - "Porque o regulador exige mitigação em menos de 15 minutos"
+      - "Porque diagnosticar durante o incidente contamina a linha do tempo"
+    answer: 1
+    explanation: "É a parte contraintuitiva para engenheiro: a curiosidade sobre a causa raiz é legítima e ela cobra por minuto. O que vem antes de tudo, inclusive da mitigação, é avaliar o impacto."
+  - question: "Todos os painéis estão verdes e o cliente reclama. Onde está o problema?"
+    options:
+      - "Numa métrica com cardinalidade explodida que parou de ser coletada"
+      - "Antes da sua instrumentação — DNS, certificado, balanceador, rede do parceiro. Continuar olhando métricas internas é olhar onde a luz está acesa"
+      - "No cliente, que provavelmente está com cache antigo"
+      - "Na janela de tempo dos painéis, que está errada"
+    answer: 1
+    explanation: "É a linha mais importante da árvore de decisão e a menos praticada. A ferramenta é a sonda sintética: se o tráfego não chega até você, seu SLI medido no servidor fica perfeito."
+  - question: "Por que \"erro humano\" nunca é causa raiz num post-mortem?"
+    options:
+      - "Porque a LGPD proíbe identificar pessoas em documentos internos"
+      - "Porque é onde a investigação começa: se uma pessoa conseguiu derrubar produção com um comando, a pergunta é por que o sistema permitiu"
+      - "Porque erros humanos não são reprodutíveis"
+      - "Porque o post-mortem só trata de causas técnicas"
+    answer: 1
+    explanation: "Blameless não é gentileza: onde há punição, ninguém escreve o que realmente aconteceu, e o documento vira ficção."
+  - question: "Qual pergunta do post-mortem costuma gerar a melhor ação?"
+    options:
+      - "Quem fez o deploy?"
+      - "Qual foi o impacto financeiro?"
+      - "Por que não foi detectado antes? — se o MTTD foi de 40 minutos, o incidente durou 40 minutos a mais do que precisava, e melhorar detecção costuma ser mais barato que evitar a falha"
+      - "O runbook estava atualizado?"
+    answer: 2
+    explanation: "As diferenças entre início real, detecção, mitigação e resolução são o MTTD e o MTTR — e são o dado mais acionável do documento inteiro."
