@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que o teste given/when/then do agregado não precisa de banco?"
+    options:
+      - "Porque `apply` e `decide` são funções puras, sem I/O"
+      - "Porque o framework de teste substitui o repositório por um mock"
+      - "Porque os eventos do `given` são carregados de fixtures em disco"
+      - "Porque o agregado é reconstruído a partir de um snapshot em memória"
+    answer: 0
+    explanation: "O teste é uma tabela de casos que roda em milissegundos, e o diff aponta para a invariante violada. Inclusive a asserção que se esquece de escrever: comando rejeitado gera **nenhum** evento."
+  - question: "O que o pacto consumer-driven cobre num sistema de eventos?"
+    options:
+      - "O schema completo do evento, validado contra o registry a cada build"
+      - "Os campos que aquele consumidor realmente usa do evento"
+      - "A ordem em que os eventos precisam ser entregues ao consumidor"
+      - "O volume de eventos que o consumidor consegue processar por segundo"
+    answer: 1
+    explanation: "É o que permite ao produtor evoluir os campos que ninguém lê. E ele não substitui a compatibilidade de schema: um é sobre uso real, o outro é sobre forma — rodar os dois no CI é barato."
+  - question: "Quais são as duas suítes obrigatórias de um sistema de eventos?"
+    options:
+      - "Teste de carga do consumidor e teste de failover do broker"
+      - "Teste de contrato no registry e teste de latência ponta a ponta"
+      - "Teste de integração com Testcontainers e teste de compensação da saga"
+      - "Reprojeção determinística e idempotência do consumidor"
+    answer: 3
+    explanation: "As duas são baratas, rodam sem infraestrutura e cobrem os modos de falha mais caros. A ausência delas é o sinal mais confiável de que a arquitetura nunca foi exercitada de verdade."
+  - question: "Por que uma fixture de evento em formato antigo precisa estar no repositório?"
+    options:
+      - "Para documentar a evolução do schema ao longo das versões publicadas"
+      - "Para permitir recriar o ambiente de testes sem depender do broker"
+      - "Para provar que a cadeia de upcasters ainda carrega aquele formato"
+      - "Para comparar o tamanho do payload entre as versões do contrato"
+    answer: 2
+    explanation: "Evita o incidente mais irritante: alguém remove um upcaster achando que está morto, e a quebra aparece no dia em que uma conta antiga é aberta. É o passo de CI mais esquecido dos quatro."

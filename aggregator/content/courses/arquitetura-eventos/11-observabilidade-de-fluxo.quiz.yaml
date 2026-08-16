@@ -1,0 +1,33 @@
+questions:
+  - question: "O que o `causationId` acrescenta que o `correlationId` sozinho não dá?"
+    options:
+      - "O momento exato em que cada evento da cadeia foi publicado"
+      - "A identificação do serviço responsável por publicar cada evento"
+      - "O agrupamento de todos os eventos que pertencem a um mesmo pagamento do cliente"
+      - "A aresta: qual evento causou este, o que transforma a lista em árvore"
+    answer: 3
+    explanation: "Com só o `correlationId` você tem sete registros numa lista plana, e 'o que causou a segunda tentativa?' fica sem resposta. O `correlationId` nasce na borda e nunca é regenerado; o `causationId` muda a cada evento."
+  - question: "Qual a diferença entre idade do evento e consumer lag?"
+    options:
+      - "A idade é medida no produtor, e o lag é medido sempre no consumidor"
+      - "A idade conta apenas eventos já consumidos; o lag conta os pendentes"
+      - "A idade mede tempo desde o fato; o lag mede mensagens acumuladas"
+      - "A idade é uma métrica de negócio; o lag é derivado dos traces"
+    answer: 2
+    explanation: "É a idade que se compara com a janela prometida ao cliente no marco 04. Lag alto durante um backfill legítimo não é incidente; evento velho chegando ao consumo, é."
+  - question: "Por que o painel de sagas mostra distribuição por faixa de idade, e não a média?"
+    options:
+      - "Porque a média esconde as poucas sagas paradas há horas"
+      - "Porque a média exige recalcular a série a cada nova saga aberta"
+      - "Porque a distribuição é mais barata de calcular no banco de dados"
+      - "Porque a média não pode ser exibida junto com o total de sagas abertas"
+    answer: 0
+    explanation: "É a mesma crítica do MTTR em observabilidade/02: dois arranhões e uma catástrofe não são 'média de 1h43'. O painel é do time de operações, e o que ele precisa é da cauda, não do centro."
+  - question: "Como se responde ao regulador que todo pagamento iniciado terminou?"
+    options:
+      - "Consultando o log de auditoria dos serviços envolvidos no fluxo"
+      - "Medindo iniciados menos os que estão em estado terminal, por dia"
+      - "Comparando o total de eventos publicados com o total consumido"
+      - "Verificando que nenhuma mensagem ficou parada na fila de erros"
+    answer: 1
+    explanation: "Se o resultado não converge para zero dentro da janela, há pagamentos perdidos no caminho. O efeito interno é maior que o externo: a métrica obriga o desenho a fechar todos os caminhos, inclusive o do erro e o do timeout."

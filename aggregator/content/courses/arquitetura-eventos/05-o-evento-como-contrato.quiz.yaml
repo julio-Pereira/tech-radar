@@ -1,0 +1,49 @@
+questions:
+  - question: "Qual acoplamento o evento magro devolve ao sistema?"
+    options:
+      - "De dados, porque o consumidor passa a depender do schema do produtor"
+      - "Espacial, porque o consumidor precisa saber onde o produtor está"
+      - "Temporal: o consumidor precisa do produtor no ar para buscar o resto"
+      - "De implantação, porque os dois precisam subir na mesma janela"
+    answer: 2
+    explanation: "O evento com só ids obriga a chamada de volta, e o desacoplamento de tempo que o marco 01 prometia some. O gordo resolve isso e cobra em duplicação e PII espalhada."
+  - question: "Que pergunta o campo `eventId` do envelope responde num incidente?"
+    options:
+      - "Já processei este exato evento antes?"
+      - "De qual caso de negócio este evento faz parte?"
+      - "Qual serviço publicou este evento no tópico?"
+      - "Em que momento o fato realmente aconteceu?"
+    answer: 0
+    explanation: "É a chave do inbox do marco 08. As outras três perguntas também têm campo, e são `correlationId`, `producer` e `occurredAt` — cada campo do envelope existe porque alguém pergunta aquilo às 3h."
+  - question: "Qual evolução de contrato nenhuma ferramenta de compatibilidade consegue pegar?"
+    options:
+      - "Adicionar um campo obrigatório sem valor padrão declarado"
+      - "Remover um campo que ainda é lido por algum consumidor ativo"
+      - "Renomear um campo mantendo o tipo original do valor"
+      - "Mudar a semântica do campo mantendo o mesmo tipo"
+    answer: 3
+    explanation: "`amount` que passa de bruto para líquido tem o mesmo tipo e o mesmo nome: o registry aprova, e a contabilidade de quem consome é destruída em silêncio. As outras três a ferramenta pega."
+  - question: "Por que minimizar PII no evento é mais eficaz do que cifrá-la?"
+    options:
+      - "Porque cifrar impede a compactação e encarece o armazenamento"
+      - "Porque o campo ausente não vaza na DLQ, no data lake nem no trace"
+      - "Porque a LGPD não reconhece criptografia como medida de proteção"
+      - "Porque a cifragem adiciona latência no caminho crítico do pagamento"
+    answer: 1
+    explanation: "Criptografia protege o campo onde ele está; minimização remove o problema de todos os lugares por onde o evento passa. E boa parte da PII está lá por acidente — alguém copiou o objeto de domínio inteiro."
+  - question: "Quando criar `V2` de um evento em vez de evoluir o schema existente?"
+    options:
+      - "Quando o payload ultrapassar o tamanho máximo aceito pelo broker"
+      - "Quando um consumidor novo precisar de um campo que ainda não existe"
+      - "Quando a mudança altera o significado do fato que o evento registra"
+      - "Quando o número de consumidores conhecidos passar de cinco squads"
+    answer: 2
+    explanation: "Também quando os campos opcionais 'temporários' passam de dois, ou quando você precisaria de um obrigatório agora. `V2` custa publicar os dois por um período — com data de fim escrita."
+  - question: "Qual é o critério de sucesso de um catálogo de eventos?"
+    options:
+      - "Um consumidor novo descobre o evento sem perguntar no Slack"
+      - "Todo evento tem schema registrado e validado automaticamente no CI"
+      - "A documentação é gerada a partir do código, sem escrita manual"
+      - "Cada evento tem um responsável designado formalmente pela liderança"
+    answer: 0
+    explanation: "Se não descobre, o catálogo é decorativo. Dono, aprovação e lista de consumidores conhecidos existem para servir a essa pergunta — e a lista, mesmo incompleta, é o documento mais útil na hora de mudar algo."

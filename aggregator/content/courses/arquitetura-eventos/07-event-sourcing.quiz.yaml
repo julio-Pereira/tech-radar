@@ -1,0 +1,33 @@
+questions:
+  - question: "Por que o snapshot nunca pode ser tratado como verdade?"
+    options:
+      - "Porque ele é gravado fora da transação que registra os eventos"
+      - "Porque ele perde os eventos posteriores ao ponto em que foi tirado"
+      - "Porque o formato dele muda a cada versão do agregado publicada"
+      - "Porque ele é otimização: replay total precisa dar o mesmo resultado"
+    answer: 3
+    explanation: "E isso é um teste, não uma esperança: `replay total` e `snapshot + delta` têm de produzir exatamente o mesmo saldo. No dia em que divergem, é o snapshot que está errado — nunca o fluxo."
+  - question: "O que é upcasting, e por que um upcaster nunca é deletado?"
+    options:
+      - "É migrar os eventos antigos no banco; some quando a migração termina"
+      - "É traduzir o evento antigo na leitura, e sempre haverá evento antigo"
+      - "É converter snapshot em evento; some quando o snapshot é recriado"
+      - "É versionar o schema no registry, e o registry guarda todas as versões"
+    answer: 1
+    explanation: "O evento de 2019 vai ser lido para sempre pelo código de hoje. A cadeia V1→V2→V3 é permanente, e precisa de fixtures de cada versão no repositório com um teste que prova que elas ainda carregam."
+  - question: "Qual é a alternativa mais barata que atende à maioria das motivações para event sourcing?"
+    options:
+      - "CQRS no degrau 3, com read model em store separado"
+      - "CDC publicando as mudanças do banco como eventos"
+      - "Audit log combinado com outbox transacional"
+      - "Snapshot periódico do estado gravado em storage imutável"
+    answer: 2
+    explanation: "Registro auditável do que aconteceu mais publicação confiável de eventos: resolve 90% das motivações, sem acoplar o time para sempre nem transformar consulta trivial em projeto."
+  - question: "Por que o ledger double-entry é o caso canônico de event sourcing?"
+    options:
+      - "Porque o histórico é o produto: lançamentos imutáveis e saldo como soma"
+      - "Porque a contabilidade exige que os dados fiquem num store append-only"
+      - "Porque o volume de lançamentos torna o replay mais barato que o estado"
+      - "Porque o regulador determina o uso de eventos em sistemas financeiros"
+    answer: 0
+    explanation: "Estorno é crédito novo, fechamento mensal é literalmente um snapshot, e a auditoria funciona porque o histórico é a verdade. O padrão se justifica pelo domínio — copiá-lo para o cadastro de clientes é copiar a forma sem a razão."
