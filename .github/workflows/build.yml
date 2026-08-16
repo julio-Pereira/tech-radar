@@ -33,6 +33,12 @@ jobs:
         working-directory: aggregator
         run: go mod download
 
+      # Guards the trilhas: a course that fails to compile is skipped with a
+      # WARN and would otherwise vanish from the site without turning CI red.
+      - name: Test
+        working-directory: aggregator
+        run: go test ./...
+
       - name: Run aggregator
         working-directory: aggregator
         env:
