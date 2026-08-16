@@ -1,33 +1,33 @@
 questions:
   - question: "Por que summary não serve para o p99 de um serviço com várias instâncias?"
     options:
-      - "Porque consome mais memória"
-      - "Porque os percentis são calculados na aplicação e percentis não podem ser agregados entre instâncias"
-      - "Porque o Prometheus não suporta summary"
-      - "Porque summary não tem labels"
+      - "Porque o summary consome muito mais memória no processo exportador"
+      - "Porque o percentil é calculado na aplicação e não agrega entre instâncias"
+      - "Porque o Prometheus deixou de suportar o tipo summary nas versões atuais"
+      - "Porque o tipo summary não aceita labels adicionais além do quantile"
     answer: 1
     explanation: "É o mesmo problema estatístico do marco 04. Histogram exporta contagens por bucket, que somam, e o percentil é calculado no fim, sobre o agregado."
   - question: "O que acontece se você esquecer le no sum by de um histogram_quantile?"
     options:
-      - "A consulta falha com erro de sintaxe"
-      - "Ela retorna um resultado sem sentido, e sem nenhum erro"
-      - "O resultado é o p50 em vez do p99"
-      - "O Prometheus usa o le automaticamente"
-    answer: 1
+      - "A consulta falha com erro de sintaxe antes mesmo de ser avaliada"
+      - "O Prometheus adiciona a dimensão le automaticamente ao agrupamento"
+      - "Ela devolve um resultado sem sentido, e sem nenhum erro"
+      - "O resultado retornado passa a ser o p50 em vez do p99 pedido"
+    answer: 2
     explanation: "É o erro mais comum de PromQL: o gráfico aparece, os números são plausíveis e estão errados. O bucket é a dimensão sobre a qual a interpolação acontece."
   - question: "Por que avg(rate(...)) entre pods está errado ao calcular taxa de erro?"
     options:
-      - "Porque rate já é uma média"
-      - "Porque pondera igualmente um pod com 1.000 req/s e outro com 5 — some numerador e denominador separadamente e divida no fim"
-      - "Porque avg ignora pods reiniciados"
-      - "Porque não funciona com counters"
-    answer: 1
-    explanation: "É a média de médias, o mesmo erro estrutural da média dos p99. A taxa correta é sum(rate(erros)) / sum(rate(total))."
+      - "Porque a função rate já entrega uma média sobre a janela pedida"
+      - "Porque avg descarta as séries de pods que reiniciaram na janela"
+      - "Porque a função rate não pode ser aplicada a métricas do tipo counter"
+      - "Porque pondera igual um pod com 1.000 req/s e outro com 5 req/s"
+    answer: 3
+    explanation: "É a média de médias, o mesmo erro estrutural da média dos p99. Some numerador e denominador separadamente e divida no fim: sum(rate(erros)) / sum(rate(total))."
   - question: "Seus buckets vão até 10s e o SLO é 500ms. O que isso faz com o seu p99?"
     options:
-      - "Nada, o histograma se ajusta"
-      - "A precisão do percentil fica limitada pela granularidade dos buckets em torno do valor que importa"
-      - "O p99 fica sempre em 10s"
-      - "A consulta passa a falhar"
-    answer: 1
+      - "A precisão fica limitada pela granularidade em torno do valor que importa"
+      - "Nada: o histograma redistribui os buckets conforme a carga observada"
+      - "O p99 passa a reportar sempre o limite superior de 10 segundos"
+      - "A consulta histogram_quantile passa a falhar por falta de bucket"
+    answer: 0
     explanation: "O resultado é interpolado dentro do bucket. Buckets precisam ser densos em torno do SLO — native histograms resolvem isso automaticamente."

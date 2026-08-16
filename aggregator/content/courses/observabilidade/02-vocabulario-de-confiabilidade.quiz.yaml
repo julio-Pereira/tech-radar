@@ -1,41 +1,41 @@
 questions:
   - question: "Por que o SLO deve ser mais apertado que o SLA?"
     options:
-      - "Por exigência regulatória"
-      - "Porque a diferença é a sua margem de manobra: o alarme interno dispara antes de haver consequência contratual"
-      - "Porque o SLA é medido de forma diferente"
-      - "Não deve — os dois devem ser iguais para consistência"
-    answer: 1
-    explanation: "SLO igual ao SLA significa que o primeiro sinal de problema já é uma multa. SLO de 99,9% com SLA de 99,5% dá tempo de reagir."
+      - "Porque a diferença é a sua margem: o alarme dispara antes da multa"
+      - "Porque a regulação do setor financeiro exige essa separação explícita"
+      - "Porque SLA e SLO usam janelas de medição estruturalmente distintas"
+      - "Não deve: mantê-los iguais evita divergência entre times e contrato"
+    answer: 0
+    explanation: "SLO igual ao SLA significa que o primeiro sinal de problema já é uma consequência contratual. SLO de 99,9% com SLA de 99,5% dá tempo de reagir."
   - question: "O time gastou apenas 8% do error budget no mês. Isso é bom?"
     options:
-      - "Sim, quanto menos melhor"
-      - "Não necessariamente: budget sistematicamente não gasto indica SLO conservador demais e velocidade deixada na mesa"
-      - "Sim, indica maturidade operacional"
-      - "É irrelevante"
+      - "Sim, porque quanto menor o consumo, melhor o resultado do trimestre"
+      - "Não necessariamente: indica SLO conservador e velocidade na mesa"
+      - "Sim, é o indicador clássico de maturidade operacional de um time"
+      - "É irrelevante, porque o budget é recalculado a cada janela mensal"
     answer: 1
     explanation: "Error budget é recurso a gastar, não meta a atingir. Nunca gastá-lo significa que você está investindo em confiabilidade que o usuário não percebe."
   - question: "Três incidentes no mês: 4min, 6min e 5h. Qual número você leva para a diretoria?"
     options:
-      - "MTTR de 1h43min"
-      - "A distribuição: mediana, p90 e a lista dos piores — a média esconde que houve uma catástrofe"
-      - "O total de 5h10min"
-      - "O MTBF"
-    answer: 1
-    explanation: "É a mesma crítica que se aplica à latência média no marco 04: um agregado no lugar de uma distribuição. Dois arranhões e uma catástrofe não são 'média de 1h43'."
+      - "O MTTR de 1h43min, que resume os três eventos num indicador só"
+      - "O tempo total de 5h10min de indisponibilidade acumulada no mês"
+      - "O MTBF, que mostra o intervalo médio entre as ocorrências"
+      - "A distribuição: mediana, p90 e a lista dos piores casos"
+    answer: 3
+    explanation: "A média esconde que houve uma catástrofe. É a mesma crítica que se aplica à latência média no marco 04: um agregado no lugar de uma distribuição. Dois arranhões e uma catástrofe não são 'média de 1h43'."
   - question: "Quatro serviços de 99,9% em série entregam qual disponibilidade ao fluxo?"
     options:
-      - "99,9%"
-      - "Cerca de 99,6% — as disponibilidades se multiplicam, passando de 43min para quase 3h por mês"
-      - "99,99%, porque há redundância"
-      - "Depende apenas do mais lento"
+      - "99,9%, porque o fluxo herda o pior componente do caminho"
+      - "Cerca de 99,6%, porque as disponibilidades se multiplicam"
+      - "99,99%, já que a redundância entre eles compensa as falhas"
+      - "Depende só do componente mais lento do caminho crítico"
     answer: 1
-    explanation: "Você não pode prometer para um fluxo mais do que o produto das disponibilidades do caminho crítico. É a conta que justifica contratar um segundo PSP."
+    explanation: "Passa de 43min para quase 3h por mês. Você não pode prometer para um fluxo mais do que o produto das disponibilidades do caminho crítico — é a conta que justifica contratar um segundo PSP."
   - question: "Aprovar acesso manualmente toda sexta é toil. Investigar um incidente novo é toil?"
     options:
-      - "Sim, todo trabalho operacional é toil"
-      - "Não — toil é manual, repetitivo, automatizável e sem valor duradouro; investigar algo novo é o trabalho"
-      - "Sim, se durar mais de uma hora"
-      - "Depende da severidade"
-    answer: 1
-    explanation: "Executar pela 40ª vez o mesmo runbook de 6 passos é toil. A distinção importa porque medir toil é a defesa do time contra virar operação."
+      - "Sim, porque todo trabalho não planejado de operação conta como toil"
+      - "Depende da severidade atribuída ao incidente pelo time de plantão"
+      - "Não: toil é manual, repetitivo, automatizável e sem valor duradouro"
+      - "Sim, sempre que a investigação passar de uma hora de trabalho"
+    answer: 2
+    explanation: "Investigar algo novo é o trabalho; executar pela 40ª vez o mesmo runbook de 6 passos é toil. A distinção importa porque medir toil é a defesa do time contra virar operação."

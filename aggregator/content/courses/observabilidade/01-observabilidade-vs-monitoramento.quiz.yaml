@@ -1,33 +1,33 @@
 questions:
   - question: "Todas as suas métricas estão verdes e o cliente não consegue pagar. Que tipo de sinal falta?"
     options:
-      - "Mais métricas de infraestrutura"
-      - "Black-box: uma sonda externa que executa a jornada de negócio como um cliente"
-      - "Logs com mais detalhe"
-      - "Profiling contínuo"
+      - "Mais métricas de infraestrutura nos nós que hospedam o serviço"
+      - "Black-box: uma sonda externa que executa a jornada como um cliente"
+      - "Logs de nível debug em todos os serviços do caminho crítico"
+      - "Profiling contínuo, para achar o gargalo de CPU do processo"
     answer: 1
     explanation: "Se o DNS quebrou, o certificado expirou ou o balanceador devolve 502, nenhuma requisição chega na sua app e todas as métricas internas ficam verdes. O black-box é o que detecta o que a instrumentação não previu."
   - question: "Por que 'temos Grafana' não é resposta para 'somos observáveis?'"
     options:
-      - "Porque o Grafana é só visualização e faltaria o Prometheus"
-      - "Porque observabilidade é uma propriedade do que o sistema emite, não uma ferramenta que se compra"
-      - "Porque o Grafana não suporta traces"
-      - "Porque falta configurar alertas"
-    answer: 1
-    explanation: "Comprar um osciloscópio não torna um circuito observável. O teste é: você consegue responder a uma pergunta nova sobre a produção, agora, sem fazer deploy?"
+      - "Porque o Grafana só visualiza, e faltaria o Prometheus como fonte"
+      - "Porque o Grafana não consegue exibir traces distribuídos nativamente"
+      - "Porque observabilidade é propriedade do que o sistema emite"
+      - "Porque ainda faltaria configurar as regras de alerta sobre os painéis"
+    answer: 2
+    explanation: "Não é uma ferramenta que se compra: comprar um osciloscópio não torna um circuito observável. O teste é: você consegue responder a uma pergunta nova sobre a produção, agora, sem fazer deploy?"
   - question: "Qual tipo de problema dashboards e alertas estruturalmente não cobrem?"
     options:
-      - "Known-knowns"
-      - "Known-unknowns"
-      - "Unknown-unknowns — a condição que ninguém sabia existir, e que não tem dashboard porque ninguém a previu"
-      - "Falhas de infraestrutura"
-    answer: 2
-    explanation: "Incidente sério é quase sempre o terceiro tipo. Responder a ele exige poder fatiar o dado por dimensões arbitrárias no momento da investigação — daí a importância de alta dimensionalidade."
+      - "Unknown-unknowns: a condição que ninguém sabia que podia existir"
+      - "Known-knowns, que já estão todos cobertos por painéis existentes"
+      - "Known-unknowns, que você sabe medir mas ainda não instrumentou"
+      - "Falhas de infraestrutura, cobertas pelo monitoramento do provedor"
+    answer: 0
+    explanation: "Incidente sério é quase sempre esse tipo, e não tem dashboard porque ninguém o previu. Responder a ele exige poder fatiar o dado por dimensões arbitrárias no momento da investigação — daí a importância de alta dimensionalidade."
   - question: "Quando monitoramento simples é suficiente e não vale instrumentar mais?"
     options:
-      - "Nunca — tudo deve ser observável"
-      - "Quando o custo de uma hora sem saber o que está acontecendo ali é baixo, como num cron job interno cujo único modo de falha relevante é 'não rodou'"
-      - "Quando o serviço é escrito em Go"
-      - "Quando não há orçamento"
-    answer: 1
-    explanation: "Observabilidade é decisão de engenharia com orçamento, não dogma. O critério é o custo do desconhecido."
+      - "Nunca: todo componente em produção deve ser plenamente observável"
+      - "Quando o serviço é escrito numa linguagem com runtime já instrumentado"
+      - "Quando não há orçamento aprovado para a plataforma de telemetria"
+      - "Quando o custo de uma hora sem saber o que acontece ali é baixo"
+    answer: 3
+    explanation: "Um cron job interno cujo único modo de falha relevante é 'não rodou' não precisa de mais. Observabilidade é decisão de engenharia com orçamento, não dogma: o critério é o custo do desconhecido."

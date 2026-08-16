@@ -1,33 +1,33 @@
 questions:
   - question: "Por que GitOps reduz a superfície de ataque do pipeline?"
     options:
-      - "Porque o Git é criptografado"
-      - "Porque o agente dentro do cluster puxa o estado desejado — o CI deixa de precisar de credencial de produção"
-      - "Porque o Argo CD valida os manifestos"
-      - "Porque elimina o uso de kubectl"
-    answer: 1
+      - "Porque o Argo CD valida e assina os manifestos antes de aplicá-los"
+      - "Porque o repositório Git guarda os manifestos criptografados em repouso"
+      - "Porque o agente dentro do cluster puxa: o CI deixa de ter credencial"
+      - "Porque elimina o uso de kubectl por pessoas fora do time de plataforma"
+    answer: 2
     explanation: "Pipeline comprometido é um vetor real. Com push-based, quem controla o CI controla produção; com pull-based, essa credencial não existe."
   - question: "selfHeal está ligado e você precisa mitigar um incidente à mão. O que acontece?"
     options:
-      - "O Argo CD detecta o incidente e permite a mudança"
-      - "Ele desfaz a sua mitigação em segundos — o runbook precisa dizer como pausar a Application"
-      - "A mudança manual tem precedência"
-      - "O selfHeal é desabilitado automaticamente durante incidentes"
-    answer: 1
-    explanation: "É a lâmina de dois gumes do GitOps. Saber pausar precisa estar escrito no runbook, não na memória de quem configurou."
+      - "Ele desfaz a sua mitigação em segundos, e o runbook precisa dizer como pausar"
+      - "O Argo CD detecta a janela de incidente e libera a alteração manual"
+      - "A mudança feita direto no cluster tem precedência sobre o repositório"
+      - "O selfHeal se desabilita sozinho quando detecta divergência repetida"
+    answer: 0
+    explanation: "É a lâmina de dois gumes do GitOps. Saber pausar a Application precisa estar escrito no runbook, não na memória de quem configurou."
   - question: "Por que o rollback automático de um canary não te salva de uma migração de banco incompatível?"
     options:
-      - "Porque o rollback é lento demais"
-      - "Porque ele reverte apenas o código; o schema já mudou, e a versão anterior pode não funcionar mais"
-      - "Porque o Argo Rollouts não suporta bancos"
-      - "Porque a análise não detecta erro de banco"
-    answer: 1
+      - "Porque a análise do canary não observa métricas vindas do banco de dados"
+      - "Porque o Argo Rollouts não gerencia recursos que não sejam workloads"
+      - "Porque o rollback demora mais que a janela de erro tolerada pelo SLO"
+      - "Porque ele reverte só o código, e o schema já mudou"
+    answer: 3
     explanation: "Daí a disciplina de expandir, migrar, contrair — a mesma do schema de eventos. Toda migração precisa ser compatível com a versão anterior, senão o rollback quebra mais do que conserta."
   - question: "Qual a diferença entre ter backup e ter DR?"
     options:
-      - "Nenhuma, são sinônimos"
-      - "DR exige restore testado, RTO medido e a lista do que não volta sozinho — backup é só a cópia"
-      - "DR exige uma segunda região"
-      - "Backup é de dados, DR é de configuração"
+      - "Backup cobre dados; DR cobre a configuração declarativa do cluster"
+      - "DR exige restore testado, RTO medido e a lista do que não volta sozinho"
+      - "DR exige obrigatoriamente uma segunda região do provedor de nuvem"
+      - "Nenhuma diferença prática: são dois nomes para a mesma cópia de segurança"
     answer: 1
-    explanation: "Restore que nunca foi testado é hipótese. Os modos de falha do primeiro restore real são comuns: snapshot inconsistente, CRD ausente, LoadBalancer com IP novo que o parceiro não tem cadastrado."
+    explanation: "Backup é só a cópia; restore que nunca foi testado é hipótese. Os modos de falha do primeiro restore real são comuns: snapshot inconsistente, CRD ausente, LoadBalancer com IP novo que o parceiro não tem cadastrado."

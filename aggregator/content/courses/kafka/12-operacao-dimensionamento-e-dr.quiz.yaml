@@ -1,33 +1,33 @@
 questions:
   - question: "Por que não existe comando para diminuir o número de partições de um tópico?"
     options:
-      - "Existe, mas só com o cluster parado"
-      - "Porque não há para onde mandar as mensagens da partição removida sem quebrar offset e ordem — o caminho é criar um tópico novo e migrar todo mundo"
-      - "Porque o KRaft removeu essa operação na série 4.x"
-      - "Porque exigiria RF=1 temporariamente"
-    answer: 1
-    explanation: "Aumentar é uma chamada de API (que já quebra a ordem por chave). Diminuir não tem resposta boa: partição é a decisão de dimensionamento difícil de desfazer, então dimensione com folga medida."
+      - "Porque não há para onde mandar as mensagens sem quebrar offset e ordem"
+      - "Porque a operação exigiria reduzir para RF=1 temporariamente em todo o tópico"
+      - "Porque o KRaft removeu essa operação a partir da série 4.x"
+      - "Existe, mas só pode ser executada com o cluster parado"
+    answer: 0
+    explanation: "Aumentar é uma chamada de API (que já quebra a ordem por chave). Diminuir não tem resposta boa: o caminho é tópico novo e migração. Partição é a decisão de dimensionamento difícil de desfazer."
   - question: "Você tem RF=3 e acha que sobrevive à perda de uma zona de disponibilidade. O que `broker.rack` acrescenta?"
     options:
-      - "Nada, RF=3 já garante réplicas em zonas diferentes"
-      - "Ele distribui as réplicas entre racks/AZs — sem isso as três réplicas podem cair na mesma zona, e a durabilidade que você acha que tem não existe"
-      - "Ele aumenta o RF automaticamente quando uma zona cai"
-      - "Ele reduz a latência de replicação entre zonas"
-    answer: 1
+      - "Nada, porque RF=3 já espalha as réplicas entre zonas distintas"
+      - "Ele eleva o fator de replicação automaticamente quando uma zona fica indisponível"
+      - "Ele reduz a latência de replicação escolhendo réplicas próximas"
+      - "Ele distribui as réplicas entre AZs, sem o que as três podem ficar juntas"
+    answer: 3
     explanation: "RF=3 é uma contagem, não uma topologia. Rack awareness é o que transforma o número em garantia real contra a perda de uma zona."
   - question: "No failover para o cluster de DR, por que o consumidor não pode simplesmente reusar o offset que tinha na origem?"
     options:
-      - "Porque o MirrorMaker não replica mensagens, só configurações"
-      - "Porque os offsets não coincidem entre clusters — a replicação começou depois, então a mesma mensagem tem números diferentes nos dois lados"
-      - "Porque os offsets expiram durante o failover"
-      - "Porque o cluster de destino usa outro formato de offset"
+      - "Porque o MirrorMaker replica apenas configurações, não mensagens"
+      - "Porque os offsets não coincidem entre clusters: a replicação começou depois"
+      - "Porque os offsets do grupo expiram durante a janela de failover"
+      - "Porque o cluster de destino grava os offsets do grupo em outro formato binário"
     answer: 1
     explanation: "O MirrorMaker 2 mantém checkpoints que traduzem de um cluster para o outro. Plano de failover que ignora esse mapeamento reprocessa ou pula horas de eventos — e num ledger os dois são incidente."
   - question: "Numa replicação assíncrona, qual é o seu RPO real?"
     options:
-      - "O valor contratado no documento de DR"
-      - "Zero, porque o MirrorMaker replica continuamente"
-      - "O lag do MirrorMaker no momento da queda — por isso ele precisa estar em painel, com alerta"
-      - "O intervalo entre backups do cluster"
+      - "O valor de RPO contratado e registrado no documento de DR"
+      - "Zero, porque o MirrorMaker replica de forma contínua"
+      - "O lag do MirrorMaker no instante da queda"
+      - "O intervalo configurado entre os backups do cluster"
     answer: 2
-    explanation: "O RPO é o que você perde, e o que você perde é exatamente o que ainda não tinha sido replicado. Meça o lag continuamente; o número do documento é uma intenção."
+    explanation: "O RPO é o que você perde, e o que você perde é exatamente o que ainda não tinha sido replicado. Meça o lag continuamente, com painel e alerta; o número do documento é uma intenção."

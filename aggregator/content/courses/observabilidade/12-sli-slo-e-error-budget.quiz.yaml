@@ -1,33 +1,33 @@
 questions:
   - question: "Por que medir \"proporção de requisições abaixo de 500ms\" é melhor do que \"p99 < 500ms\"?"
     options:
-      - "Porque o p99 é caro de calcular no Prometheus"
-      - "Porque a proporção é contável, sai direto do bucket do histograma e compõe naturalmente com o error budget; o p99 é uma estatística sobre uma janela e não compõe"
-      - "Porque o p99 ignora as requisições com erro"
-      - "Porque o p99 exige exemplars habilitados"
+      - "Porque calcular percentil no Prometheus é caro em tempo de consulta"
+      - "Porque a proporção é contável, sai do bucket e compõe com o budget"
+      - "Porque o p99 desconsidera as requisições que terminaram em erro"
+      - "Porque o cálculo do p99 depende de exemplars habilitados na coleta"
     answer: 1
-    explanation: "As duas frases parecem a mesma coisa e não são. O SLI é uma razão entre eventos bons e eventos válidos — e é essa razão que vira budget."
+    explanation: "O p99 é uma estatística sobre uma janela e não compõe. As duas frases parecem a mesma coisa e não são: o SLI é uma razão entre eventos bons e eventos válidos — e é essa razão que vira budget."
   - question: "Você excluiu os 4xx do numerador de erro do SLI. Do que ficou cego?"
     options:
-      - "De nada — 4xx é sempre culpa do cliente"
-      - "Do caso em que o seu deploy passou a devolver 400 para todos os clientes: o SLI fica verde enquanto ninguém consegue pagar. A cobertura é um alerta separado para variação anômala de 4xx"
-      - "Da latência das requisições rejeitadas"
-      - "Dos erros do balanceador, que aparecem como 5xx"
-    answer: 1
-    explanation: "Excluir 4xx é em geral a escolha certa, mas ela tem um ponto cego conhecido — e o alerta separado é o que fecha esse buraco."
+      - "De nada, porque 4xx é sempre responsabilidade do cliente que chamou"
+      - "Da latência das requisições que foram rejeitadas com erro de validação"
+      - "Do caso em que o seu deploy passa a devolver 400 para todo mundo"
+      - "Dos erros gerados pelo balanceador, que chegam contados como 5xx"
+    answer: 2
+    explanation: "O SLI fica verde enquanto ninguém consegue pagar. Excluir 4xx é em geral a escolha certa, mas tem esse ponto cego conhecido — a cobertura é um alerta separado para variação anômala de 4xx."
   - question: "O serviço está saudável e o error budget consumido sobe devagar, de forma constante. O que provavelmente está errado?"
     options:
-      - "As recording rules estão desatualizadas"
-      - "O SLO está conservador demais"
-      - "O SLI está contando algo que não deveria — health check, 4xx legítimo, tráfego de bot no denominador ou no numerador"
-      - "A janela de 30 dias é curta demais"
-    answer: 2
-    explanation: "Budget é consumido por falha. Consumo constante sem incidente é definição de evento válido errada, e é melhor descobrir isso antes do primeiro incidente de verdade."
+      - "O SLI conta algo que não deveria: health check, 4xx legítimo, bot"
+      - "As recording rules do SLI estão desatualizadas em relação ao serviço"
+      - "O SLO foi definido de forma conservadora demais para esse serviço"
+      - "A janela de 30 dias é curta demais para estabilizar a medição"
+    answer: 0
+    explanation: "Budget é consumido por falha. Consumo constante sem incidente é definição de evento válido errada — no numerador ou no denominador —, e é melhor descobrir isso antes do primeiro incidente de verdade."
   - question: "Por que a error budget policy precisa estar acordada com o negócio antes do incidente?"
     options:
-      - "Porque o regulador exige o documento assinado"
-      - "Porque negociar congelamento de feature no meio da crise não funciona — e é aí que a maioria das iniciativas de SLO morre"
-      - "Porque a policy precisa ser versionada junto com as recording rules"
-      - "Porque sem ela o Prometheus não calcula o burn rate"
-    answer: 1
-    explanation: "SLO sem policy é relatório. A policy é o que diz o que muda quando o budget é consumido — e ela só tem poder se foi acordada com o time frio."
+      - "Porque o regulador exige o documento assinado antes da entrada em produção"
+      - "Porque ela precisa ser versionada junto com as recording rules do SLI"
+      - "Porque sem ela o Prometheus não consegue calcular o burn rate"
+      - "Porque negociar congelamento de feature no meio da crise não funciona"
+    answer: 3
+    explanation: "É aí que a maioria das iniciativas de SLO morre. SLO sem policy é relatório: a policy é o que diz o que muda quando o budget é consumido, e ela só tem poder se foi acordada com o time frio."

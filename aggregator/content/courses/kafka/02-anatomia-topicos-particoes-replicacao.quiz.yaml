@@ -1,33 +1,33 @@
 questions:
   - question: "Seu tópico tem min.insync.replicas=2 e o producer usa acks=1. Contra o que essa configuração protege?"
     options:
-      - "Contra perda de mensagem se o líder morrer antes de replicar"
-      - "Praticamente nada — min.insync.replicas só tem efeito com acks=all"
-      - "Contra reordenação de mensagens"
-      - "Contra partição quente"
-    answer: 1
-    explanation: "Os dois botões são um par. Com acks=1 o producer recebe sucesso assim que o líder grava; se ele morrer antes de replicar, a mensagem não existiu. min.insync.replicas só entra em jogo quando o producer espera o ISR."
+      - "Contra perda se o líder morrer antes de replicar"
+      - "Contra reordenação de mensagens na mesma partição"
+      - "Praticamente nada, nessa combinação de valores"
+      - "Contra a concentração de tráfego numa partição quente"
+    answer: 2
+    explanation: "Os dois botões são um par: min.insync.replicas só tem efeito com acks=all. Com acks=1 o producer recebe sucesso assim que o líder grava, e se ele morrer antes de replicar, a mensagem não existiu."
   - question: "Um tópico com cleanup.policy=compact garante que existe exatamente um registro por chave?"
     options:
+      - "Não, porque a compactação é assíncrona"
       - "Sim, o broker sobrescreve o valor anterior na hora"
-      - "Não — a compactação é assíncrona e o log tem uma cauda não compactada"
       - "Sim, desde que o tópico tenha uma partição só"
-      - "Não, compaction apenas apaga registros antigos por tempo"
-    answer: 1
-    explanation: "O compactador roda em background sobre segmentos fechados. A garantia é que pelo menos o último valor de cada chave sobrevive; consumidor que assume unicidade quebra."
+      - "Não, compaction só remove registros antigos por tempo"
+    answer: 0
+    explanation: "O compactador roda em background sobre segmentos fechados, e o log sempre tem uma cauda não compactada. A garantia é que pelo menos o último valor de cada chave sobrevive; consumidor que assume unicidade quebra."
   - question: "Por que um consumidor 6 horas atrasado degrada o desempenho dos outros consumidores?"
     options:
-      - "Porque ele consome mais banda de rede do broker"
-      - "Porque força leitura de disco e envenena o page cache que os consumidores atualizados usam"
-      - "Porque ele bloqueia a escrita do producer"
-      - "Porque provoca rebalance contínuo"
-    answer: 1
-    explanation: "A velocidade do Kafka vem de servir do page cache com zero-copy. Quem lê o passado obriga o SO a trazer segmentos antigos do disco, expulsando as páginas quentes que os outros usavam."
+      - "Porque bloqueia a escrita do producer na partição"
+      - "Porque provoca rebalance contínuo no grupo"
+      - "Porque consome a cota de banda de rede do broker"
+      - "Porque força leitura de disco e envenena o page cache"
+    answer: 3
+    explanation: "A velocidade do Kafka vem de servir do page cache com zero-copy. Quem lê o passado obriga o SO a trazer segmentos antigos do disco, expulsando as páginas quentes que os consumidores atualizados usavam."
   - question: "Por que unclean.leader.election fica desligado numa fintech?"
     options:
       - "Porque deixa a eleição de líder mais lenta"
-      - "Porque, ligada, uma réplica atrasada pode virar líder e truncar o log, apagando mensagens já confirmadas"
-      - "Porque impede o uso de acks=all"
-      - "Porque aumenta o consumo de disco"
+      - "Porque uma réplica atrasada pode virar líder e truncar o log"
+      - "Porque é incompatível com acks=all"
+      - "Porque aumenta o consumo de disco em todas as réplicas do tópico"
     answer: 1
-    explanation: "É a escolha explícita entre disponibilidade e corretude. Ligada, a partição volta ao ar mais rápido ao custo de perder registro financeiro confirmado — que é exatamente o que não se pode perder."
+    explanation: "É a escolha explícita entre disponibilidade e corretude. Ligada, a partição volta ao ar mais rápido ao custo de apagar mensagens já confirmadas ao producer — que é exatamente o que não se pode perder."

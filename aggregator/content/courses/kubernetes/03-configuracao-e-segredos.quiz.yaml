@@ -1,33 +1,33 @@
 questions:
   - question: "Alguém tem permissão de criar Pod num namespace, mas não tem get secrets. Consegue ler o segredo?"
     options:
-      - "Não, o RBAC bloqueia"
-      - "Sim — basta criar um pod que monte o Secret e ler o valor lá dentro"
-      - "Só se o Secret estiver sem criptografia no etcd"
-      - "Só com permissão de exec"
-    answer: 1
+      - "Sim: basta criar um pod que monte o Secret e ler o valor lá dentro"
+      - "Não, porque o RBAC avalia o verbo get sobre o Secret montado no pod"
+      - "Só se o Secret estiver armazenado sem encryption at rest no etcd"
+      - "Só se tiver também o verbo create sobre o subrecurso pods/exec"
+    answer: 0
     explanation: "Permissão de deploy é, na prática, permissão de leitura de segredo do namespace. Esse detalhe desfaz a maioria dos desenhos ingênuos de RBAC e é o que torna a separação por namespace uma fronteira real."
   - question: "Por que credencial rotacionável deve ser montada como arquivo em vez de variável de ambiente?"
     options:
-      - "Porque variável de ambiente tem limite de tamanho"
-      - "Porque a variável é capturada uma vez no exec: rotacionar exigiria reiniciar o pod, enquanto o volume é atualizado pelo kubelet"
-      - "Porque arquivos são criptografados"
-      - "Porque o Kubernetes não suporta env para Secrets"
-    answer: 1
-    explanation: "Além da rotação sem redeploy, variável de ambiente vaza em kubectl describe pod, em crash dump e em log de processo. Arquivo montado, não."
+      - "Porque variáveis de ambiente têm limite de tamanho no Linux"
+      - "Porque o conteúdo de arquivos montados é criptografado pelo kubelet"
+      - "Porque a API do Kubernetes não expõe Secrets como variável de ambiente"
+      - "Porque a variável é capturada uma vez no exec e o volume é atualizado"
+    answer: 3
+    explanation: "Rotacionar uma env var exigiria reiniciar o pod. Além disso, variável de ambiente vaza em kubectl describe pod, em crash dump e em log de processo. Arquivo montado, não."
   - question: "Seu time quer um chart Helm interno para o pix-gateway com 12 valores. Qual pergunta você faz antes de concordar?"
     options:
-      - "Qual versão do Helm vamos usar?"
-      - "Nós temos 3 ambientes ou 300 usuários? Helm empacota e distribui; variação por ambiente é overlay"
-      - "Quem vai manter o repositório de charts?"
-      - "Vamos usar subcharts?"
+      - "Qual versão do Helm o time vai padronizar no pipeline de entrega?"
+      - "Nós temos 3 ambientes ou 300 usuários instalando isso?"
+      - "Quem vai manter o repositório de charts e publicar as versões?"
+      - "Vamos quebrar em subcharts por componente ou manter um chart único?"
     answer: 1
-    explanation: "Kustomize para o que é seu, Helm para o que é de terceiros. Um chart interno com muitos valores e condicionais é um overlay disfarçado, e ninguém consegue ler nem diffar o resultado."
+    explanation: "Helm empacota e distribui; variação por ambiente é overlay. Kustomize para o que é seu, Helm para o que é de terceiros. Um chart interno com muitos valores e condicionais é um overlay disfarçado, e ninguém consegue ler nem diffar o resultado."
   - question: "Base64 num Secret do Kubernetes oferece qual proteção?"
     options:
-      - "Criptografia simétrica"
-      - "Nenhuma — é codificação; a proteção real vem de encryption at rest no etcd e de RBAC"
-      - "Proteção contra leitura pelo kubelet"
-      - "Hash irreversível"
-    answer: 1
-    explanation: "kubectl get secret -o jsonpath | base64 -d devolve o valor. A diferença real de um ConfigMap é que Secret é criptografável no etcd, separável por RBAC e não aparece em log por acidente."
+      - "Criptografia simétrica com a chave gerenciada pelo API server"
+      - "Um hash irreversível do valor, verificável mas não recuperável"
+      - "Nenhuma: é codificação, e qualquer um decodifica com base64 -d"
+      - "Impede que o kubelet leia o conteúdo antes de montá-lo no pod"
+    answer: 2
+    explanation: "A proteção real vem de encryption at rest no etcd e de RBAC. A diferença real de um ConfigMap é que Secret é criptografável no etcd, separável por RBAC e não aparece em log por acidente."
