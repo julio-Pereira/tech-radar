@@ -5,9 +5,9 @@ category: "Arquitetura"
 tags: [eda, ddd, cqrs, event-sourcing, saga, arquitetura, fintech]
 level: advanced
 lang: pt-BR
-# Bloco A (Domínio) publicado: 4 marcos, ~200 min de leitura. Vai para 24 quando os
-# 13 marcos estiverem escritos — a regra é ~2× a soma dos estimatedMinutes.
-estimatedHours: 7
+# 13 marcos, 695 min de leitura. A regra é ~2× a soma dos estimatedMinutes (leitura
+# mais hands-on), registrada no PROJETO.md.
+estimatedHours: 24
 glossary: GLOSSARIO.md
 sources:
   - title: "Martin Fowler — What do you mean by Event-Driven?"
@@ -30,15 +30,15 @@ milestones:
   - 02-dominio-antes-do-topico.md
   - 03-event-storming.md
   - 04-consistencia-eventual.md
-  # Bloco B — Modelo (ids congelados: evento-como-contrato, cqrs-e-projecoes, event-sourcing)
-  # - 05-o-evento-como-contrato.md
-  # - 06-cqrs-e-projecoes.md
-  # - 07-event-sourcing.md
-  # Bloco C — Padrão (outbox-inbox-idempotencia, sagas, sincrono-rest-grpc)
-  # - 08-outbox-inbox-e-idempotencia.md
-  # - 09-sagas-e-processos-longos.md
-  # - 10-sincrono-ainda-existe-rest-e-grpc.md
-  # Bloco D — Operar e evoluir (observabilidade-de-fluxo, testar-eventos, migracao-e-antipadroes)
-  # - 11-observabilidade-de-fluxo.md
-  # - 12-testar-arquitetura-de-eventos.md
-  # - 13-migrar-sem-parar-a-fintech.md
+  # Bloco B — Modelo
+  - 05-o-evento-como-contrato.md
+  - 06-cqrs-e-projecoes.md
+  - 07-event-sourcing.md
+  # Bloco C — Padrão
+  - 08-outbox-inbox-e-idempotencia.md
+  - 09-sagas-e-processos-longos.md
+  - 10-sincrono-ainda-existe-rest-e-grpc.md
+  # Bloco D — Operar e evoluir
+  - 11-observabilidade-de-fluxo.md
+  - 12-testar-arquitetura-de-eventos.md
+  - 13-migrar-sem-parar-a-fintech.md

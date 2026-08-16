@@ -2,10 +2,6 @@ Um verbete por termo: definição em uma frase, o exemplo no `fin-platform`, o e
 associado e o marco onde o conceito aparece na prática. Consulte durante a trilha inteira —
 o Bloco A cria o vocabulário, e os blocos seguintes o reencontram.
 
-> A trilha está em construção. Os marcos 01–04 estão publicados; os verbetes que apontam
-> para 05–13 já estão aqui porque o vocabulário é um só, e o Bloco A precisa dele inteiro
-> para explicar o que virá.
-
 ## Vocabulário básico
 
 ### Evento

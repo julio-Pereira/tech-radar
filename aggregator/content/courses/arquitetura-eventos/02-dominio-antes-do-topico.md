@@ -31,6 +31,13 @@ não por tecnologia, por vocabulário.
 
 Aceitar múltiplos significados custa tradução. Recusar custa o projeto.
 
+Vale distinguir de um vizinho próximo: o monolito modular de `spring-boot/13` traça
+fronteiras **entre módulos dentro do mesmo processo**, e quem as viola paga com um teste de
+arquitetura vermelho. Aqui a fronteira é **entre contextos, através da rede**, e quem a
+viola paga com latência, indisponibilidade e um contrato público que não pode mais mudar. O
+conceito é o mesmo; o preço de errar é de outra ordem — e é por isso que vale desenhar a
+fronteira dentro do processo antes de distribuí-la.
+
 ## Agregado: a fronteira de consistência
 
 Esta é a regra que decide tudo adiante, e vale a pena decorá-la:

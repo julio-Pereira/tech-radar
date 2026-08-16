@@ -2,7 +2,7 @@ questions:
   - question: "Qual frase estrutura o nível de process modeling?"
     options:
       - "Serviço chama serviço, que grava no banco e responde ao chamador"
-      - "Tela dispara requisição, que vira transação e depois vira relatório"
+      - "Tela dispara requisição, que vira transação e depois alimenta o relatório"
       - "Tabela guarda estado, que é lido por consulta e exibido por tela"
       - "Ator dispara comando → agregado decide → evento acontece → política reage"
     answer: 3

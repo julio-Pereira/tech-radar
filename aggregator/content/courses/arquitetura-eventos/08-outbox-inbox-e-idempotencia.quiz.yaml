@@ -1,0 +1,49 @@
+questions:
+  - question: "Por que a inserção no inbox precisa estar na mesma transação do efeito de negócio?"
+    options:
+      - "Senão existe janela entre marcar como processado e produzir o efeito"
+      - "Senão o consumidor não consegue confirmar o offset ao broker"
+      - "Senão a chave primária do inbox deixa de impedir a inserção duplicada"
+      - "Senão o evento é reentregue antes de a marcação ser persistida"
+    answer: 0
+    explanation: "Morrer entre as duas operações deixa o evento marcado sem efeito, ou o efeito sem marcação. Deduplicar num Redis antes de processar não é inbox: é uma otimização com exatamente essa janela."
+  - question: "De qual duplicidade o `eventId` não protege?"
+    options:
+      - "Da reentrega do mesmo evento pelo broker após uma falha de rede"
+      - "Da republicação do mesmo evento pelo relay de outbox"
+      - "Do cliente que aperta \"pagar\" duas vezes e gera duas intenções"
+      - "Do consumidor que reprocessa o tópico a partir do offset zero"
+    answer: 2
+    explanation: "São duas requisições distintas, com dois `eventId` distintos, e o inbox as deixa passar corretamente. A proteção é outra: chave de idempotência de negócio na entrada, com constraint única."
+  - question: "Por que 2PC praticamente morreu entre serviços de times diferentes?"
+    options:
+      - "Porque exige que todos os participantes usem o mesmo banco de dados"
+      - "Porque bloqueia recursos na decisão e o coordenador é ponto único"
+      - "Porque não garante atomicidade quando há mais de dois participantes"
+      - "Porque nenhum broker moderno implementa o protocolo de duas fases"
+    answer: 1
+    explanation: "Num sistema com pico, bloqueio durante a decisão é fatal, e a queda do coordenador deixa participantes travados. Ele ainda vive legitimamente dentro de um banco distribuído, onde o coordenador é o próprio sistema."
+  - question: "Um evento chega fora de ordem no consumidor. Qual política quase sempre vence?"
+    options:
+      - "Bufferizar o evento até que o anterior da sequência chegue"
+      - "Reordenar os eventos do tópico antes de entregá-los ao consumidor"
+      - "Encaminhar para a DLQ e reprocessar depois manualmente"
+      - "Descartar se a versão do agregado for menor ou igual à aplicada"
+    answer: 3
+    explanation: "Simples e sem estado extra. Bufferizar exige prazo e um caminho para quando o anterior nunca chega; reordenar o fluxo não é uma operação que exista — a ordem se escolhe na chave de partição, na origem."
+  - question: "Um estorno chega antes do débito porque veio de outro canal. O que fazer?"
+    options:
+      - "Aceitar em estado pendente e resolver quando o par chegar"
+      - "Descartar, porque a versão do agregado é anterior à aplicada"
+      - "Rejeitar, já que não existe lançamento correspondente a estornar"
+      - "Bufferizar por tempo fixo e depois enviar para a fila de erros"
+    answer: 0
+    explanation: "Não é desordem técnica: é um fato legítimo fora de sequência causal. Descartar aqui é perder dinheiro do cliente — o descarte por versão vale para reentrega de estado, não para fatos independentes."
+  - question: "O ledger duplicou um lançamento e os dois eventos têm `eventId` diferentes. O que isso indica?"
+    options:
+      - "Que o inbox está com a chave primária mal definida"
+      - "Que o relay de outbox publicou o mesmo registro da tabela duas vezes"
+      - "Que a retenção do inbox expirou antes da segunda entrega"
+      - "Que o problema é de idempotência de negócio, não do consumidor"
+    answer: 3
+    explanation: "O inbox funcionou: para ele são eventos distintos. A causa está na entrada — duas intenções viraram dois pagamentos —, e a correção é chave de negócio com constraint única, não mexer no consumidor."

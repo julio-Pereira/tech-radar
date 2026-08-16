@@ -1,0 +1,49 @@
+questions:
+  - question: "Qual critério decide entre coreografia e orquestração numa fintech?"
+    options:
+      - "O número de times envolvidos no processo de ponta a ponta"
+      - "Se alguém precisa responder \"onde está esse pagamento?\""
+      - "Se os serviços compartilham ou não a mesma base de dados"
+      - "O volume de eventos por segundo que o processo precisa sustentar"
+    answer: 1
+    explanation: "Coreografia cabe até uns três passos e sem status central. Numa fintech, cliente, atendimento e regulador sempre perguntam — o que resolve a discussão para o lado da orquestração na maioria dos casos."
+  - question: "O que caracteriza uma saga implícita, e por que ela é problema?"
+    options:
+      - "Ela roda sem timeout algum, e por isso pode ficar pendurada para sempre"
+      - "Ela usa coreografia, e por isso não tem compensação definida"
+      - "Ela não persiste o estado, e por isso não retoma após uma falha"
+      - "Ela está espalhada por consumidores: ninguém sabe quantas estão abertas"
+    answer: 3
+    explanation: "O processo existe mas não é um objeto: não dá para consultar passo, tentativa nem prazo. É dívida invisível — não aparece em diagrama nenhum, e aparece no primeiro incidente."
+  - question: "Por que compensação não é rollback?"
+    options:
+      - "Porque ela é executada por outro serviço, e não por quem fez o passo"
+      - "Porque ela só pode ocorrer antes do commit da transação local"
+      - "Porque ela acrescenta uma transação nova em vez de apagar a anterior"
+      - "Porque ela é assíncrona, enquanto o rollback é sempre síncrono"
+    answer: 2
+    explanation: "O estorno tem data, taxa e registro contábil próprios, e o cliente vê os dois lançamentos no extrato. É a mesma regra do ledger double-entry: nada se apaga, e tentar esconder quebra a conciliação."
+  - question: "O que o conceito de pivot step exige do desenho da saga?"
+    options:
+      - "Ordenar os passos para que o irreversível venha o mais tarde possível"
+      - "Colocar o passo mais lento no fim, para não segurar os anteriores"
+      - "Executar o passo mais caro primeiro, para falhar rápido quando falhar"
+      - "Isolar o passo crítico numa transação distribuída com duas fases"
+    answer: 0
+    explanation: "Valide tudo, reserve tudo, decida tudo — e só então mande o dinheiro. Uma saga cujo passo irreversível está no meio tem um problema de desenho que nenhuma implementação conserta."
+  - question: "Qual é o modo de falha mais comum de uma saga?"
+    options:
+      - "A compensação falha e deixa o sistema num estado inconsistente"
+      - "O silêncio: nada falha e a saga fica parada esperando para sempre"
+      - "O erro em cascata, quando um passo derruba todos os seguintes"
+      - "A duplicidade, quando o mesmo passo é executado mais de uma vez"
+    answer: 1
+    explanation: "O PSP não responde, ninguém lança exceção, e não há alerta porque nada falhou. Por isso prazo por passo, temporizador como evento e alerta por idade — não por erro."
+  - question: "Quando adotar Temporal ou Camunda em vez de uma máquina de estado caseira?"
+    options:
+      - "Sempre que a saga tiver mais de três passos com compensação"
+      - "Quando o processo precisar de garantia exactly-once entre os passos"
+      - "Quando escrever e manter as máquinas à mão custar mais que operar o motor"
+      - "Quando houver mais de um time responsável por passos distintos do processo"
+    answer: 2
+    explanation: "Uma ferramenta a mais é um plantão a mais, e o motor vira infraestrutura crítica: se ele cai, nenhum pagamento avança. O critério é custo comparado, não a qualidade da apresentação."

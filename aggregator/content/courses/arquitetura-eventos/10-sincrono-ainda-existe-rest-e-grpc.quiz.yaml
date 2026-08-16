@@ -1,0 +1,33 @@
+questions:
+  - question: "O que acontece quando um fluxo que precisa de resposta é transformado em evento?"
+    options:
+      - "O acoplamento temporal desaparece e a latência média melhora"
+      - "O consumidor passa a poder processar o pedido em lote, ganhando escala"
+      - "Vira request-reply sobre broker: mesma latência e pior depuração"
+      - "O broker garante a entrega, então o chamador pode desistir com segurança"
+    answer: 2
+    explanation: "Você publica o pedido, cria tópico de resposta, correlaciona por id e gerencia timeout à mão. O acoplamento temporal continua existindo — só que escondido, com mais peças para depurar."
+  - question: "O que o deadline propagado do gRPC dá que o timeout local do REST não dá?"
+    options:
+      - "Cada salto sabe quanto tempo resta e pode desistir do trabalho inútil"
+      - "A garantia de que a chamada será cancelada exatamente no prazo dado"
+      - "A retentativa automática quando o prazo é excedido no primeiro salto"
+      - "O registro do tempo gasto em cada salto para efeito de rastreamento"
+    answer: 0
+    explanation: "Em REST cada salto tem seu timeout local e ninguém sabe quanto sobrou: o cliente desiste enquanto o backend continua trabalhando — que num pagamento é o pior desfecho, porque o dinheiro sai e o cliente vê erro."
+  - question: "Por que o número de um campo protobuf é para sempre?"
+    options:
+      - "Porque o compilador recusa qualquer alteração de numeração que já foi publicada"
+      - "Porque o registry de schemas versiona os campos pelo número declarado"
+      - "Porque a ordem dos campos na mensagem depende da sequência dos números"
+      - "Porque o que trafega é o número: reaproveitá-lo produz dado errado sem erro"
+    answer: 3
+    explanation: "O nome é açúcar para humanos. Um cliente antigo interpreta os bytes novos como o campo velho, sem exceção e sem alerta — é para isso que `reserved` existe, e é por isso que ele nunca sai do arquivo."
+  - question: "Quatro serviços de 50ms em série numa requisição de 200ms. Qual é o problema?"
+    options:
+      - "O overhead de serialização se acumula a cada salto da cadeia"
+      - "A latência de cauda e a indisponibilidade se multiplicam ao longo da cadeia"
+      - "O deadline não pode ser dividido igualmente entre os quatro serviços"
+      - "O número de conexões abertas cresce muito além do limite do pool do cliente"
+    answer: 1
+    explanation: "Basta um dos quatro estar na cauda para o conjunto estourar, e quatro serviços de 99,9% em série entregam ~99,6%. O antipadrão não é o mecanismo: é a serialização — paralelize o independente e tire do caminho o que não precisa estar lá."

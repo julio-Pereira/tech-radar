@@ -1,0 +1,33 @@
+questions:
+  - question: "Em qual degrau da escada de adoção de CQRS a maioria dos casos deveria parar?"
+    options:
+      - "No degrau 1: consultas separadas dentro do mesmo modelo de domínio"
+      - "No degrau 2: read model materializado no mesmo banco"
+      - "No degrau 3: read model em outro store, alimentado por evento"
+      - "Não há degraus: CQRS é adotado inteiro ou não é adotado"
+    answer: 1
+    explanation: "No degrau 2 você ganha consulta trivial e mantém consistência forte, porque tudo está no mesmo commit. O degrau 3 é o que as pessoas chamam de CQRS e traz assincronia, janela, reprojeção e um segundo sistema para operar."
+  - question: "Por que determinismo é pré-requisito para a projeção ser descartável?"
+    options:
+      - "Porque sem ele o consumidor não consegue confirmar o offset lido"
+      - "Porque o broker exige resultado estável para deduplicar entregas"
+      - "Porque a projeção precisa rodar em paralelo em várias instâncias"
+      - "Porque sem ele a reprojeção não reproduz o mesmo read model"
+    answer: 3
+    explanation: "Um `now()` ou uma chamada externa variável fazem o resultado mudar a cada execução, e aí ninguém tem coragem de apagar e reconstruir. Medo de reprojetar é sintoma de não-determinismo."
+  - question: "Por que o lag da projeção é uma métrica de produto?"
+    options:
+      - "Porque é o número que o cliente sente: o extrato atrasado em relação ao fato"
+      - "Porque ele determina o dimensionamento do cluster que hospeda o consumidor"
+      - "Porque é a métrica usada para decidir quando escalar as réplicas da projeção"
+      - "Porque o custo de armazenamento do read model cresce junto com esse número"
+    answer: 0
+    explanation: "É a materialização da janela declarada no marco 04, e quem responde por ela é quem responde pelo extrato. Alerte como sintoma — 'extrato 30s atrás' —, não como 'consumer lag alto', que dispara em backfill legítimo."
+  - question: "O saldo disponível participa da decisão de aprovar um débito. O que isso significa?"
+    options:
+      - "Que ele deve ser materializado numa projeção com lag monitorado"
+      - "Que ele precisa de um índice dedicado para responder rápido o bastante"
+      - "Que ele não é read model: é o agregado com outro nome"
+      - "Que ele deve ser replicado para todos os contextos que o consultam"
+    answer: 2
+    explanation: "Se a leitura decide, ela não é leitura. Deixar o saldo disponível virar projeção mantida por outro contexto é espalhar uma invariante — e a divergência aparece na conciliação."

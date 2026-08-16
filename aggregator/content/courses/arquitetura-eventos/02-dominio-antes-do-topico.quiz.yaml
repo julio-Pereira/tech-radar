@@ -28,6 +28,6 @@ questions:
       - "Porque o cálculo é caro e replicá-lo dobraria o custo de CPU"
       - "Porque a LGPD trata saldo como dado sensível de titular"
       - "Porque dois donos da mesma invariante produzem conciliação manual permanente"
-      - "Porque o esquema do banco não permite a mesma coluna em dois serviços"
+      - "Porque o esquema do banco não permite a mesma coluna existir em dois serviços"
     answer: 2
     explanation: "O saldo disponível não é um segundo saldo: é uma função do contábil, calculada pelo dono. No dia em que dois contextos passam a ter 'o saldo', começa uma conciliação que nunca mais termina."

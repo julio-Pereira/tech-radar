@@ -1,0 +1,33 @@
+questions:
+  - question: "Por qual contexto começar a extração, e por que quase nunca é o ledger?"
+    options:
+      - "Pelo mais crítico, porque ele concentra o maior retorno da migração"
+      - "Pelo de menor invariante compartilhada; o ledger é onde elas são mais rígidas"
+      - "Pelo que tem mais consumidores hoje, porque ele define os contratos dos demais"
+      - "Pelo mais recente, porque o código novo é mais fácil de extrair"
+    answer: 1
+    explanation: "Notificação, extrato e conciliação leem muito e decidem pouco — bons primeiros candidatos. Extrair o ledger primeiro é escolher a parte mais difícil quando você tem menos prática e menos observabilidade de fluxo."
+  - question: "Qual acoplamento o CDC cria, e o que impede que ele vire permanente?"
+    options:
+      - "Acoplamento de disponibilidade; o que impede é a fila entre os dois lados"
+      - "Acoplamento temporal; o que impede é o buffer do conector de origem"
+      - "Acoplamento ao schema interno do legado; impede a data de desligamento na ADR"
+      - "Acoplamento de versão; o que impede é a política de compatibilidade no registry"
+    answer: 2
+    explanation: "Uma coluna renomeada numa refatoração quebra um consumidor que o time do legado não sabe que existe. Sem data escrita, a ponte vira arquitetura — e o acoplamento vira permanente."
+  - question: "Quais são os três tempos da virada de leitura?"
+    options:
+      - "Backfill, comparação silenciosa em produção e virada por fatia atrás de flag"
+      - "Migração do schema, cópia dos dados e desligamento do sistema antigo"
+      - "Testes em homologação, janela de manutenção e virada completa"
+      - "Espelhamento do tráfego, validação manual e substituição definitiva do endpoint"
+    answer: 0
+    explanation: "O tempo que as pessoas pulam é o segundo: rodar dias com os dois respondendo e registrar divergência em silêncio. O caso raro que quebra costuma ser mensal — horas de comparação não o encontram."
+  - question: "Qual pergunta fecha a trilha, um ano depois da migração?"
+    options:
+      - "Quantos serviços independentes o sistema passou a ter?"
+      - "O custo de infraestrutura por transação caiu em relação ao legado?"
+      - "Quantos eventos por segundo o backbone sustenta hoje?"
+      - "O que melhorou: autonomia de deploy, ou a contagem de repositórios?"
+    answer: 3
+    explanation: "Os testes são concretos: um squad sobe sem coordenar? uma falha deixa os outros de pé? o tempo de detecção caiu? 'Ficou mais caro sem ficar melhor' é conclusão legítima de uma ADR — desde que escrita."
