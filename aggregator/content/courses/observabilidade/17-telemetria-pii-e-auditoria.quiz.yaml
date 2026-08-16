@@ -1,33 +1,33 @@
 questions:
   - question: "Por que o redaction de PII deve rodar no agente do nó e não no gateway do Collector?"
     options:
-      - "Porque o gateway não suporta o processador `transform`"
-      - "Para que o dado sensível não trafegue pela rede nem chegue a um segundo processo — a barreira precisa ficar antes da primeira saída da máquina"
-      - "Porque o agente tem mais CPU disponível"
-      - "Porque o gateway processa em lote e perderia atributos"
-    answer: 1
-    explanation: "Redaction é a segunda barreira, e uma barreira só vale onde ela é atravessada. Colocá-la depois da rede é deixar o dado sair antes de ser tratado."
+      - "Porque o gateway não implementa o processador `transform` do Collector"
+      - "Porque o agente tem CPU ociosa e o gateway costuma estar saturado"
+      - "Para que o dado sensível não trafegue pela rede nem chegue a outro processo"
+      - "Porque o gateway processa em lote e perderia atributos na transformação"
+    answer: 2
+    explanation: "A barreira precisa ficar antes da primeira saída da máquina. Redaction é a segunda barreira, e uma barreira só vale onde ela é atravessada — colocá-la depois da rede é deixar o dado sair antes de ser tratado."
   - question: "Por que hash de CPF sem sal é insuficiente?"
     options:
-      - "Porque o hash quebra a correlação entre eventos do mesmo titular"
-      - "Porque o espaço de CPFs é pequeno o bastante para ser revertido por força bruta — o hash sem sal é apenas um CPF com outra aparência"
-      - "Porque a LGPD proíbe qualquer transformação irreversível"
-      - "Porque o Collector não suporta hash de campos numéricos"
+      - "Porque o hash destrói a correlação entre eventos do mesmo titular"
+      - "Porque o espaço de CPFs é pequeno o bastante para ser revertido"
+      - "Porque a LGPD não admite transformações irreversíveis de dado pessoal"
+      - "Porque o Collector não aplica funções de hash sobre campos numéricos"
     answer: 1
-    explanation: "Com sal, o hash preserva o que interessa (agrupar eventos do mesmo titular) sem expor o valor. Sem sal, você tem um identificador pessoal com passos extras."
+    explanation: "O hash sem sal é apenas um CPF com outra aparência. Com sal, ele preserva o que interessa — agrupar eventos do mesmo titular — sem expor o valor; sem sal, você tem um identificador pessoal com passos extras."
   - question: "O que muda entre telemetria e trilha de auditoria em completude e imutabilidade?"
     options:
-      - "Nada relevante — as duas são amostráveis e retidas pelo mesmo período"
-      - "Telemetria é amostrável e descartável; auditoria é completa sempre, imutável, retida por anos e mora fora do stack de telemetria"
-      - "Auditoria é amostrável, telemetria é completa"
-      - "As duas são imutáveis; muda apenas quem tem acesso"
-    answer: 1
-    explanation: "Consequência prática: tail sampling é para trace, nunca para auditoria — e auditoria não vai para o Loki com 15 dias de retenção, vai para storage com object lock ou tabela append-only."
+      - "Nada relevante: as duas são amostráveis e usam a mesma retenção"
+      - "A auditoria é amostrável e a telemetria precisa ser sempre completa"
+      - "As duas são imutáveis, e a diferença está apenas em quem tem acesso"
+      - "Telemetria é amostrável e descartável; auditoria é completa e imutável"
+    answer: 3
+    explanation: "Auditoria é retida por anos e mora fora do stack de telemetria. Consequência prática: tail sampling é para trace, nunca para auditoria — e auditoria não vai para o Loki com 15 dias de retenção, vai para storage com object lock ou tabela append-only."
   - question: "Como continuar investigando por cliente sem ter dado pessoal na telemetria?"
     options:
-      - "Aplicando hash na URL da requisição"
-      - "Usando um identificador interno opaco (`account_id` como UUID sem relação derivável com CPF ou nome), com a tradução para o titular num sistema separado e auditado"
-      - "Guardando o CPF apenas nos traces, nunca nos logs"
-      - "Reduzindo a retenção da telemetria para 24 horas"
-    answer: 1
-    explanation: "Preserva quase toda a capacidade de investigação e tira a telemetria do escopo mais pesado da LGPD. Se o seu redaction quebrou o recorte por cliente, ele foi longe demais."
+      - "Usando um identificador interno opaco, traduzido em sistema separado"
+      - "Aplicando hash sobre a URL completa da requisição antes de exportar"
+      - "Mantendo o CPF apenas nos traces amostrados, nunca nas linhas de log"
+      - "Reduzindo a retenção de toda a telemetria para vinte e quatro horas"
+    answer: 0
+    explanation: "Um `account_id` UUID sem relação derivável com CPF ou nome, e a tradução para o titular num sistema auditado. Preserva quase toda a capacidade de investigação e tira a telemetria do escopo mais pesado da LGPD — se o seu redaction quebrou o recorte por cliente, ele foi longe demais."

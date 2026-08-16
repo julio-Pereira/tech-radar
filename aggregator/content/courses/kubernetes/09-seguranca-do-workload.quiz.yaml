@@ -1,33 +1,33 @@
 questions:
   - question: "Por que root dentro do container é root no nó?"
     options:
-      - "Porque o container roda em modo privilegiado por padrão"
-      - "Porque containers compartilham o kernel do nó e, sem user namespaces, o UID 0 do container é o UID 0 do host"
-      - "Porque o kubelet executa os containers como root"
-      - "Porque o CRI não suporta usuários"
-    answer: 1
-    explanation: "Namespaces e cgroups isolam visibilidade e recursos, não privilégio de kernel. Por isso runAsNonRoot é a linha mais valiosa do securityContext."
+      - "Porque o kubelet executa todos os containers com o usuário root do host"
+      - "Porque containers rodam em modo privilegiado a menos que se desative"
+      - "Porque containers compartilham o kernel e o UID 0 é o mesmo dos dois lados"
+      - "Porque a interface CRI não implementa mapeamento de usuários e grupos"
+    answer: 2
+    explanation: "Sem user namespaces, não há tradução de UID. Namespaces e cgroups isolam visibilidade e recursos, não privilégio de kernel — por isso runAsNonRoot é a linha mais valiosa do securityContext."
   - question: "Qual é o valor real de uma policy que ficou em Audit por seis meses?"
     options:
-      - "Alto: ela documenta as violações"
-      - "Praticamente nenhum — é um relatório que ninguém lê; só Enforce é controle"
-      - "Igual ao Enforce, com menos risco"
-      - "Depende do número de namespaces"
-    answer: 1
-    explanation: "Audit é a etapa de migração, não o destino. Sem data marcada para virar Enforce, ela vira permanente e a segurança continua sendo uma recomendação."
+      - "Praticamente nenhum: é um relatório que ninguém lê"
+      - "Alto, porque ela documenta todas as violações para a auditoria externa"
+      - "O mesmo do Enforce, com menos risco de bloquear um deploy legítimo"
+      - "Varia conforme o número de namespaces cobertos pelo seletor da policy"
+    answer: 0
+    explanation: "Só Enforce é controle. Audit é a etapa de migração, não o destino: sem data marcada para virar Enforce, ela vira permanente e a segurança continua sendo uma recomendação."
   - question: "O webhook do Kyverno caiu e failurePolicy está como Fail. O que acontece?"
     options:
-      - "As policies deixam de ser aplicadas e tudo continua funcionando"
-      - "Nenhum pod sobe no cluster — inclusive o próprio Kyverno, se ele precisar reiniciar"
-      - "O API server ignora o webhook após 3 tentativas"
-      - "Apenas os namespaces com policy são afetados"
-    answer: 1
+      - "As policies deixam de valer e as admissões seguem normalmente"
+      - "O API server desiste do webhook depois de três tentativas com erro"
+      - "Somente os namespaces com policies associadas ficam bloqueados"
+      - "Nenhum pod sobe, inclusive o próprio Kyverno se precisar reiniciar"
+    answer: 3
     explanation: "É a escolha explícita entre disponibilidade e segurança. Excluir os namespaces de sistema é obrigatório, e entender esse modo de falha antes dele acontecer também."
   - question: "Assinar imagens com cosign sem verificar na admissão entrega o quê?"
     options:
-      - "Proteção completa da supply chain"
-      - "Praticamente nada — a assinatura só protege se alguém a verificar, e a verificação precisa ser automática"
-      - "Proteção contra CVEs"
-      - "Rastreabilidade suficiente para auditoria"
+      - "Proteção completa da supply chain, do build até a execução no cluster"
+      - "Praticamente nada: assinatura só protege se alguém a verificar"
+      - "Proteção contra CVEs conhecidas nas camadas base da imagem"
+      - "Rastreabilidade suficiente para atender ao requisito do auditor"
     answer: 1
     explanation: "Assinatura sem verificação é decoração: ela prova origem para quem se der ao trabalho de checar, e ninguém se dá. A policy verifyImages na admissão é o que a torna um controle."

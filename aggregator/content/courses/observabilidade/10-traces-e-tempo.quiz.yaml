@@ -1,33 +1,33 @@
 questions:
   - question: "O que significa um buraco entre o fim de um span e o começo do próximo no waterfall?"
     options:
-      - "Erro de sincronização de relógio"
-      - "Tempo gasto fora do que está instrumentado: espera por pool de conexões, fila de executor, GC"
-      - "Um span perdido pela amostragem"
-      - "Latência de rede entre serviços"
-    answer: 1
+      - "Dessincronização de relógio entre os hosts que geraram os dois spans"
+      - "Um span intermediário que foi descartado pela política de amostragem"
+      - "Tempo fora do instrumentado: espera por pool, fila de executor, GC"
+      - "A latência de rede entre os dois serviços envolvidos na chamada"
+    answer: 2
     explanation: "É a leitura menos óbvia do waterfall e frequentemente onde está o problema real. Quando os filhos não somam o tempo do pai, o profile (marco 11) é o próximo passo."
   - question: "Por que o consumidor Kafka usa span link em vez de span filho?"
     options:
-      - "Porque o Kafka não propaga contexto"
-      - "Porque o consumo pode ocorrer minutos depois, e um span filho com duração de 'espera' seria enganoso"
-      - "Porque links são mais baratos"
-      - "Porque o span pai já foi amostrado"
-    answer: 1
+      - "Porque o consumo pode ocorrer minutos depois e a duração seria enganosa"
+      - "Porque os headers do Kafka não conseguem carregar o contexto do trace"
+      - "Porque links custam menos bytes no backend do que spans aninhados"
+      - "Porque o span do produtor já foi encerrado e não aceita mais filhos"
+    answer: 0
     explanation: "O link registra a relação causal sem fingir que foi uma chamada síncrona. A UI mostra a ligação e a duração continua honesta."
   - question: "Por que span metrics precisa ser calculado antes do tail sampling?"
     options:
-      - "Por questão de desempenho do Collector"
-      - "Porque depois da amostragem a população fica enviesada — se você guarda 100% dos erros e 5% do resto, a taxa de erro derivada fica absurda"
-      - "Porque o Tempo não aceita métricas"
-      - "Porque o sampling remove os atributos"
-    answer: 1
-    explanation: "As métricas derivadas herdam o viés da amostragem. É um erro fácil de cometer e que produz um painel confiantemente errado."
+      - "Porque o processor de span metrics consome menos CPU nessa posição"
+      - "Porque o backend Tempo não recebe métricas geradas após a amostragem"
+      - "Porque o tail sampling remove os atributos usados na agregação"
+      - "Porque depois da amostragem a população fica enviesada"
+    answer: 3
+    explanation: "Se você guarda 100% dos erros e 5% do resto, a taxa de erro derivada fica absurda. As métricas derivadas herdam o viés da amostragem — é um erro fácil de cometer e que produz um painel confiantemente errado."
   - question: "O cliente reclama de uma transação e o trace não existe. Por quê, e o que você configura?"
     options:
-      - "O Tempo apagou por retenção; aumente a retenção"
-      - "Ela foi rápida e bem-sucedida, e caiu fora da amostra; políticas por atributo (ex.: valor acima de R$50 mil) garantem que transações importantes sempre sejam guardadas"
-      - "O trace_id foi perdido no Kafka"
-      - "O serviço não estava instrumentado"
+      - "O Tempo já a expirou por retenção; aumente a retenção do backend"
+      - "Foi rápida e bem-sucedida, e caiu fora da amostra; use política por atributo"
+      - "O trace_id se perdeu na passagem pelo Kafka; propague nos headers"
+      - "O serviço envolvido não estava instrumentado; adicione o SDK nele"
     answer: 1
-    explanation: "Com tail sampling você guarda erros e lentidão. Transação de valor alto que deu certo só é investigável se houver uma política explícita para ela."
+    explanation: "Com tail sampling você guarda erros e lentidão. Uma política explícita — por exemplo, valor acima de R$50 mil — é o que garante que a transação importante e bem-sucedida também seja guardada."

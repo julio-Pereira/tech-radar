@@ -1,0 +1,33 @@
+questions:
+  - question: "Qual pergunta define onde passa a fronteira de um agregado?"
+    options:
+      - "Quais dados são consultados juntos com mais frequência nas telas?"
+      - "Qual invariante precisa ser verdadeira a cada commit?"
+      - "Quais entidades pertencem ao mesmo time e ao mesmo repositório?"
+      - "Quais tabelas já estão relacionadas por chave estrangeira hoje?"
+    answer: 1
+    explanation: "Não é 'o que é parecido'. Dentro do agregado é consistente agora, numa transação; fora é consistente depois, por evento. Agregado grande demais — 'o cliente inteiro' — parece organizado e vira contenção de escrita."
+  - question: "Por que o outbox é consequência da fronteira do agregado, e não uma escolha de broker?"
+    options:
+      - "Porque o broker não confirma a escrita antes do commit no banco"
+      - "Porque a tabela de outbox permite reordenar os eventos na publicação"
+      - "Porque o relay precisa de um ponto de retomada depois de uma falha"
+      - "Porque o evento tem de sair na mesma transação da mudança de estado"
+    answer: 3
+    explanation: "E não existe commit atômico entre banco e broker. A regra vem do agregado: se a mudança é uma transação, o fato que a anuncia tem de estar dentro dela. A mecânica está em spring-boot/06 e kafka/08."
+  - question: "Qual é o risco de publicar o evento de domínio cru como contrato público?"
+    options:
+      - "O modelo interno vira contrato e você perde liberdade de refatorar"
+      - "O payload fica grande demais e satura a rede entre os serviços"
+      - "O consumidor precisa conhecer a linguagem em que o produtor foi escrito"
+      - "O broker rejeita eventos cujo schema não esteja registrado antes"
+    answer: 0
+    explanation: "É rápido de fazer — a classe já existe — e o efeito é que renomear um campo interno passa a quebrar um parceiro externo. A tradução de domínio para integração é feita de propósito, na saída: menos campos, nomes estáveis, sem PII."
+  - question: "No `fin-platform`, por que \"saldo\" só pode ter um dono?"
+    options:
+      - "Porque o cálculo é caro e replicá-lo dobraria o custo de CPU"
+      - "Porque a LGPD trata saldo como dado sensível de titular"
+      - "Porque dois donos da mesma invariante produzem conciliação manual permanente"
+      - "Porque o esquema do banco não permite a mesma coluna em dois serviços"
+    answer: 2
+    explanation: "O saldo disponível não é um segundo saldo: é uma função do contábil, calculada pelo dono. No dia em que dois contextos passam a ter 'o saldo', começa uma conciliação que nunca mais termina."

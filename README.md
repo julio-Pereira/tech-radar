@@ -50,6 +50,27 @@ Routes (hash-based, so they work under the `/tech-radar/` Pages prefix):
 | `#/learn` | Track catalog |
 | `#/learn/<slug>` | A track's timeline |
 
+### Projeto guia (capstone)
+
+Tracks are not just reading. Each one builds one component of **`fin-platform`**, a single
+fintech system that survives across tracks — so the exercises accumulate into a portfolio
+instead of dying at the end of a milestone.
+
+| Track | Component | Role |
+|---|---|---|
+| `spring-boot` | `pix-gateway` (Java) | Payment initiation, idempotency, outbox |
+| `go-fintech` | `ledger-core` (Go) | Double-entry ledger, risk decision |
+| `kafka` | `pix-stream` | Event backbone, DLQ, projections |
+| `kubernetes` | `fin-platform` (GitOps) | Where it all runs, with security |
+| `observabilidade` | `fin-watch` | The telemetry, SLOs and on-call over it |
+| `arquitetura-eventos` | `fin-flow` | The event design the backbone carries |
+
+Each track ships a `PROJETO.md` (spec: increments per milestone, definition of done, game
+day) and closes with a `## Capstone` section in its last milestone. `PROJETO.md` is **not**
+listed in `milestones:` — it is a repo-level spec, not a rendered milestone. Tracks assume
+only **contracts** from each other (an endpoint, a topic), never code, so they can be taken
+in any order.
+
 ### Authoring a track
 
 One folder per track under `aggregator/content/courses/<slug>/`:
@@ -100,6 +121,46 @@ references:                      # optional, milestone-specific links
 Authored content… include a `## Exemplo numa fintech` section per milestone.
 ```
 
+Body anatomy for a full milestone: 4–8 `##` sections → `## Exemplo numa fintech` →
+`## Hands-on` → `## Principais aprendizados`, 1.100–1.600 words. The `## Hands-on`
+block is written **inline in the milestone**, never as a sibling file, and has five
+parts: `**Tutorial**` (guided steps) → `**Desafio**` (do it without the steps) →
+`**Invariantes testáveis**` (what must hold, checkable) → `**Complemento**` (optional
+extension) → `**Checagem**` (four open recall questions, no answers given).
+
+### Quizzes
+
+A milestone may have a sibling `NN-nome.quiz.yaml`. Absent is valid — the milestone
+just renders without a quiz. Four questions is the standard; six for the milestones
+that carry the hardest ideas.
+
+```yaml
+questions:
+  - question: "Qual é o modo de falha característico do CDC?"
+    options:                       # 2+ options, exactly one correct
+      - "O conector satura a CPU do banco ao ler o log"
+      - "O conector bloqueia as tabelas durante a leitura"
+      - "Slot de replicação parado faz o WAL encher o disco"
+    answer: 2                      # 0-based index into options
+    explanation: "Enquanto o slot não confirma consumo, o banco retém o log."
+```
+
+**Anti-bias rules** (enforced by `TestQuizNotGameable`, see below):
+
+- Spread `answer` across the indices — no index above 35% of all questions.
+- The correct option must not read as the longest one (max 40% of questions).
+  Reasoning belongs in `explanation`, not inside the correct option.
+- Distractors are real senior mistakes, not obvious absurdities.
+
+### Glossary
+
+A track may ship a `GLOSSARIO.md` — plain markdown, no frontmatter, verbetes grouped
+by `##`. It is **only compiled when the manifest declares it**:
+
+```yaml
+glossary: GLOSSARIO.md           # without this key the file is silently ignored
+```
+
 ### Compiling
 
 The same `go run .` that builds the feed also compiles tracks: it renders each
@@ -108,6 +169,17 @@ milestone's markdown to HTML (goldmark, GFM), **sanitizes it at build time**
 `index.json` catalog. A malformed track is logged and skipped — it never aborts the
 feed build (and vice versa). Validation failures: missing/duplicate `slug`, a milestone
 file listed but absent, a duplicate milestone `id`, or invalid frontmatter.
+
+Skipping is right in production and dangerous in CI — a track can disappear from the
+site without anything turning red. `go test ./...` (a required CI step) closes that:
+`TestCompileRealContent` compiles the real `content/courses` and fails if any track was
+skipped or came out with zero milestones, and `TestQuizNotGameable` enforces the
+anti-bias thresholds above across every quiz in the repo.
+
+**Known debt:** `go-fintech` (8 milestones) and `spring-boot` (13) have no quizzes at
+all. They are deliberately deferred, not forgotten — when they are written, they follow
+the anti-bias rules above, and the thresholds are measured over the whole repo, so
+writing them badly turns CI red.
 
 ## Running locally
 

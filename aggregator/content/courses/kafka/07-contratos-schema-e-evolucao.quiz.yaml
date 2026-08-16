@@ -1,33 +1,33 @@
 questions:
   - question: "Com compatibilidade BACKWARD, qual é a ordem correta de deploy?"
     options:
-      - "Producers primeiro, depois consumidores"
-      - "Consumidores primeiro, depois producers"
-      - "Tanto faz"
-      - "Simultâneo, com janela de manutenção"
-    answer: 1
+      - "Consumidores primeiro, depois os producers"
+      - "Producers primeiro, depois os consumidores"
+      - "Tanto faz, a compatibilidade cobre as duas ordens"
+      - "Simultâneo, dentro de uma janela de manutenção"
+    answer: 0
     explanation: "BACKWARD significa que o consumidor novo lê dado velho. Você atualiza os consumidores, que passam a entender os dois formatos, e só então os producers começam a emitir o formato novo. FORWARD inverte a ordem."
   - question: "Por que adicionar um campo obrigatório novo quebra o consumidor horas depois do deploy?"
     options:
-      - "Porque o Schema Registry demora a propagar"
-      - "Porque o consumo é assíncrono: a quebra só aparece quando aquele consumidor processa uma mensagem no formato novo"
-      - "Porque o cache de schema expira em horas"
-      - "Porque o broker valida schemas em background"
-    answer: 1
-    explanation: "Diferente de uma API síncrona, onde a quebra é imediata e óbvia, aqui a falha aparece longe da causa — o que torna a correlação difícil justamente quando você mais precisa dela."
+      - "Porque o Schema Registry demora a propagar a versão"
+      - "Porque o cache de schema do cliente só expira algumas horas depois"
+      - "Porque a quebra só aparece ao processar a primeira mensagem nova"
+      - "Porque o broker valida os schemas em background"
+    answer: 2
+    explanation: "Diferente de uma API síncrona, onde a quebra é imediata e óbvia, o consumo é assíncrono e a falha aparece longe da causa — o que torna a correlação difícil justamente quando você mais precisa dela."
   - question: "Como representar dinheiro num evento?"
     options:
-      - "float64, que é suficiente para valores em reais"
-      - "Inteiro na menor unidade com moeda e escala explícitas, ou string decimal"
-      - "String formatada como 'R$ 150,75'"
-      - "Dois campos: parte inteira e centavos, ambos int"
-    answer: 1
+      - "float64, que já cobre valores em reais com folga"
+      - "String formatada para exibição, como 'R$ 150,75'"
+      - "Dois campos inteiros: parte inteira e centavos"
+      - "Inteiro na menor unidade, com moeda e escala explícitas"
+    answer: 3
     explanation: "Ponto flutuante binário não representa 0,1 exatamente, e o erro acumulado em milhões de lançamentos quebra a conciliação. Inteiro em centavos com currency e scale, ou string decimal quando a escala varia."
   - question: "Você precisa mudar o schema de um tópico e não sabe quem o consome. O que fazer primeiro?"
     options:
-      - "Publicar a mudança e esperar reclamações"
-      - "Consultar os consumer groups ativos do tópico e o catálogo de eventos, e usar compatibilidade FULL enquanto isso"
-      - "Criar um tópico novo e abandonar o antigo"
-      - "Mudar com compatibilidade NONE, que é mais rápido"
+      - "Publicar a mudança e esperar as reclamações chegarem"
+      - "Listar os consumer groups ativos e o catálogo de eventos"
+      - "Criar um tópico novo e abandonar o antigo aos poucos"
+      - "Mudar com compatibilidade NONE, que destrava mais rápido"
     answer: 1
-    explanation: "kafka-consumer-groups --list mostra quem lê hoje. FULL garante que a mudança não quebra nem consumidor velho nem novo, o que compra tempo para descobrir e coordenar."
+    explanation: "kafka-consumer-groups --list mostra quem lê hoje. Manter FULL enquanto isso garante que a mudança não quebra nem consumidor velho nem novo, o que compra tempo para descobrir e coordenar."

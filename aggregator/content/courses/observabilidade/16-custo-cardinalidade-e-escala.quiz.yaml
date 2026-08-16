@@ -1,33 +1,33 @@
 questions:
   - question: "Qual sinal costuma ser a maior fatia da conta, e qual é a alavanca mais fácil?"
     options:
-      - "Trace, e a alavanca é reduzir a retenção para 1 dia"
-      - "Log, e a alavanca é desligar o `DEBUG` que alguém ligou \"só por hoje\" em produção e nunca desligou"
-      - "Métrica, e a alavanca é reduzir o intervalo de scrape"
-      - "Profile, e a alavanca é amostrar menos"
-    answer: 1
-    explanation: "Log domina a fatura por volume, e a maior economia disponível hoje no seu ambiente provavelmente não é técnica: é o nível de log em produção."
+      - "Trace, e a alavanca é reduzir a retenção do backend para um dia"
+      - "Métrica, e a alavanca é aumentar o intervalo de scrape dos alvos"
+      - "Log, e a alavanca é desligar o `DEBUG` esquecido em produção"
+      - "Profile, e a alavanca é reduzir a frequência de amostragem no agente"
+    answer: 2
+    explanation: "Log domina a fatura por volume, e a maior economia disponível hoje no seu ambiente provavelmente não é técnica: é o nível de log em produção, ligado 'só por hoje' e nunca desligado."
   - question: "Por que `url` com path variável explode a cardinalidade e template de rota não?"
     options:
-      - "Porque a URL completa é uma string maior e ocupa mais espaço"
-      - "Porque cada `/payments/9f2c-4a1b` distinto vira uma série nova, e o efeito é multiplicativo sobre todas as séries daquela métrica; `/payments/{id}` é um valor só"
-      - "Porque o Prometheus não indexa labels com barras"
-      - "Porque template de rota é comprimido pelo Collector"
-    answer: 1
-    explanation: "A regra prática: identificador vai em log e trace, nunca em métrica. Você não perde a informação — muda para o sinal projetado para alta cardinalidade."
+      - "Porque cada `/payments/9f2c-4a1b` distinto vira uma série nova"
+      - "Porque a URL completa é uma string maior e ocupa mais bytes por amostra"
+      - "Porque o Prometheus não consegue indexar labels que contenham barras"
+      - "Porque o template de rota é comprimido pelo Collector antes do envio"
+    answer: 0
+    explanation: "O efeito é multiplicativo sobre todas as séries daquela métrica, e `/payments/{id}` é um valor só. A regra prática: identificador vai em log e trace, nunca em métrica — você não perde a informação, muda para o sinal projetado para alta cardinalidade."
   - question: "Qual é o critério para cortar telemetria sem se arrepender no próximo incidente?"
     options:
-      - "Cortar sempre o sinal mais caro primeiro"
-      - "Cortar o que ninguém consulta, e provar depois que os alertas ainda disparam e os painéis continuam preenchidos"
-      - "Cortar tudo o que tem mais de 7 dias"
+      - "Cortar sempre o sinal mais caro primeiro, e reavaliar no mês seguinte"
+      - "Cortar tudo o que tenha mais de sete dias, independentemente do sinal"
       - "Cortar proporcionalmente em todos os sinais, para manter o equilíbrio"
-    answer: 1
-    explanation: "Telemetria que ninguém usa é 100% desperdício; a que alguém usa às 3h é barata a quase qualquer preço. Rodar os cenários de injeção depois do corte é o que separa otimização de mutilação."
+      - "Cortar o que ninguém consulta, e provar que os alertas ainda disparam"
+    answer: 3
+    explanation: "Telemetria que ninguém usa é 100% desperdício; a que alguém usa às 3h é barata a quase qualquer preço. Rodar os cenários de injeção depois do corte, com os painéis ainda preenchidos, é o que separa otimização de mutilação."
   - question: "O que quase sempre falta na conta do self-host?"
     options:
-      - "O custo de egress de rede"
-      - "A fração de FTE que opera a plataforma — alguém atualiza, dimensiona e acorda quando o ingester cai, mesmo nos meses em que nada acontece"
-      - "O custo das licenças do Grafana"
-      - "O custo de armazenamento em object storage"
-    answer: 1
-    explanation: "É a linha que decide a comparação e a que costuma estar ausente da planilha. Por isso a ADR precisa de números do seu ambiente e de um gatilho de reversão."
+      - "A fração de FTE que opera a plataforma mês após mês"
+      - "O custo de egress de rede entre zonas e para fora do provedor"
+      - "O custo das licenças empresariais do Grafana e dos plugins usados"
+      - "O custo de armazenamento em object storage dos blocos históricos"
+    answer: 0
+    explanation: "Alguém atualiza, dimensiona e acorda quando o ingester cai, mesmo nos meses em que nada acontece. É a linha que decide a comparação e a que costuma estar ausente da planilha — por isso a ADR precisa de números do seu ambiente e de um gatilho de reversão."

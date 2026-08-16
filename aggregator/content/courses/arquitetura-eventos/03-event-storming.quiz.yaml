@@ -1,0 +1,33 @@
+questions:
+  - question: "Qual frase estrutura o nível de process modeling?"
+    options:
+      - "Serviço chama serviço, que grava no banco e responde ao chamador"
+      - "Tela dispara requisição, que vira transação e depois vira relatório"
+      - "Tabela guarda estado, que é lido por consulta e exibido por tela"
+      - "Ator dispara comando → agregado decide → evento acontece → política reage"
+    answer: 3
+    explanation: "Quando o fluxo na parede não cabe nessa frase, ou falta um elemento, ou existe uma regra de negócio que ninguém verbalizou. É a mesma gramática que separa comando de evento no marco 01."
+  - question: "Por que não se resolve um hotspot durante a sessão de event storming?"
+    options:
+      - "Porque a decisão precisa ser tomada por escrito, em ADR, depois"
+      - "Porque hotspots quase sempre se resolvem sozinhos no design level"
+      - "Porque a discussão consome a sessão inteira e trava o fluxo"
+      - "Porque quem poderia resolver nunca está presente nesse tipo de sessão"
+    answer: 2
+    explanation: "Marque em vermelho, siga em frente, volte depois. O hotspot é o achado mais valioso do dia — é onde o negócio discorda de si mesmo — e justamente por isso ele engole a sessão se você deixar."
+  - question: "O que exatamente sobrevive à sessão e vira insumo do contrato de evento?"
+    options:
+      - "A foto da parede, arquivada no wiki do time para consulta futura"
+      - "O `EVENTOS.md`: nome, dono, disparo e consumidores de cada evento"
+      - "O diagrama de sequência gerado a partir dos post-its laranja"
+      - "O backlog de histórias derivado de cada política identificada"
+    answer: 1
+    explanation: "A parede evapora; o repositório fica. Esse arquivo responde sem reunião à pergunta que todo consumidor novo faz — 'que evento eu escuto para saber que um pagamento foi aprovado?' — e é o insumo direto do marco 05."
+  - question: "Por que compliance deveria estar na sala numa fintech?"
+    options:
+      - "Porque metade das regras de negócio existe por causa de uma norma"
+      - "Porque a área precisa aprovar formalmente o modelo antes do desenvolvimento"
+      - "Porque os eventos de auditoria têm retenção diferente dos demais"
+      - "Porque só ela conhece os prazos contratados com os parceiros externos"
+    answer: 0
+    explanation: "Descobrir a norma durante a modelagem é barato; descobrir na homologação, não. É o mesmo motivo de operações estar na sala: o hotspot do estorno após o fechamento não apareceu por análise técnica."

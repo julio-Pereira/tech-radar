@@ -2,40 +2,40 @@ questions:
   - question: "Você habilitou EOS no produtor transacional e o consumidor a jusante continua vendo mensagens de transações abortadas. O que faltou?"
     options:
       - "enable.idempotence=true no producer"
+      - "acks=all no producer transacional"
       - "isolation.level=read_committed no consumidor"
-      - "acks=all no producer"
-      - "min.insync.replicas=2 no tópico"
-    answer: 1
+      - "min.insync.replicas=2 no tópico de destino"
+    answer: 2
     explanation: "Sem read_committed o consumidor lê tudo que está no log, inclusive o que foi abortado. É a configuração mais esquecida do EOS, e sem ela a garantia inteira evapora."
   - question: "O processo morre depois de cobrar o cartão no PSP e antes de commitar a transação do Kafka. O que acontece?"
     options:
+      - "A transação aborta e o cartão segue cobrado"
       - "O Kafka desfaz a cobrança junto com a transação"
-      - "O Kafka aborta a transação e o cartão continua cobrado — no replay, cobra de novo"
-      - "A cobrança fica pendente até o commit"
-      - "O consumidor recebe o evento mesmo assim"
-    answer: 1
-    explanation: "A transação do Kafka não alcança o side-effect externo. É por isso que exactly-once dentro do Kafka não dispensa consumidor idempotente quando há chamada externa."
+      - "A cobrança fica pendente até o commit acontecer"
+      - "O consumidor recebe o evento normalmente"
+    answer: 0
+    explanation: "A transação do Kafka não alcança o side-effect externo, e no replay a cobrança acontece de novo. É por isso que exactly-once dentro do Kafka não dispensa consumidor idempotente quando há chamada externa."
   - question: "Por que o TTL de uma tabela de deduplicação precisa ser maior que a retenção do tópico?"
     options:
-      - "Para economizar espaço em disco"
-      - "Porque um replay de mensagem ainda existente no tópico pode chegar depois de a marca de dedupe ter expirado, e passar direto"
-      - "Porque o Kafka valida o TTL"
-      - "Para permitir compactação"
-    answer: 1
+      - "Para economizar espaço em disco no banco"
+      - "Porque o Kafka valida esse TTL no momento de commitar o offset do grupo"
+      - "Para permitir que a compactação funcione na tabela"
+      - "Porque a mensagem ainda no tópico pode chegar após a marca expirar"
+    answer: 3
     explanation: "Enquanto a mensagem existir no tópico, ela pode ser reprocessada. Se a marca de dedupe já sumiu, o efeito acontece de novo — o dedupe precisa sobreviver ao maior replay possível."
   - question: "Em qual cenário o exactly-once do Kafka claramente compensa?"
     options:
       - "Consumidor que chama o PSP para cobrar cartão"
-      - "Consumidor que grava num banco externo"
-      - "Kafka Streams, num fluxo inteiramente interno ao Kafka"
-      - "Producer que publica a partir de uma requisição HTTP"
-    answer: 2
-    explanation: "No Streams a leitura, a atualização do state store (cujo changelog é um tópico) e a escrita são todas internas ao Kafka. Uma linha de configuração e a garantia é completa — sem side-effect externo para escapar dela."
+      - "Kafka Streams, num fluxo interno ao próprio Kafka"
+      - "Consumidor que grava num banco relacional externo"
+      - "Producer que publica a partir de requisição HTTP"
+    answer: 1
+    explanation: "No Streams a leitura, a atualização do state store (cujo changelog é um tópico) e a escrita são todas internas ao Kafka. Uma linha de configuração e a garantia é completa, sem side-effect externo para escapar dela."
   - question: "Qual defesa contra reprocessamento é a mais robusta quando existe uma chave natural?"
     options:
-      - "Tabela de deduplicação com TTL"
-      - "Constraint única no banco sobre a chave de negócio, com ON CONFLICT DO NOTHING"
-      - "Retry com backoff exponencial"
-      - "Transação do Kafka"
-    answer: 1
-    explanation: "O banco garante, não o seu código. A segunda inserção falha por violação de constraint, independentemente de quantas vezes o evento chegue e de onde ele venha."
+      - "Constraint única no banco sobre a chave de negócio"
+      - "Tabela de deduplicação com TTL configurado"
+      - "Retry com backoff exponencial no consumidor"
+      - "Transação do Kafka cobrindo leitura e escrita"
+    answer: 0
+    explanation: "O banco garante, não o seu código: a segunda inserção falha por violação de constraint (ou é ignorada com ON CONFLICT DO NOTHING), independentemente de quantas vezes o evento chegue e de onde ele venha."

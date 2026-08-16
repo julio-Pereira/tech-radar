@@ -212,3 +212,32 @@ telemetria?
   sinal.
 - O fecho da trilha é o documento do marco 01: quantas das 10 perguntas passaram de "não"
   para "sim" — e quais perguntas novas você agora consegue formular.
+
+## Capstone
+
+O `fin-watch` é a camada que observa o `fin-platform` — a especificação completa está em
+`PROJETO.md`, na raiz desta trilha. Aqui é onde ela fica pronta.
+
+**Entrega**
+
+- [ ] Sonda sintética da jornada de pagamento, rodando de fora
+- [ ] OTel nos serviços, com semantic conventions e contexto propagado no Kafka
+- [ ] Collector em agente e gateway, `memory_limiter` primeiro e tail sampling por trace-id
+- [ ] Prometheus com recording rules do SLI, Loki, Tempo e profiling contínuo
+- [ ] Métricas de negócio: taxa de autorização por PSP e invariante contábil
+- [ ] Alertas por burn rate (janela longa `and` curta), com os inúteis deletados
+- [ ] Painéis nos três níveis, versionados no Git, com exemplars ligando métrica e trace
+
+**Critérios de pronto — cada um deve ser provado por um teste ou por um comando**
+
+- [ ] Um incidente injetado é detectado pela sonda ou pelo alerta, nunca pelo cliente
+- [ ] Alguém que não construiu o painel chega à causa em ≤ 1 minuto, num incidente simulado
+- [ ] Métrica → exemplar → trace → log → profile, navegável sem copiar horário à mão
+- [ ] Taxa de acionáveis dos alertas medida e acima de 50%
+- [ ] Post-mortem blameless de um incidente, com MTTD e MTTR separados
+- [ ] Busca por CPF na telemetria não devolve nada; a auditoria está em storage separado
+- [ ] O recorte por cliente continua funcionando depois do redaction
+- [ ] Uma ADR por bloco, cada uma com contexto, decisão, alternativas e **gatilho de reversão**
+
+**Antes de fechar**, rode o game day do `PROJETO.md` e escreva um post-mortem de uma
+página — inclusive se nada tiver quebrado. O que não quebrou também é resultado.

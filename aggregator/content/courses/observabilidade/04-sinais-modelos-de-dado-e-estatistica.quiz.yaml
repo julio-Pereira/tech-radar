@@ -1,33 +1,33 @@
 questions:
   - question: "Por que a média dos p99 de 3 pods subestima o p99 real?"
     options:
-      - "Porque os pods têm cargas diferentes"
-      - "Porque percentil não é operação linear: não há como recuperar o percentil do todo a partir dos percentis das partes"
-      - "Porque o scrape interval difere entre pods"
-      - "Não subestima, é uma boa aproximação"
-    answer: 1
+      - "Porque os pods recebem volumes de tráfego diferentes entre si"
+      - "Porque o scrape interval difere e as amostras não são simultâneas"
+      - "Porque percentil não é linear: não dá para recompor o todo das partes"
+      - "Não subestima: é uma aproximação aceitável na prática operacional"
+    answer: 2
     explanation: "Um pod com uma requisição de 1000ms entre 10, e outro com 10 de 20ms: a média dos p99 dá ~510ms e o p99 real é ~1000ms. A saída é somar buckets de histograma, que é linear, e calcular o percentil no fim."
   - question: "Seu benchmark travou por 10 segundos e o p99 melhorou. O que aconteceu?"
     options:
-      - "O sistema otimizou o cache"
-      - "Coordinated omission: as requisições que teriam sido lentas nunca foram enviadas e sumiram da amostra"
-      - "O gerador de carga reduziu a taxa automaticamente"
-      - "O p99 foi calculado antes do travamento"
-    answer: 1
-    explanation: "Quanto pior o travamento, melhor o relatório. A correção conceitual é medir do ponto de vista de quem esperava, não de quem foi atendido."
+      - "Coordinated omission: o que seria lento nunca chegou a ser enviado"
+      - "O sistema otimizou o cache durante a pausa e voltou mais rápido"
+      - "O gerador de carga reduziu a taxa de envio automaticamente"
+      - "O percentil foi calculado sobre a janela anterior ao travamento"
+    answer: 0
+    explanation: "As requisições sumiram da amostra, e quanto pior o travamento, melhor o relatório. A correção conceitual é medir do ponto de vista de quem esperava, não de quem foi atendido."
   - question: "A latência de uma dependência dobrou e a fila explodiu. Qual conta explica, e por que o retry piora?"
     options:
-      - "Lei de Amdahl; o retry consome CPU"
-      - "Little's Law (L = λ × W): a concorrência dobra com W, e o retry dobra o λ, acelerando o colapso"
-      - "Teorema CAP; o retry viola consistência"
-      - "Lei de Moore; o retry satura a rede"
-    answer: 1
-    explanation: "A fila não é um efeito misterioso, é aritmética. Um retry mal configurado é a diferença entre uma lentidão e uma queda completa."
+      - "Lei de Amdahl: o retry consome a CPU que faltava para o paralelismo"
+      - "Teorema CAP: o retry troca consistência por disponibilidade na fila"
+      - "Lei de Moore: o hardware não acompanha o crescimento da demanda"
+      - "Little's Law (L = λ × W): W dobra e o retry ainda dobra o λ"
+    answer: 3
+    explanation: "A concorrência sobe pelos dois fatores ao mesmo tempo, acelerando o colapso. A fila não é um efeito misterioso, é aritmética — e um retry mal configurado é a diferença entre uma lentidão e uma queda completa."
   - question: "p99 de 200ms com 10 mil requisições por minuto significa quantos clientes insatisfeitos por hora?"
     options:
-      - "Praticamente nenhum, é só 1%"
-      - "Cerca de 6.000 — e pior por sessão, já que uma jornada de 20 chamadas tem ~18% de chance de encontrar a cauda"
-      - "Cerca de 100"
-      - "Depende apenas do SLA"
+      - "Praticamente nenhum, porque 1% é ruído dentro do volume total"
+      - "Cerca de 6.000, e pior por sessão do que por requisição"
+      - "Cerca de 100, contando apenas as sessões efetivamente afetadas"
+      - "Depende do SLA contratado, que define o limiar de insatisfação"
     answer: 1
-    explanation: "1% de 10 mil por minuto são 100 por minuto. Por isso o SLO precisa dizer sobre qual unidade fala: requisição, sessão ou cliente — três números muito diferentes."
+    explanation: "1% de 10 mil por minuto são 100 por minuto. E uma jornada de 20 chamadas tem ~18% de chance de encontrar a cauda — por isso o SLO precisa dizer sobre qual unidade fala: requisição, sessão ou cliente."

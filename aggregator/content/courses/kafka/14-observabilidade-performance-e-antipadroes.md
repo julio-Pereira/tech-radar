@@ -181,3 +181,31 @@ de aceitar?
 - Os sete antipadrões são a trilha inteira ao contrário: Kafka como banco, tópico por
   cliente, mensagem gigante, consumidor não idempotente, retry sem DLQ, tópico único e
   ordem global.
+
+## Capstone
+
+O `pix-stream` é o seu componente do `fin-platform` — a especificação completa está em
+`PROJETO.md`, na raiz desta trilha. Aqui é onde ele fica pronto.
+
+**Entrega**
+
+- [ ] `docker compose up` sobe o cluster KRaft e cria os tópicos do zero, em máquina limpa
+- [ ] Producer com `acks=all`, idempotência e chave por conta; consumidor idempotente no destino
+- [ ] Outbox relay no `pix-gateway`, retry escalonado e DLQ com dono e alerta
+- [ ] Schema Registry com `BACKWARD`, e uma evolução exercitada de verdade
+- [ ] Projeção de saldo por conta em Kafka Streams
+- [ ] SASL + ACLs, com `allow.everyone.if.no.acl.found=false`
+- [ ] Painel de lag **por partição**, com alerta por derivada e tempo de recuperação
+
+**Critérios de pronto — cada um deve ser provado por um teste ou por um comando**
+
+- [ ] `kill -9` no consumidor durante carga: nenhum lançamento duplicado no ledger
+- [ ] Replay de 1 dia de eventos: saldo final idêntico ao anterior
+- [ ] Consumidor da versão antiga continua lendo depois da evolução do schema
+- [ ] Poison pill vai para a DLQ sem travar a partição
+- [ ] Apagar a chave de um titular torna o histórico daquele CPF ilegível, sem reescrever o log
+- [ ] Um broker derrubado com o produtor rodando não perde mensagem confirmada
+- [ ] Uma ADR por bloco, cada uma com contexto, decisão, alternativas e **gatilho de reversão**
+
+**Antes de fechar**, rode o game day do `PROJETO.md` e escreva um post-mortem de uma
+página — inclusive se nada tiver quebrado. O que não quebrou também é resultado.

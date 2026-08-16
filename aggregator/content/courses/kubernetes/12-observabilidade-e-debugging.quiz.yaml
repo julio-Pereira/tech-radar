@@ -1,33 +1,33 @@
 questions:
   - question: "Um pod está Pending há 10 minutos e não há nada nos logs. Onde está a resposta?"
     options:
-      - "No log do kubelet do nó"
-      - "Em kubectl describe pod, na seção Events — o scheduler escreve ali por que não encontrou nó"
-      - "No log do etcd"
-      - "Em kubectl logs --previous"
+      - "No log do kubelet do nó onde o pod deveria ter sido criado"
+      - "Na seção Events do kubectl describe pod, escrita pelo scheduler"
+      - "No log do etcd, que registra a rejeição da atribuição do nodeName"
+      - "Em kubectl logs --previous, que mostra a tentativa anterior de subir"
     answer: 1
     explanation: "Não há log porque não há container: o pod nunca foi criado. O Kubernetes quase sempre já escreveu o motivo; o problema é que ninguém abriu o describe."
   - question: "Por que kubectl logs não ajuda num CrashLoopBackOff, e o que você usa?"
     options:
-      - "Ajuda normalmente"
-      - "O container atual pode nem ter subido; use kubectl logs --previous para ver o container anterior"
-      - "Use kubectl describe node"
-      - "Use kubectl top pod"
-    answer: 1
+      - "Ele ajuda normalmente, desde que o container tenha stdout configurado"
+      - "Use kubectl describe node para ver a pressão de recurso que causa o crash"
+      - "O container atual pode nem ter subido; use kubectl logs --previous"
+      - "Use kubectl top pod para correlacionar o consumo com o momento do crash"
+    answer: 2
     explanation: "E lembre que o log é efêmero: se o pod sumir, ele some junto. É por isso que log centralizado não é luxo — o pod que morreu é exatamente o que você quer investigar."
   - question: "Como debugar rede num pod cuja imagem é distroless, sem shell?"
     options:
-      - "Trocar a imagem por uma com shell e redeployar"
-      - "kubectl debug com um ephemeral container, injetando ferramentas no pod que está rodando"
-      - "kubectl cp de um binário de shell"
-      - "Não é possível"
-    answer: 1
+      - "Trocar por uma imagem com shell e refazer o deploy do workload"
+      - "Copiar um binário estático de shell para dentro do pod com kubectl cp"
+      - "Não é possível: imagens distroless são opacas em tempo de execução"
+      - "kubectl debug, injetando um ephemeral container no pod em execução"
+    answer: 3
     explanation: "Ephemeral containers compartilham o namespace de processo do container alvo, sem reiniciar nada. É o que torna a imagem mínima do marco 09 viável na prática."
   - question: "Por que 'pod reiniciando' pode não ser incidente e 'taxa de autorização caiu' é?"
     options:
-      - "Porque reinício é sempre esperado"
-      - "Porque alerta deve ser por sintoma que o usuário sente: pods reiniciando com o serviço atendendo não afeta ninguém; autorização caindo é dinheiro perdido"
-      - "Porque a taxa de autorização é mais fácil de medir"
-      - "Porque reinício é responsabilidade da plataforma"
-    answer: 1
-    explanation: "Causa vai para dashboard e runbook; sintoma vai para o pager. O alerta de infraestrutura que dispara sem impacto é o que produz alert fatigue."
+      - "Porque alerta deve ser por sintoma que o usuário sente"
+      - "Porque reinício de pod é sempre um comportamento esperado no Kubernetes"
+      - "Porque a taxa de autorização é uma métrica mais barata de coletar"
+      - "Porque reinício de pod é responsabilidade do time de plataforma, não seu"
+    answer: 0
+    explanation: "Pods reiniciando com o serviço atendendo não afeta ninguém; autorização caindo é dinheiro perdido. Causa vai para dashboard e runbook; sintoma vai para o pager. O alerta de infraestrutura que dispara sem impacto é o que produz alert fatigue."

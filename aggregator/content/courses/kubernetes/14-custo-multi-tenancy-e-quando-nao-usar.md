@@ -180,3 +180,32 @@ existentes, e por que isso é bom?
   pequeno e poucos serviços — e o critério é quem opera às 3h de domingo.
 - Item de checklist que não pode ser demonstrado com um comando está documentado, não
   pronto.
+
+## Capstone
+
+O `fin-platform` é o repositório guarda-chuva do sistema — a especificação completa está
+em `PROJETO.md`, na raiz desta trilha. Aqui é onde ele fica pronto.
+
+**Entrega**
+
+- [ ] `kind` de 3 nós + Kustomize com `base` e `overlays/dev|prod`
+- [ ] Gateway API na borda, com timeout maior ou igual ao do backend
+- [ ] Requests e limits medidos, `limits.memory` em tudo, PDB que não trava o drain
+- [ ] Pod Security `restricted`, imagens sem root, cosign + Kyverno `verifyImages`
+- [ ] RBAC por namespace e audit log saindo do cluster
+- [ ] NetworkPolicy default-deny, com DNS liberado em TCP **e** UDP
+- [ ] Argo CD com `selfHeal` e Velero com restore exercitado
+
+**Critérios de pronto — cada um deve ser provado por um teste ou por um comando**
+
+- [ ] `make up` sobe tudo do zero em cluster limpo, sem passo manual
+- [ ] Deploy sob carga com **zero 5xx**, medidos por um gerador externo
+- [ ] `kubectl auth can-i --as=...` nega o que deve negar, e o teste está no repo
+- [ ] Policy bloqueia imagem sem digest e sem assinatura
+- [ ] Uma conexão não autorizada é **provadamente** negada pela NetworkPolicy
+- [ ] Restore de um namespace inteiro feito de verdade, com RTO medido e anotado
+- [ ] O runbook diz como pausar o Argo CD antes de mitigar um incidente à mão
+- [ ] Uma ADR por bloco, cada uma com contexto, decisão, alternativas e **gatilho de reversão**
+
+**Antes de fechar**, rode o game day do `PROJETO.md` e escreva um post-mortem de uma
+página — inclusive se nada tiver quebrado. O que não quebrou também é resultado.

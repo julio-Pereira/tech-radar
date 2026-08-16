@@ -1,33 +1,33 @@
 questions:
   - question: "O mesmo tópico lido como KStream e como KTable — qual a diferença de significado?"
     options:
-      - "KStream é mais rápido; KTable usa cache"
-      - "KStream é um fluxo de fatos independentes (o extrato); KTable é o estado atual por chave (o saldo)"
-      - "KStream só funciona com tópicos compactados"
-      - "KTable não suporta agregação"
-    answer: 1
+      - "KStream é mais rápido porque não mantém estado local"
+      - "KStream exige tópico compactado; KTable exige tópico com retenção por tempo"
+      - "KStream é fluxo de fatos (o extrato); KTable é estado por chave (o saldo)"
+      - "KTable só serve para leitura; agregação exige sempre KStream"
+    answer: 2
     explanation: "Dois registros da mesma chave num KStream são dois eventos; numa KTable, o segundo substitui o primeiro. Agregar um KStream produz uma KTable, e o changelog de uma KTable é um KStream."
   - question: "O que é um tópico -repartition e o que ele custa?"
     options:
-      - "Uma cópia de backup do tópico original, sem custo relevante"
-      - "Um tópico intermediário criado quando você reagrupa por uma chave diferente — e ele dobra o tráfego a partir dali"
-      - "O changelog do state store"
-      - "Um tópico de DLQ do Streams"
-    answer: 1
+      - "Um tópico intermediário criado ao reagrupar por outra chave, que dobra o tráfego dali em diante"
+      - "Uma cópia de backup do tópico de origem, mantida pelo Streams sem custo relevante de armazenamento"
+      - "O changelog usado para reconstruir o state store depois de um restart"
+      - "A DLQ interna do Streams, onde caem os registros que falham no processamento"
+    answer: 0
     explanation: "Se a nova chave precisa determinar a partição, o Streams reescreve os dados. É automático e invisível no código, e é como se descobre tarde que o cluster está com o dobro do volume esperado."
   - question: "Por que uma instância de Streams demora a voltar a processar depois de um restart?"
     options:
-      - "Porque o rebalance do consumer group é lento"
-      - "Porque ela precisa reler o changelog para reconstruir o state store local antes do primeiro registro"
-      - "Porque o RocksDB precisa ser recompilado"
-      - "Porque o EOS exige uma transação de inicialização longa"
-    answer: 1
+      - "Porque o rebalance do consumer group só termina após o timeout de sessão"
+      - "Porque o RocksDB precisa recompilar os índices do disco a cada inicialização"
+      - "Porque o exactly-once abre uma transação de inicialização que bloqueia o grupo inteiro por instantes"
+      - "Porque ela relê o changelog para reconstruir o state store antes do primeiro registro"
+    answer: 3
     explanation: "É o custo escondido do estado local. Com alguns GB, são minutos por deploy. As mitigações são standby replicas, volume persistente e manter o estado pequeno."
   - question: "Sua janela de 5 minutos conta errado quando o parceiro envia eventos em lote com atraso. O que está errado?"
     options:
-      - "O tamanho da janela"
-      - "A janela está usando processing time em vez de event time (e sem grace period configurado)"
-      - "O número de partições"
-      - "O nível de compressão"
+      - "A janela está curta demais para o intervalo que separa dois lotes enviados pelo parceiro"
+      - "A janela usa processing time em vez de event time, e sem grace period configurado"
+      - "As partições estão em número insuficiente para o volume dos lotes"
+      - "A compressão do producer atrasa a entrega dos registros do lote"
     answer: 1
     explanation: "Processing time agrupa pelo momento em que o seu código viu o evento, não pelo momento em que ele aconteceu. Event time com grace period explícito é o que trata o retardatário — e a duração do grace é decisão de negócio."

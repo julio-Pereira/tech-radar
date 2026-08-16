@@ -1,33 +1,33 @@
 questions:
   - question: "Por que um Service type LoadBalancer fica <pending> para sempre no kind?"
     options:
-      - "Porque falta configurar o kube-proxy"
-      - "Porque não há provedor de nuvem para atender ao pedido e criar o balanceador externo"
-      - "Porque o kind não suporta Services"
-      - "Porque falta uma NetworkPolicy"
+      - "Porque o kube-proxy não foi configurado no modo IPVS nesse ambiente"
+      - "Porque não há provedor de nuvem para criar o balanceador externo"
+      - "Porque o kind não implementa o objeto Service, apenas Pods e Deployments"
+      - "Porque falta uma NetworkPolicy autorizando o tráfego de entrada externo"
     answer: 1
     explanation: "O tipo LoadBalancer é um pedido ao provedor. Localmente use port-forward ou extraPortMappings — e é a diferença de nuvem mais visível da trilha."
   - question: "O timeout do Gateway é menor que o do backend e o cliente recebeu 504. O pagamento aconteceu?"
     options:
-      - "Não, o 504 aborta o processamento"
-      - "Possivelmente sim — o backend continua processando e pode concluir, enquanto o cliente vê erro"
-      - "Não, o Gateway faz rollback"
-      - "Só se o backend usar transação"
-    answer: 1
+      - "Não, porque o 504 propaga um cancelamento que aborta o processamento"
+      - "Não, porque o Gateway executa o rollback da requisição interrompida"
+      - "Possivelmente sim: o backend segue processando e pode concluir"
+      - "Só se o backend tiver aberto uma transação antes do timeout estourar"
+    answer: 2
     explanation: "É o pior desfecho: o usuário vê erro e o dinheiro saiu. Timeout da borda deve ser maior ou igual ao do backend, e a operação precisa ser idempotente de qualquer forma."
   - question: "Por que a Gateway API separa Gateway de HTTPRoute?"
     options:
-      - "Por razões de desempenho"
-      - "Porque são donos diferentes: a plataforma controla listeners e certificados, o time da aplicação controla o roteamento no seu namespace"
-      - "Porque o Ingress não permitia TLS"
-      - "Para permitir mais de um controller por cluster"
-    answer: 1
-    explanation: "É uma decisão de governança tanto quanto de rede. O time edita HTTPRoute sem tocar em nada compartilhado, e o que antes era anotação proprietária virou campo da spec — revisável em PR e verificável por policy."
+      - "Porque são donos diferentes: plataforma na borda, time no roteamento"
+      - "Porque o objeto Ingress não permitia terminar TLS em vários hostnames"
+      - "Porque a separação reduz a latência de propagação da configuração"
+      - "Porque só assim é possível ter mais de um ingress controller no cluster"
+    answer: 0
+    explanation: "É uma decisão de governança tanto quanto de rede: a plataforma controla listeners e certificados, o time da aplicação controla o roteamento no seu namespace. O que antes era anotação proprietária virou campo da spec — revisável em PR e verificável por policy."
   - question: "Seu antifraude decide por IP e o rate limit conta por IP. O que externalTrafficPolicy=Cluster faz com isso?"
     options:
-      - "Nada, o IP de origem é preservado"
-      - "O segundo salto entre nós faz SNAT e o backend passa a ver o IP do nó — todos os clientes parecem os mesmos poucos endereços"
-      - "Bloqueia o tráfego externo"
-      - "Distribui melhor a carga preservando o IP"
-    answer: 1
-    explanation: "Com Cluster o tráfego pode ser reencaminhado para um pod em outro nó, e o SNAT apaga o IP do cliente. O rate limit para de funcionar ou bloqueia todo mundo junto."
+      - "Nada: o IP de origem é preservado em todos os saltos internos"
+      - "Bloqueia o tráfego externo que não venha do balanceador da nuvem"
+      - "Distribui melhor a carga entre nós e ainda preserva o IP do cliente"
+      - "O segundo salto faz SNAT e o backend passa a ver o IP do nó"
+    answer: 3
+    explanation: "Com Cluster o tráfego pode ser reencaminhado para um pod em outro nó, e o SNAT apaga o IP do cliente: todos parecem os mesmos poucos endereços. O rate limit para de funcionar ou bloqueia todo mundo junto."

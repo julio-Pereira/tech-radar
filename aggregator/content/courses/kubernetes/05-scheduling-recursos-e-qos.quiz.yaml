@@ -1,33 +1,33 @@
 questions:
   - question: "Seu container usa 20% de CPU na média e o p99 está péssimo. Qual métrica você olha?"
     options:
-      - "container_memory_working_set_bytes"
-      - "A fração container_cpu_cfs_throttled_periods_total / container_cpu_cfs_periods_total"
-      - "node_load1"
-      - "kube_pod_container_status_restarts_total"
-    answer: 1
+      - "container_memory_working_set_bytes, para descartar pressão de memória"
+      - "node_load1, que mostra a fila de execução do nó inteiro"
+      - "kube_pod_container_status_restarts_total, atrás de reinícios silenciosos"
+      - "container_cpu_cfs_throttled_periods_total sobre o total de períodos"
+    answer: 3
     explanation: "Throttling acontece com uso médio baixo: a carga é feita de rajadas curtas que estouram a cota de 100ms do cgroup. O gráfico de uso mostra 20% e o processo está congelado dezenas de vezes por minuto."
   - question: "Por que limits.memory deve existir sempre e limits.cpu é discutível?"
     options:
-      - "Porque memória é mais cara"
-      - "Porque memória é incompressível: sem limite, um vazamento consome o nó e faz o kubelet despejar pods vizinhos. CPU só é adiada, e o limite apenas impede usar CPU ociosa"
-      - "Porque o scheduler ignora limits.cpu"
-      - "Porque o cgroup não suporta limite de CPU"
-    answer: 1
-    explanation: "O limite de memória protege os outros; o de CPU só restringe você. Para serviço sensível a latência, requests bem definidos já garantem a fatia sob disputa."
+      - "Porque memória é incompressível e CPU só é adiada sob disputa"
+      - "Porque memória custa mais por GB do que vCPU nos provedores de nuvem"
+      - "Porque o scheduler considera requests de CPU e ignora limits de CPU"
+      - "Porque o cgroup v2 não implementa teto de CPU, apenas peso relativo"
+    answer: 0
+    explanation: "Sem limite de memória, um vazamento consome o nó e faz o kubelet despejar pods vizinhos. O limite de memória protege os outros; o de CPU só impede você de usar CPU ociosa. Para serviço sensível a latência, requests bem definidos já garantem a fatia sob disputa."
   - question: "Um pod BestEffort sumiu durante o pico. Por quê?"
     options:
-      - "Porque o scheduler o remove sob carga"
-      - "Porque ele é o primeiro a ser despejado quando o nó fica sob pressão de recurso"
-      - "Porque não tem readinessProbe"
-      - "Porque o HPA o removeu"
-    answer: 1
+      - "Porque o scheduler remove pods de baixa prioridade sob carga alta"
+      - "Porque sem readinessProbe o kubelet o considera permanentemente falho"
+      - "Porque é o primeiro a ser despejado sob pressão de recurso no nó"
+      - "Porque o HPA reduziu réplicas ao recalcular a utilização do grupo"
+    answer: 2
     explanation: "A ordem de despejo é BestEffort, depois Burstable que excedeu o request, depois Guaranteed. É o valor padrão de quem esqueceu de declarar recursos, e ele some justamente quando você mais precisa dele."
   - question: "Qual PDB torna o upgrade do cluster impossível?"
     options:
-      - "minAvailable: 1 com 3 réplicas"
-      - "minAvailable igual ao número de réplicas — nenhum pod pode ser removido, e o drain bloqueia para sempre"
-      - "maxUnavailable: 1 com 3 réplicas"
-      - "Qualquer PDB com selector por label"
+      - "minAvailable: 1 num Deployment com 3 réplicas distribuídas em 3 nós"
+      - "minAvailable igual ao número de réplicas do workload protegido"
+      - "maxUnavailable: 1 num Deployment com 3 réplicas em zonas distintas"
+      - "Qualquer PDB cujo selector case por label em vez de por nome do objeto"
     answer: 1
     explanation: "O drain respeita o PDB e espera. Se nenhum pod pode sair, ele nunca completa — e o upgrade de nó, que depende de drain, para em cima disso."

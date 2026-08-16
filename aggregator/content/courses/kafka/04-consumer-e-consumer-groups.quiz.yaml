@@ -1,33 +1,33 @@
 questions:
   - question: "Você tem 6 partições e sobe 10 consumidores no mesmo grupo. Quantos processam mensagens?"
     options:
-      - "10, dividindo cada partição entre consumidores"
-      - "6 — os outros 4 ficam ociosos, e ainda participam de cada rebalance"
-      - "10, mas com throughput reduzido"
-      - "1, o líder do grupo"
-    answer: 1
+      - "10, dividindo cada partição entre dois consumidores"
+      - "10, porém com throughput reduzido por consumidor"
+      - "6, e os outros 4 ficam ociosos participando do rebalance"
+      - "1, o consumidor eleito líder do grupo"
+    answer: 2
     explanation: "Dentro de um grupo, cada partição vai para no máximo um consumidor. Você escala até o número de partições e nem um a mais — consumidor extra custa memória e piora o rebalance."
   - question: "Qual estratégia de commit consegue perder E duplicar registros?"
     options:
+      - "enable.auto.commit=true"
       - "Commit manual antes do processamento"
       - "Commit manual depois do processamento"
-      - "enable.auto.commit=true"
-      - "Commit transacional"
-    answer: 2
+      - "Commit transacional com produção no mesmo passo"
+    answer: 0
     explanation: "O auto-commit commita por tempo, com base no que foi entregue e não no que foi processado. Um crash entre a entrega e o processamento perde; um crash depois de processar e antes do commit periódico duplica."
   - question: "Um grupo com auto.offset.reset=earliest ficou fora do ar tempo suficiente para o offset commitado expirar da retenção. O que acontece quando ele volta?"
     options:
-      - "Ele continua de onde parou"
-      - "Ele reprocessa o tópico inteiro desde o começo"
-      - "Ele começa do fim, pulando o acumulado"
-      - "Ele falha ao subir"
-    answer: 1
-    explanation: "Sem offset válido, a política decide. earliest relê tudo — o que numa fintech significa reemitir milhões de eventos, e é o argumento mais concreto para consumidor idempotente."
+      - "Continua exatamente de onde havia parado"
+      - "Começa do fim do log, pulando o acumulado"
+      - "Falha ao subir, pedindo intervenção manual"
+      - "Reprocessa o tópico inteiro desde o começo"
+    answer: 3
+    explanation: "Sem offset válido, a política decide. earliest relê tudo — o que numa fintech significa reemitir milhões de eventos, e é o argumento mais concreto a favor de consumidor idempotente."
   - question: "Seu processamento de lote demora mais que max.poll.interval.ms. Qual configuração você mexe primeiro?"
     options:
       - "session.timeout.ms, para o broker esperar mais"
-      - "max.poll.records, reduzindo o tamanho do lote entregue por poll"
-      - "auto.commit.interval.ms"
-      - "fetch.min.bytes"
+      - "max.poll.records, reduzindo o lote entregue por poll"
+      - "auto.commit.interval.ms, commitando com mais frequência"
+      - "fetch.min.bytes, para buscar menos dado por requisição"
     answer: 1
     explanation: "Reduzir o lote é o ajuste mais direto e menos arriscado: o poll volta mais cedo e o consumidor não é considerado morto. Subir o intervalo é válido, mas atrasa a detecção de consumidor realmente travado."

@@ -1,33 +1,33 @@
 questions:
   - question: "Você aplicou uma NetworkPolicy default-deny e nada foi bloqueado. Qual a primeira hipótese?"
     options:
-      - "A policy tem erro de sintaxe"
-      - "O CNI não implementa NetworkPolicy — alguns aceitam o objeto e o ignoram silenciosamente"
-      - "Falta reiniciar o kube-proxy"
-      - "O namespace não tem o label correto"
+      - "O objeto tem erro de sintaxe no bloco de policyTypes declarado"
+      - "O CNI aceita o objeto NetworkPolicy e simplesmente o ignora"
+      - "O kube-proxy precisa ser reiniciado para recarregar as regras de filtro"
+      - "O namespace alvo não tem o label esperado pelo seletor da policy"
     answer: 1
-    explanation: "Calico, Cilium e Antrea implementam; outros não. Por isso o primeiro passo de qualquer trabalho de NetworkPolicy é provar que uma conexão é de fato negada."
+    explanation: "Calico, Cilium e Antrea implementam; outros não, e não avisam. Por isso o primeiro passo de qualquer trabalho de NetworkPolicy é provar que uma conexão é de fato negada."
   - question: "Por que é preciso liberar TCP e UDP na porta 53?"
     options:
-      - "Por redundância"
-      - "Porque respostas DNS grandes caem para TCP, e liberar só UDP produz falha intermitente"
-      - "Porque o CoreDNS só usa TCP"
-      - "Porque o kube-proxy exige TCP"
-    answer: 1
+      - "Porque o CoreDNS abandonou o UDP nas versões recentes do Kubernetes"
+      - "Por redundância, caso um dos protocolos fique indisponível no nó"
+      - "Porque o kube-proxy exige TCP para o próprio registro de endpoints"
+      - "Porque respostas DNS grandes caem para TCP e a falha vira intermitente"
+    answer: 3
     explanation: "A falha intermitente é o pior tipo de sintoma: funciona na maioria das consultas e quebra em algumas. E o DNS é a primeira coisa que para quando o default-deny entra."
   - question: "O parceiro reclama que às vezes o IP de origem não é o cadastrado. Qual a causa?"
     options:
-      - "O certificado mTLS expirou"
-      - "O tráfego sai com o IP do nó, e os nós mudam a cada escala — sem egress gateway com IP fixo, a integração quebra para alguns pods"
-      - "A NetworkPolicy está bloqueando parte do tráfego"
-      - "O DNS está resolvendo para IPs diferentes"
-    answer: 1
-    explanation: "Modo de falha característico: funciona para uns pods e não para outros, e piora quando o cluster escala. A solução é um egress gateway ou NAT dedicado com IP fixo."
+      - "O tráfego sai com o IP do nó, e os nós mudam a cada evento de escala"
+      - "O certificado mTLS da conexão com o parceiro expirou parcialmente"
+      - "A NetworkPolicy de egress está bloqueando uma fração das conexões"
+      - "O DNS do parceiro resolve para endereços diferentes a cada consulta"
+    answer: 0
+    explanation: "Sem egress gateway com IP fixo, a integração quebra para alguns pods. Modo de falha característico: funciona para uns e não para outros, e piora quando o cluster escala."
   - question: "Qual capacidade um service mesh dá que a NetworkPolicy não dá, mesmo com o CNI mais avançado?"
     options:
-      - "Bloqueio de egress por IP"
-      - "Identidade criptográfica por serviço com mTLS automático, e autorização em L7 (por método e rota)"
-      - "Isolamento por namespace"
-      - "Controle de banda"
-    answer: 1
-    explanation: "Policy baseada em IP confia no IP, e IP em Kubernetes é reciclado. O mesh autentica o serviço por certificado — e decide 'A pode chamar GET /saldo mas não POST /transfer'."
+      - "Bloqueio de saída por endereço IP e porta de destino"
+      - "Isolamento de tráfego entre namespaces do mesmo cluster"
+      - "Identidade criptográfica por serviço e autorização em L7"
+      - "Controle de banda por pod, com limites de vazão configuráveis"
+    answer: 2
+    explanation: "Policy baseada em IP confia no IP, e IP em Kubernetes é reciclado. O mesh autentica o serviço por certificado, com mTLS automático — e decide 'A pode chamar GET /saldo mas não POST /transfer'."

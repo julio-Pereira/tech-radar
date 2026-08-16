@@ -1,33 +1,33 @@
 questions:
   - question: "Por que requests inflados custam dinheiro mesmo com o cluster ocioso?"
     options:
-      - "Porque o kubelet reserva memória física"
-      - "Porque o scheduler aloca pelo request: nós ficam 'cheios' de reservas e você paga por máquinas com 20% de uso real"
-      - "Porque o autoscaler cobra por reserva"
-      - "Porque limits altos aumentam o consumo"
-    answer: 1
-    explanation: "O request é uma reserva no scheduler, não uma medida de uso. Right-sizing se faz com p50 de CPU e pico de memória observados, não com chute."
+      - "Porque o kubelet reserva fisicamente a memória declarada no request"
+      - "Porque o cluster autoscaler cobra uma taxa por reserva não utilizada"
+      - "Porque o scheduler aloca pelo request e os nós ficam cheios de reserva"
+      - "Porque limits altos elevam o consumo real dos processos no container"
+    answer: 2
+    explanation: "Você paga por máquinas com 20% de uso real. O request é uma reserva no scheduler, não uma medida de uso — right-sizing se faz com p50 de CPU e pico de memória observados, não com chute."
   - question: "O que um namespace não isola?"
     options:
-      - "Nomes de objetos"
-      - "Kernel, vizinho barulhento saturando disco ou rede do nó, e o efeito de CRDs ou webhooks no cluster inteiro"
-      - "Permissões de RBAC"
-      - "Quotas de recurso"
-    answer: 1
+      - "Kernel, vizinho barulhento no nó e efeito de CRDs no cluster inteiro"
+      - "Os nomes dos objetos, que podem se repetir entre namespaces distintos"
+      - "As permissões concedidas por RoleBindings dentro daquele namespace"
+      - "As quotas de CPU e memória aplicadas ao conjunto de pods do namespace"
+    answer: 0
     explanation: "Namespace dá nome, RBAC, NetworkPolicy e quota. Chamá-lo de 'isolamento' numa reunião com auditoria é o tipo de imprecisão que volta como achado."
   - question: "Qual pergunta resolve a discussão 'Kubernetes ou Cloud Run' sem ideologia?"
     options:
-      - "Qual é mais barato por vCPU?"
+      - "Qual das duas plataformas cobra menos por vCPU e GB de memória?"
+      - "Qual das duas oferece o conjunto de recursos mais completo hoje?"
       - "Quem vai operar isso às 3h da manhã de domingo?"
-      - "Qual tem mais recursos?"
-      - "Qual o time já conhece?"
-    answer: 1
+      - "Qual delas o time já usou em algum projeto anterior da empresa?"
+    answer: 2
     explanation: "O custo do Kubernetes não é a fatura de computação, é a plataforma que alguém precisa operar: upgrades, CNI, policies, o operator que quebrou. Se a resposta não é convincente, a resposta é outra plataforma."
   - question: "Por que ativar ResourceQuota quebra manifestos existentes, e por que isso é bom?"
     options:
-      - "Porque reduz o limite de pods; é ruim e deve ser evitado"
-      - "Porque passa a exigir requests e limits declarados em todo pod do namespace — o que elimina o BestEffort acidental"
-      - "Porque invalida os LimitRanges"
-      - "Porque força o uso de PriorityClass"
-    answer: 1
+      - "Porque reduz o teto de pods do namespace, e isso é ruim: deve ser evitado"
+      - "Porque invalida os LimitRanges já configurados naquele mesmo namespace"
+      - "Porque obriga o uso de PriorityClass em todo workload do namespace"
+      - "Porque passa a exigir requests e limits, eliminando o BestEffort acidental"
+    answer: 3
     explanation: "É exatamente o comportamento desejado: pod sem recurso declarado é o primeiro a ser despejado. Só precisa ser comunicado antes de ser ligado."
