@@ -1,0 +1,49 @@
+questions:
+  - question: "O que o teorema CAP explicitamente não diz?"
+    options:
+      - "Nada sobre o trade-off no dia em que a rede está funcionando"
+      - "Nada sobre o comportamento do sistema durante uma partição de rede"
+      - "Nada sobre sistemas que replicam dados entre zonas de disponibilidade"
+      - "Nada sobre a diferença entre leitura e escrita numa mesma réplica"
+    answer: 0
+    explanation: "A escolha entre A e C só existe durante a partição, e partição é 0,1% dos dias. O trade-off que você paga sempre é o 'else' do PACELC: latência contra consistência — ler da réplica é rápido e atrasado, ler do primário é correto e caro."
+  - question: "Por que \"somos AP\" costuma ser uma frase vazia numa fintech?"
+    options:
+      - "Porque nenhuma fintech pode abrir mão de consistência, por regulação"
+      - "Porque a escolha é por operação, e o sistema roda numa AZ só"
+      - "Porque disponibilidade não é mensurável sem um SLO já definido"
+      - "Porque AP e CP descrevem bancos de dados, nunca aplicações inteiras"
+    answer: 1
+    explanation: "Sem partição possível entre réplicas, o teorema não está nem em jogo. E ler saldo e escrever lançamento têm requisitos diferentes: a escolha é por operação, não uma etiqueta do sistema."
+  - question: "Por que consistência causal basta em quase toda fintech?"
+    options:
+      - "Porque ela é a única compatível com replicação assíncrona entre réplicas"
+      - "Porque ela garante que toda leitura enxerga a escrita mais recente"
+      - "Porque preserva a ordem onde há causa e não cobra por ela onde não há"
+      - "Porque ela dispensa qualquer coordenação entre os nós do sistema"
+    answer: 2
+    explanation: "O estorno referencia o débito, então a ordem entre eles importa; contra um pagamento de outra conta, não importa em nada. É o que se ganha com chave de partição por conta (kafka/06)."
+  - question: "Um requisito chega como \"os eventos precisam ser processados na ordem\". O que você pergunta?"
+    options:
+      - "Qual é o volume esperado de eventos por segundo nesse fluxo?"
+      - "Podemos assumir que o consumidor será idempotente?"
+      - "Qual é a janela de inconsistência aceitável para esse caso?"
+      - "Ordem entre o quê e o quê, exatamente?"
+    answer: 3
+    explanation: "Quase sempre o requisito real é ordem causal, por entidade. Ordem global custa uma partição e um consumidor, sem paralelismo, e entrega uma garantia que ninguém pediu."
+  - question: "Quais são os quatro itens de uma janela de inconsistência declarada?"
+    options:
+      - "Número, dono, monitoramento e frase escrita para o cliente"
+      - "Número, alerta, painel e post-mortem quando ela estourar"
+      - "Prazo contratual, SLA, cláusula de multa e responsável técnico"
+      - "Média, percentil 99, limite superior e periodicidade de revisão"
+    answer: 0
+    explanation: "Sem os quatro, não é consistência eventual: é inconsistência sem prazo, e uma reclamação futura sem resposta. 'Eventualmente' não é um prazo."
+  - question: "Como decidir se uma invariante é transacional ou tolera evento?"
+    options:
+      - "Pelo volume de escrita que ela recebe no horário de pico"
+      - "Pela quantidade de serviços que precisam consultá-la"
+      - "Pelo custo de ela ser falsa por um instante"
+      - "Pela facilidade de implementá-la dentro de um único serviço"
+    answer: 2
+    explanation: "Extrato 5s atrasado: cliente estranha e ninguém perde dinheiro. Saldo 5s atrasado no caminho do débito: dois débitos passam e a conta fica negativa. Se o custo é dinheiro ou multa, a invariante mora dentro de um agregado, com transação."

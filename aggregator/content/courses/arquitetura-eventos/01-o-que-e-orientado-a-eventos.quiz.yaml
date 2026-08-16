@@ -1,0 +1,33 @@
+questions:
+  - question: "Qual teste distingue um evento de um comando disfarçado?"
+    options:
+      - "O evento é publicado num tópico; o comando vai por chamada direta"
+      - "O evento carrega o estado completo; o comando carrega apenas ids"
+      - "O evento continua correto com zero consumidores; o comando não"
+      - "O evento é assíncrono por definição; o comando é sempre síncrono"
+    answer: 2
+    explanation: "Um fato sem interessados continua sendo um fato; um pedido sem destinatário é bug. Por isso o nome no particípio passado não é estética: `DoPaymentCommand` num tópico é RPC com um broker no meio."
+  - question: "Qual acoplamento a arquitetura orientada a eventos agrava, em vez de remover?"
+    options:
+      - "De dados: todo consumidor passa a depender do schema do evento"
+      - "Temporal: o produtor precisa que o consumidor esteja no ar"
+      - "Espacial: o produtor precisa conhecer o endereço do consumidor"
+      - "De implantação: os dois lados precisam subir na mesma janela"
+    answer: 0
+    explanation: "Você ganha independência de tempo e de localização e perde a capacidade de saber quem quebra ao renomear um campo. É por isso que contrato de evento, e não transporte, é o problema central da trilha."
+  - question: "Por que event sourcing e CQRS são apresentados como escolhas independentes?"
+    options:
+      - "Porque event sourcing exige CQRS, mas CQRS não exige event sourcing"
+      - "Porque os dois só funcionam juntos quando há um broker no meio"
+      - "Porque CQRS é padrão de leitura e event sourcing é padrão de transporte"
+      - "Porque dá para ter CQRS sem event sourcing, e event sourcing sem broker"
+    answer: 3
+    explanation: "São quatro estilos independentes — notification, state transfer, event sourcing e CQRS — e comprá-los como pacote é adquirir complexidade que ninguém pediu. A maioria dos times quer CQRS no degrau mais barato e nunca precisou de event sourcing."
+  - question: "Em qual situação transformar uma chamada síncrona em evento piora o sistema?"
+    options:
+      - "Quando o volume de chamadas cresce além da capacidade do serviço"
+      - "Quando o chamador precisa da resposta para continuar a operação"
+      - "Quando o consumidor está escrito em outra linguagem que o produtor"
+      - "Quando existe mais de um consumidor interessado no mesmo fato"
+    answer: 1
+    explanation: "Vira request-reply sobre broker: mesma latência ou pior, depuração muito mais difícil e um estado de correlação novo para gerenciar. Autorização de cartão é o exemplo canônico — o cliente está com a mão na maquininha."

@@ -1,0 +1,44 @@
+slug: arquitetura-eventos
+title: "Arquitetura Orientada a Eventos para Fintech"
+subtitle: "Do domínio ao contrato: modelar eventos, fronteiras e consistência num sistema de pagamentos onde atraso é aceitável e erro não é."
+category: "Arquitetura"
+tags: [eda, ddd, cqrs, event-sourcing, saga, arquitetura, fintech]
+level: advanced
+lang: pt-BR
+# Bloco A (Domínio) publicado: 4 marcos, ~200 min de leitura. Vai para 24 quando os
+# 13 marcos estiverem escritos — a regra é ~2× a soma dos estimatedMinutes.
+estimatedHours: 7
+glossary: GLOSSARIO.md
+sources:
+  - title: "Martin Fowler — What do you mean by Event-Driven?"
+    url: https://martinfowler.com/articles/201701-event-driven.html
+  - title: "Martin Fowler — CQRS"
+    url: https://martinfowler.com/bliki/CQRS.html
+  - title: "Microservices.io — Patterns (Saga, Outbox, CQRS)"
+    url: https://microservices.io/patterns/index.html
+  - title: "DDD Reference (Eric Evans)"
+    url: https://www.domainlanguage.com/ddd/reference/
+  - title: "EventStorming (Alberto Brandolini)"
+    url: https://www.eventstorming.com/
+  - title: "AWS Prescriptive Guidance — Integrating microservices"
+    url: https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-integrating-microservices/welcome.html
+  - title: "gRPC Documentation"
+    url: https://grpc.io/docs/
+milestones:
+  # Bloco A — Domínio
+  - 01-o-que-e-orientado-a-eventos.md
+  - 02-dominio-antes-do-topico.md
+  - 03-event-storming.md
+  - 04-consistencia-eventual.md
+  # Bloco B — Modelo (ids congelados: evento-como-contrato, cqrs-e-projecoes, event-sourcing)
+  # - 05-o-evento-como-contrato.md
+  # - 06-cqrs-e-projecoes.md
+  # - 07-event-sourcing.md
+  # Bloco C — Padrão (outbox-inbox-idempotencia, sagas, sincrono-rest-grpc)
+  # - 08-outbox-inbox-e-idempotencia.md
+  # - 09-sagas-e-processos-longos.md
+  # - 10-sincrono-ainda-existe-rest-e-grpc.md
+  # Bloco D — Operar e evoluir (observabilidade-de-fluxo, testar-eventos, migracao-e-antipadroes)
+  # - 11-observabilidade-de-fluxo.md
+  # - 12-testar-arquitetura-de-eventos.md
+  # - 13-migrar-sem-parar-a-fintech.md
