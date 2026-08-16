@@ -50,6 +50,27 @@ Routes (hash-based, so they work under the `/tech-radar/` Pages prefix):
 | `#/learn` | Track catalog |
 | `#/learn/<slug>` | A track's timeline |
 
+### Projeto guia (capstone)
+
+Tracks are not just reading. Each one builds one component of **`fin-platform`**, a single
+fintech system that survives across tracks — so the exercises accumulate into a portfolio
+instead of dying at the end of a milestone.
+
+| Track | Component | Role |
+|---|---|---|
+| `spring-boot` | `pix-gateway` (Java) | Payment initiation, idempotency, outbox |
+| `go-fintech` | `ledger-core` (Go) | Double-entry ledger, risk decision |
+| `kafka` | `pix-stream` | Event backbone, DLQ, projections |
+| `kubernetes` | `fin-platform` (GitOps) | Where it all runs, with security |
+| `observabilidade` | `fin-watch` | The telemetry, SLOs and on-call over it |
+| `arquitetura-eventos` | `fin-flow` | The event design the backbone carries |
+
+Each track ships a `PROJETO.md` (spec: increments per milestone, definition of done, game
+day) and closes with a `## Capstone` section in its last milestone. `PROJETO.md` is **not**
+listed in `milestones:` — it is a repo-level spec, not a rendered milestone. Tracks assume
+only **contracts** from each other (an endpoint, a topic), never code, so they can be taken
+in any order.
+
 ### Authoring a track
 
 One folder per track under `aggregator/content/courses/<slug>/`:
