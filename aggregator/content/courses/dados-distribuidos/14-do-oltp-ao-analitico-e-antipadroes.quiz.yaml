@@ -1,0 +1,36 @@
+questions:
+  - question: "O que a captura por `WHERE updated_at > :ultimo` perde e o CDC não perde?"
+    options:
+      - "As colunas adicionadas depois do início da captura, que exigem reconfiguração manual"
+      - "As deleções, e as escritas concorrentes que caem na borda da janela de consulta"
+      - "A ordem entre linhas de tabelas diferentes, que só o log de replicação preserva"
+      - "As transações revertidas, que aparecem indevidamente na captura por timestamp"
+    answer: 1
+    explanation: "Uma linha apagada simplesmente deixa de aparecer na consulta — não há como distinguir isso de nunca ter existido. E escritas commitadas durante a janela podem ficar de fora dependendo de quando o timestamp foi atribuído. O CDC lê o log de replicação, então captura deleções e respeita a ordem de commit. O que ele cobra é o slot retendo WAL enquanto o consumidor não avança."
+
+  - question: "Qual incidente o data contract previne?"
+    options:
+      - "O pipeline que trava porque o volume de uma tabela cresceu além da capacidade de ingestão"
+      - "O painel que fica desatualizado sem que ninguém perceba, por falta de alerta de atraso"
+      - "A consulta ad-hoc que varre o warehouse inteiro e gera uma fatura inesperada no mês"
+      - "A refatoração no transacional que quebra silenciosamente um painel usado há dois anos"
+    answer: 3
+    explanation: "O contrato torna explícito que aquele schema tem consumidores, dono e política de evolução — e permite que uma mudança incompatível quebre no CI em vez de em produção. O painel desatualizado é o que o SLO de freshness previne, e a fatura inesperada é assunto de controle de custo. São três controles distintos, e cada um cobre uma falha diferente."
+
+  - question: "Por que ninguém deve consumir a camada bronze para decisão?"
+    options:
+      - "Porque ela guarda o dado como chegou, e limpeza, tipagem e deduplicação são trabalho da prata"
+      - "Porque ela é imutável, e qualquer correção exigiria reescrever o histórico de ingestão"
+      - "Porque ela não tem retenção definida, e o dado pode ter sido expirado sem aviso ao consumidor"
+      - "Porque o custo de consulta sobre dado bruto é maior, já que não há agregação pré-calculada"
+    answer: 0
+    explanation: "Bronze é matéria-prima e histórico para reprocessamento: dado cru, com duplicatas, tipos inconsistentes e o formato da origem. Se um relatório de diretoria lê bronze, a camada prata não está fazendo o trabalho dela — e a decisão está sendo tomada sobre dado que ninguém validou. Imutabilidade e custo são características reais, não a razão da regra."
+
+  - question: "Qual é o denominador comum dos antipadrões que fecham a trilha?"
+    options:
+      - "Todos nascem de tentar economizar infraestrutura em vez de resolver o problema de desenho"
+      - "Todos aparecem quando a equipe de dados é separada da equipe que escreve a aplicação"
+      - "Todos são decisões de dados tomadas sem número: sem medir, sem `EXPLAIN`, sem limite conhecido"
+      - "Todos decorrem de copiar padrões de sistemas maiores sem o volume que os justificava"
+    answer: 2
+    explanation: "Banco compartilhado, N+1, sharding prematuro, cache sem plano, índice para cada query, \"o banco aguenta\" — nenhum deles é uma escolha errada feita com dado na mão; todos são escolhas feitas sem dado nenhum. Por isso o checklist de fechamento é verificável item a item, e por isso quase todo hands-on desta trilha pede um número medido em vez de uma configuração aplicada."

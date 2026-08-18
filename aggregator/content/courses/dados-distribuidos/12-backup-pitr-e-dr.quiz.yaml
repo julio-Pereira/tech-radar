@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que \"o job de backup rodou verde\" não prova quase nada?"
+    options:
+      - "Porque a verificação de integridade do arquivo só roda no momento do restore efetivo"
+      - "Porque o job pode ter copiado apenas as tabelas alteradas desde o backup completo anterior"
+      - "Porque o arquivo pode estar íntegro e ainda assim faltar o WAL necessário para consistência"
+      - "Porque prova que um arquivo foi escrito — não que ele restaura, nem em quanto tempo"
+    answer: 3
+    explanation: "A única métrica que importa é tempo de restore medido. Um job verde não garante que o arquivo contém um banco íntegro, que a chave de criptografia ainda existe, que alguém sabe o procedimento nem que ele cabe no RTO. A falta de WAL é uma das formas de descobrir isso tarde, e todas elas se resolvem com o mesmo ensaio cronometrado."
+
+  - question: "O que o RTO inclui que o tempo de restore não inclui?"
+    options:
+      - "Perceber o incidente, decidir, obter aprovação, validar o resultado e religar o tráfego"
+      - "O tempo de reconstrução dos índices, que no backup físico ocorre depois da cópia dos arquivos"
+      - "O tempo de sincronizar as réplicas a partir do nó restaurado antes de aceitar leitura"
+      - "A janela de replicação assíncrona pendente no momento em que o desastre foi declarado"
+    answer: 0
+    explanation: "O restore é uma etapa dentro do RTO, e frequentemente a menor. Um restore de 40 minutos dentro de um RTO de 4 horas costuma esconder três horas de detecção e decisão. Reconstruir índices é parte do restore lógico; a janela de replicação pendente é RPO, não RTO. Cronometrar a detecção separadamente é o que torna o número honesto."
+
+  - question: "Alguém executa `UPDATE lancamento SET valor = 0` sem `WHERE`. As três réplicas ajudam?"
+    options:
+      - "Sim: promover uma réplica antes de o comando ser aplicado nela recupera o estado anterior"
+      - "Não: é uma escrita válida, replicada com perfeição em milissegundos — só PITR ou backup salva"
+      - "Sim, se `hot_standby_feedback` estiver ativo, porque a réplica retém as versões antigas das linhas"
+      - "Não, mas o `VACUUM` ainda não recolheu as versões antigas, que podem ser recuperadas do heap"
+    answer: 1
+    explanation: "Réplica protege contra falha física — disco, máquina, zona. Corrupção lógica não é falha do ponto de vista do banco: é uma escrita válida, e toda réplica a aplica obedientemente em milissegundos. Recuperar versões antigas do heap não é um mecanismo com que se conte. É por isso que \"temos três réplicas\" nunca responde \"e se alguém apagar os dados?\"."
+
+  - question: "Por que o failback é a parte mais arriscada do DR cross-region?"
+    options:
+      - "Porque a região original volta com o schema desatualizado em relação às migrações aplicadas"
+      - "Porque exige replicação síncrona entre regiões durante a virada, o que a latência inviabiliza"
+      - "Porque é a etapa que ninguém ensaia: exige replicar de volta o período e reconciliar o que divergiu"
+      - "Porque o DNS leva horas para propagar, e durante esse tempo as duas regiões aceitam escrita"
+    answer: 2
+    explanation: "O failover é ensaiado porque é o cenário assustador; a volta quase nunca é. Ela envolve trazer de volta tudo que foi escrito durante o incidente, reconciliar divergências e escolher uma janela para virar. Sem plano escrito, o resultado típico é o sistema permanecer na região secundária por meses — \"porque está funcionando\" — com o desenho de capacidade original abandonado."

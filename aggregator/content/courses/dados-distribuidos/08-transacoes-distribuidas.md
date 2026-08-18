@@ -65,7 +65,7 @@ uma saga.
 
 A resposta dominante não é uma transação melhor: é **não precisar de uma**. Fronteira de
 agregado bem desenhada (`arquitetura-eventos/02`), transação local dentro dela, e entre
-agregados uma saga com outbox e inbox (`arquitetura-eventos/08` e `/09`).
+agregados uma saga com outbox e inbox (`arquitetura-eventos/08` e `arquitetura-eventos/09`).
 
 O que se ganha: disponibilidade, latência baixa, acoplamento temporal zero. O que se paga:
 estado intermediário visível, compensação com semântica de negócio, e a necessidade de

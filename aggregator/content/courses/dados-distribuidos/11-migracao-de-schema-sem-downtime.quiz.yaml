@@ -1,0 +1,54 @@
+questions:
+  - question: "Qual combinação de fases do expand/contract não pode ir no mesmo deploy?"
+    options:
+      - "Ler do novo campo e remover o antigo — o rollback passaria a exigir restore"
+      - "Adicionar a coluna nova e começar a escrever nos dois campos simultaneamente"
+      - "Executar o backfill e ligar a leitura em sombra para comparar os dois valores"
+      - "Adicionar a coluna e criar o índice sobre ela com `CONCURRENTLY` na sequência"
+    answer: 0
+    explanation: "Enquanto o campo antigo continua sendo escrito e existe, qualquer fase é reversível voltando o deploy. Ler do novo e remover o antigo juntos elimina as duas redes ao mesmo tempo: se o dado novo estiver errado, não há para onde voltar sem restore. Expandir e escrever nos dois na mesma subida é aceitável, e o backfill não altera o que a aplicação lê."
+
+  - question: "Por que o dual-write da migração não é o antipadrão que `arquitetura-eventos/13` proíbe?"
+    options:
+      - "Porque acontece dentro de uma transação só, e transação elimina a divergência entre os destinos"
+      - "Porque grava em duas colunas e não em dois sistemas, e colunas da mesma tabela não divergem"
+      - "Porque é temporário, verificado por checksum, e tem data de remoção escrita no ADR"
+      - "Porque a fonte da verdade continua sendo o campo antigo até a virada da leitura acontecer"
+    answer: 2
+    explanation: "O que a trilha de eventos proíbe é o dual-write permanente entre sistemas, sem fonte da verdade e com divergência garantida. Aqui a escrita dupla existe por um prazo definido, é verificada por soma de controle e tem remoção planejada. Sem essas três características — em especial a data de remoção — você está no antipadrão, ainda que dentro do mesmo banco."
+
+  - question: "Um `ALTER TABLE ADD COLUMN` instantâneo travou a leitura da tabela por sete minutos. O que aconteceu?"
+    options:
+      - "A coluna tinha default volátil, o que forçou a reescrita de todas as páginas da tabela"
+      - "O autovacuum estava rodando na tabela e o DDL esperou o término da varredura em curso"
+      - "A tabela é particionada, e o comando foi propagado sequencialmente para cada partição"
+      - "O DDL entrou na fila atrás de uma transação longa, e as consultas seguintes ficaram atrás dele"
+    answer: 3
+    explanation: "A fila de locks é ordenada: o `ALTER` pede `ACCESS EXCLUSIVE`, espera a transação longa terminar, e todo `SELECT` que chega depois espera atrás dele — mesmo sem conflitar com ninguém. Um comando de 50 milissegundos vira uma parada de sete minutos. É por isso que `lock_timeout` com retry é prática obrigatória, e não recomendação."
+
+  - question: "Por que paginar o backfill com `OFFSET` torna o job quadrático?"
+    options:
+      - "Porque cada página invalida o plano em cache e força um novo planejamento da consulta"
+      - "Porque o banco percorre e descarta todas as linhas anteriores para chegar à página pedida"
+      - "Porque o `ORDER BY` obrigatório do `OFFSET` refaz a ordenação completa a cada página"
+      - "Porque o `OFFSET` impede o uso do índice, forçando seq scan a partir da segunda página"
+    answer: 1
+    explanation: "`OFFSET 4000000` significa ler quatro milhões de linhas e jogá-las fora antes de devolver as próximas mil. O custo de cada página cresce com a posição dela, e o total vira quadrático. A correção é guardar a última chave processada e seguir com `WHERE id > :ultimo ORDER BY id LIMIT 1000`, cujo custo é constante por página."
+
+  - question: "Qual verificação prova que a migração da coluna monetária não perdeu um centavo?"
+    options:
+      - "Soma de controle dos dois campos comparada **por partição**, não apenas no total geral"
+      - "Contagem de linhas com o campo novo preenchido igual à contagem total de linhas da tabela"
+      - "Amostragem aleatória de 10 mil linhas com comparação campo a campo dos dois valores"
+      - "Leitura em sombra por sete dias, com o contador de divergências mantido em zero"
+    answer: 0
+    explanation: "Contagem prova preenchimento, não valor; amostragem não cobre o caso raro; e a leitura em sombra valida o caminho novo a partir do momento em que foi ligada, não o histórico. A soma por partição prova o total e ainda localiza o problema no mês em que ele apareceu — o total geral esconde erros que se compensam entre si."
+
+  - question: "Qual comando de DDL continua caro no Postgres moderno?"
+    options:
+      - "`DROP COLUMN`, que precisa reescrever a tabela para liberar o espaço da coluna removida"
+      - "`ADD COLUMN` anulável, que reescreve a tabela para acomodar o novo layout de tupla"
+      - "`ALTER TYPE` de uma coluna, que reescreve a tabela inteira sob `ACCESS EXCLUSIVE`"
+      - "`RENAME COLUMN`, que precisa atualizar todas as referências dependentes do catálogo"
+    answer: 2
+    explanation: "Mudar tipo reescreve a tabela e segura o lock durante toda a operação — é o comando que exige expand/contract. `DROP COLUMN` apenas marca a coluna no catálogo, `ADD COLUMN` anulável ou com default constante é instantâneo desde a versão 11, e renomear mexe só no catálogo. Saber quais são baratos evita pedir janela de manutenção desnecessária."

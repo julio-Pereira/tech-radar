@@ -64,6 +64,7 @@ instead of dying at the end of a milestone.
 | `kubernetes` | `fin-platform` (GitOps) | Where it all runs, with security |
 | `observabilidade` | `fin-watch` | The telemetry, SLOs and on-call over it |
 | `arquitetura-eventos` | `fin-flow` | The event design the backbone carries |
+| `dados-distribuidos` | `fin-store` | The data layer the ledger is written on |
 
 Each track ships a `PROJETO.md` (spec: increments per milestone, definition of done, game
 day) and closes with a `## Capstone` section in its last milestone. `PROJETO.md` is **not**

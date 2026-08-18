@@ -5,8 +5,9 @@ category: "Dados/Storage"
 tags: [dados, database, postgres, sharding, replicacao, cache, fintech]
 level: advanced
 lang: pt-BR
-# Parcial: 10 marcos, 560 min. Vira 26h (775 min) quando os 14 estiverem escritos.
-estimatedHours: 19
+# 14 marcos, 775 min de leitura. A regra é ~2× a soma dos estimatedMinutes (leitura
+# mais hands-on), registrada no PROJETO.md.
+estimatedHours: 26
 glossary: GLOSSARIO.md
 sources:
   - title: "PostgreSQL Documentation"
@@ -38,7 +39,7 @@ milestones:
   - 09-cache.md
   - 10-identidade-unicidade-e-concorrencia.md
   # Bloco D — Operar e evoluir
-  # - 11-migracao-de-schema-sem-downtime.md
-  # - 12-backup-pitr-e-dr.md
-  # - 13-governanca-pii-e-auditoria.md
-  # - 14-do-oltp-ao-analitico-e-antipadroes.md
+  - 11-migracao-de-schema-sem-downtime.md
+  - 12-backup-pitr-e-dr.md
+  - 13-governanca-pii-e-auditoria.md
+  - 14-do-oltp-ao-analitico-e-antipadroes.md

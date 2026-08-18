@@ -115,6 +115,13 @@ mecanismo por trás do CDC do marco 14 e da migração entre versões maiores se
 distribuídas por chave e tabelas de referência replicadas. Vale quando você já passou por toda a
 escada do marco 03 e a chave de shard é clara.
 
+E há a decisão anterior a essas três, que `kubernetes/08` ensinou a executar e que aqui se
+decide: **rodar o banco no cluster ou não**. StatefulSet e operator resolvem a mecânica —
+identidade estável, volume por réplica, ordem de inicialização. O que o banco exige em troca é
+disco local rápido com durabilidade real (o `fsync` do marco 05 não pode ser mentira do
+storage de rede), latência previsível e um plano de failover que não brigue com o do
+Kubernetes. Se a resposta for "não temos quem opere isso", o gerenciado é a escolha honesta.
+
 **Gerenciado (RDS, Aurora, Cloud SQL)** — tira de você a operação de backup, failover e patch, e
 tira também o `superuser`, algumas extensões e parte do controle de tuning. Aurora, em especial,
 substitui o mecanismo de storage: réplicas compartilham volume, o que muda radicalmente o custo do
