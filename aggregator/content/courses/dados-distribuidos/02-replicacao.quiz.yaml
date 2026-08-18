@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual pergunta determina o modo de replicação do `fin-store`?"
+    options:
+      - "Quantas réplicas de leitura o volume de consultas do extrato vai exigir no pico?"
+      - "Quantos commits confirmados ao cliente você aceita perder num failover?"
+      - "Qual é a latência aceitável entre a escrita no leader e a visibilidade na réplica?"
+      - "Quantos nós precisam estar de pé para que o cluster continue aceitando escrita?"
+    answer: 1
+    explanation: "As outras três são perguntas legítimas de capacidade e disponibilidade, mas nenhuma decide o modo. O que decide é a tolerância a perda de dado no failover — e essa resposta, em número, é o RPO. Zero exige síncrono e sua latência; trinta segundos aceita assíncrono, desde que o número esteja escrito."
+
+  - question: "O cliente paga, é redirecionado ao extrato, não vê o pagamento e paga de novo. Qual anomalia é essa e qual mitigação a resolve?"
+    options:
+      - "Leitura não-monotônica; a mitigação é sticky routing da sessão para uma réplica fixa"
+      - "Leitura fora de ordem causal; a mitigação é ordenar a exibição pelo número de sequência"
+      - "Lost update no leader; a mitigação é `SELECT FOR UPDATE` antes de gravar o pagamento"
+      - "Read-your-writes quebrado; a mitigação é token de versão, ou ler do leader após escrever"
+    answer: 3
+    explanation: "É read-your-writes: a própria escrita do usuário não aparece na leitura seguinte, feita numa réplica atrasada. Sticky routing resolve monotonicidade e não resolve isto — a réplica fixa pode ser justamente a atrasada. A correção é o roteador esperar o LSN da escrita, ou mandar a leitura ao leader por uma janela."
+
+  - question: "Por que LWW é considerado perda de dado silenciosa?"
+    options:
+      - "A escrita perdedora é descartada sem erro nem log, e o critério é um timestamp não confiável"
+      - "As duas escritas são mescladas campo a campo, produzindo um registro que nenhuma delas continha"
+      - "A resolução é adiada até a próxima leitura, quando já não há como saber qual valor era o certo"
+      - "O conflito é registrado numa tabela de siblings que a aplicação precisa resolver manualmente"
+    answer: 0
+    explanation: "LWW mantém a escrita com timestamp maior e joga a outra fora — sem exceção, sem log e sem ninguém saber. Somado ao fato de que o timestamp vem de relógios que divergem entre hosts, o critério de desempate é arbitrário. Mesclar campo a campo é CRDT; siblings é o que o Dynamo faz, justamente para não descartar em silêncio."
+
+  - question: "O que o sloppy quorum tira da garantia `R + W > N`?"
+    options:
+      - "Reduz o `W` efetivo em um nó, porque o hinted handoff ainda não replicou o dado ao dono"
+      - "Nada: ele apenas adia a durabilidade, e o read repair restabelece a garantia em segundos"
+      - "A sobreposição: o `W` foi atendido por nós que não são donos da chave, então `R` pode não encontrá-la"
+      - "A ordenação entre escritas concorrentes, obrigando o cliente a resolver o conflito na leitura"
+    answer: 2
+    explanation: "A fórmula só funciona porque os conjuntos de nós lidos e escritos se intersectam. No sloppy quorum, a escrita é aceita por nós quaisquer para preservar disponibilidade — então os conjuntos podem não se sobrepor, e a leitura pode não encontrar a escrita mais recente. Read repair conserta depois, o que não é a mesma coisa que garantir."

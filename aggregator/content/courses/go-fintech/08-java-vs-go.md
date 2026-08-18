@@ -62,3 +62,32 @@ sistema e defender cada linha.
   e no batch pesado.
 - Em APIs de produto comuns, a decisão é de time e infraestrutura, não de linguagem.
 - O entregável do curso não é código: é a capacidade de justificar a escolha tecnológica.
+
+## Capstone
+
+O `ledger-core` é o seu componente do `fin-platform` — a especificação completa está em
+`PROJETO.md`, na raiz desta trilha. Aqui é onde ele fica pronto.
+
+**Entrega**
+
+- [ ] Tipos do domínio com `Money` inteiro em centavos, `Entry` e `Transaction`
+- [ ] Processamento concorrente de eventos com `context`, cancelamento e timeout
+- [ ] BFF REST com saldo e lançamento, respeitando o prazo do chamador
+- [ ] Antifraude em gRPC com deadline propagado e decisão de fallback
+- [ ] Logs estruturados, métricas e traces com OTel, do evento ao lançamento
+- [ ] Perfil de CPU e alocação do caminho quente, com melhoria medida por `benchstat`
+- [ ] ADR comparando com a implementação equivalente em Java, com números do seu ambiente
+
+**Critérios de pronto — cada um deve ser provado por um teste ou por um comando**
+
+- [ ] A soma dos lançamentos de toda transação é exatamente zero
+- [ ] Nenhum `float` no caminho do valor — nem na serialização
+- [ ] O mesmo evento processado 50 vezes produz **um** lançamento
+- [ ] Estorno é lançamento novo; nada é apagado nem editado
+- [ ] `go test -race ./...` verde, inclusive sob 500 goroutines
+- [ ] Com o antifraude fora do ar, a decisão de fallback é tomada dentro do deadline
+- [ ] Cancelar o `context` no meio não deixa lançamento pela metade
+- [ ] Uma ADR por bloco: modelo do ledger, concorrência, gRPC × REST, Go × Java
+
+**Antes de fechar**, rode o game day do `PROJETO.md` e escreva um post-mortem de uma
+página — inclusive se nada tiver quebrado.

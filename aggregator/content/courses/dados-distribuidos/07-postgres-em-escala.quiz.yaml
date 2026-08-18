@@ -1,0 +1,36 @@
+questions:
+  - question: "O banco está lento e o time propõe aumentar `maximumPoolSize` de 50 para 200. Por que isso costuma piorar?"
+    options:
+      - "Porque o PgBouncer em transaction pooling limita o total efetivo e o excedente fica ocioso"
+      - "Porque cada conexão reserva `work_mem` próprio, e a memória total ultrapassa a RAM do nó"
+      - "Porque o pool maior aumenta o tempo de handshake TLS, que passa a dominar a latência"
+      - "Porque cada conexão é um processo: acima da saturação, a fila só migra para dentro do banco"
+    answer: 3
+    explanation: "No Postgres, conexão é processo do sistema operacional. Depois do ponto de saturação, mais processos disputam CPU, cache e locks internos, e a vazão cai. A fila que estava visível na aplicação passa a existir dentro do banco, onde ninguém a monitora. O consumo de `work_mem` é real, mas é consequência, não a causa da inversão da curva."
+
+  - question: "Um relatório roda por duas horas dentro de uma transação. Qual é o efeito colateral no resto do banco?"
+    options:
+      - "As tabelas que ele lê ficam bloqueadas para escrita até o commit, por causa do lock de leitura"
+      - "O vacuum não pode limpar versões mortas que a transação talvez enxergue — no banco inteiro"
+      - "O WAL cresce sem checkpoint, porque nenhum checkpoint ocorre com transação aberta"
+      - "As réplicas param de aplicar o fluxo, acumulando lag proporcional à duração da transação"
+    answer: 1
+    explanation: "MVCC permite que o relatório leia sem bloquear ninguém — esse é o ponto do mecanismo. O preço é que o vacuum precisa preservar toda versão que a transação antiga possa enxergar, e o efeito não se limita às tabelas dela: é o banco todo que acumula bloat. Daí o alerta de transação mais antiga e de `idle in transaction`."
+
+  - question: "No `EXPLAIN (ANALYZE, BUFFERS)`, o que a divergência entre `rows` estimado e `actual rows` indica?"
+    options:
+      - "Que o índice escolhido está fragmentado e precisa de `REINDEX` para voltar à seletividade"
+      - "Que o `work_mem` é insuficiente e o nó recorreu a disco, distorcendo a contagem de linhas"
+      - "Que a estatística está desatualizada, ou há correlação entre colunas que o planner desconhece"
+      - "Que a consulta foi executada com plano em cache, gerado para outros valores de parâmetro"
+    answer: 2
+    explanation: "O planner escolhe o plano a partir das estimativas; quando elas erram por ordens de grandeza, ele escolhe errado — e essa é a causa mais comum de plano ruim. As saídas são `ANALYZE`, estatísticas estendidas para colunas correlacionadas, ou reescrever o predicado. Plano em cache com parâmetro atípico existe, e aparece de outro jeito no plano."
+
+  - question: "Qual é a principal restrição que o particionamento declarativo impõe ao schema?"
+    options:
+      - "A coluna de partição precisa estar na chave primária e em toda constraint única da tabela"
+      - "As partições precisam ter o mesmo conjunto de índices, criados na tabela pai e propagados"
+      - "A tabela pai não pode ter chave estrangeira apontando para ela a partir de outras tabelas"
+      - "Toda consulta precisa incluir a coluna de partição, sob pena de erro em tempo de execução"
+    answer: 0
+    explanation: "A restrição estrutural é essa, e ela decide o desenho da chave primária antes de qualquer coisa. Consultar sem a coluna de partição não dá erro — dá scan em todas as partições, que é pior, porque passa despercebido. Índices podem variar entre partições, e chave estrangeira apontando para tabela particionada é suportada desde as versões recentes."

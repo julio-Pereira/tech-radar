@@ -1,0 +1,54 @@
+questions:
+  - question: "Qual padrão de cache perde dado por design?"
+    options:
+      - "Cache-aside, que serve dado velho durante a janela entre a escrita e a invalidação"
+      - "Write-behind, que confirma a escrita e atualiza o banco depois, em lote"
+      - "Read-through, que delega o miss à biblioteca e não controla o que acontece na falha"
+      - "Write-through, que escreve nos dois lugares sem atomicidade entre eles"
+    answer: 1
+    explanation: "Write-behind responde antes de o banco saber da escrita: se o cache cair antes do flush, aquelas escritas não existiram. É perda por design, não por falha. Cache-aside serve dado velho, o que é diferente de perder; write-through tem a janela do dual-write; e read-through é cache-aside com outra fronteira de código."
+
+  - question: "Você usa invalidação por evento e removeu o TTL, já que a chave é sempre invalidada. Qual o risco?"
+    options:
+      - "O cache cresce sem limite, porque nenhuma chave expira e a eviction policy passa a decidir tudo"
+      - "A invalidação chega antes da escrita ser visível no banco, repopulando a chave com dado velho"
+      - "A chave fica quente demais e concentra tráfego num nó do cluster, virando um hot key"
+      - "Se o evento se perder, a chave fica velha para sempre — não há nada que a corrija depois"
+    answer: 3
+    explanation: "O TTL é a rede de segurança para a falha do mecanismo de invalidação. Sem ele, um evento perdido produz uma chave errada permanente, e o sintoma é um cliente vendo um valor obsoleto que ninguém consegue reproduzir. Os outros riscos citados são reais e têm outras causas — a regra prática é usar os dois mecanismos juntos."
+
+  - question: "Duzentas requisições chegam no instante em que a chave popular expira. Qual mitigação impede que o banco receba duzentas queries?"
+    options:
+      - "Single-flight: uma requisição consulta o banco e as demais aguardam aquele resultado"
+      - "Jitter no TTL, que espalha as expirações e evita que muitas chaves vençam ao mesmo tempo"
+      - "Negative caching, que impede que o miss repetido chegue ao banco enquanto o valor não existe"
+      - "Aumentar o TTL da chave, reduzindo a frequência com que a expiração acontece no pico"
+    answer: 0
+    explanation: "Jitter resolve a sincronização entre chaves diferentes — importante, e não é o caso aqui, em que a chave é uma só. O que resolve o pico numa única chave é o single-flight: só a primeira busca, as outras esperam. Negative caching é para o dado que não existe, e TTL maior apenas adia o mesmo pico para depois."
+
+  - question: "Qual pergunta distingue um cache de um banco sem durabilidade?"
+    options:
+      - "A persistência está configurada como AOF com `fsync` a cada segundo ou como snapshot RDB?"
+      - "O dado cacheado tem uma fonte da verdade em outro store, capaz de reconstruí-lo?"
+      - "Se ele cair agora, o sistema degrada com um comportamento definido, ou cai junto?"
+      - "O tempo de reconstrução completa do cache cabe dentro da janela de indisponibilidade aceita?"
+    answer: 2
+    explanation: "A pergunta é comportamental, e a resposta se descobre desligando. Ter fonte da verdade em outro lugar é necessário e não é suficiente: o banco pode não aguentar 100% de miss, e aí o sistema cai mesmo com o dado existindo. As outras opções são detalhes de configuração que importam depois que o plano de degradação existe."
+
+  - question: "Por que o limite disponível pode ser cacheado e o saldo contábil não?"
+    options:
+      - "Porque o limite muda com menos frequência, então o TTL curto raramente serve valor obsoleto"
+      - "Porque o limite é derivado e a decisão final ainda verifica no banco; o saldo é o dado autoritativo"
+      - "Porque o saldo exige leitura linearizável e o Redis não oferece essa garantia em cluster"
+      - "Porque o volume de consultas ao limite é maior, e só ele justifica o custo de operar um cache"
+    answer: 1
+    explanation: "O critério é o papel do dado, não sua volatilidade nem seu volume. O limite cacheado filtra recusas óbvias e a autorização real confere o valor autoritativo — o pior caso é uma operação que segue e é recusada adiante. O saldo é o que a auditoria confere e o cliente usa para decidir: servi-lo velho é dar a resposta errada com baixa latência."
+
+  - question: "Qual característica do Redis explica um pico de p99 em todos os clientes quando alguém roda `KEYS *`?"
+    options:
+      - "A eviction policy `allkeys-lru` precisa reordenar as chaves candidatas durante a varredura"
+      - "A replicação para o réplica bloqueia enquanto o comando de leitura completa no primário"
+      - "A persistência AOF grava o comando antes de executá-lo, e o `fsync` domina o tempo total"
+      - "Ele executa comandos numa thread só, então um comando O(n) bloqueia todos os outros clientes"
+    answer: 3
+    explanation: "O modelo single-thread é o que torna o Redis previsível e é também o que faz qualquer comando O(n) — `KEYS`, `SMEMBERS` num conjunto enorme, `FLUSHALL` — congelar todo mundo enquanto roda. Por isso existe `SCAN`, que itera em pedaços. Persistência e replicação afetam latência de outras formas, nenhuma delas com esse padrão."

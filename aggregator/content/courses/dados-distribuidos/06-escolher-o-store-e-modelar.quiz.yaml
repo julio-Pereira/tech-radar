@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é o preço real de guardar `nomeDoCliente` duplicado na tabela de lançamentos?"
+    options:
+      - "O `JOIN` desaparece da query, mas o índice composto cresce e encarece cada inserção"
+      - "A tabela deixa de estar na terceira forma normal e perde a garantia de integridade referencial"
+      - "Duplicação exige processo de atualização — e esse processo exige um evento e tratamento de falha"
+      - "A leitura fica mais rápida e a escrita mais lenta, na proporção do tamanho do campo duplicado"
+    answer: 2
+    explanation: "O custo não é de espaço nem de forma normal: é operacional. Quando o nome muda, alguém precisa decidir entre tratar o valor antigo como histórico (o que numa fintech costuma ser o certo, e precisa estar escrito), atualizar em lote via evento, ou não duplicar. O erro é copiar o campo sem escolher — e descobrir a divergência na conciliação."
+
+  - question: "Qual pergunta melhor orienta a escolha da família de banco?"
+    options:
+      - "O que você tem é uma pergunta por chave, por relacionamento ou por conjunto?"
+      - "O volume de escrita justifica um motor LSM, ou o padrão de leitura pede B-tree?"
+      - "O dado tem schema estável o suficiente para uma modelagem relacional sobreviver?"
+      - "A equipe consegue operar esse store em produção, com backup e plantão próprios?"
+    answer: 0
+    explanation: "As outras três são perguntas que você faz depois, e a última é um dos testes para adicionar o store. A que aponta a família é a forma da pergunta: por chave leva a chave-valor ou documento, por relacionamento leva a grafo, por conjunto leva a relacional ou colunar. Só então se discute engine, schema e capacidade operacional."
+
+  - question: "O relatório de fechamento derruba a autorização de pagamento às 9h. Por que otimizar a query do relatório não resolve?"
+    options:
+      - "Porque a query já está no plano ótimo e qualquer ganho seria marginal diante do volume"
+      - "Porque o relatório roda em réplica, e o problema está na latência de replicação e não no plano"
+      - "Porque a autorização e o relatório disputam o mesmo pool, e pool é dimensionado, não otimizado"
+      - "Porque o problema é isolamento de workload: cache expulso, vacuum congelado e conexões ocupadas"
+    answer: 3
+    explanation: "Uma varredura longa expulsa do cache as páginas quentes, mantém uma transação aberta que congela o vacuum do banco inteiro e ocupa conexões — três efeitos que persistem mesmo com o plano perfeito. A solução é separar o workload: réplica dedicada, janela ociosa e, quando o volume justificar, um store analítico alimentado por CDC."
+
+  - question: "Quando o segundo store se justifica?"
+    options:
+      - "Quando o volume de uma tabela específica cresce a ponto de dominar o tamanho do banco atual"
+      - "Quando a query é crítica, o store atual não a resolve com folga, e a diferença foi medida"
+      - "Quando existe uma família de banco projetada especificamente para o formato daquele dado"
+      - "Quando a equipe de plataforma já opera aquele store para outro produto da empresa"
+    answer: 1
+    explanation: "Os três testes precisam valer juntos, porque cada store adicional traz backup, plantão, expertise, um modo de falha a mais e a pergunta de qual é a fonte da verdade. Tamanho isolado resolve-se com particionamento; a existência de um store especializado não prova que o atual não dá conta; e familiaridade facilita a execução, não a decisão."

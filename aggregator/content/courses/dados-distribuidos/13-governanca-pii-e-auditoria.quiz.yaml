@@ -1,0 +1,36 @@
+questions:
+  - question: "O banco tem criptografia em repouso ativada. Contra o que isso **não** protege?"
+    options:
+      - "Contra o disco descartado sem limpeza adequada ao fim da vida útil do hardware"
+      - "Contra o snapshot de volume copiado para outra conta de nuvem sem autorização"
+      - "Contra quem tem acesso autenticado ao banco: para essa conexão, o dado vem em claro"
+      - "Contra a interceptação do dado entre a aplicação e o banco, que exige TLS na conexão"
+    answer: 2
+    explanation: "A criptografia em repouso é transparente: o banco descriptografa para qualquer conexão autenticada, então o dump feito por alguém com acesso sai legível. Ela resolve disco e snapshot, e o trânsito é problema do TLS. Quem protege contra o dump vazado é a criptografia em coluna — ao custo de não poder indexar, comparar nem ordenar o valor cifrado."
+
+  - question: "Por que tokenizar o PAN reduz custo, e não apenas risco?"
+    options:
+      - "Porque concentra o dado num componente e reduz o escopo dos sistemas sujeitos ao PCI-DSS"
+      - "Porque o token ocupa menos espaço que o número cifrado, reduzindo storage e tamanho de índice"
+      - "Porque elimina a necessidade de rotação de chaves, que é a parte cara de manter criptografia"
+      - "Porque dispensa a auditoria de acesso, já que o token isolado não identifica nenhum portador"
+    answer: 0
+    explanation: "Todo sistema que toca PAN entra no escopo PCI-DSS, com os controles e as auditorias que isso implica. Concentrar o número num cofre reduz esse escopo a um componente — uma economia em reais, que é o argumento que convence a diretoria. Auditoria de acesso continua necessária, e a armadilha é guardar bandeira, validade e últimos dígitos até reconstituir o risco."
+
+  - question: "Qual verificação prova que o pipeline de anonimização funciona?"
+    options:
+      - "Uma amostragem manual das tabelas principais depois de cada execução do pipeline"
+      - "A comparação da distribuição de valores entre origem e destino, garantindo utilidade do ambiente"
+      - "A contagem de colunas classificadas como pessoais que foram efetivamente transformadas"
+      - "Um teste que injeta PII conhecida na origem e falha se ela aparecer do outro lado"
+    answer: 3
+    explanation: "As outras três são úteis e nenhuma é prova: amostragem não cobre o caso raro, distribuição preservada mede utilidade e não proteção, e contagem por coluna ignora onde o CPF costuma se esconder — texto livre, `jsonb` de payload do parceiro e logs gerados durante o próprio processo. Sem o teste de injeção, a anonimização é uma intenção."
+
+  - question: "Como conviver retenção regulatória de 5 anos e direito ao esquecimento?"
+    options:
+      - "Movendo o registro do titular para storage frio, fora do alcance das consultas operacionais"
+      - "Separando o registro contábil, que permanece, do dado pessoal, que pode ser tornado irrecuperável"
+      - "Aplicando pseudonimização reversível, de modo que o vínculo seja restaurável para o regulador"
+      - "Mantendo o dado até o fim do prazo legal e apagando automaticamente no aniversário de 5 anos"
+    answer: 1
+    explanation: "A obrigação legal recai sobre o registro transacional — valor, data, contraparte, identificador —, não sobre o dado pessoal ligado a ele. O crypto-shredding operacionaliza a separação: apagar a chave do titular torna o conteúdo irrecuperável inclusive nos backups, onde um `DELETE` jamais chegaria. Pseudonimização reversível mantém o vínculo, que é justamente o que o titular pediu para eliminar."

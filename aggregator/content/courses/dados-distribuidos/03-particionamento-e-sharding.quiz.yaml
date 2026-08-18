@@ -1,0 +1,54 @@
+questions:
+  - question: "Qual é a diferença entre particionar e shardar?"
+    options:
+      - "Particionar divide uma tabela dentro do mesmo banco; shardar divide entre bancos que não se conhecem"
+      - "Particionar é feito pelo planner em tempo de query; shardar é declarado no `CREATE TABLE`"
+      - "Particionar distribui por hash da chave primária; shardar distribui por intervalo de datas"
+      - "Particionar vale para leitura e shardar vale para escrita, porque só o segundo divide o WAL"
+    answer: 0
+    explanation: "A confusão de vocabulário custa caro porque os custos são de ordens diferentes. Particionar é uma cláusula de DDL — um banco, um backup, uma transação. Shardar muda roteamento, unicidade, transação, backup e relatório, e é a decisão mais difícil de reverter da trilha. As duas aceitam range ou hash."
+
+  - question: "O time propõe shardar a tabela de lançamentos por data. Qual é a objeção decisiva?"
+    options:
+      - "A varredura por range fica cara, porque a consulta mensal precisa visitar todos os shards"
+      - "O arquivamento por `DETACH` deixa de funcionar quando a partição vive em outro banco"
+      - "Toda a escrita vai para o shard do mês corrente, e os outros ficam ociosos guardando história"
+      - "O relatório regulatório mensal passa a exigir agregação cross-shard, com fan-out e latência alta"
+    answer: 2
+    explanation: "Shard por data é a proposta mais comum e a que menos funciona: o hotspot temporal concentra 100% da escrita num nó enquanto os demais ficam parados. A varredura mensal, aliás, fica ótima nessa estratégia — é o efeito colateral bom. O relatório regulatório atravessa shards em qualquer chave escolhida, então não é ele que decide."
+
+  - question: "Você shardou por `accountId` e chega o requisito de buscar por documento do cliente. O que o índice local cobra?"
+    options:
+      - "Uma segunda cópia do dado, que precisa ser mantida em sincronia por um processo assíncrono"
+      - "Um scatter-gather: a query vai a todos os shards, e a latência é a do shard mais lento"
+      - "A perda da unicidade do documento, já que a constraint só vale dentro de cada shard"
+      - "Um lock global de leitura durante o rebalanceamento, porque o índice se move junto com a partição"
+    answer: 1
+    explanation: "Índice local significa que cada shard indexa apenas o que ele tem, então a busca precisa perguntar a todos e juntar — e o p99 do conjunto é o do shard mais lento, não a média. A alternativa, o índice global, é que cria a cópia com sincronização assíncrona. A perda de unicidade é real, mas vale para os dois casos."
+
+  - question: "Qual estratégia torna o rebalanceamento barato quando o cluster cresce de 4 para 5 nós?"
+    options:
+      - "Recalcular `hash % n` com o novo número de nós e migrar apenas as chaves que mudaram de destino"
+      - "Shardar por range, que permite dividir a partição mais quente ao meio sem tocar nas outras"
+      - "Manter um diretório de lookup, consultado a cada query para descobrir onde a chave mora"
+      - "Fixar muitas partições lógicas, bem mais que o número de nós, e mover partições inteiras"
+    answer: 3
+    explanation: "Com 1.024 partições lógicas em 4 nós, crescer significa mover 205 partições, não recalcular nada. `hash % n` remapeia quase todas as chaves ao mudar o `n` — é justamente o problema que o consistent hashing resolve. O diretório dá flexibilidade e vira SPOF; range facilita o split e não elimina o hotspot."
+
+  - question: "Um `accountId` responde por 30% dos lançamentos. Qual afirmação sobre esse caso está correta?"
+    options:
+      - "Trocar hash por range distribui melhor, porque a chave passa a ser fatiada por intervalo"
+      - "Cardinalidade alta na chave de shard já previne o problema; basta confirmar que há milhões de contas"
+      - "É o celebrity problem: cardinalidade não é distribuição, e a saída é chave composta ou shard dedicado"
+      - "É esperado e inofensivo, desde que o índice da tabela de lançamentos inclua a coluna de conta"
+    answer: 2
+    explanation: "Ter 12 milhões de contas distintas não impede que uma delas concentre um terço do volume — cardinalidade e distribuição são coisas diferentes. As saídas são chave composta (`accountId` + bucket), shard dedicado ou tratar a conta como caso especial declarado. Range não ajuda, e é o mesmo problema da partição quente do `kafka/06`."
+
+  - question: "Antes de shardar, qual justificativa indica que a escada foi realmente percorrida?"
+    options:
+      - "\"A tabela de lançamentos recebe 4 mil `INSERT`/s no pico e um único nó satura o WAL em 6 mil\""
+      - "\"A tabela passou de 500 milhões de linhas e as consultas de extrato estão lentas em produção\""
+      - "\"Precisamos de escala horizontal para suportar o crescimento projetado para os próximos dois anos\""
+      - "\"O time de plataforma já opera Citus para outro produto e a curva de aprendizado seria pequena\""
+    answer: 0
+    explanation: "Só a primeira é um limite medido contra uma capacidade conhecida. Lentidão em consulta é sintoma de índice ou de query, e resolve-se no degrau 1 ou 2. \"Escala\" sem número não é resposta. E familiaridade da equipe pode facilitar a execução, mas não justifica a decisão mais difícil de reverter da trilha."

@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual falha do 2PC é a que produz a chamada à noite?"
+    options:
+      - "O prepare falha num participante e o coordenador precisa abortar em todos os outros"
+      - "A latência do commit passa a ser a soma da latência de todos os participantes envolvidos"
+      - "O coordenador cai depois dos \"sim\", e ninguém pode decidir sozinho pela transação pendurada"
+      - "Um participante devolve \"sim\" e depois descobre que não consegue cumprir a promessa feita"
+    answer: 2
+    explanation: "Abortar quando alguém diz não é o caminho feliz do protocolo. O problema estrutural é o coordenador sumir entre as duas fases: cada participante prometeu que consegue commitar e não sabe o que os outros responderam, então segura locks e espera. É a transação em dúvida, que exige um humano decidindo sem informação suficiente."
+
+  - question: "O que o NewSQL cobra em troca da transação distribuída serializável?"
+    options:
+      - "Consenso a cada commit que atravessa ranges, com round-trips que a latência sente"
+      - "A perda de SQL ad-hoc, já que só consultas com chave de distribuição são suportadas"
+      - "Um coordenador dedicado, que reintroduz o ponto único de falha do 2PC sob outro nome"
+      - "Relógio sincronizado por hardware, como o TrueTime, sem o qual as garantias não valem"
+    answer: 0
+    explanation: "CockroachDB, YugabyteDB e TiDB usam Raft por range: cada commit que envolve mais de um range paga rodadas de consenso — poucos milissegundos dentro da região, dezenas entre regiões. Eles mantêm SQL, não têm coordenador único, e usam relógio com incerteza limitada mas não exigem o hardware do Spanner. A pergunta é se o seu caminho quente absorve isso em cada escrita."
+
+  - question: "Por que comparar o ledger com uma réplica dele não é reconciliação?"
+    options:
+      - "Porque a réplica tem lag, e a divergência encontrada seria apenas atraso de replicação"
+      - "Porque a comparação precisa rodar sobre um snapshot consistente, que a réplica não oferece"
+      - "Porque a réplica não guarda o histórico necessário para reconstruir o corte temporal do dia"
+      - "Porque as fontes precisam ser independentes: uma cópia reproduz o mesmo erro da origem"
+    answer: 3
+    explanation: "O objetivo da reconciliação é detectar erro, e uma cópia fiel copia o erro junto. As fontes têm que ter caminhos distintos — o ledger contra o arquivo do parceiro, o total de lançamentos contra o total de eventos publicados. O lag é um problema de execução, contornável com corte temporal; a falta de independência é um problema de desenho, que nada contorna."
+
+  - question: "Uma reconciliação encontra 14 divergências por dia e ninguém age. O que está faltando?"
+    options:
+      - "Uma segunda fonte de comparação, para descartar que a divergência esteja no próprio job"
+      - "Ação definida por classe de divergência — sem ela, o relatório vira ruído que ninguém lê"
+      - "Um limiar de alerta calibrado, para que 14 divergências deixem de ser consideradas normais"
+      - "Classificação das divergências, que hoje aparecem misturadas e sem causa provável associada"
+    answer: 1
+    explanation: "Detectar e classificar são as partes fáceis; o que torna a reconciliação viva é cada classe ter destino — corrigir automaticamente, abrir tarefa ou escalar. Sem isso, o relatório é publicado, ninguém sabe o que fazer com ele, e em três meses ele está sendo ignorado por todos. O limiar ajuda a priorizar, mas não cria a ação que não existe."

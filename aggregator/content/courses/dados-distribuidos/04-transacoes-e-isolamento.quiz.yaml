@@ -1,0 +1,54 @@
+questions:
+  - question: "Alguém diz \"o sistema precisa ser consistente\". Qual pergunta desfaz a ambiguidade?"
+    options:
+      - "É consistência forte ou eventual, considerando a janela que o negócio aceita?"
+      - "Consistência no commit ou na leitura, medida a partir de qual ponto do fluxo?"
+      - "Você quer serializabilidade ou linearizabilidade nas transações que tocam saldo?"
+      - "É a constraint do banco ou a recência da leitura entre réplicas?"
+    answer: 3
+    explanation: "O C de ACID é a invariante do schema — constraints, checks, chaves. O C de CAP é visibilidade entre réplicas. Duas coisas diferentes com a mesma palavra, e é daí que vem metade dos mal-entendidos de arquitetura. As outras opções são refinamentos úteis, mas todas pressupõem que já se sabe de qual dos dois C se está falando."
+
+  - question: "Duas transferências concorrentes leem o mesmo limite conjunto, cada uma conclui que cabe, e as duas passam. Por que `READ COMMITTED` não impediu?"
+    options:
+      - "Porque o `SELECT sum(...)` leu uma versão suja, ainda não commitada pela outra transação"
+      - "Porque cada transação escreveu numa linha diferente, e não houve conflito para o banco detectar"
+      - "Porque o nível permite phantom, e a linha nova da outra transação apareceu no meio da validação"
+      - "Porque o lock de leitura é liberado ao fim do `SELECT`, permitindo a outra sessão escrever antes"
+    answer: 1
+    explanation: "É write skew, e o que o torna traiçoeiro é não ser um conflito de escrita: as duas sessões inseriram linhas distintas, então não há colisão nenhuma para o banco perceber. O que ficou obsoleto foi a leitura que sustentava a decisão — e leitura obsoleta não trava nada. `READ COMMITTED` nunca permite dirty read."
+
+  - question: "O que a técnica de \"materializar o conflito\" faz?"
+    options:
+      - "Cria uma linha comum para travar, transformando um conflito invisível num detectável"
+      - "Registra numa tabela de auditoria cada transação abortada, com as chaves que ela tocou"
+      - "Converte o `SELECT` de validação num `SELECT FOR SHARE`, bloqueando escritas concorrentes"
+      - "Antecipa a escrita da linha de resultado, forçando o banco a serializar quem tocar naquela chave"
+    answer: 0
+    explanation: "O write skew existe porque não havia linha em comum entre as duas transações. Criar uma — a linha de limite do grupo — e travá-la com `FOR UPDATE` faz o conflito voltar a ser algo que o banco sabe resolver. É a alternativa cirúrgica ao `SERIALIZABLE`, cujo custo se paga em aborts espalhados por toda a aplicação."
+
+  - question: "Qual é o custo real de adotar `SERIALIZABLE` no Postgres?"
+    options:
+      - "As leituras passam a bloquear escritas, e a vazão do relatório longo cai proporcionalmente"
+      - "O banco mantém locks de predicado em disco, aumentando o consumo de I/O sob concorrência"
+      - "Transações são abortadas por conflito, e toda a aplicação precisa tratar o erro com retry"
+      - "O nível só se aplica às tabelas com chave primária declarada, exigindo revisão do schema"
+    answer: 2
+    explanation: "SSI roda como snapshot isolation — leitura continua não bloqueando escrita. O que ele faz é monitorar dependências e abortar quando o entrelaçamento não teria ordem serial equivalente. O efeito prático é que qualquer transação pode falhar com erro de serialização, então o retry precisa existir na aplicação inteira, não só no trecho que você quis proteger."
+
+  - question: "Um sistema serializável pode não ser linearizável. Como isso acontece?"
+    options:
+      - "Quando o banco aborta uma transação por conflito e o retry a executa fora da ordem original"
+      - "Quando duas transações commitam no mesmo instante e o desempate usa o relógio de parede do nó"
+      - "Quando o snapshot é tomado no primeiro comando em vez do `BEGIN`, deslocando a visibilidade"
+      - "Quando a leitura vai para uma réplica: o resultado é equivalente a uma ordem serial, mas antiga"
+    answer: 3
+    explanation: "Serializabilidade fala de múltiplas operações — o resultado equivale a alguma ordem serial —, e não diz nada sobre recência. Linearizabilidade fala de uma operação: depois que a escrita termina, toda leitura a enxerga. Ler de réplica atrasada dentro de um snapshot consistente satisfaz a primeira e viola a segunda; por isso \"strict serializable\" existe como categoria à parte."
+
+  - question: "Por que a invariante \"saldo nunca negativo\" deve morar no banco e não num `if` da aplicação?"
+    options:
+      - "Porque a verificação no banco roda mais perto do dado e economiza um round-trip por débito"
+      - "Porque o `if` vale só para o código revisado; a constraint vale para todo caminho de escrita"
+      - "Porque a aplicação não consegue ler o saldo com garantia de recência quando há réplicas"
+      - "Porque validar na aplicação exige lock pessimista, que serializa todas as operações da conta"
+    answer: 1
+    explanation: "O argumento não é de desempenho nem de garantia de leitura: é de cobertura. O `if` protege o fluxo que passou pela revisão, e não protege o script de correção rodado às 3h, a migration, o job novo nem o endpoint que alguém adicionou. A constraint é verificada em toda escrita, e só pode ser contornada por alteração de schema."

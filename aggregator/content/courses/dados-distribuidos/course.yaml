@@ -1,0 +1,45 @@
+slug: dados-distribuidos
+title: "Dados Distribuídos para Fintech"
+subtitle: "Do isolamento de transação ao shard: como o ledger guarda dinheiro sem perder um centavo, um lançamento ou uma auditoria."
+category: "Dados/Storage"
+tags: [dados, database, postgres, sharding, replicacao, cache, fintech]
+level: advanced
+lang: pt-BR
+# 14 marcos, 775 min de leitura. A regra é ~2× a soma dos estimatedMinutes (leitura
+# mais hands-on), registrada no PROJETO.md.
+estimatedHours: 26
+glossary: GLOSSARIO.md
+sources:
+  - title: "PostgreSQL Documentation"
+    url: https://www.postgresql.org/docs/current/
+  - title: "PostgreSQL — Transaction Isolation"
+    url: https://www.postgresql.org/docs/current/transaction-iso.html
+  - title: "Jepsen — Consistency Models"
+    url: https://jepsen.io/consistency
+  - title: "Martin Kleppmann — Publications & Talks"
+    url: https://martin.kleppmann.com/
+  - title: "AWS Builders' Library"
+    url: https://aws.amazon.com/builders-library/
+  - title: "Redis Documentation"
+    url: https://redis.io/docs/latest/
+  - title: "Debezium Documentation"
+    url: https://debezium.io/documentation/
+milestones:
+  # Bloco A — Teoria
+  - 01-o-modelo-de-falha-e-o-tempo.md
+  - 02-replicacao.md
+  - 03-particionamento-e-sharding.md
+  - 04-transacoes-e-isolamento.md
+  # Bloco B — O banco por dentro
+  - 05-como-o-banco-guarda-bytes.md
+  - 06-escolher-o-store-e-modelar.md
+  - 07-postgres-em-escala.md
+  # Bloco C — Consistência na prática
+  - 08-transacoes-distribuidas.md
+  - 09-cache.md
+  - 10-identidade-unicidade-e-concorrencia.md
+  # Bloco D — Operar e evoluir
+  - 11-migracao-de-schema-sem-downtime.md
+  - 12-backup-pitr-e-dr.md
+  - 13-governanca-pii-e-auditoria.md
+  - 14-do-oltp-ao-analitico-e-antipadroes.md
