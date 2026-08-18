@@ -1,0 +1,36 @@
+questions:
+  - question: "O serviço envia COMMIT e a conexão cai antes da resposta chegar. Qual é a única saída correta?"
+    options:
+      - "Reenviar o COMMIT na mesma conexão assim que ela for restabelecida pelo pool"
+      - "Consultar o banco pelo timestamp da última escrita e decidir a partir dessa comparação"
+      - "Tornar a operação idempotente, porque o resultado do commit é indeterminável pelo cliente"
+      - "Aumentar o timeout do driver até que a resposta do banco caiba dentro da janela"
+    answer: 2
+    explanation: "Do lado do cliente não existe informação suficiente para saber se o commit gravou: a falha pode ter ocorrido antes ou depois. Reenviar duplica, não reenviar perde. Timeout maior só desloca a janela — a incerteza permanece. A única saída é a operação ser idempotente, que é a razão de o `Idempotency-Key` de `spring-boot/06` existir."
+
+  - question: "Por que fencing resolve algo que um timeout melhor calibrado não resolve?"
+    options:
+      - "Porque a validação passa para quem escreve: o storage rejeita um número menor que o atual"
+      - "Porque o timeout menor detecta a falha antes, reduzindo a janela em que dois nós coexistem"
+      - "Porque o token trafega junto do heartbeat e permite ao coordenador medir a latência real do nó"
+      - "Porque o relógio monotônico do nó promovido passa a ser a referência de tempo do cluster"
+    answer: 0
+    explanation: "Nenhum timeout distingue um nó morto de um nó pausado por GC — o zumbi pode acordar e escrever. O fencing muda o ponto de decisão: quem assume recebe um número crescente e o storage recusa escrita com número menor. A proteção deixa de depender de detecção e passa a depender de verificação no momento da escrita."
+
+  - question: "Um relatório ordena lançamentos por `occurredAt`, com os eventos vindo de três serviços diferentes. Qual é o problema?"
+    options:
+      - "O `occurredAt` costuma ser gravado em UTC, e a conversão de fuso desloca os registros da virada do dia"
+      - "A precisão de milissegundo é insuficiente para o volume de lançamentos por segundo de uma fintech"
+      - "Ordenar por uma coluna sem índice força um sort em disco e degrada conforme a tabela cresce"
+      - "Os relógios de parede dos três hosts divergem, então a ordenação resultante é silenciosamente errada"
+    answer: 3
+    explanation: "As outras três são problemas reais e todos contornáveis. O problema estrutural é outro: relógio de parede diverge entre hosts e o NTP o corrige aos saltos, inclusive para trás. A ordenação sai errada sem erro, sem log e sem exceção — e por isso o ledger ordena por número de sequência, deixando `occurredAt` como atributo descritivo."
+
+  - question: "Qual afirmação sobre relógios lógicos de Lamport está correta?"
+    options:
+      - "Eles substituem o relógio de parede e permitem calcular a duração entre dois eventos"
+      - "Se A causou B, o contador de A é menor — mas contador menor não prova causalidade"
+      - "Eles detectam eventos concorrentes de verdade, ao contrário dos vector clocks"
+      - "Eles exigem sincronização por hardware, como o TrueTime faz com GPS e relógio atômico"
+    answer: 1
+    explanation: "A implicação vale numa direção só. Lamport garante que causa tem contador menor que efeito; a recíproca é falsa — dois eventos concorrentes também terão contadores diferentes. Quem detecta concorrência de verdade é o vector clock. E relógio lógico não mede duração: para isso existe o monotônico."
