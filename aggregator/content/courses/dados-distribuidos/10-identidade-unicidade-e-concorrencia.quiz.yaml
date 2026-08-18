@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que UUIDv4 encarece o índice de uma tabela com alta taxa de inserção?"
+    options:
+      - "Porque cada inserção cai numa página diferente da árvore, sujando páginas que o cache não retém"
+      - "Porque 128 bits ocupam o dobro de um `bigint`, dobrando o tamanho de todos os índices da tabela"
+      - "Porque a comparação de strings de 36 caracteres é mais cara que a comparação de inteiros"
+      - "Porque a ausência de ordenação impede o planner de usar o índice em consultas com `ORDER BY`"
+    answer: 0
+    explanation: "O tamanho em bytes é real e é o menor dos efeitos. O que pesa é a aleatoriedade: chaves crescentes concentram as inserções na página mais à direita, quente e em cache, e escrita sequencial; chaves aleatórias espalham as escritas por toda a árvore, o cache deixa de ajudar e o WAL cresce com páginas inteiras. UUID em Postgres é armazenado binário, não texto."
+
+  - question: "Num sistema shardado por conta, qual é a saída mais barata para garantir que uma chave de idempotência não se repita?"
+    options:
+      - "Um serviço de unicidade dedicado, consultado antes de a operação prosseguir"
+      - "Aceitar a duplicata e corrigi-la no job de reconciliação D+1, que já existe"
+      - "Redefinir a unicidade como `(accountId, idempotencyKey)`, para caber dentro do shard"
+      - "Replicar a tabela de chaves em todos os shards, com escrita síncrona em todos eles"
+    answer: 2
+    explanation: "A unicidade que o negócio precisa quase sempre é por entidade, não global — e por entidade ela cabe dentro da partição, onde a constraint local do banco resolve de graça. É a saída mais barata e a mais esquecida. Serviço dedicado adiciona um salto síncrono no caminho quente, e reconciliar depois não serve quando a duplicata significa cobrar duas vezes."
+
+  - question: "Um processo pega um lock no Redis, sofre uma pausa de GC de 40 segundos e volta a escrever. Por que Redlock não impede o dano?"
+    options:
+      - "Porque o `SET NX PX` não é atômico entre as instâncias, e um quórum pode ser adquirido em dobro"
+      - "Porque o detentor não consegue saber que perdeu o lock, e nenhum número de nós muda isso"
+      - "Porque o TTL do lock é renovado automaticamente pela biblioteca enquanto o processo está pausado"
+      - "Porque os relógios das instâncias Redis divergem, e o cálculo da validade do lock fica incorreto"
+    answer: 1
+    explanation: "Redlock endereça a falha de instâncias do Redis, e é por isso que a crítica de Kleppmann o considera insuficiente: o problema é do lado do cliente. Um processo pausado não tem como perceber que o prazo venceu antes de escrever. A correção é o fencing token verificado por quem escreve — ou tornar a operação idempotente, para que a execução dupla não cause dano."
+
+  - question: "Com 200 threads disputando a mesma linha, a concorrência otimista despenca. Qual reformulação ataca a causa?"
+    options:
+      - "Adicionar backoff exponencial com jitter no retry, espalhando as tentativas no tempo"
+      - "Trocar por lock pessimista com `FOR UPDATE`, que serializa em vez de abortar e repetir"
+      - "Elevar o nível de isolamento para `SERIALIZABLE`, deixando o banco detectar o conflito"
+      - "Inserir o lançamento e derivar o valor, em vez de atualizar a linha compartilhada"
+    answer: 3
+    explanation: "Backoff alivia o desperdício de CPU e não muda o fato de que 199 tentativas disputam o que uma consegue; `FOR UPDATE` troca aborto por fila, mantendo o gargalo; e `SERIALIZABLE` piora, porque aborta mais. O que resolve é o modelo deixar de ter uma linha disputada: inserções não colidem entre si, que é o desenho append-only do ledger."
