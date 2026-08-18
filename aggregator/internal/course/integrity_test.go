@@ -1,6 +1,7 @@
 package course
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -45,10 +46,11 @@ func TestCompileRealContent(t *testing.T) {
 	}
 }
 
-// TestQuizNotGameable checks that the quizzes cannot be answered without
-// reading the milestone. Two tells give a question away: the correct answer
-// always sitting at the same index, and the correct option being visibly the
-// longest one. Thresholds come from the trilha plans (section 3).
+// TestQuizNotGameable checks the one tell that survives the build-time shuffle.
+// Position no longer gives a question away — shuffleOptions reorders the options
+// deterministically, so the index in the source YAML never reaches the reader.
+// Length does survive: an option visibly longer than the other three is a clue
+// regardless of where it sits, and that is authoring, not compilation.
 func TestQuizNotGameable(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join(contentDir, "*", "*.quiz.yaml"))
 	if err != nil {
@@ -58,7 +60,6 @@ func TestQuizNotGameable(t *testing.T) {
 		t.Fatal("no quiz files found")
 	}
 
-	byIndex := map[int]int{}
 	total, longest := 0, 0
 
 	for _, f := range files {
@@ -68,7 +69,6 @@ func TestQuizNotGameable(t *testing.T) {
 		}
 		for _, q := range questions {
 			total++
-			byIndex[q.Answer]++
 			max := 0
 			for _, o := range q.Options {
 				if len(o) > max {
@@ -81,14 +81,57 @@ func TestQuizNotGameable(t *testing.T) {
 		}
 	}
 
-	for i, n := range byIndex {
-		if share := float64(n) / float64(total); share > 0.35 {
-			t.Errorf("answer index %d holds %.0f%% of %d questions (max 35%%)", i, share*100, total)
-		}
-	}
 	if share := float64(longest) / float64(total); share > 0.40 {
 		t.Errorf("correct option is the longest in %.0f%% of %d questions (max 40%%) — move the reasoning to explanation and give the distractors comparable length",
 			share*100, total)
+	}
+}
+
+// TestShuffleIsStableAndKeepsTheAnswer guards the two properties the shuffle
+// must have: the same seed always produces the same order (otherwise every
+// build rewrites every course JSON, and the options jump around between page
+// loads), and Answer still points at the option that was correct.
+func TestShuffleIsStableAndKeepsTheAnswer(t *testing.T) {
+	base := QuizQuestion{
+		Question: "q",
+		Options:  []string{"a", "b", "c", "d"},
+		Answer:   2,
+	}
+
+	first := base
+	first.Options = append([]string(nil), base.Options...)
+	shuffleOptions("slug/marco/0", &first)
+
+	if first.Options[first.Answer] != "c" {
+		t.Errorf("answer points at %q, want the original correct option %q",
+			first.Options[first.Answer], "c")
+	}
+
+	second := base
+	second.Options = append([]string(nil), base.Options...)
+	shuffleOptions("slug/marco/0", &second)
+
+	if second.Answer != first.Answer {
+		t.Errorf("same seed gave answer %d then %d — the shuffle is not deterministic", first.Answer, second.Answer)
+	}
+	for i := range first.Options {
+		if first.Options[i] != second.Options[i] {
+			t.Fatalf("same seed produced different orders: %v vs %v", first.Options, second.Options)
+		}
+	}
+
+	// Different seeds must actually move things, or the shuffle is decorative.
+	moved := 0
+	for qi := 0; qi < 40; qi++ {
+		q := base
+		q.Options = append([]string(nil), base.Options...)
+		shuffleOptions(fmt.Sprintf("slug/marco/%d", qi), &q)
+		if q.Answer != base.Answer {
+			moved++
+		}
+	}
+	if moved == 0 {
+		t.Error("40 different seeds left the answer at the same index every time")
 	}
 }
 
