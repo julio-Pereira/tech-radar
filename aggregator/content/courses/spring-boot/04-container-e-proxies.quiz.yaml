@@ -1,0 +1,36 @@
+questions:
+  - question: "Um método público chama outro método do mesmo bean anotado com `@Transactional`. O que acontece?"
+    options:
+      - "A transação é criada e o Spring emite alerta sobre a auto-chamada no log de inicialização"
+      - "A anotação é ignorada em silêncio, porque a chamada via `this` não passa pelo proxy"
+      - "O contexto falha no boot, já que o Spring detecta a auto-chamada na criação do proxy"
+      - "A transação existente é reaproveitada, com a propagação `REQUIRED` aplicada por padrão"
+    answer: 1
+    explanation: "O advice mora no proxy, e `this.metodo()` vai direto ao objeto real — nenhum erro, nenhum log, nenhuma transação. Num estorno isso significa débito persistido e crédito falho, sem rollback: saldo inconsistente com o log limpo. Não há propagação a reaproveitar, porque nenhuma transação chegou a abrir."
+
+  - question: "Qual é a correção canônica para o bug de self-invocation?"
+    options:
+      - "Usar `AopContext.currentProxy()` para reentrar pelo proxy dentro do mesmo bean"
+      - "Tornar o método `public`, já que o proxy CGLIB não intercepta métodos de visibilidade restrita"
+      - "Mover o método anotado para outro bean e injetá-lo, para que a chamada vire externa"
+      - "Declarar `@Transactional` também no método chamador, garantindo a transação por herança"
+    answer: 2
+    explanation: "Mover o método revela a fronteira transacional no desenho, além de consertar o comportamento — por isso é a primeira opção. Reposicionar a anotação no método de entrada funciona quando a granularidade serve. `AopContext.currentProxy()` resolve e acopla o código ao Spring; visibilidade é outro problema, e não é o desta questão."
+
+  - question: "Por que um teste unitário com mocks não pega o bug de self-invocation?"
+    options:
+      - "Porque mocks resolvem a anotação por reflexão, simulando o comportamento transacional"
+      - "Porque o teste unitário instancia o bean diretamente, sem o proxy que o container criaria"
+      - "Porque a transação é simulada em memória e o rollback ocorre ao final de cada teste"
+      - "Porque o `@Transactional` só é processado quando existe um `DataSource` real registrado no contexto"
+    answer: 1
+    explanation: "Sem container não há post-processor, sem post-processor não há proxy, e sem proxy o comportamento é o mesmo com ou sem o bug — o teste passa nos dois casos. Só um teste de integração com banco real, forçando falha depois do débito, revela o rollback que nunca aconteceu."
+
+  - question: "Por que beans singleton devem ser stateless?"
+    options:
+      - "Porque o container recria o singleton a cada refresh, descartando qualquer estado acumulado"
+      - "Porque estado mutável no bean impede a criação do proxy CGLIB, que exige um construtor sem argumentos"
+      - "Porque a serialização do contexto exige que todos os campos sejam imutáveis ou transientes"
+      - "Porque há uma instância só para todas as requisições concorrentes — estado mutável vira corrida"
+    answer: 3
+    explanation: "Uma instância atende todas as threads ao mesmo tempo, então um campo mutável guardando dado de requisição é corrida de dados garantida sob carga. O default seguro é injeção por construtor, campos `final` e estado apenas em variáveis locais. Escopos `request` e `prototype` existem para os casos em que o estado é inevitável."

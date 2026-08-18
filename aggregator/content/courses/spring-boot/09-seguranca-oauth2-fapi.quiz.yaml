@@ -1,0 +1,36 @@
+questions:
+  - question: "O que significa o `pix-gateway` ser um resource server?"
+    options:
+      - "Ele emite tokens para as instituições participantes e valida o uso de cada um deles"
+      - "Ele recebe e valida JWT emitido por um authorization server externo, sem fazer login"
+      - "Ele mantém sessão do usuário e converte o cookie em token nas chamadas internas"
+      - "Ele intermedeia o fluxo de autorização, trocando o código pelo token em nome do cliente"
+    answer: 1
+    explanation: "A responsabilidade dele é validar: baixa o JWKS do issuer, confere assinatura, expiração e emissor, e converte os escopos do token em authorities. Emitir token, manter sessão e conduzir o fluxo de autorização são papéis do authorization server — e é justamente por não acumulá-los que a configuração se resume ao `issuer-uri`."
+
+  - question: "Por que combinar autorização por URL com `@PreAuthorize` na camada de serviço?"
+    options:
+      - "Porque a regra por URL não consegue avaliar o escopo presente no token, só o caminho"
+      - "Porque o método security roda antes do filter chain, cortando a requisição mais cedo"
+      - "Porque a regra fica perto do negócio e sobrevive a um controller novo que esqueceu o matcher"
+      - "Porque `@PreAuthorize` é a única forma de comparar o valor da requisição com um limite"
+    answer: 2
+    explanation: "É defesa em profundidade: o matcher protege o caminho conhecido, e a anotação protege a regra onde ela mora — inclusive se alguém expuser o serviço por um controller novo. Ela também compara valores da requisição, e o filter chain continua rodando antes; nada disso substitui a outra camada."
+
+  - question: "O que um certificate-bound access token resolve?"
+    options:
+      - "Dispensa o mTLS, já que o próprio token passa a carregar a identidade da instituição"
+      - "Permite revogar o token sem consultar o authorization server, bastando verificar o certificado apresentado"
+      - "Elimina a necessidade de validar assinatura, porque o certificado já autentica a origem"
+      - "Torna o token roubado inútil: sem a chave privada do certificado, ele não pode ser usado"
+    answer: 3
+    explanation: "É o fim do bearer token que qualquer um usa: o token carrega uma confirmação amarrada ao certificado do cliente, e o servidor recusa a apresentação por quem não detém a chave privada. Ele depende do mTLS para funcionar, não o substitui, e a validação de assinatura do JWT continua acontecendo normalmente."
+
+  - question: "Qual é a postura correta em relação aos endpoints do Actuator?"
+    options:
+      - "Expor o mínimo e proteger o resto: `env`, `heapdump` e `loggers` nunca são públicos"
+      - "Expor tudo na rede interna, já que o cluster isola o tráfego externo por padrão"
+      - "Manter o padrão do Boot, que já expõe somente aquilo que é considerado seguro para ambiente público"
+      - "Desabilitar o Actuator em produção e habilitá-lo sob demanda durante incidentes"
+    answer: 0
+    explanation: "São endpoints poderosos: `env` mostra variáveis, incluindo segredo; `heapdump` despeja a memória; `loggers` muda comportamento em runtime. Tratá-los como superfície de ataque significa incluir só `health` e `prometheus` e autenticar o resto. Desligar em produção tira a ferramenta justamente quando ela é necessária."

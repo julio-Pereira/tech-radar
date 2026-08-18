@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que `float64` não serve para representar dinheiro num sistema contábil?"
+    options:
+      - "Porque a precisão de 64 bits é insuficiente para valores acima de alguns bilhões"
+      - "Porque o binário não representa 0,1 exatamente, e o erro acumulado quebra a conciliação"
+      - "Porque a comparação entre dois `float64` exige tolerância e isso complica os testes"
+      - "Porque Go não define comportamento de arredondamento para `float64` em operações aritméticas"
+    answer: 1
+    explanation: "O problema é de representação, não de magnitude: 0,1 não tem representação exata em binário, e o resíduo se acumula ao longo de milhões de lançamentos até o fechamento não bater. Por isso o padrão é `int64` na menor unidade ou `shopspring/decimal` quando a fração é arbitrária — juros, câmbio."
+
+  - question: "O que a linguagem faz para impedir que você use ponto flutuante para dinheiro em Go?"
+    options:
+      - "Nada — a disciplina é cultural, e é por isso que o tipo `Money` aparece no primeiro exercício"
+      - "O compilador emite alerta quando um `float64` é usado em contexto monetário declarado"
+      - "O `go vet` sinaliza a conversão implícita entre `float64` e tipos inteiros com nome"
+      - "O linter padrão da stdlib recusa operações aritméticas entre float e tipos nomeados exportados"
+    answer: 0
+    explanation: "Go não tem `BigDecimal` na stdlib nem qualquer proteção de tipo para valor monetário. A garantia vem do domínio: um tipo `Money` com quantia inteira e moeda explícita, adotado desde o começo. É a diferença entre a linguagem impedir o erro e a equipe impedir o erro."
+
+  - question: "O que a contabilidade double-entry habilita, além de organizar os lançamentos?"
+    options:
+      - "Reverter uma transação com um único `UPDATE`, mantendo o saldo consistente"
+      - "Dispensar a idempotência, já que débito e crédito se anulam quando duplicados"
+      - "Reconciliação automática: o total do sistema soma zero, e o desvio aponta erro"
+      - "Calcular o saldo sem consultar o histórico, porque cada conta guarda o próprio total"
+    answer: 2
+    explanation: "Toda movimentação vira um par débito/crédito que se equilibra, então a soma de todos os lançamentos é zero por construção. Qualquer desvio é erro detectável sem comparar com nada externo. Reversão continua sendo lançamento novo — nunca `UPDATE` —, e duplicidade continua exigindo idempotência."
+
+  - question: "O que \"deletar dados de um cliente\" normalmente significa num sistema contábil regulado?"
+    options:
+      - "Mover os registros para um banco de arquivamento com acesso restrito ao jurídico"
+      - "Anonimizar: o registro contábil permanece, o dado pessoal deixa de identificar"
+      - "Apagar as linhas e manter apenas os totais agregados por período contábil"
+      - "Marcar as linhas com `deleted_at` e filtrá-las em toda consulta da aplicação"
+    answer: 1
+    explanation: "A regulação financeira exige guardar o registro transacional, e a LGPD dá ao titular o direito de exclusão do dado pessoal. As duas obrigações convivem separando as coisas: o lançamento fica, a identificação sai. Soft delete não atende ao pedido de exclusão, e arquivar em outro banco só muda o dado de lugar."

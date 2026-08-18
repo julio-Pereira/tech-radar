@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que uma única execução de benchmark não prova que a otimização funcionou?"
+    options:
+      - "Porque o compilador pode eliminar o código do benchmark se o resultado não é usado"
+      - "Porque a variação entre execuções pode ser maior que o ganho — só a comparação estatística separa"
+      - "Porque `testing.B` só estabiliza o número de iterações a partir da terceira execução"
+      - "Porque o GC não roda em execuções curtas, escondendo o custo real de alocação"
+    answer: 1
+    explanation: "Ruído de máquina, escalonamento e GC produzem diferenças que parecem melhoria. Rodar com `-count=10` e comparar no `benchstat` diz se a diferença é estatisticamente significativa — e é comum descobrir que não é. A eliminação por código morto é real e se evita atribuindo o resultado, mas é outro problema."
+
+  - question: "Para que serve `go build -gcflags='-m'`?"
+    options:
+      - "Mostrar a decisão de escape analysis: o que fica na stack e o que vai para o heap"
+      - "Gerar o perfil de memória do binário sem precisar instrumentar o código com `pprof`"
+      - "Habilitar as otimizações agressivas do compilador, desligadas por padrão"
+      - "Listar as alocações feitas em tempo de execução, agrupadas por função"
+    answer: 0
+    explanation: "A flag imprime as decisões do compilador, incluindo por que um valor escapou para o heap. Alocação no heap é o que o GC precisa recolher depois, então saber o que escapa é o passo entre ver alocação no `pprof` e saber onde mexer. Ela não mede execução nem liga otimização — o compilador de Go já otimiza por padrão."
+
+  - question: "O `pprof` de heap aponta alocação alta no encoding da resposta. Qual é o próximo passo?"
+    options:
+      - "Trocar a serialização por uma biblioteca de terceiros mais rápida e medir o p99 em produção"
+      - "Aumentar `GOGC` para reduzir a frequência de coleta e observar o efeito na latência"
+      - "Isolar o hot path num benchmark com `b.ReportAllocs()` e medir o custo por operação"
+      - "Introduzir um `sync.Pool` para os buffers do encoder e comparar o consumo de memória"
+    answer: 2
+    explanation: "O perfil aponta onde; o benchmark isolado quantifica quanto e permite comparar antes e depois com rigor. Trocar biblioteca ou introduzir `sync.Pool` são hipóteses de conserto, e sem a medição isolada você não sabe se funcionaram. Mexer em `GOGC` altera o comportamento global para tratar um sintoma local."
+
+  - question: "Qual cuidado o endpoint de `pprof` exige num serviço de produção?"
+    options:
+      - "Rodar numa porta separada, para não competir com o tráfego de negócio pela mesma fila"
+      - "Ficar atrás de autenticação — ele expõe detalhes internos e permite consumir CPU do serviço"
+      - "Ser habilitado apenas por variável de ambiente, e jamais compilado na imagem que vai para produção"
+      - "Ter rate limit por IP, já que a coleta de perfil abre uma goroutine por requisição"
+    answer: 1
+    explanation: "O handler devolve nomes de função, estrutura interna e conteúdo de memória, e uma coleta de CPU custa trabalho real do processo. Deixá-lo aberto é entregar informação e um vetor de degradação. Porta separada ajuda no isolamento e não resolve o acesso; e removê-lo da imagem tira justamente a ferramenta de quando o problema aparece."

@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é o problema real que microservices são chamados a resolver — e que o Modulith também resolve?"
+    options:
+      - "O acoplamento de código de um big ball of mud, em que tudo depende de tudo"
+      - "A impossibilidade de escalar horizontalmente uma aplicação em processo único"
+      - "O tempo de build, que cresce com o tamanho da base de código monolítica"
+      - "O risco de uma falha em qualquer parte derrubar o processo inteiro em produção"
+    answer: 0
+    explanation: "O defeito nunca foi ser um processo só: foi virar uma bola de lama onde ninguém ousa mudar nada. Microservices atacam isso trocando acoplamento de código por acoplamento de rede, que é mais caro. Fronteiras verificadas por teste dão a mesma disciplina sem a conta — escala e isolamento de falha continuam sendo razões válidas, à parte."
+
+  - question: "O que `ApplicationModules.verify()` acrescenta a uma organização por convenção?"
+    options:
+      - "Gera automaticamente os diagramas de arquitetura a partir da estrutura de pacotes"
+      - "Impede em tempo de compilação que um módulo declare dependência de outro no build"
+      - "Quebra o build quando um módulo importa classe interna de outro, em vez de deixar apodrecer"
+      - "Isola os módulos em classloaders distintos, tornando o acesso indevido impossível em runtime"
+    answer: 2
+    explanation: "Convenção sem verificação apodrece porque nada impede o `import` proibido — e o acoplamento acidental vira dívida silenciosa. O teste transforma a violação em CI vermelho. A documentação gerada existe, e vem do `Documenter`, que é outra chamada; não há separação de classloader nem verificação pelo compilador."
+
+  - question: "Por que a comunicação entre módulos por eventos facilita uma extração futura?"
+    options:
+      - "Porque o listener assíncrono já roda em outra thread, o que aproxima o comportamento de rede"
+      - "Porque o desenho é o mesmo do outbox: trocar o barramento in-process por Kafka mal afeta os listeners"
+      - "Porque eventos são serializados em JSON desde o início, dispensando mudança de contrato"
+      - "Porque o Modulith replica os eventos numa tabela, permitindo reprocessar após a extração"
+    answer: 1
+    explanation: "Quando `payments` publica e `antifraud` escuta sem que o primeiro conheça o segundo, a dependência já está invertida. No dia da extração muda o transporte, não o desenho — que é exatamente o que o outbox do marco 06 faz, uma camada acima. Assincronia e serialização são detalhes que não sustentam sozinhos essa propriedade."
+
+  - question: "Qual razão justifica extrair um módulo para microservice?"
+    options:
+      - "O módulo tem mais linhas de código que os outros e domina o tempo de revisão"
+      - "O módulo é o mais crítico do sistema e merece isolamento por importância de negócio"
+      - "O módulo tem muitos testes lentos, que atrasam o pipeline de todos os outros"
+      - "O módulo escala num ritmo próprio, com perfil de recurso diferente do resto"
+    answer: 3
+    explanation: "As razões concretas são escala independente, cadência de deploy própria, fronteira organizacional e isolamento de falha ou de tecnologia. Tamanho, criticidade percebida e suíte lenta se resolvem dentro do monolito. Sem uma razão concreta, extrair apenas distribui o problema e adiciona um pipeline a mais para manter."

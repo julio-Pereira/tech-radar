@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que organizar pacotes como `controllers/`, `services/` e `repositories/` é considerado não idiomático em Go?"
+    options:
+      - "Porque o compilador penaliza as importações cíclicas que essa divisão inevitavelmente produz entre eles"
+      - "Porque nomes no plural violam a convenção de nomenclatura de pacotes da stdlib"
+      - "Porque essas camadas exigem interfaces explícitas, que Go não suporta declarar"
+      - "Porque agrupa por papel técnico em vez de por domínio, espalhando um conceito por três pacotes"
+    answer: 3
+    explanation: "Em Go o pacote é a unidade de encapsulamento, e o que se quer encapsular é um domínio: `wallet/`, `ledger/`, `money/`. Dividir por camada faz cada conceito atravessar três pacotes e força exportar o que deveria ser interno. Nomes de pacote no singular são convenção, mas não são a razão principal."
+
+  - question: "Qual é o efeito de embrulhar um erro com `fmt.Errorf(\"...: %w\", err)`?"
+    options:
+      - "Preserva a cadeia, permitindo que `errors.Is` e `errors.As` encontrem o erro original"
+      - "Converte o erro em um valor comparável, para que ele possa ser usado como chave de mapa"
+      - "Anexa o stack trace do ponto onde o erro foi criado, como fazem as exceções da JVM"
+      - "Marca o erro como recuperável, sinalizando que a operação pode ser repetida com segurança"
+    answer: 0
+    explanation: "O verbo `%w` guarda o erro embrulhado, e é isso que faz `errors.Is(err, ErrCurrencyMismatch)` funcionar mesmo depois de três camadas de contexto. Com `%v` a informação vira texto e a inspeção deixa de ser possível. Go não anexa stack trace automaticamente, e nada no erro indica se retentar é seguro."
+
+  - question: "Um tipo em Go passa a satisfazer uma interface quando..."
+    options:
+      - "o pacote da interface é importado e o tipo é registrado na inicialização"
+      - "ele declara `implements` no ponto de definição, como em Java"
+      - "ele tem os métodos com a assinatura certa — sem declarar nada"
+      - "ele embute a interface como campo anônimo dentro da struct"
+    answer: 2
+    explanation: "A satisfação é implícita e verificada em tempo de compilação no ponto de uso. Isso permite definir a interface no consumidor, não no produtor — o inverso do costume Java, e a razão de interfaces em Go serem pequenas. Embutir a interface compila e produz um valor que estoura em runtime se ninguém preencheu o campo."
+
+  - question: "Qual é o equivalente idiomático de `Optional<T>` em Go?"
+    options:
+      - "Um ponteiro `*T`, que é `nil` quando o valor está ausente"
+      - "Múltiplos retornos: `(T, error)` quando falhou, `(T, bool)` quando pode não existir"
+      - "Um tipo genérico `Option[T]` da stdlib, disponível desde a versão 1.18"
+      - "Um valor zero do tipo, já que Go garante zero value útil para todo tipo"
+    answer: 1
+    explanation: "A convenção é devolver dois valores e deixar o chamador decidir: `error` quando a ausência é falha, `bool` quando ela é normal — o `v, ok := m[k]` do mapa é o exemplo canônico. Ponteiro serve para \"pode ser nulo\" e traz o custo de indireção e de `nil` panic. Não existe `Option` na stdlib."

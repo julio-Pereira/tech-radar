@@ -1,0 +1,36 @@
+questions:
+  - question: "Em que momento do ciclo de `SpringApplication.run` os proxies de `@Transactional` são criados?"
+    options:
+      - "No component scan, junto com o registro das definições de bean"
+      - "No refresh do contexto, quando os `BeanPostProcessor` processam cada singleton"
+      - "No `ApplicationReadyEvent`, imediatamente antes de o Tomcat aceitar tráfego"
+      - "Na primeira chamada ao método anotado, por instrumentação sob demanda"
+    answer: 1
+    explanation: "O scan apenas registra definições — ainda não há instância nenhuma. É no refresh, depois da inicialização de cada bean, que os post-processors embrulham o objeto num proxy. Por isso o contexto sobe uma vez, no boot, e um erro de configuração falha ali, não no meio de uma transação em produção."
+
+  - question: "Qual é a consequência prática de o contexto ser montado inteiro no boot?"
+    options:
+      - "Beans podem ser recarregados sem reiniciar, já que o contexto observa mudanças no classpath"
+      - "O consumo de memória cresce proporcionalmente ao número de requisições atendidas"
+      - "Erro de configuração aparece no deploy, e não no meio de uma transação de madrugada"
+      - "A ordem de inicialização depende da ordem dos arquivos lidos no diretório de classes"
+    answer: 2
+    explanation: "É a propriedade de fail-fast que o curso explora ao longo dos marcos: se uma propriedade obrigatória falta ou um bean não monta, o processo não sobe. Isso transforma um problema silencioso em produção num deploy que não passa — e é a razão de `@ConfigurationProperties` com `@Validated` valer mais que `@Value` espalhado."
+
+  - question: "O que muda no chão do Spring Boot 4.x em relação ao 3.x?"
+    options:
+      - "Framework 7, Jakarta EE 11, Jackson 3, JSpecify e auto-configurações divididas por módulo"
+      - "Substituição do Tomcat embarcado por um servidor reativo como padrão do starter web"
+      - "Fim do suporte a `application.yaml`, que passa a ser substituído por configuração programática"
+      - "Migração completa de `jakarta.*` de volta para `javax.*`, revertendo a mudança do 3.x"
+    answer: 0
+    explanation: "O salto traz Framework 7, exigindo Java 17 ou mais, Jakarta EE 11 consolidado, Jackson 3 no namespace `tools.jackson` — relevante quando você customiza serialização monetária —, `JSpecify` para null-safety e o split das auto-configurações em JARs por módulo, o que torna o classpath mais explícito de diagnosticar."
+
+  - question: "Por que o primeiro endpoint do `pix-gateway` devolve 501 em vez de um 200 vazio?"
+    options:
+      - "Porque o Boot recusa registrar um handler sem corpo de resposta definido"
+      - "Porque 501 é o único status que o `MockMvc` consegue verificar sem serialização"
+      - "Porque 200 mentiroso engana o cliente, enquanto 501 diz a verdade sobre o estado da API"
+      - "Porque o contrato Open Finance exige 501 enquanto o endpoint não for homologado"
+    answer: 2
+    explanation: "É uma escolha de sinceridade de contrato: um `200` num endpoint que não faz nada leva o consumidor a construir em cima de algo inexistente. O `501` comunica o estado real e ainda dá ao teste algo verdadeiro para afirmar — e o `@SpringBootTest` sobe o contexto inteiro, então o teste falha no boot se algum bean não montar."
