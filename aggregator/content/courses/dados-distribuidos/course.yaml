@@ -5,8 +5,8 @@ category: "Dados/Storage"
 tags: [dados, database, postgres, sharding, replicacao, cache, fintech]
 level: advanced
 lang: pt-BR
-# Parcial: 4 marcos, 230 min. Vira 26h (775 min) quando os 14 estiverem escritos.
-estimatedHours: 8
+# Parcial: 7 marcos, 395 min. Vira 26h (775 min) quando os 14 estiverem escritos.
+estimatedHours: 13
 glossary: GLOSSARIO.md
 sources:
   - title: "PostgreSQL Documentation"
@@ -30,9 +30,9 @@ milestones:
   - 03-particionamento-e-sharding.md
   - 04-transacoes-e-isolamento.md
   # Bloco B — O banco por dentro
-  # - 05-como-o-banco-guarda-bytes.md
-  # - 06-escolher-o-store-e-modelar.md
-  # - 07-postgres-em-escala.md
+  - 05-como-o-banco-guarda-bytes.md
+  - 06-escolher-o-store-e-modelar.md
+  - 07-postgres-em-escala.md
   # Bloco C — Consistência na prática
   # - 08-transacoes-distribuidas.md
   # - 09-cache.md

@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que uma LSM-tree escreve mais rápido que uma B-tree?"
+    options:
+      - "Porque mantém o índice inteiro em memória, evitando qualquer acesso a disco na escrita"
+      - "Porque despeja arquivos ordenados e imutáveis, então toda gravação é sequencial"
+      - "Porque grava apenas o delta da linha, em vez da página inteira de 8 KB"
+      - "Porque dispensa o log de escrita antecipada, já que a memtable sobrevive ao restart"
+    answer: 1
+    explanation: "A escrita da LSM sempre vira append: memtable em memória, despejo em SSTable imutável, e nunca uma modificação in-place. A B-tree escreve na página onde a chave mora, o que é aleatório. A LSM não dispensa o log — ela também precisa dele para não perder a memtable — e o preço vem depois, na leitura e na compactação."
+
+  - question: "O que a amplificação de espaço mede?"
+    options:
+      - "Bytes lidos do disco para cada linha devolvida ao cliente pela consulta"
+      - "Bytes de WAL gerados para cada byte que a aplicação pediu para gravar"
+      - "Quanto o índice cresce em relação à tabela, à medida que as chaves ficam fragmentadas"
+      - "Bytes ocupados no disco para cada byte de dado que ainda está vivo"
+    answer: 3
+    explanation: "As três amplificações medem coisas distintas: escrita é quanto o disco grava por byte pedido, leitura é quantas páginas são lidas por linha devolvida, e espaço é quanto se ocupa por byte vivo. Na LSM o espaço extra são versões antigas aguardando compactação; no Postgres são versões mortas aguardando vacuum."
+
+  - question: "Você muda `synchronous_commit` de `on` para `local` no `fin-store`. O que passa a ser possível perder?"
+    options:
+      - "As transações confirmadas ao cliente que ainda não chegaram à réplica quando o nó cai"
+      - "Nada de dado: apenas a ordem entre commits concorrentes deixa de ser garantida"
+      - "Até `wal_writer_delay` de transações, porque o `fsync` local passa a ser assíncrono"
+      - "As transações em curso no momento da queda, que precisariam ser reenviadas pelo cliente"
+    answer: 0
+    explanation: "`local` garante o `fsync` no WAL do próprio nó, então nada se perde se apenas o processo cair. O que ele deixa de esperar é a confirmação da réplica — e é isso que some se o nó inteiro morre e outro assume. Quem torna o `fsync` local assíncrono é `off`. Transação em curso nunca foi confirmada, então não conta como perda."
+
+  - question: "Numa tabela de 100 milhões de lançamentos, a coluna `status` tem 4 valores e 0,1% das linhas está pendente. Qual índice faz sentido?"
+    options:
+      - "Um GIN em `status`, que lida melhor com baixa cardinalidade do que o B-tree"
+      - "Um BRIN em `status`, minúsculo e adequado a colunas com poucos valores distintos"
+      - "Um B-tree parcial, com `WHERE status = 'PENDENTE'`, indexando só a fatia consultada"
+      - "Um B-tree completo em `status`, que o planner usará sempre que houver filtro por essa coluna"
+    answer: 2
+    explanation: "O índice parcial indexa apenas as linhas que interessam: 0,1% de 100 milhões cabe em poucos megabytes, contra gigabytes do índice completo — que o planner ignoraria na maioria das queries e que toda inserção pagaria. GIN serve para múltiplos valores por linha; BRIN depende de a tabela estar fisicamente ordenada pela coluna, o que `status` não está."
