@@ -179,6 +179,17 @@ argumento que encerra a discussão.
 3. Por que freshness precisa ser diferente por caso de uso?
 4. Escolha três dos oito antipadrões e diga qual marco da trilha oferece a correção de cada um.
 
+## Principais aprendizados
+
+- O transacional emite mudança via CDC; a consulta por `updated_at` perde deleções e escritas
+  concorrentes, e o slot de replicação exige alerta próprio.
+- ELT com bronze/prata/ouro permite reprocessar — e ninguém consome bronze para decisão.
+- Data contract é o contrato de evento aplicado a tabela, e freshness é o SLO do analítico, com
+  número, dono e alerta por caso de uso.
+- Custo se controla com telemetria de uso, retenção por classe de dado e limite em query ad-hoc.
+- Os oito antipadrões têm um denominador comum: uma decisão de dados tomada sem número — e o
+  checklist de uma página é o antídoto verificável.
+
 ## Capstone
 
 O `fin-store` é o seu componente do `fin-platform` — a especificação completa está em
@@ -216,14 +227,3 @@ O `fin-store` é o seu componente do `fin-platform` — a especificação comple
 inclusive se nada tiver quebrado. E responda por escrito à pergunta final da trilha: das
 quatorze decisões que você tomou aqui, qual é a mais cara de reverter, e o que você faria
 diferente sabendo o que sabe agora?
-
-## Principais aprendizados
-
-- O transacional emite mudança via CDC; a consulta por `updated_at` perde deleções e escritas
-  concorrentes, e o slot de replicação exige alerta próprio.
-- ELT com bronze/prata/ouro permite reprocessar — e ninguém consome bronze para decisão.
-- Data contract é o contrato de evento aplicado a tabela, e freshness é o SLO do analítico, com
-  número, dono e alerta por caso de uso.
-- Custo se controla com telemetria de uso, retenção por classe de dado e limite em query ad-hoc.
-- Os oito antipadrões têm um denominador comum: uma decisão de dados tomada sem número — e o
-  checklist de uma página é o antídoto verificável.

@@ -91,3 +91,42 @@ func TestQuizNotGameable(t *testing.T) {
 			share*100, total)
 	}
 }
+
+// TestGlossaryIsDeclared closes the other silent failure of the manifest: a
+// GLOSSARIO.md that nobody declared. ParseGlossary only runs when the manifest
+// carries a `glossary:` key, so a glossary written and forgotten compiles fine
+// and simply never reaches the site — no warning, no error, no rendered page.
+func TestGlossaryIsDeclared(t *testing.T) {
+	entries, err := os.ReadDir(contentDir)
+	if err != nil {
+		t.Fatalf("read %s: %v", contentDir, err)
+	}
+
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		dir := filepath.Join(contentDir, e.Name())
+
+		files, err := filepath.Glob(filepath.Join(dir, "GLOSSARIO*.md"))
+		if err != nil {
+			t.Fatalf("glob %s: %v", dir, err)
+		}
+		if len(files) == 0 {
+			continue
+		}
+
+		manifest, err := ParseManifest(filepath.Join(dir, "course.yaml"))
+		if err != nil {
+			t.Fatalf("%s: %v", e.Name(), err)
+		}
+		if manifest.Glossary == "" {
+			t.Errorf("course %q has %s on disk but no `glossary:` key in course.yaml — it will never render",
+				e.Name(), filepath.Base(files[0]))
+			continue
+		}
+		if _, err := os.Stat(filepath.Join(dir, manifest.Glossary)); err != nil {
+			t.Errorf("course %q declares glossary %q which does not exist", e.Name(), manifest.Glossary)
+		}
+	}
+}

@@ -113,3 +113,34 @@ produção. Gere a documentação com `Documenter` e observe o diagrama de módu
 - Quebre em microservice por razão **concreta** (escala, cadência, time, isolamento) —
   senão você só **distribui o problema**. O Modulith deixa a extração barata quando a
   hora chegar.
+
+## Capstone
+
+O `pix-gateway` é o seu componente do `fin-platform` — a especificação completa está em
+`PROJETO.md`, na raiz desta trilha. Aqui é onde ele fica pronto.
+
+**Entrega**
+
+- [ ] `POST /payments` com validação, persistência e idempotência por chave de negócio
+- [ ] Tabela de outbox, com o evento saindo na mesma transação do pagamento
+- [ ] Perfis por ambiente, segredo fora do artefato, configuração externalizada
+- [ ] Circuit breaker, timeout e retry com backoff no cliente do PSP
+- [ ] OAuth2 resource server no padrão FAPI, com escopo por operação
+- [ ] Actuator com métricas de negócio e readiness que não depende de terceiro
+- [ ] Suíte de integração com Testcontainers (Postgres e Kafka)
+- [ ] Imagem OCI sem root, migração expand/contract e rollback exercitado
+- [ ] Os três módulos com `ApplicationModules.verify()` no CI
+
+**Critérios de pronto — cada um deve ser provado por um teste ou por um comando**
+
+- [ ] A mesma requisição enviada 100 vezes em paralelo gera **um** pagamento e **um** evento
+- [ ] Nenhum dual-write: derrubar o broker não produz pagamento sem evento nem o contrário
+- [ ] Um `import` de classe interna de outro módulo faz o build falhar
+- [ ] Token sem o escopo correto recebe 403, e a negativa aparece em log auditável
+- [ ] Com o PSP devolvendo 100% de erro, o circuit breaker abre antes de o pool esgotar
+- [ ] A versão anterior da aplicação continua funcionando com o schema já migrado
+- [ ] `mvn verify` roda do zero em máquina limpa, sem serviço pré-instalado
+- [ ] Uma ADR por bloco: fronteira transacional, idempotência, resiliência, segurança
+
+**Antes de fechar**, rode o game day do `PROJETO.md` e escreva um post-mortem de uma
+página — inclusive se nada tiver quebrado.
