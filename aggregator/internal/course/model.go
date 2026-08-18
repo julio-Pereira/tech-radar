@@ -51,6 +51,10 @@ type MilestoneFrontmatter struct {
 	Summary          string `yaml:"summary"`
 	EstimatedMinutes int    `yaml:"estimatedMinutes"`
 	References       []Ref  `yaml:"references"`
+	// Completion is empty (the default: the reader ticks the box whenever they
+	// like) or "quiz", which gates the box on getting the quiz right. Any other
+	// value is a compile error, so a typo cannot silently disable the gate.
+	Completion string `yaml:"completion"`
 }
 
 // CompiledMilestone is one timeline node with body HTML already sanitized.
@@ -63,6 +67,7 @@ type CompiledMilestone struct {
 	HTML             string         `json:"html"`
 	References       []Ref          `json:"references,omitempty"`
 	Quiz             []QuizQuestion `json:"quiz,omitempty"`
+	Completion       string         `json:"completion,omitempty"`
 }
 
 // CompiledCourse is the full track written to web/data/courses/<slug>.json.

@@ -146,12 +146,29 @@ questions:
     explanation: "Enquanto o slot não confirma consumo, o banco retém o log."
 ```
 
-**Anti-bias rules** (enforced by `TestQuizNotGameable`, see below):
+**Option order is not yours to worry about.** The compiler shuffles every question's
+options deterministically (seeded by `slug/milestone-id/question-index`) and moves
+`answer` to wherever the correct option landed. The index you write is never the index
+a reader sees, the same quiz always compiles to the same order, and positional bias
+cannot be authored back in.
 
-- Spread `answer` across the indices — no index above 35% of all questions.
+**What is still authoring** (enforced by `TestQuizNotGameable`):
+
 - The correct option must not read as the longest one (max 40% of questions).
-  Reasoning belongs in `explanation`, not inside the correct option.
+  Shuffling moves an option; it does not shorten it. Reasoning belongs in
+  `explanation`, not inside the correct option.
 - Distractors are real senior mistakes, not obvious absurdities.
+
+**Gating completion on the quiz** is opt-in, per milestone, in the frontmatter:
+
+```yaml
+completion: quiz    # the "mark as done" checkbox stays locked until every answer is right
+```
+
+Omit it and the reader ticks the box whenever they like — that is the default for every
+milestone today. `completion: quiz` on a milestone without a quiz file is a compile
+error, and so is any other value, so a typo cannot silently disable the gate. A milestone
+already marked done stays unlocked: re-locking a finished node would only punish a revisit.
 
 ### Glossary
 
@@ -174,8 +191,11 @@ file listed but absent, a duplicate milestone `id`, or invalid frontmatter.
 Skipping is right in production and dangerous in CI — a track can disappear from the
 site without anything turning red. `go test ./...` (a required CI step) closes that:
 `TestCompileRealContent` compiles the real `content/courses` and fails if any track was
-skipped or came out with zero milestones, and `TestQuizNotGameable` enforces the
-anti-bias thresholds above across every quiz in the repo.
+skipped or came out with zero milestones, `TestQuizNotGameable` enforces the length rule
+above across every quiz in the repo, `TestShuffleIsStableAndKeepsTheAnswer` guards that
+the shuffle stays deterministic and never loses the correct answer, and
+`TestGlossaryIsDeclared` catches a `GLOSSARIO.md` that no manifest declares — which would
+otherwise compile in silence and never render.
 
 **Known debt:** `go-fintech` (8 milestones) and `spring-boot` (13) have no quizzes at
 all. They are deliberately deferred, not forgotten — when they are written, they follow

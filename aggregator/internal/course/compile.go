@@ -113,6 +113,20 @@ func compileCourse(dir string) (CompiledCourse, error) {
 			if err != nil {
 				return CompiledCourse{}, err
 			}
+			// Positional bias dies here, not in review: the source index is
+			// irrelevant once the options are reordered deterministically.
+			for qi := range quiz {
+				shuffleOptions(fmt.Sprintf("%s/%s/%d", manifest.Slug, fm.ID, qi), &quiz[qi])
+			}
+		}
+
+		switch fm.Completion {
+		case "", "quiz":
+		default:
+			return CompiledCourse{}, fmt.Errorf("milestone %s has unknown completion %q (want \"quiz\" or nothing)", file, fm.Completion)
+		}
+		if fm.Completion == "quiz" && len(quiz) == 0 {
+			return CompiledCourse{}, fmt.Errorf("milestone %s declares completion: quiz but has no quiz file", file)
 		}
 
 		milestones = append(milestones, CompiledMilestone{
@@ -124,6 +138,7 @@ func compileCourse(dir string) (CompiledCourse, error) {
 			HTML:             html,
 			References:       fm.References,
 			Quiz:             quiz,
+			Completion:       fm.Completion,
 		})
 	}
 

@@ -15,7 +15,8 @@ let debounceTimer = null;
 /** @typedef {{ id: string, label: string, sourceId?: string, category?: string, kind?: string }} Theme */
 /** @typedef {{ title: string, url: string }} Ref */
 /** @typedef {{ slug: string, title: string, subtitle: string, category: string, level: string, tags: string[], estimatedHours: number, milestoneCount: number }} IndexEntry */
-/** @typedef {{ id: string, order: number, title: string, summary: string, estimatedMinutes: number, html: string, references?: Ref[] }} Milestone */
+/** @typedef {{ question: string, options: string[], answer: number, explanation?: string }} QuizQuestion */
+/** @typedef {{ id: string, order: number, title: string, summary: string, estimatedMinutes: number, html: string, references?: Ref[], quiz?: QuizQuestion[], completion?: string }} Milestone */
 /** @typedef {{ slug: string, title: string, subtitle: string, category: string, tags: string[], level: string, lang: string, estimatedHours: number, sources?: Ref[], milestones: Milestone[] }} Course */
 
 // ── Router ──────────────────────────────────────────────────────────────────
@@ -708,15 +709,10 @@ function buildTimelineNode(slug, milestone, completed, onToggle) {
   article.innerHTML = milestone.html; // pre-sanitized at build time (bluemonday)
   body.appendChild(article);
 
-  if (milestone.quiz && milestone.quiz.length > 0) {
-    body.appendChild(buildQuiz(slug, milestone));
-  }
+  // Complete control — built before the quiz so `completion: quiz` can unlock it.
+  const hasQuiz = milestone.quiz && milestone.quiz.length > 0;
+  const gated = milestone.completion === 'quiz' && hasQuiz;
 
-  if (milestone.references && milestone.references.length > 0) {
-    body.appendChild(buildReferences(milestone.references));
-  }
-
-  // Complete control -----------------------------------------------------------
   const completeWrap = document.createElement('div');
   completeWrap.className = 'node-complete';
   const checkbox = document.createElement('input');
@@ -726,7 +722,27 @@ function buildTimelineNode(slug, milestone, completed, onToggle) {
   checkbox.checked = completed.has(milestone.id);
   const label = document.createElement('label');
   label.setAttribute('for', checkbox.id);
-  label.textContent = 'Marcar como concluído';
+
+  // A gated milestone already ticked stays unlocked — progress is the source of
+  // truth, and re-locking a finished node would only punish a revisit.
+  const locked = gated && !checkbox.checked;
+  checkbox.disabled = locked;
+  label.textContent = locked ? 'Acerte o quiz para concluir' : 'Marcar como concluído';
+
+  function unlockCompletion() {
+    if (!checkbox.disabled) return;
+    checkbox.disabled = false;
+    label.textContent = 'Marcar como concluído';
+  }
+
+  if (hasQuiz) {
+    body.appendChild(buildQuiz(slug, milestone, gated ? unlockCompletion : null));
+  }
+
+  if (milestone.references && milestone.references.length > 0) {
+    body.appendChild(buildReferences(milestone.references));
+  }
+
   completeWrap.appendChild(checkbox);
   completeWrap.appendChild(label);
   body.appendChild(completeWrap);
@@ -753,8 +769,12 @@ function buildTimelineNode(slug, milestone, completed, onToggle) {
 // stays the single source of truth for progress. Question/option text is set via
 // textContent — quiz content is plain text and never interpreted as HTML.
 
-/** @param {Milestone} milestone */
-function buildQuiz(slug, milestone) {
+/**
+ * @param {Milestone} milestone
+ * @param {(() => void) | null} onPass called once the reader gets every question
+ *   right — used by `completion: quiz` to unlock the complete checkbox.
+ */
+function buildQuiz(slug, milestone, onPass) {
   const section = document.createElement('section');
   section.className = 'milestone-quiz';
 
@@ -845,6 +865,7 @@ function buildQuiz(slug, milestone) {
       : `${correct} de ${questions.length} corretas`;
     checkBtn.classList.add('hidden');
     retryBtn.classList.remove('hidden');
+    if (onPass && correct === questions.length) onPass();
   });
 
   retryBtn.addEventListener('click', () => {
