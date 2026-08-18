@@ -1,0 +1,36 @@
+questions:
+  - question: "Uma dependência não-crítica está fora. Ela deve entrar no readiness?"
+    options:
+      - "Sim, para que o tráfego seja desviado enquanto ela não volta ao ar completamente"
+      - "Não: readiness só inclui o que, faltando, impede o serviço de atender"
+      - "Sim, desde que o indicador reporte `OUT_OF_SERVICE` em vez de `DOWN`"
+      - "Não, mas ela deve entrar no liveness, para que o pod reinicie e refaça a conexão"
+    answer: 1
+    explanation: "Readiness responde \"posso atender?\". Uma dependência que não impede o atendimento não pertence a ela — incluí-la tira o pod do balanceador à toa e transforma degradação parcial em indisponibilidade total. E colocá-la na liveness é pior ainda: reiniciaria a frota inteira por causa de um serviço de terceiro."
+
+  - question: "Por que não usar `paymentId` como `lowCardinalityKeyValue` numa Observation?"
+    options:
+      - "Porque o valor não é conhecido no momento em que a observação começa"
+      - "Porque chaves de baixa cardinalidade são incluídas no nome do span, que tem tamanho limitado"
+      - "Porque ele identifica uma transação e não pode aparecer em telemetria por conformidade"
+      - "Porque viraria dimensão de métrica, e uma série temporal por pagamento explode o Prometheus"
+    answer: 3
+    explanation: "Baixa cardinalidade vira label de métrica, e cada combinação de labels é uma série no banco de séries temporais — um identificador único por transação cria milhões delas. O lugar certo para ele é `highCardinalityKeyValue`, que vira atributo de span, onde a granularidade máxima é justamente o que se quer."
+
+  - question: "O que a Observation API resolve em relação a instrumentar métrica, trace e log separadamente?"
+    options:
+      - "Uma instrumentação só produz os três sinais, já correlacionados entre si"
+      - "Reduz o custo de exportação, porque os três sinais viajam no mesmo payload OTLP"
+      - "Elimina a necessidade de MDC, já que o log passa a ser emitido pelo próprio registry"
+      - "Permite desligar seletivamente cada sinal em runtime, sem alterar o código instrumentado"
+    answer: 0
+    explanation: "Instrumentar três vezes é retrabalho e produz sinais que não conversam — o contador não sabe de qual trace veio. Uma observação gera a métrica, o span e o log com o mesmo contexto, e é isso que permite sair do gráfico para o trace e do trace para o log da requisição exata."
+
+  - question: "Por que alertar por burn rate de error budget em vez de por CPU alta?"
+    options:
+      - "Porque CPU é uma métrica de infraestrutura, e o Micrometer não a expõe com precisão"
+      - "Porque o burn rate detecta a degradação antes que ela apareça nas métricas de recurso"
+      - "Porque CPU alta com latência boa e zero erro não é incidente — o alerta acordaria o time à toa"
+      - "Porque o error budget já considera a sazonalidade do tráfego, o que limiares fixos não fazem"
+    answer: 2
+    explanation: "O critério é o que o usuário sente. Um serviço com processador em 90% e p99 dentro do alvo está saudável, e acordar alguém por isso ensina o time a ignorar alerta. Burn rate mede a velocidade de consumo do orçamento de erro: queima rápida chama gente, queima lenta vira ticket."

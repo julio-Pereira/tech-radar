@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que testar contra H2 em vez do Postgres real é considerado enganoso?"
+    options:
+      - "Porque o H2 não suporta migrations do Flyway, exigindo um schema paralelo só para teste"
+      - "Porque o H2 roda em memória e perde o estado entre métodos de teste da mesma classe"
+      - "Porque o comportamento de `FOR UPDATE`, tipos e constraints difere: o verde esconde bug de produção"
+      - "Porque o H2 não aceita conexões concorrentes suficientes para um teste de contenção realista"
+    answer: 2
+    explanation: "H2 não é Postgres, e a diferença aparece exatamente onde dói — locking, isolamento, tipos, constraints. Um teste de débito concorrente pode passar no H2 e falhar em produção, que é o pior tipo de bug. Testcontainers com `@ServiceConnection` sobe o banco real e o Spring aponta o `DataSource` para ele sem configuração manual."
+
+  - question: "Qual é a regra sobre o que mockar num teste?"
+    options:
+      - "Mocke a fronteira externa, nunca o sujeito do teste — senão o teste vira tautologia"
+      - "Mocke tudo que exija Docker, para que a suíte rode em qualquer máquina de desenvolvimento"
+      - "Mocke o que for lento, mantendo real apenas o que responde em menos de dez milissegundos"
+      - "Mocke as camadas abaixo da que está sendo testada, subindo apenas o que está acima dela"
+    answer: 0
+    explanation: "Mockar o PSP num teste de fatia isola o que você não controla. Mockar o repositório num teste que deveria provar a persistência transforma o teste numa verificação do Mockito: ele passa mesmo com o código errado. Um teste de outbox com repositório mockado é uma mentira verde."
+
+  - question: "O que `@WebMvcTest` sobe e o que ele deixa de fora?"
+    options:
+      - "Sobe a aplicação inteira com banco em memória, deixando de fora apenas os clients externos"
+      - "Sobe a camada web — rotas, serialização, validação, segurança — sem banco nem service real"
+      - "Sobe o contexto de segurança e o `MockMvc`, exigindo que o controller seja instanciado à mão"
+      - "Sobe apenas o mapeamento de rotas, sem executar filtros nem conversores de mensagem"
+    answer: 1
+    explanation: "É uma fatia: carrega o suficiente para provar que a rota existe, o corpo é validado, o escopo é exigido e a resposta serializa — com o service mockado. É rápido porque carrega pouco, e por isso serve para o grosso da cobertura de camada; o par dele do lado da persistência é o `@DataJpaTest`."
+
+  - question: "O que contract testing resolve entre o `pix-gateway` e o antifraude?"
+    options:
+      - "Substitui os testes de integração de cada lado por uma única suíte compartilhada"
+      - "Garante que as duas aplicações usem a mesma versão da biblioteca de serialização"
+      - "Verifica se o consumidor e o provedor concordam sobre o contrato, sem subir os dois juntos"
+      - "Valida em runtime que a mensagem recebida corresponde ao schema publicado no registry"
+    answer: 2
+    explanation: "Testes ponta a ponta entre serviços são lentos e frágeis. O contrato quebra a verificação em duas metades rápidas e isoladas: o provedor prova que honra o formato acordado, o consumidor prova que funciona contra ele. Validação em runtime é outra coisa, e é justamente o que se quer evitar precisar."

@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que uma transação longa esperando I/O de rede derruba o serviço sob carga?"
+    options:
+      - "Porque o Hibernate mantém o dirty checking ativo e o consumo de memória cresce com o tempo"
+      - "Porque o nível de isolamento default escala o lock de linha para lock de tabela após um tempo"
+      - "Porque a conexão fica presa à thread durante toda a transação, e o pool esgota"
+      - "Porque o Postgres aborta transações que ultrapassam o `statement_timeout` configurado"
+    answer: 2
+    explanation: "Transação e conexão são coisas diferentes, e é a segunda que é o recurso escasso: o Spring prende uma conexão do HikariCP à thread até o commit. Chamar um PSP dentro da transação transforma latência de rede em conexão ocupada, e o pool acaba antes de qualquer timeout salvar. Transação é curta e cirúrgica, em volta da escrita."
+
+  - question: "Quando `REQUIRES_NEW` é a propagação certa?"
+    options:
+      - "Quando o método é chamado de vários pontos e você quer garantir uma transação em cada um"
+      - "Quando a escrita precisa sobreviver ao rollback da transação de negócio — auditoria de tentativa falha"
+      - "Quando o método faz apenas leitura e você quer evitar a contenção da transação corrente"
+      - "Quando a operação precisa de um savepoint para reverter parcialmente sem perder o resto"
+    answer: 1
+    explanation: "`REQUIRES_NEW` suspende a transação corrente e abre outra independente, então o que ela grava permanece mesmo que a de fora reverta — o caso clássico é registrar a tentativa que falhou. Savepoint é `NESTED`; garantir que exista transação é o que `REQUIRED`, o default, já faz; e leitura pede `readOnly`."
+
+  - question: "O endpoint de extrato ficou lento em produção e rápido em teste. Qual é a causa mais provável e a correção?"
+    options:
+      - "Falta de índice na coluna de status; a correção é criar o índice e revalidar o plano"
+      - "Isolamento alto demais gerando contenção; a correção é voltar para `READ_COMMITTED`"
+      - "Pool de conexões subdimensionado; a correção é aumentar o `maximumPoolSize` do Hikari"
+      - "N+1: uma query por item da lista; a correção é `@EntityGraph` ou `JOIN FETCH`"
+    answer: 3
+    explanation: "N+1 é invisível com dois registros no teste e devastador com dez mil em produção — é o sintoma exato de \"rápido aqui, lento lá\". A correção é buscar o relacionamento junto, e o hábito que previne é contar queries no teste com `generate_statistics` e falhar o build acima de um teto."
+
+  - question: "Otimista (`@Version`) ou pessimista (`FOR UPDATE`) para a conta corporativa que recebe muitos débitos simultâneos?"
+    options:
+      - "Pessimista: com conflito frequente, o otimista degenera em retries em cascata"
+      - "Otimista: a coluna de versão evita o lock no banco e sustenta melhor a concorrência"
+      - "Nenhum dos dois: o correto é subir o isolamento para `SERIALIZABLE` e tratar o erro"
+      - "Os dois combinados: `@Version` para detectar e `FOR UPDATE` para serializar o retry"
+    answer: 0
+    explanation: "A regra é conflito raro para otimista, conflito frequente para pessimista. Numa conta quente, a versão muda o tempo todo, então quase toda transação falha e repete — e o retry vira tempestade. `FOR UPDATE` serializa quem toca aquela linha, que é exatamente o comportamento desejado ali."

@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é a vantagem de `@ConfigurationProperties` com `@Validated` sobre `@Value` espalhado?"
+    options:
+      - "O binding aceita `PIX_PSP_BASE_URL` e `pix.psp.base-url` como a mesma chave, o que `@Value` não faz"
+      - "O contexto falha no boot quando a propriedade obrigatória falta, em vez de falhar em produção"
+      - "As propriedades tipadas são recarregadas automaticamente quando o arquivo externo muda"
+      - "O tipo `record` garante que a configuração seja imutável mesmo se o bean for redefinido"
+    answer: 1
+    explanation: "O ganho decisivo é o fail-fast: com `@Validated`, uma URL de PSP ausente derruba o deploy em vez de derrubar uma transação às 23h59. Relaxed binding também funciona com `@Value`, e nem `record` nem `@ConfigurationProperties` trazem recarga automática — isso é `@RefreshScope` e depende de disparo externo."
+
+  - question: "Entre `application.yaml` empacotado, `application-<profile>.yaml`, variável de ambiente e argumento de linha de comando, qual vence?"
+    options:
+      - "O `application-<profile>.yaml`, porque o perfil é a expressão mais específica do ambiente"
+      - "A variável de ambiente, porque o 12-factor a define como a fonte canônica de configuração"
+      - "O argumento de linha de comando, que está no topo da ordem de precedência"
+      - "Depende: o Boot resolve conflito emitindo alerta e mantendo o primeiro valor encontrado"
+    answer: 2
+    explanation: "A ordem é fixa e vai do default para o específico — YAML empacotado, YAML de perfil, ambiente, linha de comando —, e o mais próximo do momento da execução sobrescreve. É essa mecânica que torna o 12-factor possível: o mesmo artefato roda em qualquer lugar e o ambiente injeta o que muda."
+
+  - question: "Quando usar profile e quando usar configuração externa?"
+    options:
+      - "Profile para diferença estrutural de beans; configuração externa para diferença de valor"
+      - "Profile para tudo que muda entre ambientes; configuração externa apenas para segredos"
+      - "Profile em desenvolvimento; configuração externa em produção, onde não há perfil ativo"
+      - "Profile para o que precisa ser auditado; configuração externa para o que muda com frequência"
+    answer: 0
+    explanation: "Perfil troca conjuntos de beans — um cliente de PSP falso contra o real. Configuração externa troca valores de uma mesma estrutura: URL, timeout, tamanho de pool. Usar perfil para valor leva ao antipadrão de imagens diferentes por ambiente, que destrói a garantia de que o que passou em homologação é exatamente o que sobe."
+
+  - question: "Qual é o efeito de `spring.config.import=optional:configtree:/etc/secrets/`?"
+    options:
+      - "Monta o diretório como volume e o mantém sincronizado com o cofre de segredos"
+      - "Cifra as propriedades daquele caminho, exigindo a chave de decriptação no boot"
+      - "Marca as propriedades daquele caminho como sensíveis, mascarando-as no Actuator"
+      - "Lê cada arquivo do diretório como uma propriedade — o formato que Secrets do Kubernetes montam"
+    answer: 3
+    explanation: "`configtree` mapeia o layout \"um arquivo por chave\", que é exatamente como um Secret montado aparece no contêiner. Combinado com o `optional:`, o mesmo artefato sobe em máquina local sem o diretório existir. O segredo continua fora do repositório e fora da imagem — quem o entrega é o deploy."

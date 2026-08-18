@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é a vantagem de buildpacks ou de um Dockerfile em camadas sobre `COPY app.jar`?"
+    options:
+      - "O JAR fat não pode ser executado sem descompactação prévia em imagens sem shell"
+      - "As dependências ficam numa camada cacheável, então só a camada da aplicação reconstrói"
+      - "A imagem final fica menor porque as classes do Spring são compartilhadas entre camadas"
+      - "O runtime consegue carregar as classes em paralelo quando elas estão em camadas separadas"
+    answer: 1
+    explanation: "Num JAR fat copiado inteiro, mudar uma linha de código invalida a camada com todas as dependências. Separando por estabilidade — dependências, loader, snapshots, aplicação —, o build reaproveita o que não mudou. Buildpacks fazem isso sozinhos e ainda entregam usuário não-root; layertools é a saída quando você quer controle fino."
+
+  - question: "Quando GraalVM native image se justifica em vez de CDS?"
+    options:
+      - "Sempre que o serviço roda em contêiner, já que o binário nativo dispensa a JVM na imagem"
+      - "Quando o build precisa ser mais rápido, porque a compilação AOT elimina o passo de empacotamento"
+      - "Quando o time quer eliminar a reflexão do código, exigência que o AOT verifica no build"
+      - "Quando startup em dezenas de milissegundos e baixa memória são requisito concreto assumido"
+    answer: 3
+    explanation: "CDS entrega a maior parte do ganho de startup por uma fração do custo, sem mudar o modelo de execução. Native muda: reflexão e proxies precisam ser conhecidos em build time, agentes e parte do ferramental de APM param de funcionar, e o build fica muito mais lento. É decisão de arquitetura, não ajuste de flag."
+
+  - question: "Qual encadeamento garante que nenhuma transação seja cortada durante um rollout?"
+    options:
+      - "Readiness sai primeiro, o tráfego novo para, e o graceful shutdown drena o que está em voo"
+      - "Liveness falha, o pod é reiniciado, e o Kubernetes reencaminha as requisições ao novo pod"
+      - "O `terminationGracePeriodSeconds` é reduzido para que o pod antigo saia antes do novo entrar"
+      - "As requisições em voo são persistidas no outbox e reprocessadas pelo pod que subir depois"
+    answer: 0
+    explanation: "No início do shutdown o Boot marca readiness como fora, e o Kubernetes deixa de mandar tráfego para aquele pod. Só então o `server.shutdown=graceful` espera as requisições em andamento terminarem. Reiniciar por liveness é o oposto disso — corta o que estava em voo —, e encurtar o prazo de término só piora."
+
+  - question: "Por que não ligar a liveness a uma dependência externa?"
+    options:
+      - "Porque o Kubernetes consulta a liveness com frequência maior e a dependência sofreria com a carga"
+      - "Porque falhar a liveness reinicia o pod: uma dependência oscilando vira restart loop na frota"
+      - "Porque a liveness precisa responder sem I/O para caber no timeout padrão da probe"
+      - "Porque a dependência externa só deve ser verificada no startup probe, antes de o pod servir"
+    answer: 1
+    explanation: "Cada probe leva a uma decisão diferente: liveness reinicia, readiness tira do balanceador. Ligar a primeira a um serviço de terceiro faz a frota inteira reiniciar quando ele oscila, transformando degradação em indisponibilidade. Dependência crítica pertence à readiness — o pod para de receber tráfego e continua vivo."

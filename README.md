@@ -197,11 +197,6 @@ the shuffle stays deterministic and never loses the correct answer, and
 `TestGlossaryIsDeclared` catches a `GLOSSARIO.md` that no manifest declares — which would
 otherwise compile in silence and never render.
 
-**Known debt:** `go-fintech` (8 milestones) and `spring-boot` (13) have no quizzes at
-all. They are deliberately deferred, not forgotten — when they are written, they follow
-the anti-bias rules above, and the thresholds are measured over the whole repo, so
-writing them badly turns CI red.
-
 ## Running locally
 
 ```bash

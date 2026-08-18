@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é a diferença prática entre liveness e readiness?"
+    options:
+      - "Liveness roda a cada segundo; readiness roda no início e no fim do ciclo do pod"
+      - "Liveness responde \"estou vivo?\" e leva a reinício; readiness responde \"posso receber tráfego?\""
+      - "Liveness é consultada pelo balanceador; readiness é consultada pelo orquestrador"
+      - "Liveness checa dependências externas; readiness checa apenas o processo local"
+    answer: 1
+    explanation: "São decisões diferentes tomadas por quem pergunta: falhar a liveness reinicia o processo, falhar a readiness apenas o tira do balanceador. Confundir as duas produz o pior desfecho conhecido — a liveness que checa o banco reinicia toda a frota quando o banco tem um soluço, transformando degradação em indisponibilidade."
+
+  - question: "Por que o outbox garante entrega sem 2-phase commit?"
+    options:
+      - "Porque o evento é gravado na mesma transação da transação de negócio, e um worker publica depois"
+      - "Porque o broker confirma a gravação antes de o banco commitar, invertendo a ordem do 2PC"
+      - "Porque a publicação é retentada até o broker confirmar, tornando o commit desnecessário"
+      - "Porque o worker lê o WAL do banco diretamente, sem depender do commit da aplicação"
+    answer: 0
+    explanation: "O problema é não haver commit atômico entre banco e broker. O outbox resolve movendo o evento para dentro da única transação que existe: ou o pagamento e o evento gravam juntos, ou nenhum dos dois. A publicação vira um passo assíncrono e retentável, com garantia at-least-once — daí a idempotência do lado do consumidor."
+
+  - question: "Por que `sqlc` em vez de um ORM, num sistema contábil?"
+    options:
+      - "Porque ORMs em Go não suportam transações explícitas com `context`"
+      - "Porque o SQL fica explícito e auditável, com o código de acesso gerado a partir dele"
+      - "Porque ele elimina a necessidade de migrations versionadas ao inferir o schema"
+      - "Porque o mapeamento objeto-relacional é incompatível com o modelo contábil de partidas dobradas"
+    answer: 1
+    explanation: "Num sistema em que a query que calcula saldo pode ser questionada numa auditoria, você quer o SQL na revisão de código, não escondido atrás de um construtor de queries. O `sqlc` inverte a direção: você escreve SQL e ele gera tipos. Migrations continuam sendo necessárias, e `golang-migrate` é o par usual."
+
+  - question: "O que o graceful shutdown com `signal.NotifyContext` protege?"
+    options:
+      - "O estado em memória, persistindo-o antes de o processo terminar"
+      - "A ordem dos eventos publicados, garantindo que a fila esvazie antes do encerramento"
+      - "As requisições em voo, que terminam antes de o processo fechar os pools e sair"
+      - "O balanceador, que recebe um aviso explícito antes de a instância ficar indisponível"
+    answer: 2
+    explanation: "Ao receber `SIGTERM`, o servidor para de aceitar conexões novas e dá tempo para o que já está sendo processado terminar. Sem isso, um deploy corta transações no meio. Tirar a instância do balanceador é papel da readiness, e nem o shutdown nem o `Context` persistem estado — quem faz isso é você, no caminho de drenagem."

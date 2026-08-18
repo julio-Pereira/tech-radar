@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que timeout é o primeiro degrau da resiliência, antes de retry e circuit breaker?"
+    options:
+      - "Porque o circuit breaker precisa de um sinal de falha para contar, e o timeout é quem o produz"
+      - "Porque sem ele a chamada travada prende a thread ou a conexão indefinidamente, e nada mais importa"
+      - "Porque o retry só é acionado depois que a tentativa anterior é encerrada por prazo"
+      - "Porque os clients HTTP do Boot exigem um timeout configurado para aceitar qualquer interceptor de resiliência"
+    answer: 1
+    explanation: "Uma chamada sem prazo que nunca volta segura o recurso para sempre; algumas delas congelam o serviço inteiro por causa de uma dependência lenta. E o default de vários clients é infinito, então isso não é hipótese. Só depois de existir prazo é que faz sentido falar em repetir ou em abrir circuito."
+
+  - question: "Qual operação é segura para retry automático?"
+    options:
+      - "Um `POST` de débito, desde que o backoff seja longo o bastante para a primeira tentativa terminar"
+      - "Qualquer chamada que devolva `5xx`, já que o servidor sinalizou que não processou a requisição"
+      - "Um `POST` de confirmação que carrega `Idempotency-Key`, porque repetir tem o mesmo efeito"
+      - "Qualquer chamada cujo timeout tenha estourado, porque o estouro prova que nada foi executado"
+    answer: 2
+    explanation: "A regra é repetir só o que é idempotente. Timeout não prova nada sobre o que aconteceu do outro lado — a requisição pode ter sido processada e a resposta ter se perdido —, e um `5xx` também não. O que torna a repetição segura é a chave de idempotência: a segunda tentativa devolve o resultado da primeira em vez de debitar de novo."
+
+  - question: "O que o circuit breaker acrescenta a um timeout bem configurado?"
+    options:
+      - "Para de chamar a dependência que está falhando de forma consistente, e falha rápido"
+      - "Reduz o timeout dinamicamente conforme a latência observada da dependência sobe"
+      - "Redistribui as chamadas entre as instâncias saudáveis da dependência degradada"
+      - "Isola um pool de concorrência por dependência, evitando que uma consuma todas as threads"
+    answer: 0
+    explanation: "Com timeout, cada chamada a um serviço morto ainda custa o prazo inteiro e recursos que ninguém vai aproveitar. O breaker corta isso: passado o limite de falhas, ele abre e falha imediatamente, dando espaço para o outro lado se recuperar, e depois testa em half-open. Isolar pool por dependência é o bulkhead, que é outro padrão."
+
+  - question: "O PSP está fora e a requisição de iniciação chega. Qual fallback é honesto?"
+    options:
+      - "Responder `200` com o pagamento marcado como concluído e conciliar a divergência depois"
+      - "Responder `202` e enfileirar a intenção no outbox para processar quando o PSP voltar"
+      - "Responder `200` com o último resultado conhecido para aquela conta, vindo do cache"
+      - "Responder `503` sem registrar nada, deixando a nova tentativa por conta do cliente"
+    answer: 1
+    explanation: "Fallback honesto ou degrada de forma rotulada, ou muda o modo de operação de forma transparente. `202` com a intenção numa fila durável diz a verdade — aceitei, vou processar — e não perde o pedido. Devolver `200` de concluído é fraude acidental, e o `503` seco joga fora a informação que o cliente já entregou."

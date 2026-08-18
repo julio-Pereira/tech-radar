@@ -1,0 +1,36 @@
+questions:
+  - question: "O que acontece com a auto-configuração quando você declara você mesmo um bean daquele tipo?"
+    options:
+      - "O Boot recua, por causa do `@ConditionalOnMissingBean` que guarda o bean padrão"
+      - "Os dois beans coexistem, e o Boot escolhe pelo `@Primary` declarado na auto-config"
+      - "O contexto falha ao subir, apontando a definição duplicada para o mesmo tipo"
+      - "A auto-configuração vence, porque é processada depois do component scan da aplicação"
+    answer: 0
+    explanation: "A regra de ouro é que a auto-configuração sempre cede ao explícito, e o mecanismo é o `@ConditionalOnMissingBean`. Não há duplicação nem disputa: a condição simplesmente não é satisfeita e o bean padrão nunca é registrado. É o que permite oferecer defaults sobrescrevíveis num starter de plataforma."
+
+  - question: "Por que uma classe `@AutoConfiguration` precisa ser listada em `AutoConfiguration.imports`?"
+    options:
+      - "Porque o arquivo define a ordem de aplicação entre auto-configurações concorrentes"
+      - "Porque ela vive fora do pacote da aplicação, então o component scan não a alcança"
+      - "Porque o Boot valida o arquivo contra o classpath e recusa importações inexistentes"
+      - "Porque o processador de anotações precisa dele para gerar os metadados de configuração"
+    answer: 1
+    explanation: "Auto-configurações são deliberadamente colocadas fora do pacote escaneado, para que uma biblioteca no classpath não dependa de onde a aplicação está. O arquivo de imports é o registro explícito que o Boot lê. Ordem existe, mas é declarada com `@AutoConfigureAfter` e `@AutoConfigureBefore`, não pela posição no arquivo."
+
+  - question: "Para que serve o Condition Evaluation Report, exibido ao subir com `--debug`?"
+    options:
+      - "Medir o tempo de instanciação de cada bean, apontando o gargalo do startup"
+      - "Listar as propriedades efetivamente resolvidas e sua fonte de origem"
+      - "Validar as anotações condicionais contra o schema de metadados do projeto"
+      - "Mostrar quais condições casaram, quais não casaram e o motivo de cada decisão"
+    answer: 3
+    explanation: "O relatório separa positive e negative matches com a justificativa de cada um — é a ferramenta para responder \"por que esse bean existe?\" ou \"por que esse não subiu?\". Num ambiente regulado, essa explicação vale tanto quanto o comportamento. Tempo de startup e origem de propriedade são diagnósticos de outras ferramentas."
+
+  - question: "Qual é a diferença entre uma auto-configuração e um starter?"
+    options:
+      - "A auto-config registra beans condicionalmente; o starter é a casca que a empacota com as dependências"
+      - "A auto-config vale para a aplicação inteira; o starter vale apenas para o módulo que o declara"
+      - "A auto-config é interna do Spring; starter é o nome dado quando a biblioteca é de terceiros"
+      - "A auto-config exige registro no arquivo de imports; o starter é descoberto por component scan"
+    answer: 0
+    explanation: "São peças com papéis distintos: a auto-configuração contém a lógica condicional, e o starter é um POM quase vazio que junta a auto-config e as dependências necessárias numa coordenada única. É por isso que o exercício cria dois módulos — quem consome adiciona uma linha e ganha o comportamento."

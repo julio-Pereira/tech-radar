@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é a armadilha do `http.Client` padrão de Go num serviço de pagamentos?"
+    options:
+      - "Ele não reaproveita conexões, abrindo um socket novo a cada requisição"
+      - "Ele não propaga o `context` da requisição para a chamada downstream"
+      - "Ele tem timeout infinito: uma dependência lenta segura a goroutine indefinidamente"
+      - "Ele segue redirecionamentos sem repassar o cabeçalho de autorização"
+    answer: 2
+    explanation: "`http.DefaultClient` não tem `Timeout`, então uma dependência que nunca responde prende a goroutine, o slot do pool e o cliente do outro lado. Num serviço de pagamentos isso vira exaustão em minutos. Ele reaproveita conexões e propaga o `context` normalmente; a política de redirecionamento é um cuidado à parte."
+
+  - question: "Por que o BFF agrega saldo, KYC e cotação com `errgroup` em vez de chamar em série?"
+    options:
+      - "Porque a latência da tela passa a ser a da chamada mais lenta, não a soma das três"
+      - "Porque o `errgroup` reordena as chamadas por prioridade e devolve a mais crítica primeiro"
+      - "Porque chamadas em série compartilham a mesma conexão TCP e disputam a janela de envio"
+      - "Porque só assim o `context` da requisição HTTP consegue ser propagado para os três clientes"
+    answer: 0
+    explanation: "As três chamadas são independentes, então serializá-las soma latências sem necessidade. Em paralelo, o tempo da tela é o do mais lento — e o `errgroup.WithContext` ainda cancela as demais no primeiro erro, evitando trabalho que ninguém vai usar. Propagar `context` funciona igual nos dois desenhos."
+
+  - question: "O que o RFC 7807 (Problem Details) traz para uma API de pagamentos?"
+    options:
+      - "Um esquema de autenticação padronizado para erros que exigem reautenticação do cliente"
+      - "Um contrato de erro estável e auditável, em vez de cada endpoint inventar o seu"
+      - "A obrigação de devolver 200 com o erro no corpo, para clientes que não tratam 4xx"
+      - "Um mecanismo de retry negociado, em que o servidor informa quando tentar de novo"
+    answer: 1
+    explanation: "Problem Details define um corpo de erro com campos previsíveis — `type`, `title`, `detail`, `status` —, o que dá ao cliente algo estável para tratar e ao time algo consistente para auditar. Ele não muda o código HTTP, não define autenticação e não negocia retry, embora nada impeça acrescentar um campo próprio para isso."
+
+  - question: "Qual é o objetivo de um tipo `Sensitive[T]` que mascara em `String()` e `MarshalJSON()`?"
+    options:
+      - "Cifrar o valor em memória, protegendo-o de um dump de processo"
+      - "Impedir que o campo seja persistido sem passar pelo cofre de tokenização"
+      - "Exigir uma chamada explícita para revelar o valor, documentando cada acesso no código"
+      - "Garantir que o dado não vaze pelo caminho mais comum: log e serialização acidental"
+    answer: 3
+    explanation: "PAN, CVV, senha e token quase nunca vazam por ataque — vazam porque alguém logou a struct inteira ou serializou o objeto num erro. Interceptar os dois métodos que o runtime chama sozinho fecha esse caminho por construção. O valor continua em claro na memória, e a revelação explícita é uma consequência do desenho, não o objetivo."

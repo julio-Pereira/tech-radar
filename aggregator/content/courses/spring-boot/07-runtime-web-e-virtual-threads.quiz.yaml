@@ -1,0 +1,36 @@
+questions:
+  - question: "Onde exatamente está o limite do modelo thread-per-request num endpoint I/O-bound?"
+    options:
+      - "Na CPU, que satura antes do pool porque cada troca de contexto custa ciclos de processamento"
+      - "No garbage collector, pressionado pelo número de objetos vivos em cada thread ativa"
+      - "Nas threads bloqueadas esperando I/O: o pool acaba enquanto a CPU segue ociosa"
+      - "No número de conexões TCP simultâneas que o Tomcat aceita antes de recusar novas"
+    answer: 2
+    explanation: "Cada requisição prende uma thread de plataforma do começo ao fim, inclusive durante a espera pela resposta do PSP. Com cerca de 200 threads no pool, a 201ª requisição enfileira mesmo com o processador sem fazer nada. O gargalo não é capacidade de cálculo, é a thread parada consumindo stack sem trabalhar."
+
+  - question: "Quando WebFlux se justifica em vez de MVC com virtual threads?"
+    options:
+      - "Quando o serviço faz muitas chamadas HTTP downstream por requisição, com fan-out alto"
+      - "Quando há requisito concreto de streaming, back-pressure ou milhares de conexões ociosas"
+      - "Quando o time quer reduzir o consumo de memória por instância em ambiente de contêiner com limite apertado"
+      - "Quando a aplicação usa JPA e precisa sustentar mais concorrência que o pool permite"
+    answer: 1
+    explanation: "Virtual threads já resolvem fan-out e I/O-bound sem exigir stack reativo. O que só o modelo reativo entrega é back-pressure de verdade e um punhado de threads sustentando conexões ociosas. Com JPA e JDBC, aliás, WebFlux não ajuda — o driver bloqueante é justamente o que ele não pode ter."
+
+  - question: "O que é pinning no contexto de virtual threads?"
+    options:
+      - "A afinidade de uma virtual thread com o núcleo de CPU em que foi criada"
+      - "A retenção do `ThreadLocal` depois que a virtual thread termina, causando vazamento"
+      - "O bloqueio dentro de `synchronized`, que impede o desmonte e prende a carrier thread"
+      - "A fixação do número de carrier threads disponíveis pelo valor de `GOMAXPROCS` equivalente da JVM"
+    answer: 2
+    explanation: "O ganho depende de a JVM desmontar a virtual thread da carrier quando ela bloqueia. Dentro de um bloco `synchronized`, o desmonte não acontece e a carrier fica presa — o benefício some. O JDK moderno reduziu bastante o problema, e a recomendação prática continua sendo preferir `ReentrantLock` em código que faz I/O."
+
+  - question: "Você ligou `spring.threads.virtual.enabled=true` e a latência do endpoint que grava no banco não melhorou. Por quê?"
+    options:
+      - "As virtual threads não são usadas em métodos `@Transactional`, que exigem thread de plataforma"
+      - "O ponto de contenção mudou de lugar: as threads deixaram de ser o limite, o pool de conexões virou"
+      - "O Tomcat continua servindo com threads de plataforma até que o `server.tomcat.threads.max` seja zerado"
+      - "O ganho só aparece em chamadas puramente assíncronas, e o JDBC é uma API bloqueante"
+    answer: 1
+    explanation: "Virtual threads removem o teto de threads, não o de conexões: dez mil delas correndo para um HikariCP de vinte deixam nove mil e oitocentas na fila. É o mesmo problema, um degrau adiante. JDBC bloqueante funciona bem com virtual threads — desmontar a carrier durante o bloqueio é exatamente o que elas fazem."

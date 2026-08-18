@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que o sharding por conta resolve a corrida de saldo melhor que um mutex global?"
+    options:
+      - "Porque o hash da conta distribui a carga entre os workers de forma perfeitamente uniforme e estável"
+      - "Porque channels são mais rápidos que mutexes na implementação atual do runtime"
+      - "Porque a mesma conta cai sempre no mesmo worker: sequencial onde importa, paralelo no resto"
+      - "Porque elimina a necessidade de `go test -race`, já que não há memória compartilhada"
+    answer: 2
+    explanation: "O mutex global serializa o lote inteiro e joga fora o paralelismo. O sharding serializa apenas o que precisa: transações da mesma conta viram sequenciais porque vão para a mesma goroutine, e contas diferentes seguem em paralelo. A distribuição não é uniforme — uma conta muito movimentada continua sendo um shard quente."
+
+  - question: "O que `context.Context` carrega entre as goroutines de um processamento em lote?"
+    options:
+      - "O cancelamento e o deadline, mais valores de escopo de requisição"
+      - "O pool de conexões e a transação de banco aberta pelo chamador"
+      - "O estado compartilhado entre workers, com acesso serializado pelo runtime"
+      - "A configuração da aplicação, carregada uma vez e propagada por injeção"
+    answer: 0
+    explanation: "`Context` existe para propagar cancelamento e prazo por toda a árvore de chamadas — quando ele é cancelado, todo mundo que o observa desiste. Ele também carrega valores de escopo de requisição, como `trace_id`, e é justamente por isso que a documentação alerta contra usá-lo como saco de dependências ou de configuração."
+
+  - question: "O que `errgroup.Group` acrescenta a um `sync.WaitGroup`?"
+    options:
+      - "Limita automaticamente o número de goroutines conforme o número de núcleos disponíveis"
+      - "Propaga o erro da primeira goroutine que falha e cancela o contexto das demais"
+      - "Garante ordem de conclusão igual à ordem de submissão das goroutines"
+      - "Reexecuta com backoff a goroutine que devolveu erro, até o limite configurado"
+    answer: 1
+    explanation: "`WaitGroup` só conta quem terminou; erro é problema seu. `errgroup.WithContext` devolve um contexto que é cancelado no primeiro erro, e o `Wait` entrega esse erro — o que transforma um fan-out em algo com short-circuit. Limite de concorrência existe via `SetLimit`, mas não é automático, e não há retry embutido."
+
+  - question: "O que a reconciliação `sum(débitos) == sum(créditos)` ao fim do lote garante?"
+    options:
+      - "Que nenhuma transação do arquivo de entrada deixou de ser processada"
+      - "Que nenhuma conta ficou com saldo negativo durante o processamento"
+      - "Que os workers processaram as transações na ordem em que apareciam no arquivo"
+      - "Que os lançamentos gravados estão equilibrados — se não estão, algo se perdeu no meio"
+    answer: 3
+    explanation: "A checagem prova a integridade contábil do que foi gravado: cada movimentação gerou o par completo. Ela não prova cobertura — uma transação inteira ignorada mantém a soma zerada — nem diz nada sobre saldo negativo ou ordem. Por isso ela é rede de segurança somada ao `-race` e à contagem de linhas, não no lugar delas."

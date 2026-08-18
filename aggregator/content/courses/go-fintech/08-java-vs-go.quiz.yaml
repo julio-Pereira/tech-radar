@@ -1,0 +1,36 @@
+questions:
+  - question: "Em qual cenário o curso conclui que Java continua sendo a escolha mais forte?"
+    options:
+      - "Gateway de pagamento com alto fan-out e requisito de cold start baixo"
+      - "CLI de reconciliação distribuída para a equipe de operações"
+      - "Sidecar de service mesh e operator de Kubernetes"
+      - "Batch de fechamento e conciliação massiva de fim de dia"
+    answer: 3
+    explanation: "Spring Batch é o padrão de mercado para settlement e conciliação pesada, com um ecossistema que Go não replica. Os outros três são exatamente onde Go ganha: borda com fan-out alto, binário único para ferramenta interna, e o ecossistema cloud-native, que é nativamente Go."
+
+  - question: "Para uma API comum de cadastro e consulta de saldo, o que decide entre Java e Go?"
+    options:
+      - "A latência p99 alcançável, que separa as duas linguagens por uma ordem de grandeza"
+      - "A infraestrutura existente, a expertise do time e o custo operacional"
+      - "O modelo de concorrência, já que CSP lida melhor com I/O que virtual threads"
+      - "O consumo de memória por instância, decisivo em qualquer volume de tráfego"
+    answer: 1
+    explanation: "É o empate técnico do marco: nesse tipo de serviço as duas entregam o necessário, então a decisão deixa de ser técnica e passa a ser organizacional. Insistir em argumento de desempenho aqui é escolher primeiro e justificar depois — que é exatamente o hábito que o curso quer desfazer."
+
+  - question: "Por que integrações ISO 8583, ISO 20022 e SWIFT pesam a favor de Java?"
+    options:
+      - "Porque os padrões definem uma implementação de referência escrita em Java"
+      - "Porque as mensagens são binárias e Go não tem suporte adequado a parsing binário"
+      - "Porque existem bibliotecas maduras e testadas em produção; em Go se implementa mais do zero"
+      - "Porque a certificação junto às bandeiras exige linguagem com verificação de tipos em runtime"
+    answer: 2
+    explanation: "O argumento é de ecossistema, não de linguagem: essas especificações são grandes, cheias de variações por instituição, e o custo de reimplementá-las é alto e arriscado. Go faz parsing binário muito bem. Nenhum dos padrões exige linguagem específica nem tem implementação de referência obrigatória."
+
+  - question: "Qual é o entregável final que o curso propõe?"
+    options:
+      - "O LedgerCore rodando com antifraude, observabilidade e p99 abaixo de 200ms"
+      - "Um repositório de referência que sirva de template para novos serviços do time"
+      - "A fluência em Go idiomático suficiente para revisar código sênior escrito por outra pessoa na linguagem"
+      - "A capacidade de desenhar e defender a tabela de escolha tecnológica do seu sistema"
+    answer: 3
+    explanation: "O código é o meio; o resultado é conseguir dizer, com fundamento, onde cada linguagem entra no seu contexto e por quê. Um sistema rodando e fluência na linguagem são consequências do caminho, e o template de repositório nunca foi a proposta — cada organização tem restrições diferentes."

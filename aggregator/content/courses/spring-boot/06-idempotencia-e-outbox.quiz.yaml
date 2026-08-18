@@ -1,0 +1,36 @@
+questions:
+  - question: "O que garante a idempotência quando duas requisições com a mesma `Idempotency-Key` chegam simultaneamente?"
+    options:
+      - "A verificação de existência da chave antes de processar, feita no início do método transacional"
+      - "A unique constraint do banco: só uma inserção passa, a outra colide e reentrega a resposta gravada"
+      - "O lock pessimista sobre a linha da chave, que faz a segunda requisição esperar a primeira"
+      - "A serialização das requisições pelo pool de conexões, que atende uma de cada vez por chave"
+    answer: 1
+    explanation: "Um `if` que consulta antes de inserir tem uma janela entre a consulta e a escrita, e sob concorrência as duas passam. A garantia precisa vir do banco: a constraint deixa uma inserção acontecer, a outra recebe violação, faz rollback e devolve a resposta já persistida. Idempotência de verdade se apoia numa garantia de banco, não em código."
+
+  - question: "Por que gravar no banco e publicar no Kafka em sequência é um problema?"
+    options:
+      - "Porque a ordem dos eventos no tópico deixa de refletir a ordem dos commits no banco"
+      - "Porque o `kafkaTemplate.send` é assíncrono e a resposta HTTP sai antes da confirmação"
+      - "Porque a publicação dentro da transação prende a conexão enquanto espera o broker"
+      - "Porque não há transação compartilhada: ou o evento some no commit, ou anuncia algo revertido"
+    answer: 3
+    explanation: "É o dual-write: banco e broker são sistemas distintos e não existe commit atômico entre eles. Publicar depois do commit perde o evento se o `send` falhar; publicar antes anuncia um pagamento que o rollback desfez. Os outros itens são problemas reais e todos secundários diante da inconsistência silenciosa."
+
+  - question: "Por que o outbox entrega at-least-once, e não exactly-once?"
+    options:
+      - "Porque o relay pode crashar entre publicar e marcar como enviado, e reenviar depois"
+      - "Porque o Kafka não confirma a gravação da partição antes de o produtor liberar o buffer"
+      - "Porque o lote lido do outbox pode conter eventos já publicados por outra instância do relay"
+      - "Porque a tabela outbox não tem ordenação garantida entre eventos do mesmo agregado"
+    answer: 0
+    explanation: "A janela entre o `send` e o `markPublished` é irredutível: se o processo morre ali, o evento já saiu e será lido de novo. Daí a regra que fecha o padrão — o consumidor precisa ser idempotente. Exactly-once distribuído existe, custa caro e quase sempre é desnecessário diante dessa combinação."
+
+  - question: "Que benefício operacional o outbox traz além da atomicidade?"
+    options:
+      - "Reduz a latência da API, porque a publicação sai do caminho síncrono da requisição"
+      - "Garante a ordem de publicação por agregado, já que o relay lê a tabela ordenada"
+      - "Desacopla a API da disponibilidade do broker: com o Kafka fora, os eventos acumulam e drenam depois"
+      - "Permite reprocessar eventos antigos, porque a tabela guarda o histórico completo publicado"
+    answer: 2
+    explanation: "Com o broker indisponível, a transação de negócio continua funcionando e os eventos ficam na tabela até o relay conseguir entregar — a API não fica refém da fila. Ganho de latência é consequência secundária, ordem depende de como o relay lê e da chave de partição, e retenção do histórico é decisão sua sobre a limpeza da tabela."

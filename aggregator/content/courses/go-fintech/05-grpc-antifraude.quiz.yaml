@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que gRPC entre serviços internos, em vez de JSON sobre HTTP?"
+    options:
+      - "Porque contrato tipado e versionado, mais serialização binária, custam menos que JSON"
+      - "Porque o HTTP/2 do gRPC dispensa balanceador, resolvendo o roteamento no cliente"
+      - "Porque JSON não permite versionar o schema sem quebrar os consumidores existentes"
+      - "Porque gRPC garante entrega e ordem das mensagens entre serviços, o que HTTP simples não oferece"
+    answer: 0
+    explanation: "O ganho é contrato forte gerado do `.proto` mais payload binário no caminho quente. JSON versiona sim, só que por convenção e sem verificação. E gRPC não dispensa balanceamento — ao contrário, conexões longas com balanceador L4 são um problema conhecido —, nem oferece garantia de entrega que o HTTP não tenha."
+
+  - question: "O que é um velocity check no contexto de antifraude?"
+    options:
+      - "Medir o tempo de resposta do `fraud-check` para decidir entre aprovar e recusar"
+      - "Comparar a velocidade de digitação do usuário com o padrão histórico dele"
+      - "Bloquear quando há transações demais numa janela curta de tempo"
+      - "Verificar se a transação chegou dentro do prazo acordado com a adquirente"
+    answer: 2
+    explanation: "Velocity aqui é velocidade de uso da conta ou do cartão: muitas transações num intervalo curto é o padrão clássico de cartão comprometido sendo testado. A regra é simples de implementar e cobre uma fatia grande dos casos — e é por isso que a interface do serviço já nasce pronta para um modelo mais sofisticado depois."
+
+  - question: "Se o `fraud-check` está fora do ar, qual é a escolha correta entre fail-open e fail-closed?"
+    options:
+      - "Fail-open, porque recusar transações legítimas custa mais caro que aprovar uma fraude"
+      - "Fail-closed, porque aprovar sem análise transfere risco financeiro direto para a instituição"
+      - "Depende do negócio — é decisão de risco, registrada e auditada, não default de código"
+      - "Nenhuma das duas: o correto é enfileirar e decidir quando o serviço voltar"
+    answer: 2
+    explanation: "As duas posturas são defensáveis e o custo de cada uma depende do produto, do ticket médio e da exposição regulatória. O que não é aceitável é a escolha acontecer por acidente, escondida num `catch` que devolve `true`. Em fintech essa decisão é explícita, documentada e auditável — inclusive porque alguém vai perguntar depois do incidente."
+
+  - question: "Qual é o papel dos interceptors de gRPC?"
+    options:
+      - "Traduzir a chamada gRPC para REST quando o cliente não suporta HTTP/2"
+      - "Validar o payload contra o schema Protobuf antes de entregá-lo ao handler"
+      - "Reexecutar a chamada quando o status devolvido indica falha transitória"
+      - "Envolver a chamada com autenticação, logging e tracing — o análogo do middleware HTTP"
+    answer: 3
+    explanation: "Interceptor é o mesmo padrão do middleware da fase anterior, aplicado ao caminho gRPC: uma função que envolve a chamada e vê entrada, saída e erro. Validação de schema é feita pela própria deserialização do Protobuf, e retry é política do cliente — que pode, sim, ser implementada como interceptor, mas não é o que ele é."
