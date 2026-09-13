@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que PKCE deveria ser obrigatório em todo fluxo authorization code, mesmo quando o client é confidencial e consegue guardar um segredo com segurança?"
+    options:
+      - "Porque isso remove a decisão de risco por tipo de client da equação"
+      - "Porque PKCE substitui a necessidade de TLS entre client e authorization server"
+      - "Porque PKCE elimina a necessidade de validar a redirect URI"
+      - "Porque a especificação exige PKCE só para client que também implementa OIDC"
+    answer: 0
+    explanation: "PKCE existe para impedir que um código de autorização interceptado seja trocado por token por outra parte. Restringir sua obrigatoriedade a 'apenas clients públicos' depende de classificar corretamente cada client — torná-lo sempre obrigatório remove essa decisão de risco da equação."
+
+  - question: "Qual é a diferença funcional entre `state` e `nonce` num fluxo OIDC?"
+    options:
+      - "`state` vale só para client público; `nonce`, só para confidencial"
+      - "`state` protege o redirect contra CSRF; `nonce` protege o `id_token` contra replay"
+      - "São nomes alternativos para o mesmo parâmetro em versões diferentes"
+      - "`state` protege o `access_token`; `nonce` protege o `refresh_token`"
+    answer: 1
+    explanation: "São proteções para problemas diferentes: `state` é verificado no redirect de volta para garantir que a resposta corresponde a uma requisição que o próprio client iniciou (CSRF); `nonce` viaja dentro do `id_token` emitido e é conferido pelo client para garantir que aquele token específico não é um replay de uma sessão anterior."
+
+  - question: "Uma aplicação usa o `id_token` recebido no login OIDC para autorizar chamadas subsequentes a uma API de pagamentos. Qual é o problema estrutural dessa escolha?"
+    options:
+      - "O `id_token` tem vida mais curta, o que causa falha de autorização prematura"
+      - "O `id_token` não pode ser validado com chave diferente do `access_token`"
+      - "O `id_token` prova identidade para o client, e usá-lo confunde autenticação com autorização"
+      - "O `id_token` não carrega `aud`, tornando impossível validar destinatário"
+    answer: 2
+    explanation: "O `id_token` responde 'quem é este titular' para o client que iniciou o login — não foi desenhado para o resource server decidir permissão sobre um recurso. Usá-lo como se fosse um `access_token` é o erro estrutural de tratar autenticação (provar identidade) como se fosse autorização (decidir o que é permitido)."
+
+  - question: "Um authorization server valida a redirect URI por prefixo (`https://app.exemplo.com/*` aceita qualquer path sob esse domínio). Qual é o risco concreto disso?"
+    options:
+      - "O servidor fica incapaz de emitir `refresh_token` nesse fluxo"
+      - "O client passa a exigir PKCE, quebrando clients legados"
+      - "O `nonce` deixa de ser verificado antes do `id_token`"
+      - "Qualquer path esquecido sob esse prefixo vira destino válido para o código"
+    answer: 3
+    explanation: "Matching por prefixo aceita qualquer coisa que comece com aquele valor — incluindo paths que a própria aplicação não controla mais com segurança, como um endpoint de redirecionamento esquecido. Isso permite exfiltrar o código de autorização para fora do client legítimo. A defesa é matching exato, byte a byte."

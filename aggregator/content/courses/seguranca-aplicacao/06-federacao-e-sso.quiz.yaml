@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que tratar identidade workforce, customer e workload no mesmo realm é considerado um erro estrutural, e não apenas uma simplificação aceitável?"
+    options:
+      - "Porque cada uma tem fonte de verdade e ciclo de vida próprios, e misturá-las aplica a política errada"
+      - "Porque o protocolo OIDC limita o número de realms que um broker opera"
+      - "Porque claims customizadas não são compartilhadas entre realms diferentes"
+      - "Porque workload exige certificado mTLS, que realm de customer não suporta"
+    answer: 0
+    explanation: "Workforce vem do AD corporativo e termina em desligamento; customer se cadastra e consente, com ciclo de vida próprio; workload nunca faz login, autentica por client_credentials, private_key_jwt ou mTLS. Misturar as três no mesmo realm, pela conveniência de 'um lugar só', significa aplicar controle e política de uma identidade a outra que não deveria recebê-los — e isso não se desfaz facilmente depois."
+
+  - question: "Um RP recebe um `id_token` de um broker de federação. O que as claims `amr`/`acr` permitem ao RP verificar, que 'o login veio do broker confiável' sozinho não garante?"
+    options:
+      - "O endereço IP de origem, permitindo bloquear login fora da faixa confiável"
+      - "Quais métodos de autenticação foram de fato usados, confirmando se houve MFA"
+      - "O histórico de senhas anteriores do titular, para impedir reutilização"
+      - "O tempo de expiração do token, substituindo a validação de `exp`"
+    answer: 1
+    explanation: "A confiança transitiva do broker significa que o RP herda a política de MFA do IdP upstream — mas herdar não é o mesmo que verificar. `amr` e `acr` declaram, dentro do próprio token, quais fatores foram realmente usados, permitindo ao RP checar isso explicitamente antes de liberar uma operação que exige múltiplo fator."
+
+  - question: "Por que 'o titular fez logout' não significa que o access token emitido antes disso deixou de funcionar?"
+    options:
+      - "Porque back-channel logout só funciona com cookie de terceiro habilitado"
+      - "Porque RP-initiated logout exige reautenticação antes de encerrar a sessão"
+      - "Porque o token por valor continua válido até expirar, alheio à sessão"
+      - "Porque o broker revoga só o refresh token, nunca o access token"
+    answer: 2
+    explanation: "Um JWS por valor não consulta ninguém para ser validado — ele é aceito enquanto a assinatura e as claims temporais forem válidas, sem saber se a sessão que o originou ainda existe. Por isso a janela de exposição depois do logout precisa ser uma decisão explícita: TTL curto com refresh, ou introspecção, com o número declarado."
+
+  - question: "Qual é o achado de auditoria mais comum relacionado a identidade federada numa instituição financeira?"
+    options:
+      - "Um certificado de cliente mTLS expirado sem alerta prévio configurado"
+      - "Uma claim de papel mapeada incorretamente entre IdP e broker"
+      - "Um redirect URI validado por prefixo em vez de matching exato"
+      - "Um desligado que continua autenticando por falta de desprovisionamento"
+    answer: 3
+    explanation: "Provisionar identidade costuma ser automatizado; desprovisionar, na prática, raramente é — o desligamento no RH nem sempre dispara SCIM ou qualquer outro mecanismo de desativação em cada sistema federado. É por isso que esse cenário aparece de forma tão consistente em auditorias de acesso."

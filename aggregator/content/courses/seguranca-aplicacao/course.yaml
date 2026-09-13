@@ -2,12 +2,12 @@ slug: seguranca-aplicacao
 title: "Segurança de Aplicação para Fintech"
 subtitle: "Do modelo de ameaça ao token vinculado ao certificado: como uma aplicação financeira resiste a quem tem motivação, tempo e, às vezes, login válido."
 category: "Segurança"
-tags: [seguranca, oauth2, oidc, fapi, jose, criptografia, owasp, supply-chain, fintech]
+tags: [seguranca, oauth2, oidc, sso, federacao, fapi, jose, criptografia, owasp, supply-chain, fintech]
 level: advanced
 lang: pt-BR
-# 15 marcos. A regra é ~2x a soma dos estimatedMinutes (leitura mais hands-on),
+# 16 marcos. A regra é ~2x a soma dos estimatedMinutes (leitura mais hands-on),
 # registrada no PROJETO.md.
-estimatedHours: 28
+estimatedHours: 30
 glossary: GLOSSARIO.md
 sources:
   - title: "OWASP Application Security Verification Standard (ASVS)"
@@ -30,8 +30,20 @@ sources:
     url: https://pages.nist.gov/800-63-3/
   - title: "SLSA — Supply-chain Levels for Software Artifacts"
     url: https://slsa.dev/
+  - title: "Keycloak — Server Administration Guide"
+    url: https://www.keycloak.org/documentation
+  - title: "OpenID Connect Back-Channel Logout"
+    url: https://openid.net/specs/openid-connect-backchannel-1_0.html
+  - title: "SCIM — System for Cross-domain Identity Management"
+    url: https://scim.cloud/
 milestones:
   # Bloco A — Ameaça e base
   - 01-modelagem-de-ameaca.md
   - 02-owasp-e-asvs.md
   - 03-entrada-nao-confiavel.md
+  # Bloco B — Identidade e acesso
+  - 04-jose-por-dentro.md
+  - 05-oauth2-e-oidc.md
+  - 06-federacao-e-sso.md
+  - 07-fapi-mtls-e-ciba.md
+  - 08-autorizacao.md

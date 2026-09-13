@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que FAPI é descrito como um 'perfil' sobre OAuth2, e não apenas como uma coleção de boas práticas recomendadas?"
+    options:
+      - "Porque a conformidade é verificável por uma suíte de testes independente"
+      - "Porque FAPI substitui o OAuth2 com um protocolo de autorização próprio"
+      - "Porque FAPI é mantido pela mesma organização do RFC do OAuth2"
+      - "Porque FAPI exige authorization server hospedado só on-premise"
+    answer: 0
+    explanation: "A diferença entre um perfil e uma boa prática documentada é a verificabilidade: FAPI fecha escolhas que o OAuth2 deixa abertas (fluxo, autenticação de client, resposta) e existe uma suíte de conformidade que testa se uma implementação realmente atende ao perfil — não é uma lista de recomendações que cada time interpreta à sua maneira."
+
+  - question: "O que significa, na prática, um `access_token` ser 'sender-constrained' via mTLS?"
+    options:
+      - "O token só vale por 60 segundos após a emissão"
+      - "O resource server rejeita o token se apresentado com outro certificado"
+      - "O token é cifrado com a chave pública do resource server"
+      - "O token é assinado com algoritmo simétrico derivado do certificado"
+    answer: 1
+    explanation: "A vinculação (via `cnf.x5t#S256`) faz o resource server exigir que a mesma sessão mTLS que apresenta o token tenha sido estabelecida com o certificado que originou aquele token. Um token roubado, sem o certificado correspondente, não passa na verificação — diferente de um bearer token comum, que vale para quem o segurar."
+
+  - question: "Um gateway termina o TLS mútuo na borda e repassa o certificado do client para o serviço de aplicação via um header HTTP. Por que esse header precisa ser explicitamente sanitizado antes de o gateway injetar seu próprio valor verificado?"
+    options:
+      - "Porque headers HTTP têm limite de tamanho menor que um certificado X.509"
+      - "Porque o formato do certificado muda entre TLS 1.2 e TLS 1.3"
+      - "Porque uma requisição externa poderia injetar o mesmo header sem passar pelo mTLS"
+      - "Porque a aplicação não processa certificado de CA fora da raiz do sistema"
+    answer: 2
+    explanation: "Se o gateway não descarta qualquer valor desse header vindo de fora antes de inserir o seu próprio (obtido do handshake mTLS real), um atacante pode simplesmente incluir o header na requisição HTTP e se passar por qualquer certificado — o serviço de aplicação confiaria cegamente num dado que nunca foi verificado."
+
+  - question: "Ao verificar a revogação de um certificado de cliente via OCSP, o serviço de OCSP está indisponível. Por que a decisão do que fazer nesse cenário precisa ser explícita, em vez de herdada do comportamento padrão da biblioteca de TLS?"
+    options:
+      - "Porque nenhuma biblioteca de TLS implementa verificação de revogação"
+      - "Porque a RFC 8705 proíbe OCSP junto com token sender-constrained"
+      - "Porque a indisponibilidade invalida automaticamente toda a cadeia"
+      - "Porque muitas bibliotecas falham aberto e aceitam o certificado por padrão"
+    answer: 3
+    explanation: "O comportamento padrão de 'falhar aberto' quando o OCSP está fora do ar é comum e raramente intencional — é uma decisão de segurança com consequência real (aceitar um certificado potencialmente revogado) que deveria ser avaliada e documentada, não deixada ao valor padrão de uma biblioteca."
+
+  - question: "Por que CIBA existe como um fluxo separado de authorization code, em vez de ser suficiente usar o fluxo já existente com redirecionamento?"
+    options:
+      - "Porque quem inicia a transação nem sempre é quem pode aprová-la em outro canal"
+      - "Porque CIBA é mais rápido de implementar e substitui authorization code"
+      - "Porque authorization code exige navegador, que CIBA elimina sempre"
+      - "Porque CIBA é exigido pela FAPI Baseline para todo client confidencial"
+    answer: 0
+    explanation: "CIBA resolve um problema estrutural diferente: quando quem inicia a transação (um atendente, um sistema interno) não é quem pode aprová-la (o titular, em outro dispositivo). O `auth_req_id` e os modos poll/ping/push existem justamente para desacoplar esses dois papéis no tempo e no canal."
+
+  - question: "Qual é a diferença de propósito entre usar mTLS e usar DPoP para tornar um token sender-constrained?"
+    options:
+      - "mTLS serve só a usuário final; DPoP serve só a client machine-to-machine"
+      - "mTLS aproveita certificado por cliente já existente; DPoP dispensa certificado"
+      - "mTLS exige suporte do navegador; DPoP só funciona em app mobile"
+      - "mTLS e DPoP são redundantes e sempre precisam ser usados juntos"
+    answer: 1
+    explanation: "A escolha entre os dois mecanismos de sender-constrained depende da infraestrutura disponível: mTLS aproveita uma infraestrutura de certificado por cliente já existente (o caso natural do Open Finance com ICP-Brasil); DPoP resolve o mesmo problema sem exigir certificado, bastando que o client gere e prove posse de um par de chaves a cada requisição."

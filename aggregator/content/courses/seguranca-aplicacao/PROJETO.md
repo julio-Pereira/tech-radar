@@ -29,8 +29,9 @@ nada, um `id` de outro cliente não abre o recurso dele.
 | serve | emissão de token (authorization code + PKCE, client credentials) e JWKS | `pix-gateway`, trilha `spring-boot` |
 | serve | introspecção e revogação para token opaco | `pix-gateway`, quando o marco 04 escolhe token por referência |
 | serve | CIBA (`auth_req_id`, poll/ping/push) para autorização fora do canal da transação | `pix-gateway` |
+| serve | broker de federação (Keycloak) para identidade workforce, com o `fin-idp` como resource server das claims de papel | backoffice do `pix-gateway` |
 | consome | certificado de cliente validado na borda (mTLS) | camada de rede do `pix-gateway`, com sanitização do header de certificado |
-| emite | evento de segurança (falha de validação, revogação, rotação) | pipeline do marco 14, consumido pela trilha `observabilidade` |
+| emite | evento de segurança (falha de validação, revogação, rotação, logout) | pipeline do marco 15, consumido pela trilha `observabilidade` |
 
 **O que este projeto não é.** Ele não ensina a configurar um `SecurityFilterChain` do zero
 — isso é `spring-boot/09`, e continua valendo. Aqui você está do outro lado da fronteira:
@@ -40,8 +41,8 @@ acontece quando ela não é.
 ## Pré-requisitos
 
 - JDK 21+ e Maven ou Gradle
-- Docker (Postgres para o `fin-idp`, Vault em modo dev para o marco 09, registry local
-  para o marco 11)
+- Docker (Postgres para o `fin-idp`, Keycloak para o marco 06, Vault em modo dev para o
+  marco 10, registry local para o marco 12)
 - OpenSSL para a CA local (script incluído, `openssl req`/`openssl x509` bastam)
 - O `pix-gateway` da trilha `spring-boot`, ou um resource server mínimo equivalente — o
   contrato (JWKS, `aud`, escopo) é o que importa, não a origem do serviço
@@ -57,16 +58,17 @@ acontece quando ela não é.
 | 03 | Endpoint de callback do PSP protegido contra SSRF | Requisição ao endpoint de metadados bloqueada; bypass por redirect 302 também bloqueado |
 | 04 | Validação de JWS na mão contra o JWKS do `fin-idp`, sem biblioteca | Bateria de 6 tokens maliciosos: 6/6 rejeitados, token legítimo aceito |
 | 05 | `fin-idp` de pé, authorization code + PKCE ponta a ponta com o `pix-gateway` | Redirect URI corrigida para matching exato; exfiltração do código de autorização deixa de funcionar, com teste |
-| 06 | mTLS entre `pix-gateway` e `fin-idp` com CA local; header de certificado sanitizado na borda | Token emitido é vinculado ao certificado: outro certificado válido apresentando o mesmo token é rejeitado, e a rejeição aparece no log de segurança |
-| 07 | Matriz papel × recurso × ação declarada como dado | Toda combinação permitida passa, toda combinação não declarada é negada (default-deny), e recurso novo sem política quebra o build |
-| 08 | Verificação de assinatura de webhook do PSP resistente a replay e a timing | Requisição replicada e corpo adulterado são rejeitados; diferença de tempo entre assinatura válida e inválida não é distinguível em 1.000 amostras |
-| 09 | Rotação da chave de assinatura do `fin-idp` com dois `kid` ativos | Rotação cronometrada, zero token em voo invalidado; segredo plantado em commit antigo é detectado e falha o build |
-| 10 | Endpoint de consulta de chave Pix sem enumeração, com rate limit por identidade | 500 consultas a chaves aleatórias não revelam quais existem; o limite dispara e fica registrado |
-| 11 | Pipeline que gera SBOM, assina a imagem e falha em CVE alcançável | Dependency confusion reproduzido num registry local e mitigado: o build passa a puxar o pacote interno, não o público |
-| 12 | Pipeline com quatro gates (segredo, CVE alcançável, regra SAST, exceção) | PR com cada violação é barrado; exceção expirada volta a barrar sem intervenção |
-| 13 | Step-up authentication disparado por regra de valor e de velocidade | Transação acima do limite sem step-up é rejeitada; o step-up libera só aquela transação, com motivo registrado |
-| 14 | Evento de segurança estruturado, alerta e runbook ligados | Game day "chave de assinatura vazada": tempo de detecção até rotação completa medido; token da chave comprometida deixa de valer |
-| 15 | Matriz controle × exigência regulatória do `fin-platform`, com ADRs de risco aceito | Toda ameaça do marco 01 aparece com controle testado ou com ADR assinado e datado |
+| 06 | Keycloak como broker, federado a um IdP upstream simulado, com back-channel logout no RP | Logout no IdP encerra a sessão do RP sem passar por ele; a janela de exposição do access token após o logout é medida em número |
+| 07 | mTLS entre `pix-gateway` e `fin-idp` com CA local; header de certificado sanitizado na borda | Token emitido é vinculado ao certificado: outro certificado válido apresentando o mesmo token é rejeitado, e a rejeição aparece no log de segurança |
+| 08 | Matriz papel × recurso × ação declarada como dado | Toda combinação permitida passa, toda combinação não declarada é negada (default-deny), e recurso novo sem política quebra o build |
+| 09 | Verificação de assinatura de webhook do PSP resistente a replay e a timing | Requisição replicada e corpo adulterado são rejeitados; diferença de tempo entre assinatura válida e inválida não é distinguível em 1.000 amostras |
+| 10 | Rotação da chave de assinatura do `fin-idp` com dois `kid` ativos | Rotação cronometrada, zero token em voo invalidado; segredo plantado em commit antigo é detectado e falha o build |
+| 11 | Endpoint de consulta de chave Pix sem enumeração, com rate limit por identidade | 500 consultas a chaves aleatórias não revelam quais existem; o limite dispara e fica registrado |
+| 12 | Pipeline que gera SBOM, assina a imagem e falha em CVE alcançável | Dependency confusion reproduzido num registry local e mitigado: o build passa a puxar o pacote interno, não o público |
+| 13 | Pipeline com quatro gates (segredo, CVE alcançável, regra SAST, exceção) | PR com cada violação é barrado; exceção expirada volta a barrar sem intervenção |
+| 14 | Step-up authentication disparado por regra de valor e de velocidade | Transação acima do limite sem step-up é rejeitada; o step-up libera só aquela transação, com motivo registrado |
+| 15 | Evento de segurança estruturado, alerta e runbook ligados | Game day "chave de assinatura vazada": tempo de detecção até rotação completa medido; token da chave comprometida deixa de valer |
+| 16 | Matriz controle × exigência regulatória do `fin-platform`, com ADRs de risco aceito | Toda ameaça do marco 01 aparece com controle testado ou com ADR assinado e datado |
 
 ## Definição de pronto (capstone)
 
@@ -76,6 +78,9 @@ acontece quando ela não é.
       parametrizado com tokens maliciosos que prova isso
 - [ ] Pelo menos um fluxo usa token **sender-constrained** (mTLS ou DPoP), com teste que
       prova que o mesmo token noutro certificado/chave é rejeitado
+- [ ] Logout iniciado no IdP federado (Keycloak) encerra a sessão do RP sem o usuário
+      passar por ele, e a janela de exposição do access token depois do logout está
+      declarada em número, não como "depende"
 - [ ] Autorização é decidida por uma matriz declarada como dado, não por `if` espalhado;
       default é negar
 - [ ] Nenhum segredo de assinatura está fora do cofre; a chave tem procedimento de
@@ -106,5 +111,5 @@ Provoque cada cenário e escreva um post-mortem de uma página — inclusive qua
 ## Regra do tempo declarado
 
 `estimatedHours` da trilha é ~2× a soma dos `estimatedMinutes` dos marcos: leitura mais
-hands-on. Aqui a proporção pesa para o hands-on nos marcos de identidade e cripto (04–09),
+hands-on. Aqui a proporção pesa para o hands-on nos marcos de identidade e cripto (04–10),
 onde provar a mitigação custa mais do que descrever o conceito.
