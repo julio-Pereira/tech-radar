@@ -322,3 +322,17 @@ mitigação lado a lado.
 **No fin-platform:** o cenário central do marco 14 — nenhum controle dos marcos de identidade dispara, porque a sessão é genuinamente do titular comprometido.
 **Erro comum:** tratar account takeover como falha de autenticação do sistema — a autenticação funcionou corretamente; o problema é de quem a completou.
 **Onde na prática:** marco 14.
+
+## Detecção e resposta
+
+### Não repúdio
+**Em uma frase:** a garantia de que uma ação, uma vez registrada, não pode ser negada por quem a praticou.
+**No fin-platform:** a trilha de auditoria append-only, com encadeamento por hash, é o mecanismo que sustenta essa garantia.
+**Erro comum:** usar MAC (HMAC) onde a situação exige não repúdio perante terceiro — MAC só prova algo para quem já tem o segredo, não convence um auditor externo.
+**Onde na prática:** marcos 09 e 15.
+
+### Honeytoken
+**Em uma frase:** um valor plantado deliberadamente que nunca deveria ser usado em operação legítima — qualquer uso dele só pode significar acesso indevido.
+**No fin-platform:** uma credencial de teste plantada numa tabela sensível, com alerta de alta prioridade ligado a qualquer tentativa de uso.
+**Erro comum:** não isolar o alerta de honeytoken do ruído geral — ele merece prioridade máxima, precisamente por ter taxa de falso positivo próxima de zero.
+**Onde na prática:** marco 15.

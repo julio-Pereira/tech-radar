@@ -22,8 +22,10 @@ existir). **SAST** (Static Application Security Testing) rende em **pre-merge**,
 conjunto **curado** de regras — rodar todas as regras disponíveis de fábrica produz tanto
 ruído que ninguém lê o resultado. **SCA** roda **continuamente** (a árvore de dependência
 muda mesmo sem novo commit, porque novas CVEs são publicadas). **DAST** (Dynamic
-Application Security Testing) rende em **staging**, contra um sistema rodando de verdade.
-**IaC scan** roda contra o código de infraestrutura antes do apply. **Rodar tudo, em todo
+Application Security Testing) rende em **staging**, contra um sistema rodando de verdade —
+um SSRF como o do marco 03 é exatamente o tipo de falha que DAST, testando contra um
+ambiente real, consegue pegar, e que SAST, lendo só o código estático, costuma deixar
+passar. **IaC scan** roda contra o código de infraestrutura antes do apply. **Rodar tudo, em todo
 lugar, o tempo todo é operacionalmente equivalente a não rodar nada** — o volume de
 resultado ignorado converge para o mesmo lugar que a ausência de verificação.
 

@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual pergunta única decide se um sistema tem uma trilha de auditoria de verdade, e não apenas um log com nome pomposo?"
+    options:
+      - "Se o registro não estiver assinado por um notário externo, não é trilha de auditoria"
+      - "Se algum operador do próprio sistema consegue apagar um registro, não é trilha de auditoria"
+      - "Se a retenção for menor que cinco anos, não é considerada trilha de auditoria válida"
+      - "Se o registro não incluir o endereço IP de origem, não é trilha de auditoria completa"
+    answer: 1
+    explanation: "O requisito central de uma trilha de auditoria é não repúdio e integridade: a garantia de que um evento realmente aconteceu e ninguém pode negá-lo ou apagá-lo depois. Se qualquer operador do próprio sistema, por mais privilegiado, consegue apagar um registro, essa garantia já está quebrada por desenho — não importa quão sofisticado seja o resto do sistema."
+
+  - question: "Por que 'falha de autorização' é descrita como o sinal mais subestimado entre os eventos de segurança mínimos que um sistema deve registrar?"
+    options:
+      - "Porque ela é o único evento exigido por norma regulatória entre os seis listados"
+      - "Porque ela ocorre com frequência muito maior do que qualquer outro evento de segurança"
+      - "Porque cada tentativa negada pode ser o próprio BOLA sendo tentado, em tempo real"
+      - "Porque ela é o único evento que não pode ser correlacionado por `trace_id`"
+    answer: 2
+    explanation: "Um sistema que não registra autorização negada não consegue distinguir um clique acidental de alguém varrendo sistematicamente ids sequenciais em busca de um que funcione. Cada tentativa negada é, potencialmente, uma tentativa de BOLA acontecendo naquele exato momento — e é por isso que o sinal merece muito mais atenção do que costuma receber."
+
+  - question: "O que torna um honeytoken um mecanismo de detecção especialmente valioso, comparado à maioria dos outros sinais de segurança?"
+    options:
+      - "Ele criptografa automaticamente qualquer dado sensível armazenado próximo a ele no banco"
+      - "Ele substitui a necessidade de MFA em contas com privilégio administrativo elevado"
+      - "Ele gera, sozinho, o SBOM completo da aplicação sempre que é acessado por engano"
+      - "Qualquer uso dele só pode significar acesso indevido, com altíssima precisão e custo quase zero"
+    answer: 3
+    explanation: "Um honeytoken é um valor plantado que nunca deveria ser tocado em operação legítima — uma credencial falsa, um registro isca. Se ele for usado, não há explicação inocente possível: alguém acessou algo que não deveria. Isso dá ao honeytoken uma taxa de falso positivo próxima de zero, a um custo de implementação quase nulo."
+
+  - question: "Por que 'temos o controle X implementado' não é suficiente numa notificação formal de incidente ao BACEN ou à ANPD?"
+    options:
+      - "Porque é preciso provar que o controle estava ativo especificamente no momento do incidente"
+      - "Porque o BACEN exige que todo controle seja reimplementado a cada notificação de incidente"
+      - "Porque a ANPD só aceita evidência de conformidade gerada por auditor externo credenciado"
+      - "Porque a existência de um controle já é presumida pelo regulador e não precisa ser provada"
+    answer: 0
+    explanation: "O regulador não pergunta se um controle existe em geral no sistema — pergunta se ele estava ativo e funcionando naquela conta, naquele evento, naquele momento específico. A diferença entre afirmar um controle e provar que ele funcionou quando precisou é exatamente o que a evidência gerada pelo próprio log de segurança sustenta."
