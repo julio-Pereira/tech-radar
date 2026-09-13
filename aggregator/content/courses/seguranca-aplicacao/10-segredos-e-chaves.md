@@ -23,7 +23,10 @@ uma chave, ou os dois) e **certificado** (identidade assinada por uma autoridade
 vinculando uma chave pública a um titular, com validade declarada). Rotação de chave de
 assinatura, expiração de certificado e vazamento de senha exigem processos diferentes —
 tratar os quatro com a mesma receita ("é só uma env var") é a origem de boa parte dos
-incidentes deste tema.
+incidentes deste tema. `spring-boot/03` parou em "segredo fora do jar" — perfil por
+ambiente, `@ConfigurationProperties`, configuração externalizada. Este marco começa onde
+aquele para: o **ciclo de vida** completo da chave, não apenas onde o valor mora em tempo
+de execução.
 
 ## Onde o segredo não pode estar
 

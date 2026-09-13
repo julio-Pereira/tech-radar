@@ -99,6 +99,9 @@ deste passo é o backlog existir e ser rastreável, não a correção.
 cliente B, escrevendo um teste que reproduz o problema **antes** de tocar na correção.
 Corrija verificando, no caso de uso — não só no filtro HTTP —, que o `accountId` do
 recurso pertence ao titular do token. Faça `git commit` da correção com o teste incluído.
+É o mesmo rigor de `spring-boot/11` — teste que prova comportamento —, aplicado a um
+**abuse case** em vez de a um caminho feliz: a prova de que o controle bloqueia o caminho
+que ninguém previu, não apenas o que foi especificado.
 
 **Invariantes testáveis**
 
