@@ -47,3 +47,7 @@ milestones:
   - 06-federacao-e-sso.md
   - 07-fapi-mtls-e-ciba.md
   - 08-autorizacao.md
+  # Bloco C — Cripto e segredo
+  - 09-criptografia-aplicada.md
+  - 10-segredos-e-chaves.md
+  - 11-transporte-e-borda.md

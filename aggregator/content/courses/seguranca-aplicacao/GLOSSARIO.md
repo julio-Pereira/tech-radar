@@ -239,13 +239,13 @@ mitigação lado a lado.
 **Em uma frase:** Policy Decision Point (quem avalia a política e decide) e Policy Enforcement Point (quem aplica a decisão no caminho da requisição) — os dois papéis que "política como dado" separa.
 **No fin-platform:** o OPA avaliando a matriz papel × recurso × ação é o PDP; o filtro que aplica "negado" antes do caso de uso rodar é o PEP.
 **Erro comum:** misturar os dois papéis no mesmo componente, perdendo a vantagem de auditar a política sem ler o código do serviço.
-**Onde na prática:** marco 07.
+**Onde na prática:** marco 08.
 
 ### ReBAC
 **Em uma frase:** Relationship-Based Access Control — permissão baseada na relação entre entidades, não apenas no papel ou em atributos isolados.
 **No fin-platform:** responde "este usuário é gerente **desta conta específica**?", pergunta que RBAC sozinho não modela.
 **Erro comum:** tentar forçar essa pergunta em RBAC criando um papel por conta — não escala e não é o que RBAC foi desenhado para expressar.
-**Onde na prática:** marco 07.
+**Onde na prática:** marco 08.
 
 ### Step-up authentication
 **Em uma frase:** exigir um nível maior de garantia de autenticação para uma operação específica, com base no valor ou no risco dela.
@@ -257,4 +257,30 @@ mitigação lado a lado.
 **Em uma frase:** acesso emergencial que quebra a segregação de funções normal, permitido mas registrado de forma destacada e auditável, com justificativa exigida no momento do uso.
 **No fin-platform:** um operador sênior estorna uma transação fora do fluxo normal numa emergência, com o motivo registrado no log de segurança antes da ação ser liberada.
 **Erro comum:** implementar o acesso de emergência sem o registro obrigatório — nesse caso, deixou de ser quebra-vidro e virou apenas uma exceção de permissão.
-**Onde na prática:** marco 07.
+**Onde na prática:** marco 08.
+
+## Criptografia e segredo
+
+### Envelope encryption
+**Em uma frase:** cifrar o dado com uma DEK, e cifrar a DEK com uma KEK guardada separadamente — duas chaves, dois lugares, dois papéis.
+**No fin-platform:** a DEK cifrada viaja junto ao dado; a KEK nunca sai do cofre que protege o `fin-idp`.
+**Erro comum:** guardar a DEK em claro na mesma linha de banco que o dado que ela protege — anula a separação inteira.
+**Onde na prática:** marco 09.
+
+### DEK/KEK
+**Em uma frase:** Data Encryption Key (cifra o dado) e Key Encryption Key (cifra a DEK) — os dois papéis do envelope encryption.
+**No fin-platform:** apagar a KEK torna toda DEK protegida por ela irrecuperável — o mecanismo por trás do crypto-shredding de `kafka/13`.
+**Erro comum:** reutilizar a mesma DEK para grandes volumes de dado sem necessidade, ampliando o raio de um eventual comprometimento.
+**Onde na prática:** marco 09.
+
+### Crypto-agilidade
+**Em uma frase:** a capacidade de trocar um algoritmo criptográfico por outro sem reescrever o sistema, sustentada por um inventário de onde cada algoritmo é usado.
+**No fin-platform:** saber, hoje, todo lugar que usa RSA ou AES no `fin-platform`, antes de precisar trocar por exigência regulatória ou vulnerabilidade descoberta.
+**Erro comum:** adiar o inventário para o dia da troca — que é exatamente o dia em que não há mais tempo para mapear.
+**Onde na prática:** marco 09.
+
+### Timing attack
+**Em uma frase:** um ataque que extrai informação secreta observando quanto tempo uma operação leva para responder, não o conteúdo da resposta.
+**No fin-platform:** um HMAC de webhook verificado com `equals()` permite reconstruir a assinatura correta byte a byte, medindo o tempo de resposta.
+**Erro comum:** considerar timing attack "só teórico" — ele é praticável remotamente, com amostragem estatística suficiente.
+**Onde na prática:** marco 09.
