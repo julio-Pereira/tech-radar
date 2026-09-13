@@ -1,0 +1,54 @@
+questions:
+  - question: "Como o dependency confusion consegue substituir um pacote interno legítimo por um malicioso, sem explorar nenhuma falha de código da aplicação?"
+    options:
+      - "O pacote malicioso no registry público anuncia versão maior, e a resolução escolhe por número, sem checar a origem"
+      - "O atacante explora uma falha de desserialização na própria aplicação para injetar o pacote malicioso diretamente no build"
+      - "O atacante compromete o servidor de CI para substituir o artefato depois do build pronto"
+      - "O atacante modifica diretamente o lockfile do repositório através de um pull request"
+    answer: 0
+    explanation: "Um pacote interno, com nome privado dentro da organização, também existe — publicado pelo atacante — no registry público, com um número de versão maior. Se o gerenciador de pacotes resolve por maior versão disponível sem distinguir origem, ele silenciosamente troca o pacote interno legítimo pelo público malicioso, sem tocar em nenhuma linha do código da aplicação."
+
+  - question: "Por que 'zero vulnerabilidades encontradas' num relatório de SCA costuma ser tratado como sinal de alerta, e não de tranquilidade?"
+    options:
+      - "Porque todo projeto novo já começa automaticamente com zero vulnerabilidades registradas"
+      - "Porque, na maioria das vezes, indica que o scanner está mal configurado, não que o projeto é seguro"
+      - "Porque bancos de vulnerabilidade só listam falhas descobertas nos últimos 90 dias"
+      - "Porque scanners de SCA não conseguem escanear nenhuma dependência publicada há mais de um ano inteiro"
+    answer: 1
+    explanation: "Um projeto real, com centenas de dependências transitivas, raramente tem zero vulnerabilidades de verdade. O resultado 'zero' costuma significar escopo de varredura limitado, dependência transitiva não coberta, ou banco de dados desatualizado — o mesmo tipo de falso conforto que aparece em qualquer outra categoria de segurança quando 'o scanner não achou nada'."
+
+  - question: "O que o critério de alcançabilidade acrescenta a EPSS e KEV na priorização de correção de uma CVE?"
+    options:
+      - "Substitui integralmente a necessidade de calcular o CVSS da vulnerabilidade encontrada no relatório"
+      - "Determina automaticamente qual versão corrigida deve ser instalada"
+      - "Confirma se a função vulnerável está realmente no caminho de código chamado"
+      - "Classifica a vulnerabilidade na taxonomia CWE correspondente a ela"
+    answer: 2
+    explanation: "EPSS e KEV dizem o quão provável é a exploração em geral; alcançabilidade responde uma pergunta diferente e complementar: essa função vulnerável específica está no caminho que o seu código de fato chama? Sem essa checagem, o time gasta tempo corrigindo dependência cuja parte vulnerável nunca é invocada, enquanto uma CVE alcançável e ativa espera na fila."
+
+  - question: "Qual é a relação entre o que esta trilha ensina sobre SBOM e proveniência, e o que `kubernetes/09` ensina sobre política de admissão?"
+    options:
+      - "`kubernetes/09` gera o SBOM automaticamente; esta trilha apenas o arquiva no cofre"
+      - "As duas trilhas ensinam exatamente o mesmo conteúdo, com exemplos de aplicação diferentes"
+      - "`kubernetes/09` assina a imagem; esta trilha apenas verifica a assinatura recebida depois"
+      - "`kubernetes/09` verifica SBOM e proveniência na admissão; aqui se aprende a produzi-los"
+    answer: 3
+    explanation: "São as duas metades do mesmo controle. `kubernetes/09` consome esses artefatos, verificando-os no momento em que um workload tenta entrar no cluster — mas sem esta trilha ensinar a produzir SBOM real, proveniência verificável e assinatura corretas, não há nada confiável para aquela política verificar."
+
+  - question: "Por que um workflow de CI acionado por `pull_request_target`, mal configurado, é considerado um vetor de ataque sério contra o próprio pipeline?"
+    options:
+      - "Porque ele roda com as permissões do repositório principal sobre código vindo de um fork não confiável"
+      - "Porque ele expõe o token de CI inteiro em texto claro no log de execução do workflow, visível a qualquer leitor"
+      - "Porque ele impede que qualquer teste automatizado rode em pull requests externos"
+      - "Porque ele exige que o fork tenha acesso de escrita ao repositório principal"
+    answer: 0
+    explanation: "`pull_request_target` executa com o contexto e as permissões do repositório base, mesmo processando código vindo de um fork. Se o workflow faz checkout desse código e o executa sem cuidado, qualquer pessoa que abra um PR malicioso ganha, efetivamente, a chance de rodar código com privilégio elevado dentro do pipeline do repositório principal."
+
+  - question: "Por que fixar uma dependência por hash de conteúdo (pinning por hash) protege contra algo que fixar apenas por número de versão não protege?"
+    options:
+      - "Porque pinning por hash é uma exigência formal explícita da especificação SLSA a partir do nível 1"
+      - "Porque um hash de conteúdo não pode ser republicado sob o mesmo valor, ao contrário de uma versão"
+      - "Porque hash de conteúdo é sempre mais rápido de verificar do que número de versão"
+      - "Porque pinning por número de versão não é suportado pela maioria dos gerenciadores"
+    answer: 1
+    explanation: "Um número de versão pode, em alguns registries, ser republicado com conteúdo diferente sob o mesmo rótulo — silenciosamente trocando o que o build recebe. Um hash de conteúdo muda se qualquer byte do pacote mudar, tornando essa substituição detectável: o build simplesmente falha ao encontrar um hash diferente do esperado, em vez de aceitar silenciosamente o conteúdo trocado."

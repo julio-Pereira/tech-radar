@@ -284,3 +284,41 @@ mitigação lado a lado.
 **No fin-platform:** um HMAC de webhook verificado com `equals()` permite reconstruir a assinatura correta byte a byte, medindo o tempo de resposta.
 **Erro comum:** considerar timing attack "só teórico" — ele é praticável remotamente, com amostragem estatística suficiente.
 **Onde na prática:** marco 09.
+
+## Cadeia de suprimentos e fraude
+
+### SBOM
+**Em uma frase:** Software Bill of Materials — a lista completa e estruturada de toda dependência, direta e transitiva, de um artefato de software, com versão exata.
+**No fin-platform:** gerado a cada build do `pix-gateway` e do `fin-idp`, sustenta tanto o questionário de fornecedor quanto o gate de CVE alcançável.
+**Erro comum:** gerar o SBOM uma vez e arquivar — ele precisa ser produzido a cada build, refletindo o estado real do artefato daquele momento.
+**Onde na prática:** marco 12.
+
+### SLSA
+**Em uma frase:** Supply-chain Levels for Software Artifacts — um framework que gradua, em níveis, o rigor das garantias de proveniência e integridade de um build.
+**No fin-platform:** o nível de SLSA alcançado pelo pipeline do `pix-gateway` é o que a política de admissão de `kubernetes/09` verifica antes de aceitar a imagem.
+**Erro comum:** tratar SLSA como certificação de "produto seguro" — ele mede a garantia do processo de build, não a ausência de vulnerabilidade no código.
+**Onde na prática:** marco 12.
+
+### Proveniência
+**Em uma frase:** a prova verificável de como um artefato foi construído — qual pipeline, a partir de qual commit, com quais entradas.
+**No fin-platform:** permite provar, para um auditor, que a imagem em produção veio exatamente do commit que o time diz que veio.
+**Erro comum:** confundir proveniência com assinatura — a assinatura prova integridade do artefato final; a proveniência prova a história de como ele chegou lá.
+**Onde na prática:** marco 12.
+
+### Dependency confusion
+**Em uma frase:** um pacote interno é sequestrado ao ser republicado, pelo atacante, no registry público, com um número de versão maior que o interno.
+**No fin-platform:** sem namespace privado explícito, o build do `pix-gateway` pode resolver silenciosamente para a versão pública maliciosa.
+**Erro comum:** achar que um nome de pacote "obscuro" ou interno é proteção suficiente — obscuridade não é controle.
+**Onde na prática:** marco 12.
+
+### Alcançabilidade
+**Em uma frase:** o critério que verifica se a função vulnerável de uma CVE está de fato no caminho de código que o sistema chama, e não apenas presente na árvore de dependência.
+**No fin-platform:** o gate de pipeline do marco 12 só bloqueia build por CVE alcançável e com EPSS alto — não por qualquer CVE presente na árvore.
+**Erro comum:** tratar toda CVE na árvore de dependência como igualmente urgente, ignorando se o código vulnerável é de fato invocado.
+**Onde na prática:** marcos 02 e 12.
+
+### Account takeover
+**Em uma frase:** um atacante assume o controle da conta de outra pessoa usando credencial roubada, SIM swap ou engenharia social — sem violar nenhum controle de autenticação ou autorização do sistema.
+**No fin-platform:** o cenário central do marco 14 — nenhum controle dos marcos de identidade dispara, porque a sessão é genuinamente do titular comprometido.
+**Erro comum:** tratar account takeover como falha de autenticação do sistema — a autenticação funcionou corretamente; o problema é de quem a completou.
+**Onde na prática:** marco 14.

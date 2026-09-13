@@ -51,3 +51,7 @@ milestones:
   - 09-criptografia-aplicada.md
   - 10-segredos-e-chaves.md
   - 11-transporte-e-borda.md
+  # Bloco D — Código e cadeia
+  - 12-cadeia-de-suprimentos.md
+  - 13-secure-sdlc.md
+  - 14-fraude-e-abuso.md

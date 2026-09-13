@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que rodar todas as ferramentas de segurança (SAST, DAST, SCA, IaC scan) com todas as regras disponíveis, em todo commit e todo ambiente, tende a produzir o mesmo efeito prático de não rodar nenhuma?"
+    options:
+      - "Porque ferramentas de SAST e DAST não podem coexistir no mesmo pipeline de CI por design"
+      - "Porque rodar todas juntas excede o tempo máximo permitido por qualquer runner de CI comum"
+      - "Porque o volume de resultado ignorado converge para o mesmo efeito de não verificar nada"
+      - "Porque cada ferramenta exige uma licença separada, tornando o custo total proibitivo"
+    answer: 2
+    explanation: "Cada ferramenta rende num momento e escopo específicos. Rodar tudo em todo lugar produz tanto ruído que o time para de ler o resultado — na prática, o volume de alerta ignorado converge para o mesmo efeito de não ter verificação nenhuma, só que com custo de execução maior."
+
+  - question: "O que caracteriza a política de exceção que este marco descreve, além de simplesmente 'permitir pular o gate quando necessário'?"
+    options:
+      - "Ela permite que qualquer desenvolvedor decida individualmente pular o gate sem registro"
+      - "Ela substitui permanentemente o gate por uma revisão manual feita uma vez por trimestre"
+      - "Ela reduz o rigor do gate apenas para repositórios classificados como de baixo risco"
+      - "Ela exige prazo declarado, dono nomeado e expiração automática que volta a barrar sozinha"
+    answer: 3
+    explanation: "Sem os três elementos — prazo, dono e expiração automática —, uma exceção vira uma porta aberta permanente que ninguém lembra de fechar. A expiração automática é o que garante que o build volta a falhar sozinho quando a data passa, sem depender de alguém se lembrar de revisar manualmente."
+
+  - question: "Por que um requisito de segurança satisfeito manualmente, sem virar teste automatizado, costuma parar de proteger o sistema depois de um refactor?"
+    options:
+      - "Porque nada volta a verificar automaticamente aquele requisito depois que o código muda"
+      - "Porque o ASVS exige recertificação manual a cada seis meses, independentemente de mudança"
+      - "Porque refactors sempre removem os comentários que documentam decisões de segurança"
+      - "Porque o requisito deixa de aparecer no manifesto da trilha depois do refactor"
+    answer: 0
+    explanation: "Um requisito verificado uma vez e nunca mais é conhecimento que existiu, não proteção que continua existindo. Sem um teste automatizado cobrindo aquele requisito, nada impede que um refactor futuro quebre a garantia original sem que ninguém perceba — é exatamente o que transformar o requisito em teste de regressão evita."
+
+  - question: "Por que uma checklist curta de revisão de segurança (autorização, entrada, segredo, criptografia, log) tende a proteger mais, na prática, do que uma checklist longa e completa?"
+    options:
+      - "Porque checklists curtas são exigidas por norma regulatória em instituições financeiras"
+      - "Porque uma lista curta e focada é realmente seguida, enquanto uma longa tende a ser ignorada"
+      - "Porque uma checklist longa não pode ser automatizada em nenhuma ferramenta de CI"
+      - "Porque revisores seniores só aceitam revisar PRs com checklist de até cinco itens"
+    answer: 1
+    explanation: "O objetivo de uma checklist de revisão não é cobrir 100% dos casos teoricamente possíveis — é ser efetivamente seguida. Uma lista de trinta itens raramente é percorrida item a item; cinco pontos que concentram a maior parte do risco real, seguidos de verdade em todo PR, protegem mais do que uma lista completa que ninguém tem tempo de aplicar."
