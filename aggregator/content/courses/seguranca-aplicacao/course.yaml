@@ -1,0 +1,37 @@
+slug: seguranca-aplicacao
+title: "Segurança de Aplicação para Fintech"
+subtitle: "Do modelo de ameaça ao token vinculado ao certificado: como uma aplicação financeira resiste a quem tem motivação, tempo e, às vezes, login válido."
+category: "Segurança"
+tags: [seguranca, oauth2, oidc, fapi, jose, criptografia, owasp, supply-chain, fintech]
+level: advanced
+lang: pt-BR
+# 15 marcos. A regra é ~2x a soma dos estimatedMinutes (leitura mais hands-on),
+# registrada no PROJETO.md.
+estimatedHours: 28
+glossary: GLOSSARIO.md
+sources:
+  - title: "OWASP Application Security Verification Standard (ASVS)"
+    url: https://owasp.org/www-project-application-security-verification-standard/
+  - title: "OWASP API Security Project"
+    url: https://owasp.org/www-project-api-security/
+  - title: "OWASP Cheat Sheet Series"
+    url: https://cheatsheetseries.owasp.org/
+  - title: "OAuth 2.0 Security Best Current Practice (IETF)"
+    url: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics
+  - title: "OpenID Foundation — FAPI Working Group"
+    url: https://openid.net/wg/fapi/
+  - title: "Open Finance Brasil — Especificações"
+    url: https://openfinancebrasil.atlassian.net/wiki/spaces/OF/overview
+  - title: "Spring Security — Reference Documentation"
+    url: https://docs.spring.io/spring-security/reference/
+  - title: "Spring Authorization Server"
+    url: https://docs.spring.io/spring-authorization-server/reference/
+  - title: "NIST SP 800-63 — Digital Identity Guidelines"
+    url: https://pages.nist.gov/800-63-3/
+  - title: "SLSA — Supply-chain Levels for Software Artifacts"
+    url: https://slsa.dev/
+milestones:
+  # Bloco A — Ameaça e base
+  - 01-modelagem-de-ameaca.md
+  - 02-owasp-e-asvs.md
+  - 03-entrada-nao-confiavel.md

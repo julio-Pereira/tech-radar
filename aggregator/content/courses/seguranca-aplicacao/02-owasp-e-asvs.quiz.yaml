@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que 'o sistema segue o OWASP Top 10' é uma frase fraca como critério de aceite, enquanto 'o sistema atende ASVS 4.1.1' não é?"
+    options:
+      - "Porque o Top 10 só cobre vulnerabilidades de aplicação web, e o ASVS cobre também infraestrutura de rede"
+      - "Porque o Top 10 é atualizado com menos frequência que o ASVS, tornando-o desatualizado por padrão"
+      - "Porque cada item do ASVS é um requisito numerado e testável, enquanto uma categoria do Top 10 não diz o que testar"
+      - "Porque o ASVS é mantido por um órgão regulador, e o Top 10 é mantido por voluntários sem validação formal"
+    answer: 2
+    explanation: "O Top 10 é uma lista de categorias de risco — boa para conscientizar, ruim para verificar, porque 'falhas criptográficas' não define um teste. O ASVS numera requisitos verificáveis por nível; é por isso que só ele serve como critério de aceite operável."
+
+  - question: "Qual é a diferença central entre BOLA e BFLA?"
+    options:
+      - "BOLA afeta o objeto que a requisição manipula; BFLA afeta a função (endpoint/operação) que o cliente consegue chamar sem ter o papel para isso"
+      - "BOLA ocorre apenas em APIs REST; BFLA ocorre apenas em APIs GraphQL"
+      - "BOLA é detectável por scanner automatizado; BFLA só é detectável por revisão manual de código"
+      - "BOLA depende de token expirado; BFLA depende de token com escopo insuficiente"
+    answer: 0
+    explanation: "BOLA é sobre qual objeto (o id do recurso) a requisição acessa; BFLA é sobre qual função o cliente pode invocar, independentemente do id — o exemplo clássico é o endpoint administrativo alcançável por um usuário comum. Nenhuma das duas é confiavelmente pega por scanner, porque ambas exigem entender a relação entre identidade e o que está sendo acessado."
+
+  - question: "Por que nenhuma ferramenta de scanner automatizado detecta BOLA de forma confiável?"
+    options:
+      - "Porque BOLA só ocorre em endpoints que usam autenticação baseada em cookie, que a maioria dos scanners não suporta"
+      - "Porque a exploração de BOLA sempre exige múltiplas requisições em sequência, o que os scanners não conseguem correlacionar"
+      - "Porque BOLA exige credencial administrativa para ser reproduzido em ambiente de teste automatizado"
+      - "Porque a requisição é sintaticamente válida, autenticada e com token legítimo — só a relação entre o titular do token e o dono do recurso está errada, e nenhum scanner conhece essa relação"
+    answer: 3
+    explanation: "O scanner vê uma requisição bem formada, autenticada, com token válido, indo para um endpoint que existe. O único jeito de saber que o id pertence a outra pessoa é conhecer a relação de posse entre identidade e recurso — informação de negócio, não de sintaxe."
+
+  - question: "Uma fintech aplica ASVS nível 3 em todos os endpoints, incluindo o que lista as bandeiras de cartão aceitas publicamente. Qual é o problema dessa escolha?"
+    options:
+      - "O esforço de verificação é desperdiçado em um componente cujo risco não justifica o nível mais alto — o nível certo depende da classe de dado manipulada, não de um padrão único"
+      - "ASVS nível 3 exige infraestrutura com HSM dedicado, o que torna endpoints públicos tecnicamente incompatíveis"
+      - "Aplicar o mesmo nível em toda a aplicação viola os termos de licenciamento do ASVS, que exige nível único por domínio"
+      - "Nível 3 desabilita cache de resposta HTTP, o que quebraria a performance de um endpoint de leitura pública"
+    answer: 0
+    explanation: "O erro mais comum ao adotar ASVS é uniformizar o nível em vez de escolhê-lo pela classe de dado do componente. Um endpoint de leitura pública sem dado sensível não justifica o mesmo rigor de um serviço que inicia pagamento — aplicar nível 3 ali é esforço de verificação sem redução de risco proporcional."
+
+  - question: "Uma CVE tem CVSS 9.8, EPSS próximo de zero e não está no catálogo KEV. Outra tem CVSS 6.5 e está no KEV. Qual deveria ter prioridade maior de correção, e por quê?"
+    options:
+      - "A de CVSS 9.8, porque CVSS já incorpora a probabilidade de exploração no seu cálculo"
+      - "Nenhuma das duas — CVSS, EPSS e KEV só devem ser combinados quando o CNA (CVE Numbering Authority) os publica em conjunto"
+      - "A de CVSS 6.5, porque estar no KEV significa exploração confirmada em ambiente real, o que pesa mais do que uma severidade teórica sem sinal de exploração"
+      - "É indiferente — o tempo de correção deve ser o mesmo para toda CVE crítica, independentemente de EPSS ou KEV"
+    answer: 2
+    explanation: "CVSS mede severidade teórica, calculada por características técnicas — não incorpora probabilidade real de exploração. EPSS estima essa probabilidade, e o KEV confirma exploração observada. Uma CVE no KEV, mesmo com CVSS mais baixo, representa risco real e ativo — e deve furar a fila de uma CVE teoricamente pior, mas sem sinal de exploração."
+
+  - question: "No teste que corrige o BOLA do endpoint de consulta de pagamento, por que o cliente A deve receber 404 ao tentar acessar o recurso de B, e não 403?"
+    options:
+      - "Porque 403 exige que o servidor tenha verificado a identidade do solicitante, o que adiciona latência desnecessária"
+      - "Porque 404 é o único código de status que frameworks Spring Security suportam nativamente para autorização por objeto"
+      - "Porque 403 confirma implicitamente que o recurso existe, vazando informação sobre a existência de dados de outro cliente"
+      - "Porque 403 é reservado pela especificação HTTP exclusivamente para falhas de autenticação, não de autorização"
+    answer: 2
+    explanation: "Devolver 403 diz 'esse recurso existe, mas você não pode vê-lo' — o que já é vazamento de informação sobre a existência do pagamento de outra pessoa. Devolver 404 trata o recurso de outro titular como se não existisse para quem não tem posse sobre ele, sem confirmar nada."
