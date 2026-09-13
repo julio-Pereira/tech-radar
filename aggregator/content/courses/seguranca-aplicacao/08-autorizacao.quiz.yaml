@@ -1,0 +1,54 @@
+questions:
+  - question: "Um token tem escopo `payments:read` e é apresentado por um titular legítimo e autenticado. Ainda assim, ele consegue ler o pagamento de outro cliente. Qual é a causa estrutural?"
+    options:
+      - "O escopo deveria ter sido revogado antes da expiração natural do token"
+      - "O token deveria ser sender-constrained via mTLS para impedir esse acesso"
+      - "O sistema checou só o escopo, sem verificar a posse sobre aquele recurso"
+      - "A claim `aud` do token não foi validada pelo resource server"
+    answer: 2
+    explanation: "Este é exatamente o padrão de BOLA: o token é legítimo e tem o escopo certo, mas escopo não carrega informação sobre qual recurso específico o titular pode acessar. Essa verificação de posse é responsabilidade de autorização no domínio, não do escopo do token."
+
+  - question: "Em qual cenário ReBAC responde uma pergunta que RBAC, sozinho, não consegue responder?"
+    options:
+      - "Quando é preciso saber se o usuário tem múltiplo fator ativo"
+      - "Quando é preciso verificar se um token ainda não expirou"
+      - "Quando é preciso escolher entre certificado mTLS ou prova DPoP"
+      - "Quando é preciso saber se ele é gerente desta conta específica"
+    answer: 3
+    explanation: "RBAC responde 'este usuário tem o papel gerente?' — uma pergunta sobre identidade organizacional, sem relação com um recurso específico. ReBAC modela a relação entre o usuário e o recurso ('gerente desta conta específica'), que é exatamente o tipo de pergunta que autorização fina sobre um objeto exige."
+
+  - question: "Separar Policy Decision Point (PDP) de Policy Enforcement Point (PEP), usando uma ferramenta como OPA ou Cedar, traz qual vantagem principal sobre embutir a regra de autorização em `if`s no código do serviço?"
+    options:
+      - "Permite auditar a política sem ler o serviço inteiro atrás dos `if`s"
+      - "Elimina totalmente a latência de decisão, pois o PDP roda em memória"
+      - "Remove a necessidade de teste automatizado para a autorização"
+      - "Garante política idêntica em todo o sistema, mesmo em código legado"
+    answer: 0
+    explanation: "O ganho central de política como dado é auditabilidade: um revisor consegue ler as regras declarativas separadamente do código do serviço. O custo real, em troca, é uma chamada de decisão a mais no caminho (latência) e mais uma peça de infraestrutura para operar — não é uma vantagem sem contrapartida."
+
+  - question: "Um `@PreAuthorize` no controller HTTP de um serviço Spring protege corretamente a chamada via API. O mesmo caso de uso, porém, também é invocado por um consumidor Kafka processando um evento assíncrono. O que acontece com a autorização nesse segundo caminho?"
+    options:
+      - "O Spring propaga a anotação para qualquer thread que invoque o método"
+      - "Ela não é aplicada, pois protege a entrada HTTP, não o caso de uso em si"
+      - "O consumidor herda o contexto do último usuário que chamou o endpoint"
+      - "A mensagem Kafka é rejeitada, pois tópicos não aceitam payload restrito"
+    answer: 1
+    explanation: "Autorização decidida na camada de entrada (controller) não acompanha o caso de uso quando ele é invocado por outro caminho, como um consumidor de evento ou um job. A regra correta é a decisão morar dentro do caso de uso ou do domínio, de forma que qualquer caminho de entrada passe pela mesma verificação."
+
+  - question: "Por que 'disciplina de revisão de código' tende a falhar, no prazo longo, como única defesa contra o filtro de tenant esquecido numa query multi-tenant?"
+    options:
+      - "Porque revisor de código não pode ver query SQL em ambiente regulado"
+      - "Porque ORM bloqueia sozinho qualquer query sem filtro de tenant"
+      - "Porque depende de atenção humana sustentada, e controle estrutural não"
+      - "Porque revisão de código é incompatível com entrega contínua"
+    answer: 2
+    explanation: "Disciplina de revisão funciona enquanto o time é pequeno e a atenção não cansa — mas é humana, e humanos erram, especialmente sob prazo. Um controle estrutural, como um tipo que não compila sem tenant explícito ou Row-Level Security no banco, aplica a regra independentemente de alguém lembrar de verificar naquele PR específico."
+
+  - question: "Numa matriz de autorização papel × recurso × ação declarada como dado, por que adicionar um recurso novo ao sistema sem declarar sua linha na matriz deveria quebrar o build?"
+    options:
+      - "Porque um compilador moderno rejeita recurso sem anotação de segurança"
+      - "Porque a ausência de linha causa exceção de nulidade só em produção"
+      - "Porque isso viola uma exigência específica da suíte FAPI"
+      - "Porque default-deny exige forçar a decisão antes do recurso ir ao ar"
+    answer: 3
+    explanation: "O objetivo de declarar a matriz como dado, com default-deny, é impedir que um recurso novo fique acessível por omissão. Se o build não falhasse, o recurso simplesmente ficaria negado a todos (o que pode passar despercebido como bug) ou, pior, dependeria de um padrão não intencional — quebrar o build força a decisão de autorização a ser tomada conscientemente antes do recurso existir em produção."

@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que um JWS (o que o mercado costuma chamar de 'JWT') não deveria conter um dado sensível no payload, mesmo estando corretamente assinado?"
+    options:
+      - "Porque a assinatura do JWS expira mais rápido do que a de um JWE"
+      - "Porque bibliotecas de JWS truncam payloads maiores do que 4 KB"
+      - "Porque JWS garante integridade, não confidencialidade — o payload é legível por todos"
+      - "Porque a especificação JOSE proíbe claims customizadas em token assinado"
+    answer: 2
+    explanation: "JWS assina o payload — garante que ninguém alterou o conteúdo sem invalidar a assinatura — mas não cifra nada. Qualquer um com o token consegue decodificar o base64url e ler o JSON. Confidencialidade exige JWE, ou, mais barato na prática, simplesmente não colocar o dado sensível no token."
+
+  - question: "Um servidor decide qual algoritmo usar para verificar a assinatura de um token lendo o campo `alg` do próprio token recebido. Por que isso é perigoso?"
+    options:
+      - "Porque o campo `alg` pode ser removido por qualquer proxy intermediário"
+      - "Porque algoritmo simétrico é sempre mais lento de verificar que assimétrico"
+      - "Porque a ausência do campo `alg` causa exceção não tratada na biblioteca"
+      - "Porque o atacante pode usar a chave pública RSA conhecida como segredo HMAC"
+    answer: 3
+    explanation: "Este é o ataque de confusão de algoritmo: se o servidor deveria verificar com RS256 (chave pública) mas confia no `alg` do token para escolher o algoritmo, um atacante assina com HS256 usando a chave pública RSA — que é conhecida — como segredo simétrico. A verificação 'passa' porque a conta bate, mas o servidor nunca deveria ter deixado o atacante escolher o algoritmo de verificação."
+
+  - question: "O que especificamente a validação da claim `aud` impede?"
+    options:
+      - "Que um token emitido para um serviço seja aceito por outro serviço diferente"
+      - "Que o token seja usado depois da data de expiração declarada em `exp`"
+      - "Que o payload do token seja alterado sem invalidar a assinatura"
+      - "Que o token seja decodificado por biblioteca sem suporte completo a JOSE"
+    answer: 0
+    explanation: "`aud` (audience) declara para quem o token vale. Sem validá-la, qualquer serviço que confie no mesmo emissor aceitaria um token emitido para um propósito ou destinatário diferente — a validação de assinatura por si só não distingue isso, porque o token continua legítimo, só não era para ali."
+
+  - question: "Um `kid` recebido no header de um token é usado diretamente para montar o caminho de um arquivo de chave no disco, sem validação prévia. Que classe de falha isso reintroduz?"
+    options:
+      - "Confusão de algoritmo, pois o `kid` também determina o algoritmo de assinatura"
+      - "Um vetor de path traversal, disfarçado de campo de protocolo JOSE"
+      - "Repúdio, pois o `kid` deixa de provar qual chave assinou o token"
+      - "Replay, pois o `kid` reutilizado permite reenviar tokens antigos"
+    answer: 1
+    explanation: "O `kid` é só mais um campo de entrada vindo de fora do sistema — se ele monta um caminho de arquivo ou uma query sem ser validado contra uma lista de chaves conhecidas, o problema é o mesmo path traversal (ou injeção) tratado em entrada não confiável, apenas embutido num campo de protocolo em vez de num parâmetro de URL."
+
+  - question: "Por que a rotação da chave de assinatura de um JWKS costuma publicar duas chaves simultaneamente, em vez de substituir a chave antiga diretamente pela nova?"
+    options:
+      - "Porque a especificação exige número par de chaves publicadas sempre"
+      - "Porque publicar duas chaves reduz a latência de busca do JWKS pela metade"
+      - "Porque o `kid` permite ao verificador escolher a chave certa para cada token em voo"
+      - "Porque bibliotecas de verificação exigem ao menos duas entradas para iniciar o cache"
+    answer: 2
+    explanation: "Se a chave antiga fosse removida imediatamente, todo token ainda válido e em uso, mas assinado com ela, passaria a falhar a verificação. Publicar as duas chaves — cada uma com seu `kid` — permite que o verificador escolha a chave certa para cada token, tornando a rotação transparente para quem já tem token emitido."
+
+  - question: "Em que cenário faz mais sentido usar um token opaco (por referência, com introspecção) em vez de um JWS validado localmente?"
+    options:
+      - "Quando o volume de requisições torna irrelevante uma chamada extra de rede"
+      - "Quando o emissor do token não publica um JWKS acessível publicamente"
+      - "Quando o payload precisa ser lido por vários serviços sem chamada adicional"
+      - "Quando revogar o token antes da expiração pesa mais que o custo da introspecção"
+    answer: 3
+    explanation: "O trade-off central é revogação contra escala. Um JWS por valor é rápido de validar localmente, mas revogá-lo antes de expirar exige mecanismo à parte. Um token opaco resolve revogação de forma imediata e simples — o authorization server simplesmente para de reconhecê-lo — ao custo de uma chamada de introspecção por validação, custo que muitas fintechs decidem pagar deliberadamente."

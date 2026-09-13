@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que nenhum controle de identidade ou autorização dos marcos 04 a 08 desta trilha detecta um account takeover bem-sucedido?"
+    options:
+      - "Porque os logs de autenticação são desabilitados automaticamente após o primeiro login do dia"
+      - "Porque o token de acesso emitido nesse cenário tem escopo administrativo por padrão"
+      - "Porque a matriz de autorização do marco 08 não cobre operações financeiras de alto valor"
+      - "Porque o atacante usa credenciais e sessão genuínas do próprio titular, sem violar autenticação"
+    answer: 3
+    explanation: "Account takeover não quebra assinatura de token, nem escopo, nem a matriz de autorização — o atacante está autenticado com a credencial real da vítima, numa sessão legítima. Todos os controles dos marcos anteriores continuam funcionando corretamente; o problema é que eles nunca foram desenhados para detectar isso."
+
+  - question: "Por que SMS, apesar de ser considerado o fator de autenticação mais fraco ainda aceitável, continua sendo usado em vez de simplesmente eliminado?"
+    options:
+      - "Porque, apesar de vulnerável a SIM swap e interceptação, ainda é melhor do que nenhum segundo fator"
+      - "Porque SMS é o único segundo fator reconhecido oficialmente pelo Open Finance Brasil"
+      - "Porque operadoras de telefonia garantem contratualmente a integridade da entrega de SMS"
+      - "Porque SMS elimina completamente o risco de engenharia social contra o titular"
+    answer: 0
+    explanation: "A hierarquia honesta dos fatores reconhece que SMS tem falhas reais — SIM swap e interceptação são ataques praticáveis. Mas ele ainda eleva a barra em relação a não ter segundo fator nenhum. Passkeys mudam o cálculo por serem resistentes a phishing de um jeito que SMS nunca foi."
+
+  - question: "Num controle de step-up authentication disparado por valor de transação, por que ele deve liberar apenas a transação específica, e não elevar a confiança da sessão inteira?"
+    options:
+      - "Porque a sessão inteira precisa ser reautenticada a cada nova transação, independentemente do valor"
+      - "Porque o step-up eleva a confiança só para aquela transação específica, não para a sessão inteira"
+      - "Porque o step-up substitui completamente a necessidade de um token de acesso válido"
+      - "Porque o dispositivo usado no step-up passa a ser o único aceito pela conta dali em diante"
+    answer: 1
+    explanation: "Se o step-up elevasse a sessão inteira, uma prova adicional dada para uma transação de risco elevado passaria a valer, silenciosamente, para qualquer operação futura na mesma sessão — inclusive uma que o titular nunca pretendeu autorizar com esse nível de garantia. Escopar ao evento específico mantém a prova de posse alinhada com o risco real de cada operação."
+
+  - question: "Por que um golpe em que a própria vítima autoriza a transação, convencida por um falso atendente, não é resolvido por mais verificação técnica no backend?"
+    options:
+      - "Porque a legislação brasileira proíbe qualquer verificação adicional em transferência via Pix"
+      - "Porque o modelo de risco de fraude não tem acesso ao histórico de transações do titular"
+      - "Porque a transação é tecnicamente legítima: o titular real autorizou, com o próprio fator"
+      - "Porque nenhum banco de dados registra transações realizadas sob coação ou engenharia social"
+    answer: 2
+    explanation: "Tecnicamente, não há nada errado com a transação: foi o titular verdadeiro quem autorizou, no próprio dispositivo, com o próprio fator de autenticação. Nenhuma verificação técnica distingue essa autorização de uma legítima e desejada — a resposta precisa vir de desenho de produto (limite, atraso deliberado, canal de contestação), não de mais uma checagem no backend."

@@ -1,0 +1,36 @@
+questions:
+  - question: "Um endpoint de estorno usa `@NotNull` e `@Positive` no campo de valor, mas ainda assim aceita um estorno maior do que o valor da transação original. Por que a anotação de borda não pegou esse caso?"
+    options:
+      - "Porque `@Positive` só valida ponto flutuante, e o campo é `BigDecimal`"
+      - "Porque validações Bean Validation só rodam em ambiente de desenvolvimento"
+      - "Porque a anotação valida formato, não a invariante que relaciona a outro dado"
+      - "Porque o valor deveria ser validado por constraint no banco, não na API"
+    answer: 2
+    explanation: "`@NotNull` e `@Positive` garantem que o valor existe e é positivo — formato, não sentido de negócio. A regra 'o estorno não pode exceder o valor original' depende de comparar com outro dado (a transação), o que é invariante de domínio, não validação de campo isolado."
+
+  - question: "Por que query parametrizada é considerada uma defesa 'estrutural' contra SQL injection, e não apenas uma boa prática?"
+    options:
+      - "Porque ela criptografa o valor antes de enviá-lo ao banco de dados"
+      - "Porque ela é obrigatória por padrão em todo driver JDBC moderno"
+      - "Porque ela elimina toda validação de entrada na camada de aplicação"
+      - "Porque ela separa dado de código no protocolo, tornando injeção impossível"
+    answer: 3
+    explanation: "A diferença entre 'escapar caracteres' e parametrizar é que a segunda separa dado de comando no próprio protocolo de comunicação com o banco — o valor nunca é interpretado como parte da instrução SQL, independentemente do seu conteúdo. Escapar depende de cobrir todos os casos; parametrizar remove a classe de erro inteira."
+
+  - question: "Uma aplicação valida a URL de callback do parceiro contra uma allowlist de hosts permitidos, mas ainda assim é explorada via SSRF. O que provavelmente faltou?"
+    options:
+      - "Revalidar o destino final após um redirect HTTP contra a mesma allowlist"
+      - "Implementar a allowlist como denylist, cobrindo os hosts internos conhecidos"
+      - "Usar HTTPS em vez de HTTP na chamada de callback ao parceiro"
+      - "Exigir que o parceiro assine a URL de callback com chave privada"
+    answer: 0
+    explanation: "O padrão de bypass mais comum é validar a URL original e seguir um redirect (302) sem revalidar o destino final contra a mesma allowlist. HTTPS e assinatura não resolvem SSRF — o problema é o servidor fazer uma requisição para um destino não intencional, não a confidencialidade ou autenticidade do transporte."
+
+  - question: "O que as falhas de desserialização insegura, path traversal, XXE e zip bomb têm em comum como causa raiz?"
+    options:
+      - "Todas dependem de uma versão desatualizada da JVM para serem exploráveis"
+      - "Todas confiam no tipo declarado em vez de validar o conteúdo real recebido"
+      - "Todas exigem que o atacante já tenha credencial de administrador"
+      - "Todas são mitigadas por um único cabeçalho HTTP de segurança"
+    answer: 1
+    explanation: "O padrão comum é aceitar o que foi declarado — extensão do arquivo, cabeçalho de tipo, formato esperado — sem validar o conteúdo de fato recebido, que o atacante controla livremente. É por isso que a mitigação de cada uma passa por validar o conteúdo real, não apenas metadados fornecidos pelo cliente."

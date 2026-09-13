@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que localStorage é considerado indefensável para guardar um token de sessão, comparado a um cookie `HttpOnly`?"
+    options:
+      - "Porque localStorage tem limite de armazenamento menor, forçando truncamento do token"
+      - "Porque um cookie `HttpOnly` é sempre transmitido em texto claro, mesmo sob HTTPS"
+      - "Porque qualquer JavaScript rodando na página acessa localStorage, e um XSS expõe o token inteiro"
+      - "Porque localStorage exige CORS habilitado para ser lido pela própria aplicação"
+    answer: 2
+    explanation: "localStorage é acessível a qualquer script que rode na página — legítimo ou injetado via XSS. Um único XSS bem-sucedido expõe o token inteiro. Cookie `HttpOnly` fecha essa porta, ao custo de reabrir CSRF, que `SameSite` mitiga na maior parte dos casos."
+
+  - question: "Por que CORS não deveria ser descrito como um 'controle de segurança'?"
+    options:
+      - "Porque CORS impede automaticamente qualquer ataque de CSRF na aplicação"
+      - "Porque CORS substitui a necessidade de autenticação em requisições entre origens"
+      - "Porque CORS bloqueia por padrão qualquer requisição vinda de fora do domínio"
+      - "Porque CORS relaxa a política de mesma origem para permitir acesso, não protege nada por si só"
+    answer: 3
+    explanation: "CORS existe para permitir, de forma controlada, que um domínio diferente consuma uma API — é um relaxamento da proteção padrão do navegador, não uma proteção em si. Um reflexo cego do header `Origin` na resposta anula qualquer restrição aparente, aceitando efetivamente qualquer origem."
+
+  - question: "Por que um rate limit aplicado apenas por endereço IP é insuficiente como controle contra credential stuffing e enumeração?"
+    options:
+      - "Porque um atacante distribuído por múltiplos IPs, ou atrás de um NAT compartilhado, contorna o limite por IP"
+      - "Porque limitar por identidade é mais simples de implementar do que limitar por IP"
+      - "Porque registrar o IP de origem da requisição é proibido pela legislação de dados"
+      - "Porque o limite por IP consome mais memória no servidor do que o limite por identidade"
+    answer: 0
+    explanation: "Rate limit por IP falha contra um atacante que distribui as tentativas por muitos endereços diferentes, ou contra um NAT compartilhado legítimo que junta vários usuários reais sob o mesmo IP. Aplicar o limite por identidade autenticada torna o controle eficaz mesmo sob distribuição de origem."
+
+  - question: "Qual das opções a seguir é um exemplo de 'vazamento por diferença' que não depende do texto de uma mensagem de erro?"
+    options:
+      - "Um endpoint que expõe a versão do framework usado no cabeçalho de resposta"
+      - "Um endpoint que responde mais rápido para conta inexistente do que para senha errada"
+      - "Um endpoint que aceita requisição sem validar o `Content-Type` declarado"
+      - "Um endpoint que retorna 500 em vez de 400 para uma entrada malformada"
+    answer: 1
+    explanation: "Uma diferença mensurável no tempo de resposta entre 'conta não existe' (falha rápido) e 'senha errada' (chega a comparar o hash, mais lento) vaza a mesma informação que uma mensagem de erro distinta — só que pelo relógio em vez do texto. A correção é igualar resposta e tempo nos dois casos."

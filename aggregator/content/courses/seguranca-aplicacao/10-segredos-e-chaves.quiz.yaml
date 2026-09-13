@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que tratar segredo, chave, credencial e certificado como 'a mesma coisa' (tudo vira variável de ambiente) costuma ser a origem do problema, e não apenas uma simplificação inofensiva?"
+    options:
+      - "Porque nenhuma dessas quatro categorias pode ser guardada num cofre gerenciado"
+      - "Porque cada uma tem ciclo de vida e controle próprios, e tratá-las igual aplica o processo errado a pelo menos uma delas"
+      - "Porque só certificado e chave são regulados por norma, ao contrário dos outros"
+      - "Porque variável de ambiente é proibida por padrão em toda plataforma de container"
+    answer: 1
+    explanation: "Rotação de chave de assinatura, expiração de certificado e vazamento de senha exigem processos diferentes. Tratar os quatro com a mesma receita — 'é só uma env var' — ignora que cada categoria tem um ciclo de vida próprio, e é essa uniformização que costuma ser a origem real do incidente."
+
+  - question: "Um time remove um segredo commitado por engano, criando um novo commit que o exclui do repositório. Por que isso não é suficiente para considerar o segredo protegido?"
+    options:
+      - "Porque o Git comprime automaticamente todo commit antigo, tornando-o irrecuperável"
+      - "Porque ferramentas de varredura não conseguem acessar branches além da principal"
+      - "Porque o commit antigo com o segredo continua acessível no histórico do repositório"
+      - "Porque remover um arquivo exige permissão de administrador em todo repositório"
+    answer: 2
+    explanation: "Remover o arquivo num commit novo não apaga o segredo do commit antigo — o histórico do git continua contendo o valor original, acessível a qualquer um com acesso de leitura ao repositório. É por isso que a varredura precisa cobrir o histórico completo, não apenas o estado atual."
+
+  - question: "Qual padrão comum existe entre a rotação de chave via `kid` no JWKS, o expand/contract de schema de banco, e uma rotação de segredo bem-feita?"
+    options:
+      - "Todos dependem de um HSM para funcionar corretamente em produção"
+      - "Todos exigem interromper o serviço durante a janela de transição"
+      - "Todos usam o mesmo algoritmo de hash para validar a versão ativa"
+      - "Todos mantêm duas versões válidas simultaneamente durante uma janela"
+    answer: 3
+    explanation: "É o mesmo padrão geral repetido em três contextos diferentes: nunca substituir o velho pelo novo de uma vez, sempre manter um período em que ambas as versões são aceitas, com um mecanismo explícito (`kid`, versão de schema, versão de segredo) para o consumidor escolher qual usar."
+
+  - question: "Por que o 'relógio de exposição' de um segredo vazado começa no momento do vazamento, e não no momento em que a equipe o descobre?"
+    options:
+      - "Porque o segredo já esteve exposto durante todo o intervalo entre vazar e ser descoberto"
+      - "Porque a rotação de chave sempre leva mais tempo do que o prazo regulatório permite"
+      - "Porque a descoberta do vazamento costuma ocorrer antes do vazamento em si"
+      - "Porque o playbook de resposta só pode ser escrito depois que o incidente ocorre"
+    answer: 0
+    explanation: "Um segredo commitado seis meses atrás e descoberto hoje esteve exposto durante os seis meses inteiros, não apenas 'a partir de agora'. É essa régua de tempo que torna necessário um playbook de rotação de emergência escrito com antecedência — decidir o procedimento durante o incidente é o pior momento para decidir qualquer coisa."

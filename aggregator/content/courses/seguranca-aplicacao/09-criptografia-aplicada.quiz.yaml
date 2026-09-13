@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que reusar o mesmo nonce com a mesma chave em AES-GCM é descrito como um 'desastre silencioso'?"
+    options:
+      - "Porque não gera erro nem falha visível, mas compromete a confidencialidade e permite forjar mensagens"
+      - "Porque o driver de criptografia trava a aplicação depois de alguns minutos de uso"
+      - "Porque o tamanho do texto cifrado cresce exponencialmente a cada reuso do nonce"
+      - "Porque a chave precisa ser rotacionada manualmente a cada reuso detectado"
+    answer: 0
+    explanation: "Reusar nonce em GCM não produz exceção, log ou qualquer sinal visível — a falha é puramente matemática e silenciosa. Ela permite recuperar informação sobre o texto claro e, em casos piores, forjar mensagens autenticadas, o que torna o erro especialmente perigoso: nada no comportamento do sistema avisa que ele aconteceu."
+
+  - question: "Um sistema usa um MAC (HMAC) onde precisava de uma assinatura digital (ECDSA/EdDSA) para provar, a um auditor externo, que uma transação foi autorizada pelo cliente. Por que isso não funciona?"
+    options:
+      - "Porque HMAC é mais lento de calcular do que ECDSA em hardware comum"
+      - "Porque um MAC só prova algo para quem já possui o mesmo segredo simétrico, e o auditor teria que confiar cegamente nisso"
+      - "Porque HMAC não suporta chaves maiores que 256 bits, insuficiente para auditoria"
+      - "Porque MAC exige troca de chave a cada transação, o que a assinatura dispensa"
+    answer: 1
+    explanation: "Assinatura usa par de chaves: qualquer terceiro com a chave pública verifica a origem sem precisar confiar com um segredo. MAC usa chave simétrica — o verificador também poderia ter forjado a mensagem com a mesma chave, então ele não serve como prova para um terceiro. É exatamente a propriedade de não repúdio que se perde."
+
+  - question: "Por que Argon2id e bcrypt são escolhas melhores que SHA-256 para armazenar senha, mesmo SHA-256 sendo uma função de hash criptograficamente robusta?"
+    options:
+      - "Porque SHA-256 não pode ser combinado com salt, ao contrário de Argon2id e bcrypt"
+      - "Porque Argon2id e bcrypt produzem hashes de tamanho fixo, e SHA-256 não"
+      - "Porque SHA-256 é incompatível com bancos de dados relacionais modernos"
+      - "Porque são deliberadamente lentos, tornando força bruta offline impraticável"
+    answer: 3
+    explanation: "Hash de senha é um problema com propriedade oposta à maioria dos usos de hash: velocidade é o defeito, não a qualidade. Argon2id e bcrypt são caros de calcular de propósito, o que torna testar bilhões de senhas candidatas offline impraticável — SHA-256, sendo rápido, permite exatamente esse ataque em escala."
+
+  - question: "Um serviço verifica a assinatura de um webhook usando `String.equals()` em vez de uma comparação em tempo constante. Qual é a consequência prática dessa escolha?"
+    options:
+      - "O serviço fica incapaz de verificar assinaturas maiores que 256 bytes"
+      - "A verificação passa a exigir HTTPS obrigatoriamente, o que antes era opcional"
+      - "Um atacante, medindo tempo de resposta por byte, pode reconstruir a assinatura correta sem nunca vê-la"
+      - "O webhook deixa de ser compatível com qualquer PSP que use HMAC-SHA256"
+    answer: 2
+    explanation: "`equals()` compara byte a byte e para no primeiro que diferir, o que faz o tempo de resposta variar de forma mensurável conforme quantos bytes iniciais estão corretos. Com paciência estatística, um atacante reconstrói a assinatura completa observando apenas o tempo de resposta — sem nunca precisar ver o valor real."

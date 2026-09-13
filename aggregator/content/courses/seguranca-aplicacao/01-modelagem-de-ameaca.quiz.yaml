@@ -1,0 +1,36 @@
+questions:
+  - question: "Um time modela ameaça sobre um DFD do pix-gateway, mas não marca nenhuma fronteira de confiança. Qual é o problema prático disso?"
+    options:
+      - "O diagrama deixa de indicar onde a confiança no dado muda ao longo do fluxo"
+      - "STRIDE deixa de se aplicar, pois a sigla pressupõe um diagrama de rede"
+      - "O DFD passa a exigir um attack tree para cada processo do sistema"
+      - "A ferramenta de modelagem falha ao gerar o relatório de risco final"
+    answer: 0
+    explanation: "A fronteira de confiança é o que dá sentido a perguntar STRIDE em cada ponto: é ela que marca onde o dado deixa de ser seu e passa a ser de outra origem. Sem marcá-la, o diagrama continua tecnicamente correto, mas não ajuda a decidir onde a ameaça é mais provável — que é o ponto inteiro do exercício."
+
+  - question: "Por que 'repúdio' costuma ser a categoria de STRIDE mais esquecida em fronteiras com parceiros externos, como um PSP?"
+    options:
+      - "Porque repúdio só se aplica a sistemas com registro público de transação"
+      - "Porque times tendem a pensar em impedir, e esquecem de provar que algo aconteceu"
+      - "Porque repúdio depende de criptografia que a maioria dos PSPs não suporta"
+      - "Porque repúdio é coberto automaticamente por qualquer canal que usa TLS"
+    answer: 1
+    explanation: "O reflexo comum em modelagem de ameaça é pensar em impedir (spoofing, tampering) e esquecer de garantir evidência de que algo aconteceu. Com um parceiro externo, a pergunta 'ele pode alegar que nunca enviou isso?' é tão real quanto 'alguém pode forjar isso?' — e TLS não responde a nenhuma das duas."
+
+  - question: "Uma fintech decide criptografar todos os campos de todas as tabelas, sem ter classificado antes quais dados são sensíveis. Por que a modelagem de ameaça trata isso como 'teatro caro'?"
+    options:
+      - "Porque cifrar campo numérico de valor é matematicamente inviável sem perda"
+      - "Porque nenhum banco relacional indexa uma coluna que está criptografada"
+      - "Porque o custo é pago em todo campo, sem que a análise de risco pedisse isso"
+      - "Porque a LGPD proíbe cifrar campo fora da classificação de dado sensível"
+    answer: 2
+    explanation: "O problema não é a criptografia em si, é aplicá-la sem que a classificação de dado (o insumo, não o resultado, da modelagem de ameaça) tenha indicado que aquele campo específico precisa dela. Risco é probabilidade vezes impacto; tratar tudo como máximo risco custa engenharia real sem reduzir o risco que de fato importava mais."
+
+  - question: "O que muda especificamente na priorização de ameaças quando o ativo final protegido é dinheiro, em vez de, por exemplo, o conteúdo de um blog pessoal?"
+    options:
+      - "Nada muda — STRIDE e a fórmula de risco são agnósticos ao ativo protegido"
+      - "O foco muda inteiramente de vazamento de informação para negação de serviço"
+      - "A modelagem deixa de ser necessária, pois o regulador já exige os controles"
+      - "O atacante ganha retorno direto e escalável, o que normaliza automação e volume"
+    answer: 3
+    explanation: "A fórmula de risco não muda, mas a probabilidade de exploração sobe quando o retorno é dinheiro direto: o atacante consegue automatizar e escalar o ataque, o que empurra para cima a prioridade de qualquer ameaça com caminho até uma transação — mesmo quando o esforço de exploração parece alto isoladamente."

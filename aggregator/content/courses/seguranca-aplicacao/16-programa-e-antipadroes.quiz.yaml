@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que pentest, bug bounty e scanner automatizado, mesmo usados juntos, tendem a não encontrar de forma confiável uma regra de negócio que nunca foi implementada (como 'estorno não pode exceder o valor original')?"
+    options:
+      - "Porque exige ferramenta especializada de análise de fluxo de dados que nenhum dos três usa"
+      - "Porque certificado expirado só aparece em auditoria manual de infraestrutura, não em teste ativo"
+      - "Porque nenhuma requisição individual parece tecnicamente errada, já que a regra simplesmente nunca existiu"
+      - "Porque configuração incorreta de CORS exige acesso ao código-fonte para ser detectada"
+    answer: 2
+    explanation: "Pentest, bug bounty e scanner são excelentes em achar o que se parece com falha técnica conhecida — mas uma regra de negócio ausente não produz uma requisição malformada ou um padrão reconhecível de ataque. Tecnicamente, tudo funciona; só que a regra que deveria limitar o comportamento nunca foi escrita."
+
+  - question: "Qual é a diferença entre aceitar um risco de segurança por escrito (uma ADR de risco aceito) e aceitar o mesmo risco por omissão?"
+    options:
+      - "O primeiro elimina o risco; o segundo apenas adia a exposição para depois do prazo declarado"
+      - "O primeiro exige aprovação formal do órgão regulador; o segundo pode ser decidido internamente"
+      - "O primeiro é exigido por lei em toda instituição financeira; o segundo é uma prática comum"
+      - "O primeiro é auditável e revisitável, com dono e prazo; o segundo desaparece até o incidente"
+    answer: 3
+    explanation: "Em ambos os casos o risco continua existindo — a diferença não é o resultado, é a visibilidade. Uma ADR de risco aceito tem dono, prazo e gatilho de reversão, podendo ser revisitada; aceitar por omissão significa que ninguém decidiu conscientemente, e a exposição só aparece quando o incidente já aconteceu."
+
+  - question: "Por que manter uma planilha separada de conformidade para cada norma regulatória (LGPD, PCI-DSS, ISO 27001, BACEN) costuma ser sintoma de um problema, em vez de boa prática de organização?"
+    options:
+      - "Um controle bem desenhado, como autenticação forte, costuma satisfazer várias exigências ao mesmo tempo"
+      - "Cada norma regulatória exige um controle tecnicamente distinto, sem nenhuma sobreposição possível"
+      - "A duplicação de esforço é sempre necessária para provar conformidade a auditores diferentes"
+      - "Frameworks de conformidade compartilham a mesma redação, o que torna o mapeamento automático"
+    answer: 0
+    explanation: "Um controle como autenticação forte de cliente costuma atender, ao mesmo tempo, exigências do Open Finance, expectativas de ISO 27001 e requisitos implícitos de auditoria BACEN. Uma planilha que trata cada norma como um trabalho isolado é sinal de que o mapeamento controle-para-exigência nunca foi feito de verdade."
+
+  - question: "Por que 'o controle que ninguém nunca testou' é descrito como o antipadrão mais caro entre todos os listados nesta trilha?"
+    options:
+      - "Porque testar um controle sempre revela uma vulnerabilidade nova que precisa ser corrigida"
+      - "Porque, até ser exercitado contra o cenário real, ele é uma hipótese, não uma garantia"
+      - "Porque controles não testados são automaticamente removidos pelos gates do marco 13"
+      - "Porque reguladores penalizam controle não testado com multa maior do que qualquer outro"
+    answer: 1
+    explanation: "Um controle implementado, e até documentado, mas nunca exercitado contra o cenário que deveria impedir, não tem nenhuma garantia real de que funciona. Ele é indistinguível, na prática, de um controle que não existe — até o momento em que é testado de verdade, seja num game day, seja num incidente real."
