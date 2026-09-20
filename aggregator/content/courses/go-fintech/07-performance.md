@@ -42,9 +42,50 @@ func BenchmarkEncodeReceipt(b *testing.B) {
 }
 ```
 
-Rode `go test -bench=. -count=10` antes e depois da mudança e jogue no `benchstat`: se a
-diferença não for estatisticamente significativa, a "otimização" foi ruído. É assim que
-se atribui causa com rigor, em vez de torcer.
+Rode antes da mudança:
+
+```bash
+go test -bench=BenchmarkEncodeReceipt -benchmem -count=10 ./internal/api/... \
+  > antes.txt
+```
+
+Aplique a otimização, rode de novo com o mesmo comando redirecionando para
+`depois.txt`, e compare:
+
+```bash
+go install golang.org/x/perf/cmd/benchstat@latest
+benchstat antes.txt depois.txt
+```
+
+Se a diferença não for estatisticamente significativa, a "otimização" foi ruído. É assim
+que se atribui causa com rigor, em vez de torcer.
+
+## Hands-on
+
+**Tutorial — perfil ao vivo do `payments-api`.**
+
+1. Exponha o `pprof` atrás de auth (nunca em `0.0.0.0` sem proteção):
+
+   ```go
+   mux.Handle("/debug/pprof/", authMiddleware(http.DefaultServeMux))
+   ```
+
+2. Gere carga e capture um perfil de CPU de 30s:
+
+   ```bash
+   vegeta attack -targets=targets.txt -rate=1000 -duration=30s | vegeta report
+   go tool pprof -http=:8081 http://localhost:8080/debug/pprof/profile?seconds=30
+   ```
+
+3. Rode a escape analysis do hot path apontado pelo perfil:
+
+   ```bash
+   go build -gcflags='-m' ./internal/api/... 2>&1 | grep "escapes to heap"
+   ```
+
+**Invariante testável.** Com `GOMAXPROCS=4` fixo, meça o p99 do `vegeta report` antes e
+depois de aplicar a mitigação de alocação apontada pelo `pprof`. A meta do
+`PROJETO.md` é **p99 < 200ms** — registre os dois números.
 
 ## Principais aprendizados
 

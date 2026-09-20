@@ -49,6 +49,58 @@ precisam ser explícitas:
   (fail-open, prioriza disponibilidade) ou recusa (fail-closed, prioriza segurança)?
   Em fintech essa escolha é registrada e auditada, não escondida num `catch`.
 
+## Hands-on
+
+**Tutorial — o serviço `fraud-check`.**
+
+1. Defina o `.proto` e gere o código:
+
+   ```bash
+   buf generate
+   ```
+
+2. Suba o `fraud-check`:
+
+   ```bash
+   go run ./cmd/fraud-check
+   ```
+
+3. Liste os serviços e chame o `Check` via `grpcurl` (precisa de reflection habilitada,
+   ou passe o `.proto` com `-proto`):
+
+   ```bash
+   grpcurl -plaintext localhost:9090 list
+
+   grpcurl -plaintext -d '{"account":"acc-1","amount":150000,"geo":"BR-SP"}' \
+     localhost:9090 fraud.v1.FraudCheck/Check
+   ```
+
+**Invariante testável — fail-open ou fail-closed sob deadline estourado.**
+
+```go
+func TestPaymentsAPI_FraudCheckTimeout_FallsBackToFailOpen(t *testing.T) {
+    ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+    defer cancel()
+
+    slowFraudClient := newSlowFraudStub(200 * time.Millisecond) // nunca responde a tempo
+    decision, err := slowFraudClient.CheckWithFallback(ctx, tx)
+    if err != nil {
+        t.Fatalf("CheckWithFallback não deveria propagar erro: %v", err)
+    }
+    if decision != FallbackDecisionConfigured {
+        t.Errorf("decisão = %v, esperado o fallback configurado", decision)
+    }
+}
+```
+
+```bash
+go test ./internal/fraud/... -run TestPaymentsAPI_FraudCheckTimeout_FallsBackToFailOpen -v
+```
+
+**Checagem.** (a) Fail-open ou fail-closed: qual o `payments-api` do `pix-stream`
+deveria escolher, e por quê? (b) O que o `deadline` do gRPC propaga que um timeout de
+HTTP simples não propaga automaticamente entre serviços?
+
 ## Principais aprendizados
 
 - Use Protobuf + `buf` para contrato forte e versionado entre serviços internos.

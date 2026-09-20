@@ -61,6 +61,58 @@ limiting por usuário e por IP, e — crucial — **mascaramento em logs**. Nunc
 CVV, senha ou token; modele um tipo `Sensitive[T]` que mascara em `String()` e
 `MarshalJSON()`.
 
+## Hands-on
+
+**Tutorial — `payments-api` e `payments-bff`.**
+
+1. Suba o `payments-api` com `chi`:
+
+   ```bash
+   go run ./cmd/payments-api
+   ```
+
+2. Exercite os dois endpoints:
+
+   ```bash
+   curl http://localhost:8080/accounts/acc-1/balance
+
+   curl -X POST http://localhost:8080/entries \
+     -H "Content-Type: application/json" \
+     -H "Idempotency-Key: demo-key-1" \
+     -d '{"account":"acc-1","amount":5000,"currency":"BRL","type":"CREDIT"}'
+   ```
+
+3. Suba o `payments-bff` (que agrega `payments-api` + KYC mock + cotação) e confira a
+   agregação:
+
+   ```bash
+   go run ./cmd/payments-bff
+   curl http://localhost:8081/home/acc-1
+   ```
+
+**Invariante testável.** Configure o `http.Client` do BFF com timeout curto (100ms) e
+um downstream mockado que atrasa 500ms:
+
+```go
+func TestBFF_RespectsClientTimeout(t *testing.T) {
+    slow := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        time.Sleep(500 * time.Millisecond)
+        w.WriteHeader(http.StatusOK)
+    }))
+    defer slow.Close()
+
+    client := &http.Client{Timeout: 100 * time.Millisecond}
+    _, err := client.Get(slow.URL)
+    if err == nil {
+        t.Fatal("esperava erro de timeout, não houve")
+    }
+}
+```
+
+```bash
+go test ./internal/bff/... -run TestBFF_RespectsClientTimeout -v
+```
+
 ## Principais aprendizados
 
 - Entenda `net/http` antes do framework; use `chi` + middlewares funcionais compostos.

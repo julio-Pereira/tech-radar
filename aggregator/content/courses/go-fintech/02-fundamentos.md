@@ -65,6 +65,46 @@ Cada transferência gera **dois lançamentos** (débito numa conta, crédito nou
 comando `transfer --idempotency-key` checa se a chave já foi usada antes de re-executar
 — idempotência básica desde o primeiro exercício.
 
+## Hands-on
+
+**Tutorial — `walletctl` completo.** Implemente `create-account`, `deposit`, `withdraw`,
+`transfer --idempotency-key` e `statement` no `walletctl`, com persistência em SQLite
+(`internal/storage`). Cada `transfer` grava dois lançamentos (`Entry`): um débito, um
+crédito.
+
+**Invariante testável** — o critério do marco, direto do `PROJETO.md`:
+
+```go
+// internal/ledger/ledger_test.go
+func TestTransaction_EntriesSumToZero(t *testing.T) {
+    tx := NewTransfer(accountA, accountB, Money{Amount: 5000, Currency: "BRL"})
+    var sum int64
+    for _, e := range tx.Entries() {
+        sum += e.SignedAmount() // débito negativo, crédito positivo
+    }
+    if sum != 0 {
+        t.Errorf("soma dos lançamentos = %d, esperado 0", sum)
+    }
+}
+```
+
+```bash
+go test ./internal/ledger/... -run TestTransaction_EntriesSumToZero -v
+```
+
+**Complemento — idempotência na CLI.** Rode o mesmo `transfer` duas vezes com a mesma
+`--idempotency-key`:
+
+```bash
+go run ./cmd/walletctl transfer --from acc-1 --to acc-2 --amount 5000 \
+  --idempotency-key demo-key-1
+go run ./cmd/walletctl transfer --from acc-1 --to acc-2 --amount 5000 \
+  --idempotency-key demo-key-1
+go run ./cmd/walletctl statement --account acc-1
+```
+
+o extrato precisa mostrar **uma** transferência, não duas.
+
 ## Principais aprendizados
 
 - Estruture pacotes por domínio; interfaces implícitas e embedding substituem herança.
