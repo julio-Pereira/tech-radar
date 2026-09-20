@@ -116,6 +116,41 @@ diferencial ligada ao processo de deploy — antes e depois de cada versão do
 
 1. Suba Pyroscope e ligue o `pix-gateway` (JVM) e o `ledger-core` (Go), com `service` e
    `version` como labels.
+
+```yaml
+services:
+  pyroscope:
+    image: grafana/pyroscope:1.8.1
+    container_name: fin-watch-pyroscope
+    ports: ["4040:4040"]
+```
+
+```bash
+# pix-gateway (JVM) — agente do Pyroscope
+curl -L -o pyroscope.jar https://github.com/grafana/pyroscope-java/releases/latest/download/pyroscope.jar
+PYROSCOPE_APPLICATION_NAME=pix-gateway \
+PYROSCOPE_SERVER_ADDRESS=http://localhost:4040 \
+java -javaagent:./pyroscope.jar -jar target/pix-gateway-0.0.1-SNAPSHOT.jar
+```
+
+```go
+// ledger-core (Go) — main.go
+import "github.com/grafana/pyroscope-go"
+
+func init() {
+    pyroscope.Start(pyroscope.Config{
+        ApplicationName: "ledger-core",
+        ServerAddress:   "http://localhost:4040",
+    })
+}
+```
+
+> Confirmado contra o README do repositório (`grafana/pyroscope-go`, release atual
+> `v1.4.0`): `pyroscope.Start(pyroscope.Config{ApplicationName, ServerAddress})`
+> continua sendo a chamada de entrada estável na série 1.x. A API mudou entre 0.x e
+> 1.x no passado — se o `go.mod` fixar uma versão anterior, confira o README daquela
+> tag antes de usar o snippet.
+
 2. Introduza uma ineficiência **discreta**: uma regex compilada dentro do laço de
    validação, ou uma serialização redundante no caminho de resposta. Algo que consuma CPU
    sem gerar erro nem span próprio.

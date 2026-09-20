@@ -184,6 +184,21 @@ sinal em vez do evento.
 - Um teste automatizado que consulta o Loki e o Tempo procurando padrão de CPF e PAN, e
   **falha** se encontrar. Rode-o no pipeline — política escrita não impede regressão, teste
   impede.
+
+```bash
+# Loki
+curl -sG http://localhost:3100/loki/api/v1/query_range \
+  --data-urlencode 'query={service=~".+"} |~ "\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}"'
+# esperado: nenhum resultado
+
+# Tempo (TraceQL)
+curl -sG http://localhost:3200/api/search \
+  --data-urlencode 'q={ span.user.email != "" }'
+# esperado: nenhum resultado
+```
+
+(As regras de redação em si — `attributes`/`transform` do Collector — já estão
+literais no corpo do marco, não precisam ser repetidas.)
 - O `account_id` **continua presente** e a investigação por cliente continua possível. Se o
   seu redaction quebrou a capacidade de investigar, ele foi longe demais.
 - O hash com sal do CPF permite agrupar eventos do mesmo titular sem expor o valor.

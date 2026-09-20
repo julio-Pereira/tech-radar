@@ -133,6 +133,11 @@ sinal que faltava era justamente o que foi cortado.
 1. Meça, por sinal, o volume ingerido por dia no `fin-platform` (ou no seu ambiente real).
    Monte a tabela: sinal, GB/dia, séries ativas, custo estimado.
 2. Rode `topk(10, count by (__name__)({__name__=~".+"}))` e a API `/status/tsdb`.
+
+```bash
+curl -s http://localhost:9090/api/v1/status/tsdb | python3 -m json.tool
+```
+
    Identifique as **três** métricas com mais séries e o label culpado de cada uma.
 3. Aplique as alavancas 1 a 4 da seção.
 

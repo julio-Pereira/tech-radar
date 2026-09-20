@@ -199,7 +199,66 @@ pode perder: o trace de qualquer coisa que falhou, demorou ou moveu muito dinhei
 
 1. Suba um Collector no Compose com receiver OTLP, `memory_limiter` → `attributes` →
    `batch`, e exporters para Tempo e Prometheus.
+
+```yaml
+# docker-compose.yml (serviço a adicionar)
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.115.0
+    container_name: fin-watch-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+```
+
+```yaml
+# otel-collector-config.yaml
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+  attributes:
+    actions:
+      - key: http.request.header.authorization
+        action: delete
+  batch:
+
+exporters:
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls: { insecure: true }
+  prometheusremotewrite:
+    endpoint: http://prometheus:9090/api/v1/write
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, attributes, batch]
+      exporters: [otlp/tempo, debug]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [prometheusremotewrite]
+```
+
 2. Aponte o `pix-gateway` e o `ledger-core` para ele (só variável de ambiente).
+
+```bash
+# no lugar do endpoint direto do Tempo do marco 05:
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+```
 3. Adicione ao `attributes` a remoção de `http.request.header.authorization`. Prove, no
    trace, que o header **não** chega ao backend.
 4. Habilite o `debug` exporter com `verbosity: detailed` e observe o dado bruto passando —
