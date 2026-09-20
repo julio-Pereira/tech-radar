@@ -88,6 +88,46 @@ o PSP faz **rotação de credencial**, o operador atualiza o *Secret*; com
 chave — **sem redeploy e sem rebuild**. A superfície de auditoria fica limpa: o binário
 é sempre o mesmo; só o ambiente muda.
 
+## Mão na massa
+
+**Desafio — subir os dois perfis sem recompilar.** Crie `application.yaml` (defaults),
+`application-dev.yaml` e `application-prod.yaml` no `pix-gateway`, cada um só com o
+que muda (`pix.psp.base-url` apontando para sandbox em `dev`, para o endpoint real em
+`prod`). Empacote **uma vez**:
+
+```bash
+mvn -DskipTests package
+```
+
+Suba os dois perfis a partir do **mesmo** jar, sem recompilar entre um e outro:
+
+```bash
+java -jar target/pix-gateway-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev &
+curl localhost:8080/actuator/env/pix.psp.base-url    # mostra o valor de dev
+
+# derrube o processo dev, suba prod
+kill %1
+java -jar target/pix-gateway-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod &
+curl localhost:8080/actuator/env/pix.psp.base-url    # mostra o valor de prod, mesmo jar
+```
+
+**Invariante testável.** Sobrescreva um valor por variável de ambiente, sem tocar em
+nenhum `.yaml`, e prove que ela vence o perfil (a ordem de precedência do marco):
+
+```bash
+PIX_PSP_BASE_URL=http://override.local \
+  java -jar target/pix-gateway-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
+curl localhost:8080/actuator/env/pix.psp.base-url    # http://override.local, não o de prod.yaml
+```
+
+(Ative `management.endpoints.web.exposure.include=env` em `application.yaml` para o
+`curl .../actuator/env/...` funcionar — ou troque por um endpoint próprio que devolva
+a propriedade, se preferir não expor `env` nem em dev.)
+
+**Checagem.** (a) Por que a mesma imagem promovida de homolog para prod é mais
+auditável que builds separados por ambiente? (b) O que muda se você usar `@Profile`
+em vez de uma propriedade para o exemplo acima?
+
 ## Principais aprendizados
 
 - Prefira `@ConfigurationProperties` tipadas e `@Validated` a `@Value` espalhado — o
