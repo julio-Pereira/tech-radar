@@ -131,17 +131,101 @@ infraestrutura do marco FAPI da trilha Spring Boot — lá é o token e a assina
 
 **Tutorial — Gateway + HTTPRoute com canary.** No `fin-platform`:
 
-1. Instale uma implementação de Gateway API no `kind` (NGINX Gateway Fabric ou
-   Envoy Gateway) e crie um `Gateway` com listener HTTPS e certificado do cert-manager.
-2. `HTTPRoute` roteando `/payments` para o Service `pix-gateway`.
+1. Instale a NGINX Gateway Fabric no `kind`:
+
+   ```bash
+   kubectl kustomize "https://github.com/nginx/nginx-gateway-fabric/config/crd/gateway-api/standard?ref=v1.5.0" | kubectl apply -f -
+   kubectl apply -f https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v1.5.0/deploy/default/deploy.yaml
+   ```
+
+   e crie um `Gateway` com listener HTTPS e certificado do cert-manager:
+
+   ```yaml
+   apiVersion: gateway.networking.k8s.io/v1
+   kind: Gateway
+   metadata:
+     name: fin-gateway
+     namespace: payments
+   spec:
+     gatewayClassName: nginx
+     listeners:
+       - name: https
+         protocol: HTTPS
+         port: 443
+         tls:
+           certificateRefs:
+             - name: fin-gateway-tls
+   ```
+
+2. `HTTPRoute` roteando `/payments` para o Service `pix-gateway`:
+
+   ```yaml
+   apiVersion: gateway.networking.k8s.io/v1
+   kind: HTTPRoute
+   metadata:
+     name: pix-gateway-route
+     namespace: payments
+   spec:
+     parentRefs:
+       - name: fin-gateway
+     rules:
+       - matches:
+           - path: { type: PathPrefix, value: /payments }
+         backendRefs:
+           - name: pix-gateway
+             port: 8080
+   ```
+
 3. Suba `pix-gateway-v2` e mude o `backendRefs` para dois backends com
-   `weight: 90` / `weight: 10`.
-4. Dispare 1.000 requisições e conte por versão. **Bata a distribuição contra os pesos**
-   — se não bater ~90/10, entenda por quê antes de seguir (dica: `endpointslices` e
-   número de réplicas de cada versão).
+   `weight: 90` / `weight: 10`:
+
+   ```yaml
+   rules:
+     - matches:
+         - path: { type: PathPrefix, value: /payments }
+       backendRefs:
+         - name: pix-gateway
+           port: 8080
+           weight: 90
+         - name: pix-gateway-v2
+           port: 8080
+           weight: 10
+   ```
+
+4. Dispare 1.000 requisições e conte por versão:
+
+   ```bash
+   for i in $(seq 1 1000); do
+     curl -sk -H "Host: fin.local" https://localhost/payments -o /dev/null -w "%{header_x-version}\n"
+   done | sort | uniq -c
+   ```
+
+   **Bata a distribuição contra os pesos** — se não bater ~90/10, entenda por quê antes
+   de seguir (dica: `endpointslices` e número de réplicas de cada versão).
 5. Adicione uma segunda `HTTPRoute` que roteia para v2 **só** quando o header
-   `x-canary: true` estiver presente — o padrão que permite testar em produção com
-   tráfego interno.
+   `x-canary: true` estiver presente:
+
+   ```yaml
+   apiVersion: gateway.networking.k8s.io/v1
+   kind: HTTPRoute
+   metadata:
+     name: pix-gateway-canary-header
+     namespace: payments
+   spec:
+     parentRefs:
+       - name: fin-gateway
+     rules:
+       - matches:
+           - path: { type: PathPrefix, value: /payments }
+             headers:
+               - name: x-canary
+                 value: "true"
+         backendRefs:
+           - name: pix-gateway-v2
+             port: 8080
+   ```
+
+   o padrão que permite testar em produção com tráfego interno.
 6. `git commit`.
 
 **Desafio — o IP de origem.** Com o Gateway no ar, faça o `pix-gateway` logar o IP que

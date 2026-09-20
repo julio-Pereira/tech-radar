@@ -205,7 +205,39 @@ sem digest.
    isso, a policy quebra no dia em que alguém a editar e ninguém vai saber.
 
 **Complemento — assinatura.** Assine a imagem do `pix-gateway` com `cosign sign` e
-adicione a policy `verifyImages`. Prove que uma imagem **não assinada** é rejeitada.
+adicione a policy `verifyImages`:
+
+```bash
+cosign generate-key-pair
+cosign sign --key cosign.key ghcr.io/fin/pix-gateway@sha256:9c8f2e...
+```
+
+```yaml
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: exigir-assinatura
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: verificar-cosign
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaces: ["payments"]
+      verifyImages:
+        - imageReferences: ["ghcr.io/fin/*"]
+          attestors:
+            - entries:
+                - keys:
+                    publicKeys: |-
+                      -----BEGIN PUBLIC KEY-----
+                      <conteúdo de cosign.pub>
+                      -----END PUBLIC KEY-----
+```
+
+Prove que uma imagem **não assinada** é rejeitada.
 Depois responda por escrito: se o registry for comprometido e o atacante substituir a
 imagem mantendo a tag, o que te protege — o digest, a assinatura, ou os dois, e por quê?
 

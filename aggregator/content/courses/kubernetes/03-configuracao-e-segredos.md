@@ -113,6 +113,33 @@ rotação precisa ser gerável sob demanda para a auditoria. No `fin-platform`:
 configuração — réplicas, log level, URL do PSP (sandbox vs produção), recursos — e
 compartilham o mesmo `base/`.
 
+Exemplo mínimo de `overlays/dev/kustomization.yaml`:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base/pix-gateway
+patches:
+  - target:
+      kind: Deployment
+      name: pix-gateway
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+      - op: add
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: PSP_URL
+            value: https://sandbox.psp.com.br
+          - name: LOG_LEVEL
+            value: DEBUG
+```
+
+`overlays/prod/kustomization.yaml` segue o mesmo formato, com `replicas: 3`,
+`PSP_URL=https://api.psp.com.br` e `LOG_LEVEL=INFO`.
+
 **Invariante testável**, e o critério é este:
 
 ```bash
@@ -124,10 +151,61 @@ O comando precisa sair **vazio**, e a referência precisa ser por `@sha256:`, n�
 tag. Coloque isso num `make verify` do repo — é o primeiro teste de plataforma do
 projeto, e o marco 13 vai rodá-lo no pipeline.
 
-**Complemento.** Adicione um `ExternalSecret` (com o ESO apontando para um Vault em
-modo dev no próprio `kind`) para a credencial do PSP, monte como arquivo e prove que
-mudar o valor no Vault chega ao pod **sem** `kubectl rollout restart`. Cronometre
-quanto demora e anote — é o seu tempo real de rotação.
+**Complemento.** Suba um Vault em modo dev no próprio `kind` e o External Secrets
+Operator:
+
+```bash
+helm repo add hashicorp https://helm.releases.hashicorp.com
+helm install vault hashicorp/vault --set "server.dev.enabled=true" -n vault --create-namespace
+helm repo add external-secrets https://charts.external-secrets.io
+helm install external-secrets external-secrets/external-secrets -n external-secrets --create-namespace
+```
+
+Popule o segredo no Vault e crie o `SecretStore` + `ExternalSecret`:
+
+```bash
+kubectl exec -n vault vault-0 -- vault kv put secret/psp/itau/prod token=abc123
+```
+
+```yaml
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: vault-backend
+  namespace: payments
+spec:
+  provider:
+    vault:
+      server: "http://vault.vault:8200"
+      path: secret
+      version: v2
+      auth:
+        tokenSecretRef:
+          name: vault-token
+          key: token
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: psp-credentials
+  namespace: payments
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: vault-backend
+    kind: SecretStore
+  target:
+    name: psp-credentials
+  data:
+    - secretKey: token
+      remoteRef:
+        key: secret/psp/itau/prod
+        property: token
+```
+
+Monte como arquivo (`volumeMounts` apontando para o Secret gerado), mude o valor no
+Vault (`vault kv put` de novo) e cronometre até o arquivo no pod mudar — sem
+`kubectl rollout restart`. É o seu tempo real de rotação.
 
 **Checagem.** (a) Alguém com permissão de criar Pod no namespace, mas **sem**
 `get secrets`, consegue ler o segredo? (b) Por que credencial rotacionável deve ser

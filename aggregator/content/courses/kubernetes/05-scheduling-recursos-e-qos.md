@@ -151,8 +151,14 @@ No `fin-platform`:
 
 **Tutorial — ver o throttling.** Este é o experimento que mais muda intuição na trilha:
 
-1. Deploy do `pix-gateway` **sem** `limits.cpu`. Rode `hey` ou `k6` com carga constante
-   por 3 minutos. Anote p50, p99 e o **uso médio de CPU**.
+1. Deploy do `pix-gateway` **sem** `limits.cpu`. Rode `hey` com carga constante por 3
+   minutos:
+
+   ```bash
+   hey -z 3m -c 50 http://pix-gateway.payments.svc.cluster.local:8080/payments
+   ```
+
+   Anote p50, p99 e o **uso médio de CPU** (`kubectl top pod -n payments`).
 2. Adicione `limits.cpu: 500m` (deixe o request igual ao uso médio observado). Repita a
    mesma carga.
 3. Compare os três números. O uso médio de CPU será parecido; o **p99 vai explodir**.
@@ -164,6 +170,21 @@ No `fin-platform`:
 
 **Desafio — sobreviver ao drain.** Configure o `pix-gateway` com 3 réplicas,
 `podAntiAffinity` por hostname e um PDB. Depois:
+
+```yaml
+spec:
+  template:
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: pix-gateway
+```
+
+(o PDB é o mesmo YAML `minAvailable: 2` já mostrado acima, neste arquivo).
 
 **Invariantes testáveis:**
 

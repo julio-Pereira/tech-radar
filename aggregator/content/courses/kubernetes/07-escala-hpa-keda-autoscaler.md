@@ -142,13 +142,47 @@ O desenho do `fin-platform`:
 carga crescente e registre: em quanto tempo o HPA reagiu, quantas réplicas, e qual foi o
 p99 durante a subida.
 
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm install prometheus-adapter prometheus-community/prometheus-adapter -n monitoring
+```
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pix-gateway
+  namespace: payments
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pix-gateway
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: http_requests_per_second
+        target:
+          type: AverageValue
+          averageValue: "120"
+```
+
 *Compare:* refaça o mesmo teste com HPA por CPU a 70%. Anote a diferença de tempo de
 reação. Se o seu serviço for I/O-bound, o HPA por CPU pode simplesmente **não escalar** —
 e esse é o resultado que ensina.
 
-*Parte 2.* Instale o KEDA e crie o `ScaledObject` acima para o consumidor de
-`payments.initiated`. Pare o consumidor por 5 minutos para acumular lag, religue e
-observe a escalada. `git commit`.
+*Parte 2.* Instale o KEDA:
+
+```bash
+helm repo add kedacore https://kedacore.github.io/charts
+helm install keda kedacore/keda -n keda --create-namespace
+```
+
+e crie o `ScaledObject` acima para o consumidor de `payments.initiated`. Pare o
+consumidor por 5 minutos para acumular lag, religue e observe a escalada. `git commit`.
 
 **Desafio — o teto de partições.** Configure `maxReplicaCount: 20` num tópico de 6
 partições e produza um backlog grande.
