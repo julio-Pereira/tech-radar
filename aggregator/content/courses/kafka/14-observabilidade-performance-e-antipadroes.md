@@ -28,7 +28,13 @@ O Kafka expõe centenas de métricas JMX. Estas decidem incidentes:
 
 - **`UnderReplicatedPartitions`** — deve ser **zero**. Diferente de zero significa que
   você está mais perto de perder dado do que imagina. É o alerta mais importante do
-  cluster.
+  cluster. Sem um exporter Prometheus, dá para ler direto via JMX:
+
+  ```bash
+  docker exec pix-stream-kafka kafka-run-class.sh kafka.tools.JmxTool \
+    --object-name kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions \
+    --jmx-url service:jmx:rmi:///jndi/rmi://localhost:9999/jmxrmi --one-time true
+  ```
 - **`OfflinePartitionsCount`** — deve ser zero. Diferente de zero é indisponibilidade.
 - **ISR shrink/expand rate** — oscilação constante indica broker sobrecarregado, rede ruim
   ou GC longo. Precede o incidente.
@@ -136,7 +142,14 @@ O painel de plantão do `pix-stream`, na ordem de leitura:
 ## Hands-on
 
 **Desafio — o runbook do lag crescente.** O cenário: o lag do `ledger-projector` cresce há
-20 minutos. Existem quatro suspeitos, e você precisa distinguí-los **por evidência**:
+20 minutos. O ponto de partida de qualquer um dos quatro ramos é o mesmo comando:
+
+```bash
+docker exec pix-stream-kafka kafka-consumer-groups.sh \
+  --bootstrap-server kafka:9092 --describe --group ledger-projector
+```
+
+Existem quatro suspeitos, e você precisa distinguí-los **por evidência**:
 
 1. **Aumento de tráfego legítimo** (fim de mês) — o produtor subiu.
 2. **Consumidor lento** — uma dependência (banco, PSP) degradou o tempo por mensagem.

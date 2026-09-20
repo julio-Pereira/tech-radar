@@ -179,7 +179,19 @@ contabilidade double-entry (trilha `go-fintech`), lançamento não se apaga.
 
 **Tutorial — outbox relay do `pix-gateway`.** Implemente:
 
-1. Tabela `outbox` e a escrita atômica junto com `pagamentos`.
+1. Tabela `outbox` e a escrita atômica junto com `pagamentos`:
+
+   ```sql
+   CREATE TABLE outbox (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     aggregate_id TEXT NOT NULL,
+     topic TEXT NOT NULL,
+     payload JSONB NOT NULL,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     published_at TIMESTAMPTZ
+   );
+   CREATE INDEX outbox_unpublished_idx ON outbox (created_at) WHERE published_at IS NULL;
+   ```
 2. Um relay que lê a outbox em ordem, publica com chave `accountId` e marca como
    publicado.
 3. **Prove o dual-write primeiro:** com a versão ingênua (`save` + `send`), mate o
@@ -189,7 +201,14 @@ contabilidade double-entry (trilha `go-fintech`), lançamento não se apaga.
    consumidor idempotente do marco 05 absorve. `git commit`.
 
 **Desafio — retry escalonado + DLQ.** Monte a cadeia `retry.5s` → `retry.1m` →
-`retry.10m` → `payments.dlq` para o consumidor do ledger.
+`retry.10m` → `payments.dlq` para o consumidor do ledger. Crie os quatro tópicos:
+
+```bash
+for t in retry.5s retry.1m retry.10m payments.dlq; do
+  docker exec pix-stream-kafka kafka-topics.sh --bootstrap-server kafka:9092 \
+    --create --topic "$t" --partitions 3 --replication-factor 1
+done
+```
 
 **Invariantes testáveis:**
 

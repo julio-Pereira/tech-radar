@@ -125,14 +125,45 @@ de cultural.
 
 ## Hands-on
 
-**Tutorial — Avro no `pix-stream`.** Suba um Schema Registry no Compose, defina o
-schema Avro de `PaymentInitiated` (com `Money` como record aninhado), configure producer
-e consumidor com o serializador Avro e publique. Depois:
+**Tutorial — Avro no `pix-stream`.** Suba um Schema Registry no Compose, apontando para
+o cluster do marco 01 (adicione ao `docker-compose.yml` que já existe):
 
-1. Inspecione o payload bruto com `kafka-console-consumer` sem o desserializador Avro.
-   Encontre o *magic byte* e os 4 bytes do schema ID no começo.
+```yaml
+  schema-registry:
+    image: confluentinc/cp-schema-registry:8.0.0
+    container_name: pix-stream-schema-registry
+    depends_on: [kafka]
+    ports: ["8081:8081"]
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+```
+
+Defina o schema Avro de `PaymentInitiated` (com `Money` como record aninhado), configure
+producer e consumidor com o serializador Avro e publique. Depois:
+
+1. Inspecione o payload bruto com `kafka-console-consumer.sh` **sem** o desserializador
+   Avro — ele mostra os bytes crus, e você enxerga o *magic byte* (`\x00`) seguido dos 4
+   bytes do schema ID:
+
+   ```bash
+   docker exec pix-stream-kafka kafka-console-consumer.sh \
+     --bootstrap-server kafka:9092 --topic payments.initiated \
+     --from-beginning --max-messages 1 --formatter kafka.tools.DefaultMessageFormatter \
+     --property print.value=true --property value.serializer.encoding=hex
+   ```
+
 2. Consulte o schema pela API do registry: `curl localhost:8081/schemas/ids/1`.
-3. Defina o subject como `FULL` e `git commit`.
+3. Defina o subject como `FULL`:
+
+   ```bash
+   curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+     --data '{"compatibility": "FULL"}' \
+     http://localhost:8081/config/payments.initiated-value
+   ```
+
+   e `git commit`.
 
 **Desafio — evoluir sem quebrar.** Adicione ao evento um campo `canal` (`APP`, `PIX_QR`,
 `API_PARCEIRO`), que o negócio descreve como **obrigatório**.
@@ -141,7 +172,14 @@ e consumidor com o serializador Avro e publique. Depois:
 
 1. Um teste que pega o schema **antigo** e o **novo** e afirma compatibilidade
    `FULL` — usando o endpoint `/compatibility/subjects/{s}/versions/latest` do registry,
-   não a sua opinião.
+   não a sua opinião:
+
+   ```bash
+   curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+     --data '{"schema": "<schema-v2-escapado-em-json>"}' \
+     http://localhost:8081/compatibility/subjects/payments.initiated-value/versions/latest
+   # resposta esperada: {"is_compatible":true}
+   ```
 2. Um consumidor rodando com o schema **v1** que continua processando eventos escritos
    com **v2**, sem exceção e sem perder os campos que ele conhece. Deixe-o rodando
    enquanto o producer novo publica — o teste é a ausência de erro.

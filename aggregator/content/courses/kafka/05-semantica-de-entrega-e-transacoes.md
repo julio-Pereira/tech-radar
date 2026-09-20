@@ -141,12 +141,32 @@ consuma `payments.initiated`, transforme, produza em `payments.authorized` e com
 offset **dentro** da transação. Depois:
 
 1. Suba um consumidor de `payments.authorized` com `isolation.level=read_uncommitted` e
-   outro com `read_committed`.
-2. Force um `abortTransaction()` no meio.
+   outro com `read_committed`:
+
+   ```bash
+   docker exec pix-stream-kafka kafka-console-consumer.sh \
+     --bootstrap-server kafka:9092 --topic payments.authorized \
+     --isolation-level read_uncommitted --from-beginning
+
+   docker exec pix-stream-kafka kafka-console-consumer.sh \
+     --bootstrap-server kafka:9092 --topic payments.authorized \
+     --isolation-level read_committed --from-beginning
+   ```
+
+2. Force um `abortTransaction()` no meio (no seu producer transacional — não existe
+   flag de CLI para isso, é o `abortTransaction()` do client transacional mesmo).
 3. Observe: o primeiro consumidor **vê** a mensagem abortada, o segundo não. Essa
    diferença é o marco inteiro.
 4. Deixe uma transação aberta sem commitar e observe o lag do `read_committed` travar
-   (o LSO). `git commit`.
+   (o LSO):
+
+   ```bash
+   docker exec pix-stream-kafka kafka-consumer-groups.sh \
+     --bootstrap-server kafka:9092 --describe --group <seu-grupo-read-committed>
+   ```
+
+   o lag sobe e não desce enquanto a transação estiver pendurada, mesmo que existam
+   mensagens commitadas depois dela — é o LSO bloqueando a leitura. `git commit`.
 
 **Desafio — provar a duplicidade e depois eliminá-la.** Em duas partes, e a primeira é
 obrigatória:

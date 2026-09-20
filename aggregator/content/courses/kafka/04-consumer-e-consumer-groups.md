@@ -122,9 +122,34 @@ persistir cada pagamento, e uma chave de idempotência (`paymentId`) com constra
 
 **Invariante testável** — este é o critério, e ele é contável:
 
-1. Produza exatamente **10.000** eventos com `paymentId` distintos.
-2. Rode o consumidor e mate-o com `kill -9` pelo menos três vezes em momentos
-   aleatórios. Suba de novo cada vez.
+1. Produza exatamente **10.000** eventos com `paymentId` distintos (chave = `paymentId`,
+   para caírem todos na mesma partição por conta, mas aqui o que importa é a
+   unicidade):
+
+   ```bash
+   for i in $(seq 1 10000); do
+     echo "$i:{\"paymentId\":\"$i\",\"accountId\":\"42\",\"amount\":100}"
+   done | docker exec -i pix-stream-kafka kafka-console-producer.sh \
+     --bootstrap-server kafka:9092 --topic payments.initiated \
+     --property parse.key=true --property key.separator=:
+   ```
+
+2. Rode o consumidor (o seu, em Java/Go) e mate-o com `kill -9` pelo menos três vezes em
+   momentos aleatórios. Ache o PID pelo nome do processo e mate de fato, sem gentileza
+   (nada de `SIGTERM`, que o consumidor poderia tratar):
+
+   ```bash
+   kill -9 $(pgrep -f PixStreamConsumer)
+   ```
+
+   Suba de novo cada vez. Entre uma morte e outra, confira que o grupo não ficou
+   travado num rebalance:
+
+   ```bash
+   docker exec pix-stream-kafka kafka-consumer-groups.sh \
+     --bootstrap-server kafka:9092 --describe --group ledger-projector
+   ```
+
 3. Ao final: `SELECT count(*) FROM pagamentos` = **10.000**, e
    `SELECT count(DISTINCT payment_id)` = **10.000**.
 

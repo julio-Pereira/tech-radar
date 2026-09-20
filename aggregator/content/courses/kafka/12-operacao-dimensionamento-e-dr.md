@@ -127,28 +127,88 @@ regulador, não boas práticas. O que isso significa concretamente para o `pix-s
 
 **Tutorial — rolling restart sem perder mensagem.**
 
-1. Cluster de 3 brokers no Compose (ou Strimzi no `kind`), tópico com `RF=3` e
-   `min.insync.replicas=2`.
-2. Produtor contínuo com `acks=all`, contando sucessos e falhas.
-3. Reinicie os brokers **um a um**, esperando o ISR se recompor entre eles
-   (`kafka-topics.sh --describe` mostra o ISR).
-4. **Invariante:** zero falha no produtor e zero mensagem perdida — conte na origem e no
-   destino.
-5. **Agora o contraexemplo:** reinicie dois brokers em sequência **sem** esperar o ISR.
-   Registre o que acontece com o produtor. É o erro que o operator existe para evitar.
+1. Cluster de 3 brokers no Compose do marco 02 (ou Strimzi no `kind`), tópico com
+   `RF=3` e `min.insync.replicas=2` (já criado lá).
+2. Produtor contínuo com `acks=all`, contando sucessos e falhas — um loop simples serve:
+
+   ```bash
+   for i in $(seq 1 500); do
+     echo "$i:{\"paymentId\":\"$i\"}" | docker exec -i pix-stream-kafka-1 \
+       kafka-console-producer.sh --bootstrap-server kafka-1:9092 \
+       --topic payments.initiated --property parse.key=true --property key.separator=: \
+       --command-property acks=all || echo "FALHOU em $i"
+     sleep 0.2
+   done
+   ```
+
+3. Reinicie os brokers **um a um**, esperando o ISR se recompor entre eles:
+
+   ```bash
+   docker restart pix-stream-kafka-2
+   # espere o ISR voltar a ter 3 membros antes de seguir para o próximo
+   docker exec pix-stream-kafka-1 kafka-topics.sh --bootstrap-server kafka-1:9092 \
+     --describe --topic payments.initiated
+   docker restart pix-stream-kafka-3
+   ```
+
+4. **Invariante:** zero falha no produtor (nenhum "FALHOU" no output do loop) e zero
+   mensagem perdida — conte na origem e no destino.
+5. **Agora o contraexemplo:** reinicie dois brokers em sequência **sem** esperar o ISR
+   (`docker restart pix-stream-kafka-2 pix-stream-kafka-3` de uma vez, sem o `--describe`
+   entre um e outro). Registre o que acontece com o produtor. É o erro que o operator
+   existe para evitar.
 6. `git commit` do runbook com os comandos e a verificação.
 
 **Desafio — dimensionar e provar o throttle.**
 
-1. Meça o throughput real de uma partição no seu ambiente com
-   `kafka-producer-perf-test.sh`. Documente o número.
-2. Adicione um broker ao cluster e faça o reassignment **sem** `--throttle`, com o
-   produtor rodando. Meça o p99 do produtor durante a operação.
-3. Refaça com `--throttle` dimensionado. Compare os dois p99.
+1. Meça o throughput real de uma partição no seu ambiente:
+
+   ```bash
+   docker exec pix-stream-kafka-1 kafka-producer-perf-test.sh \
+     --topic payments.initiated --num-records 200000 --record-size 300 \
+     --throughput -1 --producer-props bootstrap.servers=kafka-1:9092 acks=all
+   ```
+
+   Documente o número (`records/sec`).
+2. Adicione um broker ao cluster (um `kafka-4` novo no Compose) e faça o reassignment
+   **sem** `--throttle`, com o produtor rodando:
+
+   ```bash
+   cat > reassignment.json << 'EOF'
+   {"version":1,"partitions":[
+     {"topic":"payments.initiated","partition":0,"replicas":[1,2,4]},
+     {"topic":"payments.initiated","partition":1,"replicas":[2,4,3]},
+     {"topic":"payments.initiated","partition":2,"replicas":[4,3,1]}
+   ]}
+   EOF
+   docker exec pix-stream-kafka-1 kafka-reassign-partitions.sh \
+     --bootstrap-server kafka-1:9092 --reassignment-json-file reassignment.json --execute
+   ```
+
+   Meça o p99 do produtor durante a operação.
+3. Refaça com `--throttle` dimensionado (adicione `--throttle 10000000`, ~10MB/s, ao
+   mesmo comando). Compare os dois p99.
 4. Escreva 5 linhas no runbook sobre qual throttle usar e em qual janela.
 
-**Complemento — o failover honesto.** Suba um segundo cluster e um MirrorMaker 2.
-Produza 10.000 mensagens, consuma metade com um grupo, e simule a queda da origem.
+**Complemento — o failover honesto.** Suba um segundo cluster (repita o Compose do
+marco 02 noutra pasta, com portas e `container_name` diferentes) e um MirrorMaker 2:
+
+```properties
+# mm2.properties
+clusters = origem, destino
+origem.bootstrap.servers = kafka-1:9092
+destino.bootstrap.servers = kafka-destino-1:9092
+origem->destino.enabled = true
+origem->destino.topics = payments.initiated
+replication.factor = 3
+```
+
+```bash
+docker exec pix-stream-kafka-1 connect-mirror-maker.sh /caminho/mm2.properties
+```
+
+Produza 10.000 mensagens, consuma metade com um grupo, e simule a queda da origem
+(`docker compose stop` no cluster de origem).
 
 **Invariantes testáveis:** ao subir o consumidor no cluster de destino usando o
 mapeamento de offsets, ele processa **exatamente** as 5.000 restantes — nem reprocessa as

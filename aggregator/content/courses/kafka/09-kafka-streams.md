@@ -151,8 +151,14 @@ espera pelo retardatário.
 2. Ligue `processing.guarantee=exactly_once_v2`.
 3. Exponha o saldo por **interactive query** e compare com a soma direta dos eventos.
 4. Liste os tópicos do cluster e **encontre os internos** (`-changelog`, e
-   `-repartition` se você tiver usado `groupBy`). Explique por escrito para que serve
-   cada um.
+   `-repartition` se você tiver usado `groupBy`):
+
+   ```bash
+   docker exec pix-stream-kafka kafka-topics.sh --bootstrap-server kafka:9092 --list \
+     | grep -E '(changelog|repartition)'
+   ```
+
+   Explique por escrito para que serve cada um.
 5. `git commit`.
 
 **Desafio — janela de 5 minutos.** Detecte 3 ou mais tentativas negadas do mesmo cartão

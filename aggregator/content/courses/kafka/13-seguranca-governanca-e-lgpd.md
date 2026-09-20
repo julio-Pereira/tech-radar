@@ -162,11 +162,36 @@ o critério não é "implemente", é "prove que o dado ficou ilegível".
 - Um teste que percorre todos os campos em claro do evento e **falha** se encontrar padrão
   de CPF ou PAN.
 
-**Complemento — ACLs e a prova da negação.** Ligue `allow.everyone.if.no.acl.found=false`
-e crie um principal por serviço com o mínimo. Escreva um script que afirma, para cada
-serviço, **pelo menos três operações que ele não consegue realizar** (escrever no tópico do
-outro, ler o tópico de auditoria, criar tópico). E provoque de propósito o erro de esquecer
-a ACL de `group` — registre a mensagem de erro, para reconhecê-la no futuro.
+**Complemento — ACLs e a prova da negação.** Ligue
+`allow.everyone.if.no.acl.found=false` e crie um principal por serviço com o mínimo:
+
+```bash
+# o consumidor do ledger só pode ler payments.authorized e usar o grupo ledger-projector
+docker exec pix-stream-kafka kafka-acls.sh --bootstrap-server kafka:9092 \
+  --add --allow-principal User:ledger-consumer \
+  --operation Read --topic payments.authorized --group ledger-projector
+
+# credencial SASL/SCRAM correspondente
+docker exec pix-stream-kafka kafka-configs.sh --bootstrap-server kafka:9092 \
+  --alter --entity-type users --entity-name ledger-consumer \
+  --add-config 'SCRAM-SHA-256=[password=troque-isto]'
+```
+
+Escreva um script que afirma, para cada serviço, **pelo menos três operações que ele
+não consegue realizar** — por exemplo, escrever no tópico do outro:
+
+```bash
+docker exec pix-stream-kafka kafka-console-producer.sh --bootstrap-server kafka:9092 \
+  --topic payments.dlq --producer-property security.protocol=SASL_PLAINTEXT \
+  --producer-property sasl.mechanism=SCRAM-SHA-256 \
+  --producer-property 'sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="ledger-consumer" password="troque-isto";'
+# esperado: TopicAuthorizationException
+```
+
+ler o tópico de auditoria, e criar tópico — as mesmas três formas de `kafka-*.sh` com o
+`sasl.jaas.config` do principal errado, esperando a negação em cada uma. E provoque de
+propósito o erro de esquecer a ACL de `group` (dê `Read` só no tópico, não no grupo) —
+registre a mensagem de erro, para reconhecê-la no futuro.
 
 **Checagem.** (a) Por que tombstone + compaction não resolve o direito ao esquecimento
 sozinho? (b) O que crypto-shredding preserva que a reescrita do tópico destrói? (c) Por que

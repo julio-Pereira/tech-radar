@@ -128,11 +128,71 @@ script que alguém roda.
 
 **Desafio — sink idempotente para o Postgres analítico.**
 
-1. Suba um worker Connect em modo distribuído no Compose, junto com um Postgres.
+1. Suba um worker Connect em modo distribuído no Compose, junto com um Postgres:
+
+   ```yaml
+     postgres:
+       image: postgres:17
+       environment: { POSTGRES_PASSWORD: pix, POSTGRES_DB: analytics }
+       ports: ["5432:5432"]
+     connect:
+       image: confluentinc/cp-kafka-connect:8.0.0
+       container_name: pix-stream-connect
+       depends_on: [kafka, postgres]
+       ports: ["8083:8083"]
+       environment:
+         CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+         CONNECT_GROUP_ID: pix-stream-connect
+         CONNECT_CONFIG_STORAGE_TOPIC: connect-configs
+         CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
+         CONNECT_STATUS_STORAGE_TOPIC: connect-status
+         CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+         CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+         CONNECT_REST_ADVERTISED_HOST_NAME: connect
+         CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
+   ```
+
 2. Configure o JDBC Sink de `payments.authorized` com `insert.mode=upsert`,
-   `pk.mode=record_value` e `pk.fields=payment_id`.
-3. Adicione um SMT que **mascare** o CPF antes da escrita.
-4. Configure DLQ com `errors.tolerance=all` e headers de contexto.
+   `pk.mode=record_value`, `pk.fields=payment_id`, um SMT que **mascare** o CPF (item 3)
+   e DLQ com `errors.tolerance=all` e headers de contexto (item 4) — tudo num único
+   `POST`:
+
+   ```bash
+   curl -X POST -H "Content-Type: application/json" http://localhost:8083/connectors \
+     -d '{
+       "name": "pagamentos-analytics-sink",
+       "config": {
+         "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+         "topics": "payments.authorized",
+         "connection.url": "jdbc:postgresql://postgres:5432/analytics",
+         "connection.user": "postgres",
+         "connection.password": "pix",
+         "insert.mode": "upsert",
+         "pk.mode": "record_value",
+         "pk.fields": "payment_id",
+         "auto.create": "true",
+         "transforms": "mascarar",
+         "transforms.mascarar.type": "org.apache.kafka.connect.transforms.MaskField$Value",
+         "transforms.mascarar.fields": "cpf",
+         "errors.tolerance": "all",
+         "errors.deadletterqueue.topic.name": "connect.dlq.payments",
+         "errors.deadletterqueue.context.headers.enable": "true"
+       }
+     }'
+
+   curl http://localhost:8083/connectors/pagamentos-analytics-sink/status
+   ```
+
+   Para reprocessar do offset zero (o teste de idempotência dos "Invariantes
+   testáveis" abaixo), pare o conector, resete o grupo interno dele e suba de novo:
+
+   ```bash
+   curl -X PUT http://localhost:8083/connectors/pagamentos-analytics-sink/pause
+   docker exec pix-stream-kafka kafka-consumer-groups.sh --bootstrap-server kafka:9092 \
+     --group connect-pagamentos-analytics-sink --topic payments.authorized \
+     --reset-offsets --to-earliest --execute
+   curl -X PUT http://localhost:8083/connectors/pagamentos-analytics-sink/resume
+   ```
 
 **Invariantes testáveis:**
 

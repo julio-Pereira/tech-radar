@@ -113,7 +113,14 @@ kafka-consumer-groups.sh --bootstrap-server ... \
 Requisitos inegociáveis antes de apertar: o **grupo precisa estar parado** (o comando
 falha se houver membro ativo — e isso é uma proteção, não um obstáculo), o consumidor
 precisa ser idempotente, e você precisa ter anotado o offset atual para poder voltar
-(`--dry-run` primeiro, sempre).
+— sempre rode com `--dry-run` primeiro, e só troque para `--execute` depois de ler a
+tabela de offsets propostos:
+
+```bash
+kafka-consumer-groups.sh --bootstrap-server kafka:9092 \
+  --group ledger-projector --topic payments.authorized:3 \
+  --reset-offsets --to-datetime 2026-08-08T00:00:00.000 --dry-run
+```
 
 **3. Versionamento do processador.** Quando a lógica mudou, rode a versão nova em
 paralelo com a antiga, cada uma com seu grupo, escrevendo em destinos separados, e
@@ -162,8 +169,16 @@ primeiros e falhar no terceiro (sinal de que o dedupe está descartando eventos 
 com a mesma chave).
 
 **Complemento — a partição quente.** Faça 30% dos eventos irem para uma única conta.
-Observe o lag **por partição** durante o consumo. Depois implemente **uma** das
-mitigações da seção e meça de novo; escreva 5 linhas sobre o que você perdeu ao aplicá-la.
+Observe o lag **por partição** durante o consumo:
+
+```bash
+docker exec pix-stream-kafka kafka-consumer-groups.sh \
+  --bootstrap-server kafka:9092 --describe --group ledger-projector
+```
+
+a coluna `LAG` de uma partição vai destoar das outras — é a assinatura da partição
+quente. Depois implemente **uma** das mitigações da seção e meça de novo; escreva 5
+linhas sobre o que você perdeu ao aplicá-la.
 
 **Checagem.** (a) Por que aumentar de 6 para 12 partições quebra a ordem por conta?
 (b) Lag alto numa partição e zero nas outras — diagnóstico? (c) O estorno chegou antes

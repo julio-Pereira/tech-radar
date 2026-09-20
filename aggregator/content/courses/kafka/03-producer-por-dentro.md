@@ -143,14 +143,32 @@ com callback ligado ao outbox.
 esconde o producer atrás do `KafkaTemplate`, o Go deixa o protocolo à mostra — as duas
 falam com o mesmo broker do mesmo jeito. Termine com `git commit`.
 
-**Desafio — medir `linger.ms`.** Com `kafka-producer-perf-test.sh` ou um loop próprio,
-produza 100k mensagens com `linger.ms=0` e depois com `linger.ms=20`, mantendo o resto
-igual. Registre p50, p99 e throughput dos dois. Escreva **cinco linhas** explicando o
+**Desafio — medir `linger.ms`.** Com `kafka-producer-perf-test.sh`, produza 100k
+mensagens com `linger.ms=0` e depois com `linger.ms=20`, mantendo o resto igual:
+
+```bash
+# linger.ms=0 (o padrão)
+docker exec pix-stream-kafka-1 kafka-producer-perf-test.sh \
+  --topic payments.initiated --num-records 100000 --record-size 300 --throughput -1 \
+  --producer-props bootstrap.servers=kafka-1:9092 acks=all enable.idempotence=true linger.ms=0
+
+# linger.ms=20
+docker exec pix-stream-kafka-1 kafka-producer-perf-test.sh \
+  --topic payments.initiated --num-records 100000 --record-size 300 --throughput -1 \
+  --producer-props bootstrap.servers=kafka-1:9092 acks=all enable.idempotence=true linger.ms=20
+```
+
+A saída de cada rodada já traz `records/sec`, `avg latency`, `50th`, `95th`, `99th` e
+`99.9th`. Registre p50, p99 e throughput dos dois. Escreva **cinco linhas** explicando o
 resultado — em particular, se o p99 piorou ou melhorou com o linger maior, e por quê.
 
-**Invariante testável.** Um teste que produz com `acks=all` e `min.insync.replicas=2`,
-derruba dois dos três brokers e afirma que o `send()` **falha** — nada de sucesso
-silencioso.
+**Invariante testável.** Use o Compose de 3 brokers do marco 02. Um teste (ou um
+`kafka-console-producer.sh --command-property acks=all` manual) que produz com
+`acks=all` num tópico `RF=3`/`min.insync.replicas=2`, derruba dois dos três brokers
+(`docker stop pix-stream-kafka-2 pix-stream-kafka-3`) e afirma que o `send()` **falha**
+— nada de sucesso silencioso. Como o marco 02 mostrou, com nós combined essa falha
+aparece como timeout (o quorum de controllers também cai), não como uma exceção
+instantânea — o teste precisa esperar o `delivery.timeout.ms` e então afirmar a falha.
 
 **Checagem.** (a) `enable.idempotence=true` impede que o mesmo pagamento apareça duas
 vezes no tópico se a sua API reprocessar a requisição HTTP? (b) Por que
