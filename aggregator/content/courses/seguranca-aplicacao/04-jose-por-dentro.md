@@ -136,6 +136,32 @@ em vez de abstratas.
 `kid` com path traversal; `aud` incorreta; `exp` vencida; assinatura válida, mas de outra
 chave. A validação do `fin-idp`/`pix-gateway` precisa rejeitar todos os seis.
 
+Sem biblioteca, construa ao menos o primeiro token na mão — é o que o marco pede desde
+o "Tutorial" acima, e vale repetir aqui para o caso `alg: none`:
+
+```bash
+# header com alg:none e um payload qualquer, sem assinatura
+HEADER=$(echo -n '{"alg":"none","typ":"JWT"}' | base64 | tr -d '=' | tr '/+' '_-')
+PAYLOAD=$(echo -n '{"sub":"cliente-a","aud":"pix-gateway","exp":9999999999}' | base64 | tr -d '=' | tr '/+' '_-')
+TOKEN_ALG_NONE="${HEADER}.${PAYLOAD}."   # note o ponto final: assinatura vazia
+
+curl -i -X GET http://localhost:8080/payments/123 \
+  -H "Authorization: Bearer ${TOKEN_ALG_NONE}"
+# esperado: 401 — se vier 200, a validação está confiando no header alg
+```
+
+Para o token de algoritmo confundido (RS256 → HS256), gere primeiro a chave pública do
+`fin-idp` em PEM e assine um HS256 usando o texto da chave pública como segredo HMAC —
+uma biblioteca JWT client-side (`jwt-cli`, ou um script Python de 10 linhas com
+`hmac`/`hashlib`) é mais prático aqui do que bash puro; o ponto do exercício é o
+resultado (o servidor rejeita), não a ferramenta usada para forjar o ataque:
+
+```bash
+curl -s http://localhost:9000/.well-known/jwks.json | jq -r '.keys[0]' > jwk.json
+# extraia o "n" e "e" do JWK, converta para PEM (openssl ou uma lib), e use esse PEM
+# como segredo HS256 para assinar um token com o mesmo payload de um token legítimo
+```
+
 **Invariantes testáveis**
 
 1. Um teste parametrizado cobre os 6 tokens maliciosos e um token legítimo — 6 rejeições,

@@ -103,6 +103,16 @@ recurso pertence ao titular do token. Faça `git commit` da correção com o tes
 **abuse case** em vez de a um caminho feliz: a prova de que o controle bloqueia o caminho
 que ninguém previu, não apenas o que foi especificado.
 
+```bash
+# antes da correção: cliente A lê o pagamento do cliente B
+curl -H "Authorization: Bearer <token-cliente-A>" http://localhost:8080/payments/<id-de-B>
+# 200 — vazamento
+
+# depois da correção
+curl -H "Authorization: Bearer <token-cliente-A>" http://localhost:8080/payments/<id-de-B>
+# 404 — não vaza nem a existência do recurso
+```
+
 **Invariantes testáveis**
 
 1. Existe um teste automatizado que reproduz o BOLA, e ele **falhava** antes da correção —

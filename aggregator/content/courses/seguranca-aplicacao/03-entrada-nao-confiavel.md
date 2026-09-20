@@ -114,6 +114,13 @@ processamento. Demonstre a exploração: aponte a URL para o endpoint de metadad
 mesmo destino. Corrija com allowlist de destino (host e porta explicitamente permitidos) e
 resolução de DNS validada no momento da chamada, não apenas na validação inicial.
 
+```bash
+curl -X POST http://localhost:8080/psp/callback-config \
+  -d '{"callbackUrl":"http://169.254.169.254/latest/meta-data/"}'
+# antes da correção: a requisição é aceita e o callback chega a ser chamado
+# depois da correção (allowlist de destino): rejeitada antes de qualquer chamada de rede
+```
+
 **Invariantes testáveis**
 
 1. Uma requisição direta ao endpoint de metadados, usando a URL de callback, é bloqueada.

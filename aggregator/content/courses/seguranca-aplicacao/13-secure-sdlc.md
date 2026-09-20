@@ -82,6 +82,34 @@ com quatro gates: (1) secret scanning; (2) CVE crítica **alcançável** (*reenc
 12); (3) violação de regra SAST curada; (4) política de exceção com prazo, dono e
 expiração automática.
 
+Os três primeiros gates, como passos de pipeline (adapte a sintaxe ao seu CI — os
+comandos abaixo rodam iguais localmente):
+
+```bash
+# gate 1: secret scanning
+gitleaks detect --source . --exit-code 1
+
+# gate 2: CVE alcançável (grype sobre o SBOM do marco 12)
+grype sbom:sbom.cdx.json --fail-on critical
+
+# gate 3: SAST com um conjunto curado de regras (exemplo com Semgrep e um registry
+# de regras próprio, em vez do "auto" completo, que gera ruído demais)
+semgrep --config p/owasp-top-ten --config .semgrep/regras-curadas.yaml --error
+```
+
+O gate 4 (exceção com prazo/dono/expiração) é lógica de negócio do seu pipeline, não uma
+ferramenta de mercado — implemente como um arquivo `security-exceptions.yaml` versionado
+no repo, com um passo que falha o build se alguma exceção tiver `until` no passado:
+
+```yaml
+# security-exceptions.yaml
+exceptions:
+  - id: CVE-2026-XXXXX
+    reason: "biblioteca X, função vulnerável não alcançável — ver ADR-012"
+    owner: "time-pagamentos"
+    until: "2026-12-31"
+```
+
 **Invariantes testáveis**
 
 1. Um PR com segredo plantado deliberadamente é barrado pelo gate.
