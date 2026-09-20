@@ -98,16 +98,76 @@ apaga a história; um evento a preserva.
 ## Hands-on
 
 **Tutorial — o estado inicial do `pix-stream`.** Suba um cluster KRaft de nó único com
-a imagem oficial `apache/kafka` num `docker-compose.yml` (modo `combined`: o mesmo
-processo é controller e broker). Depois:
+a imagem oficial `apache/kafka`, modo `combined` (o mesmo processo é controller e
+broker), neste `docker-compose.yml`:
 
-1. `kafka-topics.sh --create --topic payments.initiated --partitions 3` e leia o
-   `--describe`: anote quem é líder de cada partição.
-2. Produza três mensagens pelo `kafka-console-producer.sh`.
-3. Consuma com `kafka-console-consumer.sh --from-beginning` e **rode de novo**. As
-   mensagens continuam lá — esse é o ponto do marco inteiro.
+```yaml
+services:
+  kafka:
+    image: apache/kafka:4.3.1
+    container_name: pix-stream-kafka
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093,PLAINTEXT_HOST://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+```
+
+Não é preciso fixar um `CLUSTER_ID`: a imagem gera um sozinho e formata o storage no
+primeiro boot. Suba com `docker compose up -d` e prove que o controller está de pé —
+é a evidência que fecha este marco:
+
+```bash
+docker exec pix-stream-kafka kafka-metadata-quorum.sh \
+  --bootstrap-server kafka:9092 describe --status
+# LeaderId: 1 e o nó 1 como voter confirmam o controller no ar
+```
+
+Depois:
+
+1. Crie o tópico e leia o `--describe`: anote quem é líder de cada partição.
+
+   ```bash
+   docker exec pix-stream-kafka kafka-topics.sh --bootstrap-server kafka:9092 \
+     --create --topic payments.initiated --partitions 3
+   docker exec pix-stream-kafka kafka-topics.sh --bootstrap-server kafka:9092 \
+     --describe --topic payments.initiated
+   ```
+
+2. Produza três mensagens pelo `kafka-console-producer.sh`:
+
+   ```bash
+   docker exec -it pix-stream-kafka kafka-console-producer.sh \
+     --bootstrap-server kafka:9092 --topic payments.initiated
+   # digite uma mensagem por linha, Ctrl+D para sair
+   ```
+
+3. Consuma com `--from-beginning` e **rode de novo**. As mensagens continuam lá — esse é
+   o ponto do marco inteiro.
+
+   ```bash
+   docker exec pix-stream-kafka kafka-console-consumer.sh \
+     --bootstrap-server kafka:9092 --topic payments.initiated --from-beginning
+   ```
+
 4. Consuma agora com `--group teste` duas vezes seguidas. Na segunda, nada aparece.
    Explique por escrito, em duas linhas, por que o comportamento mudou.
+
+   ```bash
+   docker exec pix-stream-kafka kafka-console-consumer.sh \
+     --bootstrap-server kafka:9092 --topic payments.initiated --group teste --from-beginning
+   ```
+
 5. `git commit` do `docker-compose.yml` e do README com os comandos.
 
 **Checagem.** (a) Onde ficou guardada a posição de leitura no passo 4, e em que
