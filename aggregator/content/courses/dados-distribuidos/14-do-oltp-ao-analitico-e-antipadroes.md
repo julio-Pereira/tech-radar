@@ -150,14 +150,58 @@ classe de serviço — e é essa que aparece no fechamento do mês.
 
 **Desafio — CDC com data contract e SLO.** Construa a ponte do `fin-store` para o analítico:
 
-1. Configure decodificação lógica e um conector CDC da tabela de lançamentos para um destino
-   (arquivo, tópico ou store analítico — o destino importa menos que o fluxo).
+1. Ligue a decodificação lógica e crie a publicação e o slot:
+
+   ```sql
+   ALTER SYSTEM SET wal_level = logical;
+   -- requer restart do Postgres
+   ```
+
+   ```bash
+   docker restart fin-store-pg
+   ```
+
+   ```sql
+   CREATE PUBLICATION fin_store_pub FOR TABLE lancamento;
+   SELECT pg_create_logical_replication_slot('fin_store_slot', 'pgoutput');
+   ```
+
+   Registre um conector Debezium (reaproveitando o worker Connect do `kafka/11`, se você
+   fez aquela trilha):
+
+   ```bash
+   curl -X POST -H "Content-Type: application/json" http://localhost:8083/connectors -d '{
+     "name": "fin-store-cdc",
+     "config": {
+       "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+       "database.hostname": "fin-store-pg",
+       "database.port": "5432",
+       "database.user": "postgres",
+       "database.password": "fin_store",
+       "database.dbname": "fin_store",
+       "topic.prefix": "fin_store",
+       "table.include.list": "public.lancamento",
+       "plugin.name": "pgoutput",
+       "publication.name": "fin_store_pub",
+       "slot.name": "fin_store_slot"
+     }
+   }'
+   ```
 2. Escreva o **data contract** do que você publica: schema, chave, granularidade, nulabilidade,
    política de evolução, dono e SLO de freshness com número.
 3. Instrumente a freshness: meça o atraso entre `recordedAt` e a chegada ao destino, publique como
    métrica e configure o alerta no limiar declarado.
-4. Provoque a falha: **pare o consumidor por 30 minutos** e observe o slot retendo WAL. Registre o
-   crescimento e defina o alerta que teria avisado antes de o disco encher.
+4. Provoque a falha: pare o conector (`curl -X PUT
+   http://localhost:8083/connectors/fin-store-cdc/pause`) por 30 minutos e observe o slot
+   retendo WAL:
+
+   ```sql
+   SELECT slot_name, active,
+          pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS retained_wal
+   FROM pg_replication_slots;
+   ```
+
+   Registre o crescimento e defina o alerta que teria avisado antes de o disco encher.
 5. Rode o checklist da seção anterior contra o seu `fin-store` e escreva o que ainda está vermelho.
 
 **Invariantes testáveis**
