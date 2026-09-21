@@ -99,6 +99,20 @@ binding de propriedades. Simples na superfície; nos próximos marcos abrimos a 
 
 1. Gere o projeto em [start.spring.io](https://start.spring.io) com Boot 4.1, Java 21 e
    os starters `web` e `test`.
+
+   ```bash
+   curl https://start.spring.io/starter.zip \
+     -d type=maven-project -d language=java -d bootVersion=4.1.0 \
+     -d baseDir=pix-gateway -d groupId=com.fintech -d artifactId=pix-gateway \
+     -d name=pix-gateway -d packageName=com.fintech.pixgateway \
+     -d javaVersion=17 -d dependencies=web \
+     -o pix-gateway.zip && unzip pix-gateway.zip -d pix-gateway
+   ```
+
+   (`dependencies=web` só — pedir `test` ao Initializr falha, porque
+   `spring-boot-starter-test` já vem por padrão em todo projeto gerado.
+   `javaVersion=17` aqui é só o nível de bytecode do `pom.xml`; o JDK que você usa
+   para compilar/rodar continua sendo 21, como o resto do marco pede.)
 2. Crie o endpoint mínimo, deliberadamente **não implementado** — sinceridade de API
    vale mais que um `200` mentiroso:
 
@@ -129,6 +143,15 @@ binding de propriedades. Simples na superfície; nos próximos marcos abrimos a 
 
 O `@SpringBootTest` sobe o `ApplicationContext` inteiro — se algum bean não montar, o
 teste falha no boot, exatamente como a produção falharia.
+
+Rode o teste e depois prove o endpoint no ar, de verdade:
+
+```bash
+cd pix-gateway
+mvn test          # 2 testes verdes: o de contexto do Initializr + o seu
+mvn spring-boot:run &
+curl -i -X POST http://localhost:8080/payments   # HTTP/1.1 501
+```
 
 ## Principais aprendizados
 

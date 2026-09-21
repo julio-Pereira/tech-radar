@@ -112,6 +112,25 @@ transação, depois do lock — impossível de furar por corrida.
 
 1. Modele `Account` com saldo `BigDecimal` e um `DebitService` transacional que carrega
    a conta com `FOR UPDATE`, valida saldo suficiente e debita.
+
+   O teste do passo 2 usa Testcontainers antes de o marco 11 ensinar a ferramenta em
+   detalhe — por ora, este é o esqueleto mínimo para rodar o teste de concorrência:
+
+   ```java
+   @SpringBootTest
+   @Testcontainers
+   class DebitServiceConcurrencyIT {
+
+       @Container @ServiceConnection
+       static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+
+       @Autowired DebitService debitService;
+
+       // dispare N threads (ExecutorService + CountDownLatch) chamando debitService.debit(...)
+       // na mesma conta, e conte sucessos/falhas — é o corpo do passo 2
+   }
+   ```
+
 2. Escreva um teste (Testcontainers Postgres) que dispara **N threads** debitando a
    mesma conta com saldo para só metade delas: exatamente metade deve suceder, metade
    receber "saldo insuficiente", e o saldo final ser `>= 0`.

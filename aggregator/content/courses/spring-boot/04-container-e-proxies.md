@@ -119,6 +119,10 @@ segundo lançamento, expõe o rollback que nunca aconteceu.
    novo e verifique que agora o saldo volta ao original. O mesmo teste, verde depois de
    vermelho, é a prova de que o advice passou a rodar.
 
+   ```bash
+   mvn test -Dtest=RefundServiceIT
+   ```
+
 ## Principais aprendizados
 
 - Injeção por construtor + singleton *stateless* é o default seguro sob concorrência.

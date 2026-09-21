@@ -89,6 +89,56 @@ primeiro, o graceful shutdown drena as iniciações em andamento em até 30s, e 
 pod antigo morre — **nenhuma transação Pix é cortada no meio**, requisito não-negociável
 para quem move dinheiro.
 
+## Mão na massa
+
+**Tutorial — imagem sem root e rollback com schema já migrado.**
+
+1. Gere a imagem por buildpacks (sem Dockerfile):
+
+   ```bash
+   mvn spring-boot:build-image -Dspring-boot.build-image.imageName=pix-gateway:v1
+   docker inspect pix-gateway:v1 --format '{{.Config.User}}'   # não deve ser root/vazio
+   ```
+
+2. Rode com graceful shutdown e prove que ele espera requisição em voo:
+
+   ```properties
+   server.shutdown=graceful
+   spring.lifecycle.timeout-per-shutdown-phase=30s
+   ```
+
+   ```bash
+   docker run -p 8080:8080 pix-gateway:v1 &
+   # dispare uma requisição de ~2s (endpoint de teste com Thread.sleep) e, no meio dela:
+   docker stop -t 30 <container-id>
+   # a requisição em voo deve terminar com 200, não com conexão resetada
+   ```
+
+3. **Migração expand/contract + rollback.** Adicione uma migração Flyway que só
+   *expande* o schema (nova coluna nullable, sem remover nada):
+
+   ```sql
+   -- V3__add_channel_column.sql
+   ALTER TABLE pagamentos ADD COLUMN canal TEXT;
+   ```
+
+   Suba a versão nova (`v2`, já lendo `canal`), confirme que funciona, e então **faça
+   rollback para a imagem `v1`** sem reverter a migração:
+
+   ```bash
+   mvn spring-boot:build-image -Dspring-boot.build-image.imageName=pix-gateway:v2
+   docker run -p 8080:8080 pix-gateway:v2 &   # aplica V3, usa a coluna canal
+   docker stop <container-v2>
+   docker run -p 8080:8080 pix-gateway:v1 &   # volta pra v1, schema já com a coluna
+   curl -i -X POST localhost:8080/payments -d '{"...sem canal..."}'   # v1 ainda funciona
+   ```
+
+   A prova do marco: **v1 continua funcionando** com o schema de v2 no ar — é o que
+   "expand/contract" garante (a coluna nova é nullable, v1 simplesmente não a usa).
+
+**Checagem.** (a) O que quebraria no passo 3 se `V3` tivesse `NOT NULL` sem default?
+(b) Por que buildpacks já resolve "sem root" por padrão, e o que isso evita?
+
 ## Principais aprendizados
 
 - **Buildpacks** (`bootBuildImage`) é o default de menor atrito; Dockerfile em **camadas**

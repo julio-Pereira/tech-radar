@@ -102,6 +102,39 @@ simulando: (a) latência acima do read timeout, (b) `503` transitório que o ret
 recupera, (c) falhas contínuas que abrem o circuito — e verifique que, com o circuito
 aberto, o fallback responde `202` sem chamar o PSP.
 
+Um stub de cada cenário. O projeto migrou de `com.github.tomakehurst:wiremock-jre8`
+para o grupo `org.wiremock`; a dependência de teste atual é:
+
+```xml
+<dependency>
+  <groupId>org.wiremock</groupId>
+  <artifactId>wiremock</artifactId>
+  <version>3.13.1</version>
+  <scope>test</scope>
+</dependency>
+```
+
+```java
+@RegisterExtension
+static WireMockExtension wm = WireMockExtension.newInstance()
+        .options(wireMockConfig().dynamicPort()).build();
+
+// (a) latência acima do read timeout (5s do exemplo do marco)
+wm.stubFor(post("/psp").willReturn(aResponse().withFixedDelay(6000).withStatus(200)));
+
+// (b) 503 transitório que o retry recupera (falha 2x, sucede na 3ª)
+wm.stubFor(post("/psp").inScenario("retry")
+        .whenScenarioStateIs(STARTED)
+        .willReturn(aResponse().withStatus(503))
+        .willSetStateTo("segunda"));
+wm.stubFor(post("/psp").inScenario("retry")
+        .whenScenarioStateIs("segunda")
+        .willReturn(aResponse().withStatus(200)));
+
+// (c) falhas contínuas que abrem o circuito
+wm.stubFor(post("/psp").willReturn(aResponse().withStatus(500)));
+```
+
 ## Principais aprendizados
 
 - **Timeout primeiro**: connect + read explícitos em todo client (inclusive

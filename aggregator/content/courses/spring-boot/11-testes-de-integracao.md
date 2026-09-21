@@ -55,7 +55,7 @@ class PaymentOutboxIT {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
 
     @Container @ServiceConnection
-    static KafkaContainer kafka = new KafkaContainer("apache/kafka:3.7.0");
+    static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.3.1");
 
     @Autowired PaymentService payments;
     // ... testa initiate + outbox contra Postgres e Kafka de verdade
@@ -98,6 +98,10 @@ locking (marco 05) escrito contra H2 que passa "verde" e migre-o para Postgres v
 `@ServiceConnection`. Observe o comportamento de `SELECT ... FOR UPDATE` mudar: o H2
 escondia a real contenção entre as threads concorrentes. Documente o bug que o H2
 mascarava e prove, no Postgres real, que o saldo nunca fica negativo.
+
+```bash
+mvn test
+```
 
 ## Principais aprendizados
 

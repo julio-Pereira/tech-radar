@@ -103,6 +103,11 @@ um `import` de uma classe **interna** de `antifraud` dentro de `payments` e veja
 **falhar** — provando que o acoplamento ilegal é pego pelo build, não descoberto em
 produção. Gere a documentação com `Documenter` e observe o diagrama de módulos.
 
+```bash
+mvn test -Dtest=ModularityTests
+# o teste documenta() gera os diagramas em target/spring-modulith-docs/
+```
+
 ## Principais aprendizados
 
 - O inimigo nunca foi o monolito; foi o **big ball of mud**. **Modulith** dá fronteiras

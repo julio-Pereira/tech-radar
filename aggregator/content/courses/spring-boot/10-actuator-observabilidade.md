@@ -110,6 +110,46 @@ e logs correlacionados por `traceId`. O alerta não é "CPU alta" — é "estamo
 error budget de latência da iniciação rápido demais", que aponta para o PSP degradado
 antes que o cliente reclame.
 
+## Mão na massa
+
+**Tutorial — Actuator e a Observation API no `pix-gateway`.**
+
+1. Adicione o starter e exponha o mínimo:
+
+   ```xml
+   <dependency>
+     <groupId>org.springframework.boot</groupId>
+     <artifactId>spring-boot-starter-actuator</artifactId>
+   </dependency>
+   ```
+
+   ```properties
+   management.endpoints.web.exposure.include=health,prometheus
+   management.endpoint.health.probes.enabled=true
+   ```
+
+2. Confira os endpoints:
+
+   ```bash
+   curl localhost:8080/actuator/health
+   curl localhost:8080/actuator/health/liveness
+   curl localhost:8080/actuator/health/readiness
+   curl localhost:8080/actuator/prometheus | grep payment_initiate
+   ```
+
+3. Implemente o `FraudCheckHealthIndicator` do exemplo acima e prove que ele derruba
+   só a **readiness**, não a liveness, quando `fraud.isReachable()` retorna falso — um
+   teste de fatia (`@SpringBootTest(webEnvironment = RANDOM_PORT)`) que troca o
+   `FraudClient` por um mock que sempre falha e confere:
+
+   ```bash
+   curl localhost:8080/actuator/health/liveness    # UP
+   curl localhost:8080/actuator/health/readiness   # DOWN
+   ```
+
+**Checagem.** (a) O que muda no Kubernetes se você ligar essa dependência à liveness
+em vez da readiness? (b) Por que `paymentId` nunca deve virar `lowCardinalityKeyValue`?
+
 ## Principais aprendizados
 
 - Separe **liveness** de **readiness**; modele como readiness só a dependência sem a
