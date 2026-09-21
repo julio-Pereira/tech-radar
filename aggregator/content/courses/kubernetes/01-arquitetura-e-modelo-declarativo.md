@@ -121,8 +121,25 @@ diferença em vez de fingir que simulou.
 ## Hands-on
 
 **Tutorial — o estado inicial.** Suba um cluster `kind` de **3 nós** (1 control-plane,
-2 workers) e crie o repositório `fin-platform` com a estrutura
-`base/`, `overlays/dev/`, `overlays/prod/`, `docs/adr/`. Depois:
+2 workers):
+
+```yaml
+# kind.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker
+```
+
+```bash
+kind create cluster --name fin-platform --config kind.yaml
+mkdir -p base overlays/dev overlays/prod docs/adr
+```
+
+e crie o repositório `fin-platform` com a estrutura `base/`, `overlays/dev/`,
+`overlays/prod/`, `docs/adr/`. Depois:
 
 1. `kubectl get nodes -o wide` — identifique o papel de cada nó.
 2. `kubectl get pods -n kube-system` — encontre o API server, o etcd, o scheduler, o

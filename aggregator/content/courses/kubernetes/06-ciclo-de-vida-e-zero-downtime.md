@@ -144,8 +144,17 @@ E a evidência: o deploy sob carga com **zero 5xx**, medida e arquivada. Sem o r
 
 1. `pix-gateway` com 3 réplicas, endpoint que leva ~200ms e uma chamada externa
    simulada de até 5s em 1% dos casos.
-2. Rode carga constante com `k6` ou `hey` (≥100 RPS) por 5 minutos.
-3. **No meio da carga**, dispare `kubectl set image` para uma versão nova.
+2. Rode carga constante com `hey` (≥100 RPS) por 5 minutos:
+
+   ```bash
+   hey -z 5m -c 100 -q 1 http://pix-gateway.payments.svc.cluster.local:8080/payments
+   ```
+
+3. **No meio da carga**, dispare o rollout para uma versão nova:
+
+   ```bash
+   kubectl set image deployment/pix-gateway pix-gateway=ghcr.io/fin/pix-gateway-stub:v2 -n payments
+   ```
 
 **Invariante testável:** o relatório do gerador de carga acusa **zero** respostas 5xx e
 **zero** conexões recusadas durante todo o rollout. Salve o relatório em
