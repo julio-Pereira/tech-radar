@@ -186,6 +186,49 @@ relatório, não calcular um percentil.
 
 **Tutorial — as duas histórias.** Com um script curto (Python, Go ou até `awk`):
 
+```python
+import random, statistics
+
+random.seed(42)
+latencies = [random.gauss(80, 15) for _ in range(9500)] + \
+            [random.gauss(3000, 500) for _ in range(500)]
+random.shuffle(latencies)
+
+def pct(data, p):
+    s = sorted(data)
+    return s[int(len(s) * p / 100)]
+
+print("média:", statistics.mean(latencies))
+print("p50:", pct(latencies, 50), "p95:", pct(latencies, 95), "p99:", pct(latencies, 99))
+
+# passo 3: 3 instâncias desbalanceadas
+inst = [latencies[0:500], latencies[500:1000], latencies[1000:]]
+p99s = [pct(i, 99) for i in inst]
+print("p99 por instância:", p99s, "média dos p99:", statistics.mean(p99s))
+print("p99 do conjunto todo:", pct(latencies, 99))
+
+# passo 4: buckets exponenciais (o que o Prometheus faz de verdade)
+buckets_ms = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000]
+def bucketize(data):
+    counts = {b: 0 for b in buckets_ms}
+    for v in data:
+        for b in buckets_ms:
+            if v <= b:
+                counts[b] += 1
+    return counts
+
+summed = {b: sum(bucketize(i)[b] for i in inst) for b in buckets_ms}
+total = len(latencies)
+target = total * 0.99
+for b in buckets_ms:
+    if summed[b] >= target:
+        print("p99 estimado por bucket somado:", b, "ms")
+        break
+```
+
+Rode com `python3 script.py` (nenhuma dependência externa). Peça para o aluno anotar os
+três números impressos — são os mesmos que voltam no marco 07 como `histogram_quantile`.
+
 1. Gere 10.000 latências: 95% numa normal de média 80ms, 5% numa normal de média 3.000ms.
 2. Calcule média, p50, p95, p99. Note que a média fica perto de 225ms — um valor que
    **nenhuma requisição real teve**.

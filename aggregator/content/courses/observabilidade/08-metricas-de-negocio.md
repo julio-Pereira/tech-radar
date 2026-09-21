@@ -139,6 +139,20 @@ Os alertas de negócio que vão para o **pager**, e não para o dashboard:
   TPV foi perdido nesse intervalo — esse número é o argumento para reduzir o MTTD.
 
 4. **A invariante contábil.** Crie um alerta para "soma dos lançamentos do dia ≠ 0".
+
+```yaml
+# prometheus-rules.yaml
+groups:
+  - name: fin-platform-invariantes
+    rules:
+      - alert: InvarianteContabilViolada
+        expr: sum(ledger_entries_amount_cents_total) by (day) != 0
+        for: 1m
+        labels: { severity: page }
+        annotations:
+          summary: "Soma dos lançamentos do dia não fecha em zero — possível bug de contabilização"
+```
+
    Injete um bug que credita sem debitar e prove que **só** esse alerta pega.
 
 **Complemento — sazonalidade.** Configure o alerta de volume com limiar fixo e deixe rodar

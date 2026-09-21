@@ -134,6 +134,49 @@ escolheria.
    marco 12.
 2. Crie os quatro alertas da tabela, com severidades e runbooks.
 
+A tabela já dá o alerta Crítico como exemplo (`PaymentsErrorBudgetBurnFast`). Completar
+os outros três, seguindo o mesmo padrão, mais os três alertas de negócio citados logo
+depois na narrativa:
+
+```yaml
+- alert: PaymentsErrorBudgetBurnHigh
+  expr: |
+    sli:payments_availability:burn_rate6h  > 6
+      and
+    sli:payments_availability:burn_rate30m > 6
+  labels: { severity: page }
+  annotations: { summary: "Budget queimando 6x — esgota em ~5 dias" }
+
+- alert: PaymentsErrorBudgetBurnMedium
+  expr: |
+    sli:payments_availability:burn_rate1d > 3
+      and
+    sli:payments_availability:burn_rate2h > 3
+  labels: { severity: ticket }
+  annotations: { summary: "Budget queimando 3x — esgota em ~10 dias" }
+
+- alert: PaymentsErrorBudgetBurnLow
+  expr: |
+    sli:payments_availability:burn_rate3d > 1
+      and
+    sli:payments_availability:burn_rate6h > 1
+  labels: { severity: ticket }
+  annotations: { summary: "Budget queimando no ritmo do SLO — esgota em ~30 dias" }
+
+- alert: TaxaAutorizacaoCaiu
+  expr: (payment_attempts_total{result="authorized"} / payment_attempts_total) < 0.9
+  for: 15m
+  labels: { severity: page }
+
+- alert: FilaLiquidacaoAtrasada
+  expr: settlement_oldest_age_seconds > 1800
+  labels: { severity: page }
+
+- alert: InvarianteContabilViolada
+  expr: sum(ledger_entries_amount_cents_total) by (day) != 0
+  labels: { severity: page }
+```
+
 **Invariantes testáveis** — três cenários, e cada um prova uma propriedade diferente:
 
 1. **Pico curto:** 50% de erro por 2 minutos. O alerta crítico **não** deve disparar (não

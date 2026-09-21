@@ -146,13 +146,65 @@ No `fin-platform`, o mínimo que faz diferença:
 **Tutorial — o primeiro trace ponta a ponta.**
 
 1. Suba um Tempo (ou Jaeger) local via Compose.
+
+```yaml
+services:
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: fin-watch-tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "3200:3200"   # Tempo query API / UI via Grafana
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+```
+
+```yaml
+# tempo.yaml
+server:
+  http_listen_port: 3200
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+        http:
+storage:
+  trace:
+    backend: local
+    local:
+      path: /tmp/tempo/blocks
+```
+
 2. Ligue a auto-instrumentação no `pix-gateway` só com variáveis de ambiente
    (`OTEL_SERVICE_NAME`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_RESOURCE_ATTRIBUTES`) —
    **sem mudar uma linha de código**. Faça uma requisição e veja o trace.
+
+O `pix-gateway` já existe em `/root/projects/trilhas/pix-gateway` e roda fora do
+compose:
+
+```bash
+curl -L -o opentelemetry-javaagent.jar \
+  https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
+
+cd /root/projects/trilhas/pix-gateway
+OTEL_SERVICE_NAME=pix-gateway \
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 \
+OTEL_RESOURCE_ATTRIBUTES=deployment.environment=dev \
+java -javaagent:./opentelemetry-javaagent.jar -jar target/pix-gateway-0.0.1-SNAPSHOT.jar
+```
+
 3. Instrumente o `ledger-core` (Go) com `otelhttp` e confirme que a chamada entre os dois
    aparece como **um** trace com spans dos dois serviços.
 4. Inspecione o header `traceparent` na requisição entre eles — encontre o `trace-id` e
    confira que é o mesmo do trace na UI.
+
+```bash
+curl -v -X POST http://localhost:8080/payments 2>&1 | grep -i traceparent
+```
+
 5. Adicione um span manual na chamada ao PSP com o atributo `fin.psp`.
 
 **Desafio — o trace que atravessa o Kafka.**

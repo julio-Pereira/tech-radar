@@ -107,9 +107,42 @@ tradução. As demais respondem "onde?".
 1. Construa os três painéis (executivo, serviço, debug) do `fin-platform`, com navegação
    entre eles.
 2. Ligue **exemplars** no histograma de latência e prove o salto métrica → trace.
+
+No `pix-gateway`, `management.metrics.distribution.percentiles-histogram.http.server.requests=true`
+e `management.prometheus.metrics.export.properties.exemplars=true` (Micrometer + tracing
+bridge precisa estar no classpath — é o mesmo do marco 10 da trilha Spring Boot).
+
 3. Configure o `trace_id` como link no Loki, provando o salto trace ↔ log.
 4. Adicione anotações de deploy.
 5. Exporte os JSONs e **commite** no repositório, provisionados por ConfigMap.
+
+```yaml
+# grafana/provisioning/dashboards/dashboards.yaml
+apiVersion: 1
+providers:
+  - name: fin-watch
+    folder: fin-platform
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
+```
+
+```yaml
+# grafana/provisioning/datasources/datasources.yaml
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    url: http://prometheus:9090
+    jsonData: { exemplarTraceIdDestinations: [{ name: trace_id, datasourceUid: tempo }] }
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    url: http://tempo:3200
+  - name: Loki
+    type: loki
+    url: http://loki:3100
+```
 
 **Invariantes testáveis:**
 

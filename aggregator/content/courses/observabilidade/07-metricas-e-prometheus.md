@@ -130,12 +130,39 @@ que alimenta a taxa de autorização — o "quarto sinal" do marco 03.
 PromQL.
 
 1. Suba Prometheus e o `pix-gateway` com 3 réplicas, exportando histogram de latência.
+
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: pix-gateway
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["pix-gateway-1:8080", "pix-gateway-2:8080", "pix-gateway-3:8080"]
+```
+
+```yaml
+# docker-compose.yml (serviço a adicionar)
+services:
+  prometheus:
+    image: prom/prometheus:v3.0.1
+    container_name: fin-watch-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+```
+
 2. Gere carga **desbalanceada**: uma réplica com latência muito pior que as outras.
 3. Calcule as três coisas e compare:
    - `avg(histogram_quantile(0.99, rate(..._bucket[5m])))` — a média dos p99 (**errado**);
    - `histogram_quantile(0.99, sum by (le) (rate(..._bucket[5m])))` — o p99 real
      (**certo**);
    - o p99 calculado a partir dos dados brutos, fora do Prometheus.
+
+```bash
+curl -s 'http://localhost:9090/api/v1/query' \
+  --data-urlencode 'query=avg(histogram_quantile(0.99, rate(http_server_requests_seconds_bucket[5m])))'
+```
 4. Anote os três números. O primeiro vai **subestimar** — os mesmos números do tutorial do
    marco 04, agora produzidos pela ferramenta.
 5. Mude os buckets para longe do SLO e recalcule o p99. Veja a precisão piorar sem

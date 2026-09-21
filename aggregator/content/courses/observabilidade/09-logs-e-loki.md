@@ -147,7 +147,43 @@ que funciona é não escrever.
 
 1. Suba Loki + Grafana. Faça `pix-gateway` e `ledger-core` emitirem JSON estruturado com
    `trace_id`.
+
+```yaml
+services:
+  loki:
+    image: grafana/loki:3.2.1
+    container_name: fin-watch-loki
+    ports: ["3100:3100"]
+  promtail:
+    image: grafana/promtail:3.2.1
+    container_name: fin-watch-promtail
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: ["-config.file=/etc/promtail/config.yaml"]
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: fin-watch-grafana
+    ports: ["3000:3000"]
+```
+
 2. Configure o agente para usar apenas os quatro labels da seção — e **nada** mais.
+
+```yaml
+# promtail-config.yaml
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+    relabel_configs:
+      - source_labels: [__meta_docker_container_name]
+        target_label: service
+      - source_labels: [__meta_docker_container_label_version]
+        target_label: version
+```
+
+(mantenha só `service`, `version`, `env`, `level` como labels — o resto vai no conteúdo)
+
 3. Injete uma falha específica: pagamentos acima de R$ 50 mil de um PSP específico falham
    por timeout.
 
@@ -155,6 +191,10 @@ que funciona é não escrever.
 
 - Uma consulta LogQL isola exatamente essas falhas, filtrando por PSP e por valor,
   **sem regex sobre texto livre**.
+
+```logql
+{service="pix-gateway"} | json | psp="itau" and amount_cents > 5000000 and error="timeout"
+```
 - A partir de uma linha de log, você chega ao trace completo pelo `trace_id` (será
   fechado no marco 10).
 - Nenhum log contém CPF, PAN ou nome — escreva um teste que varre a saída procurando
