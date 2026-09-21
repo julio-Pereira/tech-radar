@@ -102,8 +102,17 @@ simulando: (a) latência acima do read timeout, (b) `503` transitório que o ret
 recupera, (c) falhas contínuas que abrem o circuito — e verifique que, com o circuito
 aberto, o fallback responde `202` sem chamar o PSP.
 
-Um stub de cada cenário (confirme antes de publicar o artifactId atual do WireMock
-compatível com Java 21/JUnit 5 — os nomes de módulo mudaram entre versões):
+Um stub de cada cenário. O projeto migrou de `com.github.tomakehurst:wiremock-jre8`
+para o grupo `org.wiremock`; a dependência de teste atual é:
+
+```xml
+<dependency>
+  <groupId>org.wiremock</groupId>
+  <artifactId>wiremock</artifactId>
+  <version>3.13.1</version>
+  <scope>test</scope>
+</dependency>
+```
 
 ```java
 @RegisterExtension
