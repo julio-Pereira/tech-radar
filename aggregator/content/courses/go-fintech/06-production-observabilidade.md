@@ -59,6 +59,55 @@ Sobre compliance: campos `created_at`/`created_by`, snapshots periódicos, e —
 hard delete, num sistema contábil. No empacotamento, um Dockerfile multi-stage com
 binário estático (`CGO_ENABLED=0`) gera uma imagem `distroless`/`scratch` de 5 a 15 MB.
 
+## Hands-on
+
+**Tutorial — o `payments-api` fica production-grade.**
+
+1. Suba as dependências:
+
+   ```yaml
+   # docker-compose.yml
+   services:
+     postgres:
+       image: postgres:17
+       environment: { POSTGRES_PASSWORD: pix, POSTGRES_DB: ledger }
+       ports: ["5432:5432"]
+   ```
+
+   ```bash
+   docker compose up -d
+   golang-migrate -database "postgres://postgres:pix@localhost:5432/ledger?sslmode=disable" \
+     -path ./migrations up
+   go run ./cmd/payments-api
+   ```
+
+2. Confira liveness e readiness separados:
+
+   ```bash
+   curl http://localhost:8080/healthz    # liveness — sempre 200 se o processo está de pé
+   curl http://localhost:8080/readyz     # readiness — 503 se o Postgres cair
+   ```
+
+3. Confira as métricas de negócio expostas:
+
+   ```bash
+   curl http://localhost:8080/metrics | grep -E 'tpv_total|approval_rate'
+   ```
+
+4. Faça uma requisição e confirme que o `trace_id` aparece tanto no log quanto seria
+   visível num backend de tracing:
+
+   ```bash
+   curl -X POST http://localhost:8080/entries -H "Content-Type: application/json" \
+     -d '{"account":"acc-1","amount":1000,"currency":"BRL","type":"CREDIT"}' -v
+   # copie o valor do header de resposta (ex.: traceparent) e confira que a mesma
+   # string aparece no campo trace_id do log estruturado do payments-api
+   ```
+
+**Invariante testável.** Derrube o Postgres com o serviço no ar
+(`docker compose stop postgres`) e confirme que `/readyz` responde **503** enquanto
+`/healthz` continua **200** — a distinção entre os dois é o ponto do marco.
+
 ## Principais aprendizados
 
 - Logue com `slog` estruturado e exponha métricas de negócio, não só técnicas.

@@ -47,6 +47,38 @@ Ao processar, grave o evento numa tabela **outbox** (consistência sem 2-phase c
 ao final, reconcilie: `sum(débitos) == sum(créditos)`. Se não bater, dispare alarme.
 Use `golang.org/x/time/rate` para limitar a vazão e não derrubar dependências downstream.
 
+## Hands-on
+
+**Desafio — processar 100k transações sem corrida de saldo.**
+
+1. Gere um CSV sintético com 100.000 transações sobre 2.000 contas:
+
+   ```bash
+   go run ./cmd/gen-batch --transactions 100000 --accounts 2000 --out batch.csv
+   ```
+
+2. Implemente `internal/batch` com sharding por conta (o exemplo `fnv32` acima) e rode:
+
+   ```bash
+   go run ./cmd/walletctl process-batch --file batch.csv --workers 8
+   ```
+
+3. Ao final, reconcilie: `sum(débitos) == sum(créditos)`.
+
+**Invariante testável** — o critério do `PROJETO.md` é literal:
+
+```bash
+go test -race ./internal/batch/... -run TestProcessBatch_NoRaceOnSameAccount -v
+```
+
+o teste deve subir pelo menos 500 goroutines despachando para o mesmo conjunto pequeno
+de contas (para forçar contenção real) e afirmar, ao final, que o saldo de cada conta
+bate com a soma esperada — sem flag de `-race` acusando nada.
+
+**Checagem.** (a) Por que sharding por conta evita lock global sem perder paralelismo
+entre contas diferentes? (b) O que `go test -race` detecta que um teste funcional não
+detecta?
+
 ## Principais aprendizados
 
 - Modele concorrência com channels e `context`, não com memória compartilhada e locks.

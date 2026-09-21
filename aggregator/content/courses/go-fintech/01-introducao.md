@@ -56,6 +56,47 @@ type Money struct {
 }
 ```
 
+## Hands-on
+
+**Tutorial — nascer o `walletctl`.**
+
+1. Inicialize o módulo e a estrutura de pacotes por domínio:
+
+   ```bash
+   mkdir ledger-core && cd ledger-core
+   go mod init github.com/pix-platform/ledger-core
+   mkdir -p cmd/walletctl internal/money
+   ```
+
+2. Crie `internal/money/money.go` com o tipo `Money` do exemplo acima, e um teste:
+
+   ```go
+   // internal/money/money_test.go
+   package money
+
+   import "testing"
+
+   func TestMoney_Add(t *testing.T) {
+       a := Money{Amount: 1000, Currency: "BRL"}
+       b := Money{Amount: 500, Currency: "BRL"}
+       got, err := a.Add(b)
+       if err != nil {
+           t.Fatalf("Add returned error: %v", err)
+       }
+       if got.Amount != 1500 {
+           t.Errorf("got %d, want 1500", got.Amount)
+       }
+   }
+   ```
+
+3. Crie `cmd/walletctl/main.go` com um `func main()` mínimo (só precisa compilar).
+4. Prove com os dois comandos que fecham o marco:
+
+   ```bash
+   go build ./...
+   go test ./...
+   ```
+
 ## Principais aprendizados
 
 - Go não é Java com chaves diferentes — internalize composição, simplicidade e CSP.
