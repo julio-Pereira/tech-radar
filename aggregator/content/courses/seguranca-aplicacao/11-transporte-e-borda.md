@@ -122,6 +122,12 @@ identidade autenticada (não apenas por IP).
 header `Origin` e devolva-o em `Access-Control-Allow-Origin`), demonstre que qualquer
 origem passa a ser aceita, e corrija para uma allowlist explícita.
 
+```bash
+curl -i -H "Origin: https://attacker.example" http://localhost:8080/payments
+# com reflexo cego: Access-Control-Allow-Origin: https://attacker.example (refletido)
+# depois da correção (allowlist explícita): header ausente ou restrito às origens permitidas
+```
+
 **Checagem**
 
 1. Por que "tem cadeado" não é sinônimo de "TLS bem configurado"?

@@ -172,6 +172,34 @@ apenas via quebra-vidro com alerta, e audit log exportado para storage imutável
 **Desafio — o menor Role que ainda funciona.** Para cada componente do `fin-platform`,
 crie uma ServiceAccount dedicada e o Role mínimo.
 
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pix-gateway
+  namespace: payments
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pix-gateway-role
+  namespace: payments
+rules: []   # comece vazio — adicione regras conforme o método abaixo pedir
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pix-gateway-binding
+  namespace: payments
+subjects:
+  - kind: ServiceAccount
+    name: pix-gateway
+roleRef:
+  kind: Role
+  name: pix-gateway-role
+  apiGroup: rbac.authorization.k8s.io
+```
+
 Método (siga nesta ordem, é o que garante o mínimo de verdade):
 
 1. Crie a SA **sem nenhum** Role. Suba o workload.
@@ -192,7 +220,28 @@ Método (siga nesta ordem, é o que garante o mínimo de verdade):
 
 **Complemento — audit log e o token projetado.** No `kind`, habilite o audit log com uma
 `Policy` que registre `RequestResponse` para `secrets` e `pods/exec`, e `Metadata` para o
-resto das escritas. Depois:
+resto das escritas:
+
+```yaml
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+  - level: RequestResponse
+    resources:
+      - group: ""
+        resources: ["secrets"]
+      - group: ""
+        resources: ["pods/exec"]
+  - level: Metadata
+    verbs: ["create", "update", "patch", "delete"]
+  - level: None
+```
+
+(referenciada no manifesto estático do API server via `--audit-policy-file` e
+`--audit-log-path` — no `kind`, isso vai em `kubeadmConfigPatches` do `kind.yaml` do
+marco 01.)
+
+Depois:
 
 - Faça um `kubectl exec` num pod e **encontre a linha** no audit log. Anote todos os
   campos que identificam você.

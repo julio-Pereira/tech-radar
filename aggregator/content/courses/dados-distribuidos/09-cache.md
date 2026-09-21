@@ -117,8 +117,19 @@ com todas as letras:
 
 **Tutorial — cache-aside com jitter e single-flight.**
 
-1. Suba Redis em Docker e implemente o cache-aside do limite disponível: `GET`, no miss consulta
-   o banco, `SET` com TTL.
+1. Suba Redis em Docker:
+
+   ```bash
+   docker run -d --name fin-store-redis -p 6379:6379 redis:7 \
+     redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru \
+     --enable-debug-command local
+   ```
+
+   (o `--enable-debug-command local` é necessário para o `DEBUG POPULATE` do complemento
+   mais abaixo — a partir do Redis 7, `DEBUG` vem desabilitado por padrão.)
+
+   e implemente o cache-aside do limite disponível: `GET`, no miss consulta o banco,
+   `SET` com TTL.
 2. Aplique **jitter**: TTL de 60 segundos mais um aleatório de 0 a 15, para que as chaves não
    expirem juntas.
 3. Implemente **single-flight**: quando várias goroutines ou threads pedem a mesma chave em miss,
@@ -142,9 +153,16 @@ com todas as letras:
 4. Com o Redis indisponível, o sistema responde de forma degradada definida, e existe teste que
    prova isso.
 
-**Complemento.** Rode `redis-cli --latency` durante um `KEYS *` num banco com um milhão de
-chaves e observe o efeito no p99 de todos os outros clientes. É a demonstração de single-thread
-que substitui qualquer parágrafo sobre o assunto.
+**Complemento.** Popule um milhão de chaves e reproduza o bloqueio:
+
+```bash
+docker exec -it fin-store-redis redis-cli DEBUG POPULATE 1000000
+docker exec -it fin-store-redis redis-cli --latency &
+docker exec -it fin-store-redis redis-cli KEYS '*' > /dev/null
+```
+
+Observe o efeito no p99 de todos os outros clientes durante o `KEYS *`. É a demonstração de
+single-thread que substitui qualquer parágrafo sobre o assunto.
 
 **Checagem**
 

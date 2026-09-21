@@ -139,6 +139,10 @@ muita gente (marco 17).
 - Uma requisição gera **um** `trace_id`, e o span de consumo no `ledger-core` está ligado
   a ele por link — mesmo com o consumidor rodando 40 segundos depois.
 - Uma consulta TraceQL isola "pagamentos ao PSP itau, acima de R$ 50 mil, que falharam".
+
+```traceql
+{ span.fin.psp = "itau" && span.fin.amount_cents > 5000000 && status = error }
+```
 - A partir de uma linha de log (marco 09), você abre o trace correspondente pelo
   `trace_id` — e a partir de um span, encontra os logs daquela requisição.
 - Com tail sampling ligado, **100%** dos traces com erro estão disponíveis, e um trace de

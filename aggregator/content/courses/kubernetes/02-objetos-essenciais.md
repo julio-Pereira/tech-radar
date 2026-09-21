@@ -124,8 +124,59 @@ NetworkPolicy (marco 11).
 **Tutorial — o pix-gateway no cluster.** No `fin-platform`, em `base/pix-gateway/`:
 
 1. Um Deployment com 3 réplicas do `pix-gateway` (use uma imagem stub se você não fez a
-   trilha Spring Boot), com os labels da seção anterior.
-2. Um Service ClusterIP apontando para ele.
+   trilha Spring Boot), com os labels da seção anterior:
+
+   ```yaml
+   # base/pix-gateway/deployment.yaml
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     name: pix-gateway
+     namespace: payments
+     labels:
+       app.kubernetes.io/name: pix-gateway
+       app.kubernetes.io/part-of: fin-platform
+       fin.io/team: payments
+       fin.io/cost-center: "4210"
+       fin.io/data-classification: pii
+   spec:
+     replicas: 3
+     selector:
+       matchLabels:
+         app.kubernetes.io/name: pix-gateway
+     template:
+       metadata:
+         labels:
+           app.kubernetes.io/name: pix-gateway
+           app.kubernetes.io/part-of: fin-platform
+           fin.io/team: payments
+           fin.io/cost-center: "4210"
+       spec:
+         containers:
+           - name: pix-gateway
+             image: ghcr.io/fin/pix-gateway-stub:latest
+             ports:
+               - containerPort: 8080
+   ```
+
+2. Um Service ClusterIP apontando para ele:
+
+   ```yaml
+   # base/pix-gateway/service.yaml
+   apiVersion: v1
+   kind: Service
+   metadata:
+     name: pix-gateway
+     namespace: payments
+   spec:
+     type: ClusterIP
+     selector:
+       app.kubernetes.io/name: pix-gateway
+     ports:
+       - port: 8080
+         targetPort: 8080
+   ```
+
 3. `kubectl apply -k base/` e depois `kubectl get endpointslices` — confirme os 3 IPs.
 4. `kubectl port-forward svc/pix-gateway 8080:8080` e faça uma requisição.
 5. **Prove o self-healing:** `kubectl delete pod <um-deles>` e observe com

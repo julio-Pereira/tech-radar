@@ -121,6 +121,31 @@ comunicação com o `fin-idp` — incluindo a **sanitização do header de certi
 borda**: configure o componente que termina o TLS para descartar qualquer header de
 certificado vindo de fora antes de injetar o seu próprio, verificado.
 
+Os comandos OpenSSL para a CA local e o certificado de client:
+
+```bash
+# 1. chave e certificado autoassinado da CA local
+openssl genrsa -out ca.key 4096
+openssl req -x509 -new -key ca.key -sha256 -days 3650 -out ca.crt \
+  -subj "/C=BR/O=fin-platform Local CA/CN=fin-platform-ca"
+
+# 2. chave e CSR do client (pix-gateway)
+openssl genrsa -out pix-gateway.key 2048
+openssl req -new -key pix-gateway.key -out pix-gateway.csr \
+  -subj "/C=BR/O=fin-platform/CN=pix-gateway"
+
+# 3. a CA assina o certificado do client
+openssl x509 -req -in pix-gateway.csr -CA ca.crt -CAkey ca.key -CAcreateserial \
+  -out pix-gateway.crt -days 825 -sha256
+
+# 4. valide a cadeia
+openssl verify -CAfile ca.crt pix-gateway.crt
+
+# 5. teste a chamada mTLS contra o fin-idp
+curl -v --cert pix-gateway.crt --key pix-gateway.key --cacert ca.crt \
+  https://localhost:9443/oauth2/token
+```
+
 **Desafio — emitir e provar o token vinculado ao certificado.** Emita um `access_token`
 com `cnf.x5t#S256` vinculado ao certificado usado na requisição de token. Prove a
 vinculação.

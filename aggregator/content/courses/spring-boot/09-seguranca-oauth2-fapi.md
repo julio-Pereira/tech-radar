@@ -118,9 +118,41 @@ conexão é mTLS e o access token é certificate-bound — o gateway rejeita um 
 
 **Tutorial — proteger o gateway.** Configure o pix-gateway como resource server JWT,
 com regras por escopo (`payments:write` no `POST`, `payments:read` nas consultas) e
-`@PreAuthorize` na camada de serviço. Escreva testes com `@WithMockJwtAuth`/tokens de
-teste verificando: 401 sem token, 403 com escopo errado, 200 com o escopo certo, e que
-um usuário não acessa o pagamento de outro.
+`@PreAuthorize` na camada de serviço. Escreva testes simulando o JWT com o
+`RequestPostProcessor` `jwt()` do `spring-security-test` (a mesma dependência já usada
+em `spring-boot-starter-test` + segurança — nada de lib de terceiros) verificando: 401
+sem token, 403 com escopo errado, 200 com o escopo certo, e que um usuário não acessa o
+pagamento de outro.
+
+```java
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+
+@Test
+void initiate_withCorrectScope_returns200() throws Exception {
+    mvc.perform(post("/payments")
+            .with(jwt().jwt(j -> j.claim("scope", "payments:write")))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(paymentJson))
+        .andExpect(status().isOk());
+}
+
+@Test
+void initiate_withoutScope_returns403() throws Exception {
+    mvc.perform(post("/payments")
+            .with(jwt())   // token válido, sem o claim de escopo
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(paymentJson))
+        .andExpect(status().isForbidden());
+}
+
+@Test
+void initiate_withoutToken_returns401() throws Exception {
+    mvc.perform(post("/payments")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(paymentJson))
+        .andExpect(status().isUnauthorized());
+}
+```
 
 ## Principais aprendizados
 

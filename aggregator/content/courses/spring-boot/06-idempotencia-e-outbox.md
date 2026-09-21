@@ -107,15 +107,40 @@ idempotência do quiz da trilha `go-fintech`, agora sobre JPA + Kafka.
 
 ## Mão na massa
 
-**Tutorial — outbox mínimo.** Modele a tabela `outbox`, faça `initiate` gravar
-pagamento + evento na mesma transação, e um `@Scheduled` relay que publica e marca como
-enviado.
+**Tutorial — outbox mínimo.** Modele a tabela `outbox`:
+
+```sql
+CREATE TABLE outbox (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    aggregate_id UUID NOT NULL,
+    event_type TEXT NOT NULL,
+    payload JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    published_at TIMESTAMPTZ
+);
+CREATE TABLE idempotency_keys (
+    idempotency_key TEXT PRIMARY KEY,
+    response_body JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+Faça `initiate` gravar pagamento + evento na mesma transação, e um `@Scheduled` relay
+que publica e marca como enviado.
 
 **Desafio — replay de Idempotency-Key.** Escreva um teste (Testcontainers Postgres +
 Kafka) que envia o **mesmo** `Idempotency-Key` duas vezes concorrentemente e verifica:
 (a) só um débito ocorreu, (b) as duas respostas HTTP são idênticas, (c) exatamente um
 evento foi publicado. Force o relay a crashar entre `send` e `markPublished` e prove que
 o consumidor idempotente absorve a reentrega.
+
+Se você chega neste marco sem ainda ter lido o 11 (onde Testcontainers é ensinado em
+detalhe), este é o esqueleto mínimo para subir Postgres e Kafka juntos no teste:
+
+```java
+@Container @ServiceConnection static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+@Container @ServiceConnection static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.3.1");
+```
 
 ## Principais aprendizados
 

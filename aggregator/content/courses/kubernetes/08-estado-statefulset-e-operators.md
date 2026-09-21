@@ -133,12 +133,35 @@ replicação copia o `DELETE` errado para todas as réplicas em milissegundos.
 
 **Desafio — Kafka via Strimzi que sobrevive ao delete do pod.** No `fin-platform`:
 
-1. Instale o operator Strimzi no `kind`.
+1. Instale o operator Strimzi no `kind`:
+
+   ```bash
+   kubectl create namespace kafka
+   kubectl apply -f 'https://strimzi.io/install/latest?namespace=kafka' -n kafka
+   ```
+
 2. Crie um `Kafka` KRaft de **3 brokers** com `min.insync.replicas: 2` e
    `default.replication.factor: 3` — os mesmos números do marco 02 da trilha Kafka, agora
-   como declaração.
-3. Crie o tópico `payments.initiated` via CRD `KafkaTopic`, não via CLI. Confirme que ele
-   aparece no `kafka-topics.sh --list` — a reconciliação funcionando.
+   como declaração (é o YAML já mostrado na seção "Operators e CRDs" acima, com
+   `replicas: 3`).
+3. Crie o tópico `payments.initiated` via CRD `KafkaTopic`, não via CLI:
+
+   ```yaml
+   apiVersion: kafka.strimzi.io/v1beta2
+   kind: KafkaTopic
+   metadata:
+     name: payments.initiated
+     namespace: kafka
+     labels:
+       strimzi.io/cluster: fin-kafka
+   spec:
+     partitions: 3
+     replicas: 3
+     config:
+       min.insync.replicas: 2
+   ```
+
+   Confirme que ele aparece no `kafka-topics.sh --list` — a reconciliação funcionando.
 4. Produza **10.000** mensagens com `acks=all`.
 
 **Invariantes testáveis:**

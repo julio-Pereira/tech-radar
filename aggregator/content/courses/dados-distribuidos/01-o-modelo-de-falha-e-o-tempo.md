@@ -163,9 +163,15 @@ Produza `ORDEM.md` no repo do `fin-store` respondendo:
    sequência.
 
 **Complemento.** Meça o skew real da sua máquina: `chronyc tracking` ou
-`ntpq -p` mostram o offset atual. Depois rode dois contêineres e compare
-`date +%s%N` nos dois, cem vezes. O número que você obtiver é o erro que existiria no seu
-`BETWEEN` — e ele costuma surpreender quem nunca olhou.
+`ntpq -p` mostram o offset atual. Depois rode dois contêineres e compare:
+
+```bash
+docker run --rm alpine date +%s%N
+docker run --rm alpine date +%s%N
+```
+
+cem vezes, guardando os dois valores por rodada. O número que você obtiver é o erro que
+existiria no seu `BETWEEN` — e ele costuma surpreender quem nunca olhou.
 
 **Checagem**
 

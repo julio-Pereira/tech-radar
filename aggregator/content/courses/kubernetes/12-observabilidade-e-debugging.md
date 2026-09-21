@@ -160,10 +160,35 @@ quebre o `pix-gateway` de uma destas formas, sem te contar qual:
 (quantos pagamentos, quanto TPV), causa raiz, **por que não foi detectado antes**, e uma
 ação de prevenção. Sem nome de pessoa em lugar nenhum — post-mortem investiga o sistema.
 
-**Complemento — o alerta que não deveria existir.** Configure um alerta de CPU > 80% e um
-alerta de taxa de erro > 1%. Rode uma carga de batch pesada e veja qual dispara. Depois
-degrade o PSP (com latência artificial) e veja qual dispara. Escreva 5 linhas sobre qual
-dos dois você levaria para o pager.
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
+```
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pix-gateway-alerts
+  namespace: payments
+spec:
+  groups:
+    - name: pix-gateway
+      rules:
+        - alert: CPUAlta
+          expr: avg(rate(container_cpu_usage_seconds_total{namespace="payments"}[5m])) > 0.8
+          for: 5m
+        - alert: TaxaDeErroAlta
+          expr: |
+            sum(rate(http_requests_total{namespace="payments",status=~"5.."}[5m]))
+            / sum(rate(http_requests_total{namespace="payments"}[5m])) > 0.01
+          for: 5m
+```
+
+**Complemento — o alerta que não deveria existir.** Configure os dois alertas acima. Rode
+uma carga de batch pesada e veja qual dispara. Depois degrade o PSP (com latência
+artificial) e veja qual dispara. Escreva 5 linhas sobre qual dos dois você levaria para o
+pager.
 
 **Checagem.** (a) Um pod está `Pending` há 10 minutos e nada nos logs — onde está a
 resposta? (b) Por que `kubectl logs` não ajuda num `CrashLoopBackOff` e o que você usa?

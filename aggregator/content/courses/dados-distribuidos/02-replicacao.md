@@ -138,17 +138,87 @@ reclamação no Banco Central não tem defesa técnica boa.
 
 **Tutorial — medir o seu próprio lag.**
 
-1. Suba dois Postgres em Docker e configure replicação em streaming (um `pg_basebackup` do
-   primário e um `standby.signal` no secundário resolvem).
-2. Confirme a réplica ativa: no primário, `SELECT client_addr, state, sync_state FROM
-   pg_stat_replication;`.
-3. Crie a tabela de lançamentos e gere carga com `pgbench -c 20 -T 120` num script de
+Compose de referência — dois Postgres, um primário e um standby em streaming:
+
+```yaml
+services:
+  pg-primary:
+    image: postgres:16
+    container_name: fin-store-pg-primary
+    environment:
+      POSTGRES_PASSWORD: fin_store
+      POSTGRES_DB: fin_store
+    command: >
+      postgres
+      -c wal_level=replica
+      -c max_wal_senders=5
+      -c max_replication_slots=5
+      -c hba_file=/etc/postgresql/pg_hba.conf
+    volumes:
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - primary-data:/var/lib/postgresql/data
+    ports: ["5432:5432"]
+
+  pg-standby:
+    image: postgres:16
+    container_name: fin-store-pg-standby
+    depends_on: [pg-primary]
+    environment:
+      POSTGRES_PASSWORD: fin_store
+      PGPASSWORD: replicator_pw
+    ports: ["5433:5432"]
+    entrypoint: >
+      bash -c "
+      until pg_isready -h pg-primary -U postgres; do sleep 1; done;
+      if [ -z \"$$(ls -A /var/lib/postgresql/data)\" ]; then
+        pg_basebackup -h pg-primary -U replicator -D /var/lib/postgresql/data -Fp -Xs -P -R;
+      fi;
+      exec docker-entrypoint.sh postgres"
+    volumes:
+      - standby-data:/var/lib/postgresql/data
+
+volumes:
+  primary-data:
+  standby-data:
+```
+
+`pg_hba.conf` (crie ao lado do `docker-compose.yml` — a entrada `local` é obrigatória: sem
+ela o próprio script de bootstrap do entrypoint, que conecta via socket Unix, falha com
+`no pg_hba.conf entry for host "[local]"`):
+
+```
+local   all             all                                     trust
+host    all             all             0.0.0.0/0               md5
+host    replication     replicator      0.0.0.0/0               md5
+```
+
+Depois de `docker compose up -d pg-primary`, crie o role de replicação **antes** de subir
+o standby:
+
+```bash
+docker exec -it fin-store-pg-primary psql -U postgres -c \
+  "CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'replicator_pw';"
+docker compose up -d pg-standby
+```
+
+O `pg_basebackup -R` já gera a configuração de standby automaticamente (o
+`postgresql.auto.conf` com `primary_conninfo`, equivalente moderno ao `standby.signal`
+manual — no Postgres 12+ o arquivo `standby.signal` é criado pelo próprio `-R`).
+
+1. Confirme a réplica ativa: no primário,
+
+   ```bash
+   docker exec -it fin-store-pg-primary psql -U postgres -d fin_store -c \
+     "SELECT client_addr, state, sync_state FROM pg_stat_replication;"
+   ```
+
+2. Crie a tabela de lançamentos e gere carga com `pgbench -c 20 -T 120` num script de
    `INSERT`.
-4. Durante a carga, meça o lag na réplica a cada segundo:
+3. Durante a carga, meça o lag na réplica a cada segundo:
    `SELECT now() - pg_last_xact_replay_timestamp();`. Anote o pico.
-5. Reproduza a leitura não-monotônica: num loop, leia o saldo alternando entre primário e
+4. Reproduza a leitura não-monotônica: num loop, leia o saldo alternando entre primário e
    réplica e imprima o valor. Você vai ver o número voltar.
-6. Mude `synchronous_commit` para `remote_apply` com a réplica como síncrona, repita a carga e
+5. Mude `synchronous_commit` para `remote_apply` com a réplica como síncrona, repita a carga e
    compare a latência de commit. `git commit` com os dois números.
 
 **Desafio — o modo de replicação do `fin-store`.** Produza `REPLICACAO.md` com: o modo

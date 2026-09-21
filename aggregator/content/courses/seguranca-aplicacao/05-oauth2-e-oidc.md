@@ -145,11 +145,44 @@ requisição de autorização, capture o código, troque por token, e **inspecio
 parâmetro** em cada etapa — `state`, `code_challenge_method`, o `id_token` decodificado, o
 `access_token`. O objetivo é ver o protocolo, não só fazer o login funcionar.
 
+```bash
+# 1. gere code_verifier (43-128 chars, base64url) e o code_challenge (S256)
+CODE_VERIFIER=$(openssl rand -base64 96 | tr -d '=+/\n' | cut -c1-64)
+CODE_CHALLENGE=$(echo -n "$CODE_VERIFIER" | openssl dgst -sha256 -binary | base64 | tr -d '=' | tr '/+' '_-')
+STATE=$(openssl rand -hex 16)
+
+# 2. monte a URL de autorização e abra no navegador (o login é interativo)
+echo "http://localhost:9000/oauth2/authorize?response_type=code&client_id=pix-gateway&redirect_uri=http://localhost:8080/callback&scope=openid%20payments:read&state=${STATE}&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256"
+
+# 3. depois do login, copie o "code" da query string do redirect e troque por token
+AUTH_CODE="<cole o code aqui>"
+curl -s -X POST http://localhost:9000/oauth2/token \
+  -u "pix-gateway:$(cat client-secret.txt)" \
+  -d "grant_type=authorization_code" \
+  -d "code=${AUTH_CODE}" \
+  -d "redirect_uri=http://localhost:8080/callback" \
+  -d "code_verifier=${CODE_VERIFIER}" | jq .
+
+# 4. inspecione o id_token (JWS: header.payload.signature) sem verificar assinatura,
+#    só para ler as claims
+ID_TOKEN="<cole o id_token da resposta acima>"
+echo "$ID_TOKEN" | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null | jq .
+```
+
 **Desafio — corrigir redirect URI validada por prefixo.** Configure (ou identifique) uma
 redirect URI validada por prefixo no `fin-idp`. Demonstre que um path adicional sob esse
 prefixo, não previsto, permite exfiltrar o código de autorização para fora do controle do
 client legítimo. Corrija para matching exato e prove, com teste, que a URI antiga (com
 prefixo) deixa de ser aceita.
+
+Para demonstrar a exfiltração, registre `http://localhost:8080/callback` como prefixo
+aceito e tente autorizar com um path adicional que o client não controla:
+
+```bash
+curl -i "http://localhost:9000/oauth2/authorize?response_type=code&client_id=pix-gateway&redirect_uri=http://localhost:8080/callback/../../attacker-controlled&scope=openid&state=${STATE}&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256"
+# com matching por prefixo: 302 para o destino não previsto
+# depois da correção (matching exato): 400 invalid_redirect_uri
+```
 
 **Invariantes testáveis**
 

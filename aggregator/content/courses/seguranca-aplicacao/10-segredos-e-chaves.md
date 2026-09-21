@@ -110,6 +110,11 @@ ao encontrar um padrão de segredo. Escreva também o procedimento de rotação 
 para cada tipo de credencial usada no `fin-platform` (chave de assinatura, senha de banco,
 segredo de client OAuth2, certificado mTLS).
 
+```bash
+# varredura do histórico completo (não só o HEAD) com gitleaks
+gitleaks detect --source . --log-opts="--all" --exit-code 1
+```
+
 **Invariantes testáveis**
 
 1. Um segredo plantado deliberadamente num commit antigo (não no HEAD) é detectado pela
@@ -125,6 +130,32 @@ segredo de client OAuth2, certificado mTLS).
 um dos serviços do `fin-platform` (via Vault em modo dev) e prove que a credencial
 realmente para de funcionar depois que o lease expira, sem qualquer ação manual de
 revogação.
+
+```bash
+# suba o Vault em modo dev (nunca em produção — token de root fixo, sem persistência)
+docker run -d --name fin-platform-vault -p 8200:8200 \
+  -e 'VAULT_DEV_ROOT_TOKEN_ID=root-dev-token' hashicorp/vault:1.18
+
+export VAULT_ADDR=http://localhost:8200
+export VAULT_TOKEN=root-dev-token
+
+vault secrets enable database
+
+vault write database/config/pix-gateway-db \
+  plugin_name=postgresql-database-plugin \
+  connection_url="postgresql://{{username}}:{{password}}@localhost:5432/pix?sslmode=disable" \
+  allowed_roles="pix-gateway-role" username="vaultadmin" password="troque-isto"
+
+vault write database/roles/pix-gateway-role \
+  db_name=pix-gateway-db \
+  creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
+  default_ttl="1m" max_ttl="5m"
+
+# gere a credencial dinâmica e anote o lease_id
+vault read database/creds/pix-gateway-role
+
+# depois de 1 minuto (default_ttl), tente conectar com a credencial gerada — falha
+```
 
 **Checagem**
 

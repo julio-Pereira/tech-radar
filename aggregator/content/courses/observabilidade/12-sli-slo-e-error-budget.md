@@ -157,6 +157,22 @@ que a aritmética do marco 02 já mostrou ser impossível.
 1. Defina os SLIs de disponibilidade e latência do `pix-gateway` como **razões**, medidas
    no servidor.
 2. Escreva as recording rules para 5m, 1h, 6h e 30d.
+
+```yaml
+# recording-rules.yaml
+groups:
+  - name: sli-pagamentos
+    rules:
+      - record: sli:payments_availability:ratio_rate5m
+        expr: sum(rate(http_requests_total{job="pix-gateway",code!~"5.."}[5m])) / sum(rate(http_requests_total{job="pix-gateway"}[5m]))
+      - record: sli:payments_availability:ratio_rate1h
+        expr: sum(rate(http_requests_total{job="pix-gateway",code!~"5.."}[1h])) / sum(rate(http_requests_total{job="pix-gateway"}[1h]))
+      - record: sli:payments_availability:ratio_rate6h
+        expr: sum(rate(http_requests_total{job="pix-gateway",code!~"5.."}[6h])) / sum(rate(http_requests_total{job="pix-gateway"}[6h]))
+      - record: sli:payments_availability:ratio_rate30d
+        expr: sum(rate(http_requests_total{job="pix-gateway",code!~"5.."}[30d])) / sum(rate(http_requests_total{job="pix-gateway"}[30d]))
+```
+
 3. Construa o painel: SLI atual, SLO como linha de referência, **error budget restante em
    minutos** e a taxa de consumo.
 

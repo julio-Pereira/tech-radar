@@ -126,8 +126,35 @@ anotado no runbook, não estimado.
 
 **Tutorial — Argo CD gerenciando o `fin-platform`.**
 
-1. Instale o Argo CD no `kind` e crie um `Application` apontando para
-   `overlays/dev` do seu repo.
+1. Instale o Argo CD no `kind`:
+
+   ```bash
+   kubectl create namespace argocd
+   kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+   ```
+
+   e crie um `Application` apontando para `overlays/dev` do seu repo:
+
+   ```yaml
+   apiVersion: argoproj.io/v1alpha1
+   kind: Application
+   metadata:
+     name: fin-platform-dev
+     namespace: argocd
+   spec:
+     project: default
+     source:
+       repoURL: https://github.com/<seu-usuario>/fin-platform.git
+       targetRevision: main
+       path: overlays/dev
+     destination:
+       server: https://kubernetes.default.svc
+       namespace: payments
+     syncPolicy:
+       automated:
+         selfHeal: true
+   ```
+
 2. Faça um commit mudando as réplicas e observe a reconciliação sem `kubectl apply`.
 3. **Prove o drift detection:** rode `kubectl scale` à mão e veja o Argo marcar
    `OutOfSync` (e reverter, com `selfHeal`). Cronometre.
@@ -140,7 +167,21 @@ anotado no runbook, não estimado.
 
 **Desafio — restaurar o namespace e cronometrar o RTO.**
 
-1. Instale o Velero com storage local (MinIO no `kind`).
+1. Instale o Velero com storage local (MinIO no `kind`):
+
+   ```bash
+   helm repo add minio https://charts.min.io/
+   helm install minio minio/minio -n velero --create-namespace \
+     --set rootUser=minio,rootPassword=minio123
+
+   velero install \
+     --provider aws \
+     --plugins velero/velero-plugin-for-aws:v1.10.0 \
+     --bucket velero \
+     --secret-file ./credentials-velero \
+     --backup-location-config region=minio,s3ForcePathStyle=true,s3Url=http://minio.velero:9000
+   ```
+
 2. Backup do namespace `payments` inteiro, incluindo PVCs.
 3. `kubectl delete namespace payments` — de verdade.
 4. Restaure e **cronometre**.

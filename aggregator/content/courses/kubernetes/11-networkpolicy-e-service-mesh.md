@@ -164,8 +164,48 @@ rede que a auditoria pede — legíveis, versionadas em Git, com PR e revisor.
    do exercício é ilusório.
 2. Aplique `default-deny-all` em `payments`. Confirme que tudo quebrou.
 3. Libere o DNS. Confirme que a resolução volta e o resto continua bloqueado.
-4. Libere, um de cada vez, **só** o caminho `gateway → pix-gateway → kafka`, testando a
-   cada passo com `kubectl exec ... -- curl` (ou `nc -zv`) a partir de um pod de teste.
+4. Libere, um de cada vez, **só** o caminho `gateway → pix-gateway → kafka`:
+
+   ```yaml
+   apiVersion: networking.k8s.io/v1
+   kind: NetworkPolicy
+   metadata:
+     name: allow-gateway-to-pix-gateway
+     namespace: payments
+   spec:
+     podSelector:
+       matchLabels:
+         app.kubernetes.io/name: pix-gateway
+     policyTypes: [Ingress]
+     ingress:
+       - from:
+           - namespaceSelector:
+               matchLabels:
+                 kubernetes.io/metadata.name: gateway
+         ports:
+           - port: 8080
+   ---
+   apiVersion: networking.k8s.io/v1
+   kind: NetworkPolicy
+   metadata:
+     name: allow-pix-gateway-to-kafka
+     namespace: payments
+   spec:
+     podSelector:
+       matchLabels:
+         app.kubernetes.io/name: pix-gateway
+     policyTypes: [Egress]
+     egress:
+       - to:
+           - namespaceSelector:
+               matchLabels:
+                 kubernetes.io/metadata.name: kafka
+         ports:
+           - port: 9092
+   ```
+
+   testando a cada passo com `kubectl exec ... -- curl` (ou `nc -zv`) a partir de um pod
+   de teste.
 5. `git commit` com as policies comentadas — por que cada regra existe.
 
 **Invariantes testáveis:**
