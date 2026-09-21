@@ -130,14 +130,50 @@ normalmente é um ensaio em que nada foi realmente testado.
 
 **Tutorial — PITR cronometrado.**
 
-1. Configure arquivamento contínuo de WAL no `fin-store` (pgBackRest ou `archive_command` para um
-   diretório local).
-2. Faça um backup base e confirme que o arquivamento está funcionando — não presuma, verifique
-   `pg_stat_archiver`.
+1. Configure arquivamento contínuo de WAL com `archive_command` para um diretório local
+   (a via mais simples para o exercício; pgBackRest é a alternativa de produção citada
+   acima). No `postgresql.conf` do `fin-store`:
+
+   ```ini
+   wal_level = replica
+   archive_mode = on
+   archive_command = 'test ! -f /var/lib/postgresql/wal_archive/%f && cp %p /var/lib/postgresql/wal_archive/%f'
+   ```
+
+   Crie o diretório antes de reiniciar o Postgres:
+
+   ```bash
+   docker exec fin-store-pg mkdir -p /var/lib/postgresql/wal_archive
+   docker restart fin-store-pg
+   ```
+
+2. Faça um backup base e confirme que o arquivamento está funcionando — não presuma,
+   verifique:
+
+   ```bash
+   docker exec fin-store-pg pg_basebackup -U postgres -D /var/lib/postgresql/base_backup -Fp -Xs -P
+   docker exec -it fin-store-pg psql -U postgres -c "SELECT * FROM pg_stat_archiver;"
+   ```
+
 3. Gere carga por alguns minutos e anote o horário exato de um ponto seguro.
 4. Execute o desastre: `DELETE FROM lancamento WHERE recorded_at > '...'` sem transação, em
    milhares de linhas.
-5. **Cronometre a partir daqui.** Restaure para o instante anterior ao `DELETE` num banco novo.
+5. **Cronometre a partir daqui.** Restaure para o instante anterior ao `DELETE` num banco
+   novo: copie o `base_backup` para o novo diretório de dados, crie o arquivo de sinal de
+   recuperação e aponte o `restore_command`:
+
+   ```bash
+   time (
+     cp -r /var/lib/postgresql/base_backup/* /var/lib/postgresql/data_restaurado/
+     touch /var/lib/postgresql/data_restaurado/recovery.signal
+     cat >> /var/lib/postgresql/data_restaurado/postgresql.auto.conf << 'EOF'
+   restore_command = 'cp /var/lib/postgresql/wal_archive/%f "%p"'
+   recovery_target_time = '2026-08-18 14:32:00-03'
+   EOF
+   )
+   ```
+
+   (ajuste o timestamp para o horário exato anotado no passo 3.)
 6. Valide: contagem de linhas, soma dos valores, última transação presente. Registre o tempo total
    e o de cada etapa. `git commit` com o runbook e os números.
 
