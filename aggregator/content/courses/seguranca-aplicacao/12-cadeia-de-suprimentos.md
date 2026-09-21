@@ -106,11 +106,46 @@ pipeline que, a cada build: (1) gera SBOM (CycloneDX) do artefato; (2) assina a 
 com Sigstore; (3) falha o build quando encontra uma CVE que seja simultaneamente
 **alcançável** (a função vulnerável está no caminho de código) e com **EPSS alto**.
 
+```bash
+# 1. SBOM CycloneDX da imagem
+syft pix-gateway:latest -o cyclonedx-json > sbom.cdx.json
+
+# 2. assinatura com Sigstore (keyless, via OIDC do CI)
+cosign sign --yes pix-gateway:latest
+
+# 3. varredura de CVE a partir do SBOM, com alcançabilidade (grype não faz
+#    alcançabilidade sozinho — combine com uma ferramenta de reachability, ex. o
+#    plugin de call-graph do próprio scanner, ou trate isto como um passo manual
+#    documentado se a ferramenta da sua stack não suportar ainda)
+grype sbom:sbom.cdx.json --fail-on critical
+```
+
 **Desafio — reproduzir e mitigar dependency confusion.** Usando um registry local, publique
 um pacote com o mesmo nome de um pacote interno do `fin-platform`, com número de versão
 maior. Demonstre que, sem mitigação, o build resolve para o pacote do registry público (o
 malicioso). Mitigue configurando escopo/namespace privado explícito, e prove que o build
 volta a puxar o pacote interno correto.
+
+```bash
+# registry local (Verdaccio) fazendo o papel do "registry público" do exercício
+docker run -d --name fin-platform-registry -p 4873:4873 verdaccio/verdaccio
+
+npm set registry http://localhost:4873
+npm adduser --registry http://localhost:4873   # crie qualquer usuário de teste
+
+# publique a versão "maliciosa" com número maior que o pacote interno real
+mkdir /tmp/fake-pkg && cd /tmp/fake-pkg
+npm init -y --scope=@fin-platform
+npm pkg set name=@fin-platform/audit-utils version=99.0.0
+npm publish --registry http://localhost:4873
+
+# sem mitigação: o projeto que depende de @fin-platform/audit-utils resolve para 99.0.0
+npm install --registry http://localhost:4873
+
+# mitigação: escopo privado explícito no .npmrc do projeto
+echo "@fin-platform:registry=https://registry.interno.exemplo/" >> .npmrc
+npm install   # volta a resolver para o pacote interno
+```
 
 **Invariantes testáveis**
 

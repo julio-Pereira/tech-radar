@@ -143,6 +143,44 @@ do upstream para uma claim do token do broker, e execute o login ponta a ponta,
 inspecionando o `id_token` recebido — em particular `amr`/`acr` e a claim de papel
 mapeada.
 
+Suba o Keycloak:
+
+```yaml
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: fin-platform-keycloak
+    command: start-dev
+    ports: ["8443:8080"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+```
+
+Crie o realm, o client (RP) e o IdP upstream simulado via `kcadm.sh` (dentro do
+container):
+
+```bash
+docker exec fin-platform-keycloak /opt/keycloak/bin/kcadm.sh config credentials \
+  --server http://localhost:8080 --realm master --user admin --password admin
+
+docker exec fin-platform-keycloak /opt/keycloak/bin/kcadm.sh create realms \
+  -s realm=fin-workforce -s enabled=true
+
+docker exec fin-platform-keycloak /opt/keycloak/bin/kcadm.sh create clients \
+  -r fin-workforce -s clientId=pix-gateway-backoffice -s 'redirectUris=["http://localhost:8080/login/oauth2/code/*"]' \
+  -s publicClient=false -s secret=troque-isto
+
+# segundo realm fazendo o papel do IdP upstream
+docker exec fin-platform-keycloak /opt/keycloak/bin/kcadm.sh create realms \
+  -s realm=upstream-corp -s enabled=true
+```
+
+Depois, federe `fin-workforce` a `upstream-corp` pela UI de administração
+(`http://localhost:8443/admin`, Identity Providers → OpenID Connect), mapeando a claim
+de papel — a UI é mais confiável aqui do que a API REST para o mapper de claim, que tem
+muitas variações; documente os cliques feitos.
+
 **Desafio — o logout que realmente desloga.** Implemente back-channel logout no RP:
 receba e processe o logout token do Keycloak, invalidando a sessão local. Declare por
 escrito a estratégia de revogação do access token (TTL curto com refresh, ou
