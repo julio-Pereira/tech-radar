@@ -1,3 +1,5 @@
+<img src="web/icon-512.png" alt="Tech Radar logo" width="96" height="96" align="right" />
+
 # Tech Radar
 
 Personal tech article aggregator. Fetches RSS/Atom feeds from Java, Spring, and software architecture sources and serves them as a static SPA — no runtime infrastructure.
