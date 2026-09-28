@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#0f1117"/>
+  <g fill="none" stroke="#2d3148" stroke-width="1.3" opacity="0.8">
+    <circle cx="32" cy="32" r="24"/>
+    <circle cx="32" cy="32" r="17"/>
+    <circle cx="32" cy="32" r="10"/>
+  </g>
+  <path d="M 32 32 L 32 8 A 24 24 0 0 1 54.825 24.584 Z"
+        fill="url(#sweep)" opacity="0.75"/>
+  <defs>
+    <linearGradient id="sweep" x1="32" y1="8" x2="54.825" y2="24.584" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2d3148"/>
+      <stop offset="1" stop-color="#6c63ff"/>
+    </linearGradient>
+  </defs>
+  <circle cx="43.873" cy="24.581" r="4.2" fill="#8a83ff" opacity="0.35"/>
+  <circle cx="43.873" cy="24.581" r="2.4" fill="#8a83ff"/>
+  <circle cx="32" cy="32" r="1.6" fill="#e2e8f0"/>
+</svg>
