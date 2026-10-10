@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que uma leitura de dado de consentimento atrasada em relação ao estado real é tratada como incidente de segurança neste caso, e não como problema comum de latência?"
+    options:
+      - "Um consentimento revogado que o sistema ainda trata como válido é acesso não autorizado"
+      - "Porque qualquer atraso de leitura, em qualquer sistema financeiro regulado, é automaticamente classificado como incidente de segurança pela legislação vigente, independente do tipo de dado envolvido ou do contexto específico da operação"
+      - "Porque consentimentos são armazenados em um banco de dados fisicamente diferente dos demais dados da instituição"
+      - "Não é tratado como incidente de segurança; é apenas um problema de experiência do usuário"
+    answer: 0
+    explanation: "Se a revogação não é refletida a tempo, o TPP continua acessando dado que o cliente já não autoriza — isso é acesso indevido, com consequência regulatória direta, diferente de um extrato desatualizado que só incomoda. Não existe essa regra geral que classifique qualquer atraso como incidente (depende do tipo de dado e da consequência), o armazenamento físico não é o que determina essa classificação, e o caso trata isso explicitamente como questão de segurança, não de UX."
+
+  - question: "Por que um limite de obsolescência garantido só por TTL passivo (sem invalidação ativa por evento) é insuficiente para o cache de validade de consentimento?"
+    options:
+      - "TTL garante apenas o limite superior do atraso; invalidação ativa reduz o pior caso de fato"
+      - "Porque TTL é uma técnica de cache que foi formalmente descontinuada pela especificação técnica do Open Finance Brasil em sua versão mais recente, tornando seu uso tecnicamente inviável para qualquer implementação de consentimento compatível com o padrão vigente"
+      - "Porque TTL só funciona em caches locais, nunca em caches distribuídos entre múltiplas regiões"
+      - "TTL passivo e invalidação ativa produzem exatamente o mesmo comportamento na prática, sendo a escolha entre eles puramente estética"
+    answer: 0
+    explanation: "TTL garante que, no pior caso, o cache não fica desatualizado por mais que o tempo configurado — mas não reage à revogação no instante em que ela acontece. Invalidação ativa (via evento de revogação) reduz esse pior caso para muito perto do instante real, o que é exatamente o que o limite de obsolescência declarado precisa garantir. Não há tal descontinuação do TTL pela especificação, TTL funciona em caches distribuídos também, e as duas técnicas produzem comportamentos de fato diferentes."
+
+  - question: "Por que o isolamento entre TPPs (um TPP a 10× sua cota não pode degradar a latência dos demais) tem peso regulatório além do técnico, neste caso?"
+    options:
+      - "O Open Finance exige tratamento equitativo entre participantes, não só boa prática de engenharia"
+      - "Porque, tecnicamente, é impossível implementar qualquer forma de isolamento de recurso compartilhado entre múltiplos consumidores de uma mesma API sem o uso obrigatório de contêineres físicos totalmente separados por TPP"
+      - "Porque o isolamento entre TPPs só importa quando o volume de requisições ultrapassa um milhão por dia em toda a plataforma"
+      - "O peso regulatório não existe; é puramente uma boa prática de engenharia de sistemas distribuídos como qualquer outra"
+    answer: 0
+    explanation: "Além de ser boa prática técnica de qualquer sistema multi-tenant (evitar *noisy neighbor*), o regime de Open Finance exige explicitamente tratamento equitativo entre participantes — um TPP mal comportado degradando os demais é uma falha de conformidade, não só um problema de capacidade. Isolamento de recurso compartilhado é perfeitamente viável sem contêineres físicos separados, e o requisito não depende de um volume mínimo arbitrário de requisições."
+
+  - question: "Por que minimização de escopo de dado e registro de auditoria de toda leitura são tratados como obrigações paralelas, e não como um substituto do outro?"
+    options:
+      - "Minimização limita o que é exposto; auditoria prova o que de fato foi acessado — funções diferentes"
+      - "Porque a legislação de proteção de dados exige escolher apenas uma das duas abordagens por instituição financeira, nunca as duas simultaneamente, para evitar redundância regulatória desnecessária"
+      - "Porque registro de auditoria é tecnicamente impossível de implementar quando a minimização de escopo já está em vigor no sistema"
+      - "As duas medidas produzem exatamente o mesmo efeito prático de proteção, tornando uma delas sempre redundante"
+    answer: 0
+    explanation: "Minimização de escopo reduz o que um TPP pode ver em primeiro lugar (limita exposição); auditoria registra o que de fato aconteceu depois (prova acesso, essencial para investigar incidentes e provar conformidade). Uma não substitui a outra — ter só minimização não prova nada sobre acessos reais, e ter só auditoria sem minimização expõe mais do que deveria. Não há exigência legal de escolher só uma, e as duas são perfeitamente compatíveis e usuais juntas."

@@ -1,0 +1,54 @@
+questions:
+  - question: "Um fluxo depende de seis serviços em série, cada um com disponibilidade individual de 99,95%. Por que a disponibilidade composta do fluxo não é 99,95%?"
+    options:
+      - "Basta um falhar para o fluxo inteiro falhar, então a composta é pior que qualquer componente"
+      - "Na verdade a composta é sempre melhor que qualquer componente individual, porque a redundância entre os seis serviços em série naturalmente compensa a falha de qualquer um deles isoladamente, elevando a disponibilidade do conjunto"
+      - "A disponibilidade composta de serviços em série é sempre igual à média aritmética simples dos seis valores individuais informados"
+      - "Não é possível calcular disponibilidade composta sem saber o SLA contratual de cada fornecedor de nuvem envolvido"
+    answer: 0
+    explanation: "Em série, o fluxo só funciona se **todos** os seis estiverem no ar ao mesmo tempo — então a probabilidade composta é o produto das probabilidades individuais, que é sempre menor (pior) que a menor delas. Série não é redundância, é dependência — não há compensação automática. Não é uma média aritmética simples, e o cálculo não depende de SLA contratual de nuvem, é pura probabilidade de dependências encadeadas."
+
+  - question: "Por que a hipótese de independência entre dependências de um fluxo quase nunca vale na prática, segundo este marco?"
+    options:
+      - "Dependências reais frequentemente compartilham infraestrutura (mesmo banco, mesma rede), falhando juntas"
+      - "Porque, de acordo com a teoria de probabilidade aplicada a sistemas distribuídos, qualquer par de serviços que troque ao menos uma mensagem entre si deixa de ser, por definição matemática formal, estatisticamente independente para efeitos de cálculo de disponibilidade"
+      - "A hipótese de independência sempre vale perfeitamente, desde que os serviços rodem em contêineres diferentes"
+      - "Independência só é relevante para sistemas com mais de cem serviços em produção simultânea"
+    answer: 0
+    explanation: "Duas dependências que parecem distintas podem compartilhar o mesmo cluster de banco, a mesma zona de rede, o mesmo pipeline de deploy — quando esse recurso comum falha, as duas caem juntas, violando a suposição de que suas falhas são eventos independentes. Não existe essa definição formal sobre troca de mensagens citada na segunda opção (é inventada), contêineres diferentes não garantem independência de infraestrutura compartilhada, e o problema vale para qualquer tamanho de sistema, não só acima de cem serviços."
+
+  - question: "O que um orçamento de erro de 99,9% de SLO representa, e por que ele é descrito como ferramenta de decisão, não só de medição?"
+    options:
+      - "Representa quanto tempo de indisponibilidade é aceitável no período; o time pode escolher gastá-lo em deploys arriscados cedo"
+      - "Representa exclusivamente um valor contratual usado apenas para fins de cobrança de multa ao fornecedor de nuvem em caso de violação do contrato de serviço acordado previamente"
+      - "É apenas um número de referência histórico, sem nenhum uso prático na tomada de decisões de engenharia do dia a dia da equipe"
+      - "Representa o tempo máximo que um incidente individual pode durar, nunca uma soma acumulada ao longo de um período"
+    answer: 0
+    explanation: "O orçamento de erro é o total de indisponibilidade tolerável no período (SLO de 99,9% = ~8,7h/ano); como ferramenta de decisão, o time pode escolher gastar parte dele deliberadamente (um deploy mais arriscado, por exemplo), sabendo que isso reduz a margem para o resto do período. Não é um valor de cobrança contratual, tem uso prático direto nas decisões do dia a dia, e é uma soma acumulada no período, não um teto por incidente individual."
+
+  - question: "Qual é a principal troca entre arquitetura ativo-passivo e ativo-ativo multi-região?"
+    options:
+      - "Ativo-ativo tem RTO quase zero, mas move a complexidade para resolver conflito de escrita concorrente entre regiões"
+      - "Ativo-ativo é sempre mais barato de operar que ativo-passivo, já que elimina completamente qualquer necessidade de monitoramento redundante entre as duas regiões envolvidas na arquitetura"
+      - "Ativo-passivo nunca tem RPO maior que zero, enquanto ativo-ativo sempre aceita perda de dado em qualquer cenário de falha"
+      - "A escolha entre os dois modelos nunca afeta RTO nem RPO, apenas o custo total de infraestrutura envolvida"
+    answer: 0
+    explanation: "Em ativo-ativo, as duas regiões já servem tráfego, então o failover é quase instantâneo (RTO baixo) — mas agora duas regiões podem receber escritas conflitantes ao mesmo tempo, e resolver esse conflito é a complexidade nova que aparece. Ativo-ativo não é necessariamente mais barato (precisa de capacidade dobrada operando), ativo-passivo pode ter RPO maior que zero dependendo da sincronia da replicação, e a escolha entre os dois afeta diretamente RTO e RPO, não só custo."
+
+  - question: "O que \"raio de explosão\" mede numa arquitetura celular, e o que acontece quando uma de N células falha, com N=10?"
+    options:
+      - "Mede o subconjunto de tenants afetado por uma falha; com N=10, no máximo 1/10 dos tenants é afetado"
+      - "Mede exclusivamente o tempo de resposta médio do sistema sob carga normal, sem nenhuma relação com falha de célula ou impacto em tenants específicos"
+      - "Com qualquer número de células, a falha de uma delas sempre afeta a totalidade dos tenants da plataforma, já que todas as células compartilham o mesmo plano de controle"
+      - "Raio de explosão só é um conceito aplicável a sistemas com menos de cinco células no total"
+    answer: 0
+    explanation: "Raio de explosão é literalmente a fração de tenants impactados por uma falha isolada — dividir em N células do mesmo tamanho limita qualquer falha a no máximo 1/N dos tenants, 10% no caso de N=10. Não tem relação com tempo de resposta médio sob operação normal, células bem desenhadas isolam a falha (não afetam a totalidade), e o conceito se aplica a qualquer número de células, não só abaixo de cinco."
+
+  - question: "Por que o plano de controle não pode ser uma dependência de disponibilidade do plano de dados?"
+    options:
+      - "Se o plano de controle cai, o plano de dados deveria continuar servindo com a última configuração boa"
+      - "Porque, segundo a definição formal de estabilidade estática usada neste marco, o plano de controle deve ser sempre fisicamente hospedado na mesma máquina física que o plano de dados, eliminando qualquer possibilidade de falha de rede entre os dois componentes"
+      - "Na prática não há problema algum em acoplar os dois: o plano de controle é projetado para nunca falhar em nenhuma circunstância operacional real"
+      - "Essa separação só importa para sistemas que operam em uma única região, nunca para arquiteturas multi-região"
+    answer: 0
+    explanation: "Se o plano de dados precisa consultar o plano de controle para cada decisão de tráfego, uma falha do plano de controle derruba o plano de dados também — uma dependência de disponibilidade desnecessária e evitável. A prática correta é o plano de dados continuar operando com a última configuração válida conhecida, mesmo sem conseguir falar com o plano de controle. Não existe essa exigência de colocation física, nenhum plano de controle é imune a falha, e a separação importa tanto em região única quanto multi-região."

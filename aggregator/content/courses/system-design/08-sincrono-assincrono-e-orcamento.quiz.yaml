@@ -1,0 +1,36 @@
+questions:
+  - question: "Segundo este marco, qual é a pergunta que de fato decide entre síncrono e assíncrono — em vez de \"qual tecnologia usar\"?"
+    options:
+      - "Quem espera, por quanto tempo, e o que acontece se a resposta não vier a tempo"
+      - "Qual framework de mensageria a equipe de plataforma já aprovou previamente para uso corporativo em qualquer novo projeto que venha a ser desenvolvido pela organização"
+      - "Qual opção tem o menor custo de licenciamento de software no orçamento anual"
+      - "Qual abordagem é mencionada com mais frequência em vagas de emprego do mercado atual"
+    answer: 0
+    explanation: "A escolha entre síncrono e assíncrono depende de quem precisa esperar o resultado, por quanto tempo isso é tolerável, e o plano para quando a resposta atrasa ou falha — não de preferência de ferramenta, custo de licença ou tendência de mercado, que são critérios secundários ou irrelevantes para essa decisão específica."
+
+  - question: "O que é o \"joelho\" da curva de latência contra utilização de uma fila, e por que dimensionar pela utilização média é arriscado?"
+    options:
+      - "É o ponto onde a latência sobe abruptamente perto da capacidade máxima; picos recorrentes podem empurrar o sistema para lá mesmo com média baixa"
+      - "É o nome técnico dado ao momento exato em que um servidor reinicia automaticamente após atingir cem por cento de uso de memória RAM disponível no hardware físico"
+      - "É um conceito que só se aplica a filas físicas de atendimento presencial, sem equivalente em sistemas de software"
+      - "É o ponto em que a fila atinge zero requisições pendentes, indicando ociosidade total do sistema"
+    answer: 0
+    explanation: "A curva é relativamente plana até perto da capacidade e então sobe abruptamente — esse é o joelho. Dimensionar pela média esconde que picos recorrentes (não a média) são o que de fato empurra o sistema para cima dele, tornando a latência imprevisível justamente quando mais importa. Não tem relação com reinício de servidor por memória, não é exclusivo de filas físicas, e não é o ponto de fila vazia."
+
+  - question: "Por que dizer não explicitamente na borda costuma ser mais barato que rejeitar uma requisição já dentro do serviço?"
+    options:
+      - "Rejeitar cedo evita gastar recurso processando algo que será descartado depois"
+      - "Porque toda rejeição feita na borda de um sistema distribuído é, por exigência de conformidade regulatória em ambientes financeiros, obrigatoriamente mais barata do que qualquer rejeição realizada internamente pelo serviço"
+      - "Porque a borda nunca tem informação suficiente para tomar nenhum tipo de decisão de admissão"
+      - "Não há diferença de custo real entre rejeitar na borda ou dentro do serviço, em nenhum cenário"
+    answer: 0
+    explanation: "Quando o serviço já começou a processar (abriu conexão, alocou recurso, talvez já fez parte do trabalho) antes de rejeitar, esse custo já foi gasto à toa. Rejeitar na borda, antes de entrar no sistema, evita esse desperdício — embora às vezes a borda não tenha informação suficiente e a rejeição só seja possível mais adiante, o que o marco reconhece como exceção, não como regra geral. Não existe essa exigência regulatória inventada, e o custo relativo de fato varia por cenário."
+
+  - question: "O que torna uma fila de reprocessamento sem limite de tentativas o equivalente assíncrono do \"retry sem orçamento\" do marco 04?"
+    options:
+      - "Sem limite, o reprocessamento pode amplificar carga indefinidamente sobre um recurso já sobrecarregado — só que o sintoma demora mais a aparecer"
+      - "Porque filas de reprocessamento assíncronas são, em qualquer implementação de qualquer sistema de mensageria moderno, tecnicamente incapazes de impor qualquer tipo de limite de tentativas ou mecanismo de dead letter"
+      - "Porque reprocessamento assíncrono nunca consome nenhum recurso computacional real do sistema"
+      - "Não há relação entre os dois conceitos; são mecanismos completamente independentes um do outro"
+    answer: 0
+    explanation: "A mesma lógica do retry síncrono sem orçamento se aplica: sem limite de tentativas nem dead letter, uma mensagem problemática pode ser reprocessada indefinidamente, consumindo recursos repetidamente — só que, por ser assíncrono, o efeito demora mais a se tornar visível que numa chamada síncrona imediata. Filas de mensageria modernas suportam sim limite de tentativas e dead letter, reprocessamento consome recurso real, e a relação entre os dois conceitos é direta, não inexistente."
