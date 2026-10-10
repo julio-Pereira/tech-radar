@@ -46,7 +46,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** a distância entre o que o leader já gravou e o que a réplica já aplicou.
 **No fin-platform:** 8 segundos no pico das 18h, com autovacuum ativo.
 **Erro comum:** medir em bytes de WAL e alertar como se fosse tempo — ou não alertar.
-**Onde na prática:** marco 02.
+**Onde na prática:** marcos 02 e 15.
 
 ### Leitura não-monotônica
 **Em uma frase:** duas leituras seguidas caem em réplicas com lags diferentes e o valor volta no tempo.
@@ -58,7 +58,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** a garantia de que quem escreveu enxerga a própria escrita na leitura seguinte.
 **No fin-platform:** o cliente que paga, vê o extrato sem o pagamento e paga de novo.
 **Erro comum:** resolver com sticky routing, que garante monotonicidade e não garante isto.
-**Onde na prática:** marco 02.
+**Onde na prática:** marcos 02 e 15.
 
 ### RPO
 **Em uma frase:** quanto dado você aceita perder, medido em tempo de escrita.
@@ -76,7 +76,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** leituras e escritas se sobrepõem em pelo menos um nó, então a leitura vê a escrita mais recente.
 **No fin-platform:** a mesma aritmética do `min.insync.replicas` do `pix-stream`.
 **Erro comum:** manter a fórmula na cabeça depois de ativar sloppy quorum, que a invalida.
-**Onde na prática:** marco 02.
+**Onde na prática:** marcos 02 e 15.
 
 ### LWW (last write wins)
 **Em uma frase:** resolução de conflito que mantém a escrita com timestamp maior e descarta a outra.
@@ -144,7 +144,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** assim que uma escrita termina, toda leitura seguinte a enxerga — é recência, e é o C do CAP.
 **No fin-platform:** o que a autorização exige do saldo, e o motivo de ela não ler de réplica.
 **Erro comum:** confundir com serializabilidade, que é sobre equivalência a alguma ordem serial e nada diz sobre recência.
-**Onde na prática:** marco 04.
+**Onde na prática:** marcos 04 e 15.
 
 ### 2PC / XA
 **Em uma frase:** protocolo de commit em duas fases entre recursos distintos, com um coordenador.
@@ -289,3 +289,77 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **No fin-platform:** o painel de TPV que a diretoria olha às 8h.
 **Erro comum:** "o dashboard está atrasado" como reclamação no Slack, sem limiar nem alerta.
 **Onde na prática:** marco 14.
+
+## Escolher com critério
+
+### Perfil de consistência
+**Em uma frase:** um tipo explícito no código (`STRONG`, `SESSION`, `EVENTUAL_5S`) que nomeia a combinação de botões escolhida para uma operação.
+**No fin-platform:** a linha da `MATRIZ.md` que diz qual botão o débito usa e qual o extrato usa.
+**Erro comum:** deixar a consistência como uma variável de ambiente do banco, igual para toda operação.
+**Onde na prática:** marco 15.
+
+### PACELC (o "else")
+**Em uma frase:** na Partição, escolha entre disponibilidade e consistência; senão (**Else**), escolha entre latência e consistência.
+**No fin-platform:** o custo que a autorização paga todo dia lendo do líder, sem nenhuma partição de rede envolvida.
+**Erro comum:** discutir CAP como se a rede estivesse sempre particionada — o "else" é o que se paga 99,9% dos dias.
+**Onde na prática:** marco 15.
+
+### Write concern
+**Em uma frase:** o botão do MongoDB que decide quantos nós precisam confirmar uma escrita antes de o cliente receber sucesso.
+**No fin-platform:** `w: majority` no payload do PSP, para não perder o webhook se o primário cair.
+**Erro comum:** usar `w: 1` no caminho quente e descobrir a perda só no post-mortem do failover.
+**Onde na prática:** marco 15.
+
+### Read concern
+**Em uma frase:** o botão do MongoDB que decide que versão dos dados uma leitura pode enxergar.
+**No fin-platform:** `majority` no dossiê de KYC, para nunca ler um documento que pode ser revertido.
+**Erro comum:** confundir com `readPreference`, que decide **de qual nó** ler, não **quão fresco**.
+**Onde na prática:** marco 15.
+
+### Read preference
+**Em uma frase:** o botão do MongoDB que decide de qual nó do replica set uma leitura é servida.
+**No fin-platform:** `secondaryPreferred` no relatório mensal, que tolera segundos de lag.
+**Erro comum:** usar `secondaryPreferred` no saldo exibido logo após um pagamento.
+**Onde na prática:** marcos 15 e 16.
+
+### Session token
+**Em uma frase:** o identificador que o Cosmos DB devolve após uma escrita, e que a leitura seguinte precisa apresentar para ver aquela versão.
+**No fin-platform:** o token que precisa atravessar o balanceador entre a escrita do pagamento e a leitura do extrato.
+**Erro comum:** não propagar o token entre instâncias stateless — a garantia de Session vira Eventual sem erro nenhum.
+**Onde na prática:** marcos 15 e 16.
+
+### Bounded staleness
+**Em uma frase:** garantia de que a réplica nunca fica mais que *K* versões ou *T* tempo atrás do líder.
+**No fin-platform:** o meio-termo entre Strong e Session que ninguém no `fin-platform` usa sem medir primeiro.
+**Erro comum:** tratar como "quase forte" sem checar o RPO que a tabela de durabilidade do Cosmos declara para o modo.
+**Onde na prática:** marco 15.
+
+### Partição lógica
+**Em uma frase:** o agrupamento de itens no Cosmos DB que compartilham o mesmo valor de chave de partição — a unidade de transação, de unicidade e do teto de 20 GB.
+**No fin-platform:** o payload do PSP particionado por `paymentId`, um dossiê inteiro numa única partição lógica.
+**Erro comum:** achar que a unicidade ou a transação vale para o container inteiro — ela para na borda da partição lógica.
+**Onde na prática:** marco 16.
+
+### Request Unit (RU)
+**Em uma frase:** a moeda de custo do Cosmos DB — cada operação consome um número de RUs previsível pelo tipo e pelo nível de consistência.
+**No fin-platform:** a leitura por id em Session custando metade do RU da mesma leitura em Strong.
+**Erro comum:** medir RU no emulador local, que numa versão sem suporte a Request Units simplesmente não reporta o número.
+**Onde na prática:** marco 16.
+
+### Change stream / change feed
+**Em uma frase:** o fluxo de mudanças de um banco de documento — `change stream` no MongoDB, `change feed` no Cosmos — consumido em vez da tabela.
+**No fin-platform:** o outbox do payload do PSP publicado para o Kafka sem consultar o documento de novo.
+**Erro comum:** presumir que o modo padrão do Cosmos captura deleção — ele não captura, sem o modo *all versions and deletes*.
+**Onde na prática:** marco 16.
+
+### Resume token
+**Em uma frase:** o marcador de posição de um change stream, que permite a um consumidor reiniciado continuar exatamente de onde parou.
+**No fin-platform:** o que evita reprocessar o dossiê de KYC inteiro depois de o consumidor cair no meio do lote.
+**Erro comum:** não persistir o token a cada lote e perder a posição junto com o processo.
+**Onde na prática:** marco 16.
+
+### Quórum de standby (`ANY n`)
+**Em uma frase:** no Postgres, quantos standbys síncronos precisam confirmar — de um conjunto declarado — antes do commit responder.
+**No fin-platform:** `ANY 1 (s1, s2)`, que sobrevive à perda de um standby sem parar de aceitar escrita.
+**Erro comum:** declarar um único standby síncrono e transformar sua queda em parada total de escrita.
+**Onde na prática:** marco 15.

@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que um array que cresce sem limite dentro de um documento é o antipadrão nº 1 de modelagem de documento?"
+    options:
+      - "Porque ele impede a criação de índices compostos sobre os demais campos do mesmo documento"
+      - "Porque ele eventualmente esbarra no teto de tamanho do documento — 16 MiB no MongoDB, 2 MB por item no Cosmos — e o modelo trava sem aviso prévio"
+      - "Porque bancos de documento não suportam arrays como tipo de dado, exigindo serialização manual para JSON"
+      - "Porque cada elemento do array precisa de uma chave de partição própria, multiplicando o custo de armazenamento"
+    answer: 1
+    explanation: "Um array sem limite — o dossiê de KYC acumulando evento por evento, por exemplo — cresce junto com o documento até estourar o teto de tamanho do produto. Não impede índice em outros campos, arrays são um tipo nativo em ambos os produtos, e a chave de partição é do documento inteiro, não de cada elemento do array. A saída é referenciar numa coleção separada ou paginar por período antes de chegar perto do limite."
+
+  - question: "Um container Cosmos tem `pspId` como chave de partição e índice único em `idempotencyKey`. O mesmo webhook do PSP chega duas vezes, cada entrega roteada para uma partição lógica diferente por um bug no cliente. O que acontece com a unicidade?"
+    options:
+      - "O Cosmos detecta o valor duplicado de `idempotencyKey` em qualquer partição e rejeita a segunda escrita automaticamente"
+      - "A unicidade só é garantida dentro de uma mesma partição lógica, então as duas escritas em partições diferentes são aceitas e o documento fica duplicado"
+      - "A segunda escrita falha porque o `pspId` já existe no container, mesmo estando associado a uma chave de partição diferente"
+      - "O Cosmos promove automaticamente o índice único para escopo de container inteiro assim que detecta chaves de partição distintas com o mesmo valor"
+    answer: 1
+    explanation: "No Cosmos, o valor da chave de partição entra implicitamente na definição da chave única — a garantia vale só dentro da partição lógica. Se o roteamento manda as duas entregas para partições diferentes, a constraint não vê a duplicata em nenhuma das duas. É o mesmo problema de unicidade em ambiente shardado do marco 10; a correção é garantir que o roteamento inclua a chave de idempotência na decisão de partição, não esperar que o banco detecte sozinho."
+
+  - question: "O change feed padrão (Latest Version) de um container Cosmos está alimentando o outbox do `fin-store`. Um documento de payload de PSP é apagado. O que o consumidor do change feed vê?"
+    options:
+      - "Um evento de deleção, com o conteúdo do documento apagado anexado para auditoria"
+      - "Nada — o modo padrão não captura deleções; isso exige o modo All versions and deletes, com backup contínuo habilitado na conta"
+      - "Um evento genérico de \"mudança\", sem indicar se foi criação, atualização ou remoção"
+      - "O documento apagado continua aparecendo no feed até o próximo ciclo de compactação do container"
+    answer: 1
+    explanation: "O modo padrão do change feed do Cosmos só reflete o estado mais recente de cada item — uma deleção simplesmente remove o item de circulação, sem gerar evento. Capturar exclusões exige o modo All versions and deletes, que por sua vez exige backup contínuo habilitado na conta. Se o outbox depende de saber quando algo foi apagado, o modo padrão deixa esse caso silenciosamente sem cobertura."
+
+  - question: "Por que o ledger de uma fintech não deveria morar num banco de documento, mesmo que o desempenho de leitura por id seja ótimo?"
+    options:
+      - "Porque bancos de documento não suportam índices em campos numéricos como valor monetário"
+      - "Porque o ledger precisa de invariante entre linhas (a soma de uma transação é zero, o saldo não fica negativo), e documento responde bem a agregado isolado, não a invariante entre registros"
+      - "Porque o formato JSON não consegue representar valores monetários com a precisão decimal exigida por auditoria"
+      - "Porque bancos de documento não oferecem nenhuma forma de transação, tornando qualquer escrita concorrente insegura"
+    answer: 1
+    explanation: "O critério do marco 06 continua valendo: documento responde barato a \"leia o agregado inteiro por id\"; o ledger precisa de invariante que atravessa lançamentos (débito e crédito somando zero, saldo nunca negativo), e isso é relacional por natureza — precisão decimal e suporte a transação existem nos dois produtos vistos aqui, então não são o motivo real da escolha."

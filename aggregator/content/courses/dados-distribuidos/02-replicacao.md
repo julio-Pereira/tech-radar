@@ -258,3 +258,5 @@ com o que você tinha escrito antes de medir.
   errada.
 - `R + W > N` só garante sobreposição enquanto o quórum não é sloppy — a mesma ideia de ISR
   e `min.insync.replicas` do `kafka/02`.
+- Estes três modos viram um perfil configurável por operação, não por sistema — o assunto do
+  `dados-distribuidos/15`.

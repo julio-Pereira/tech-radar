@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que dizer \"nosso banco é CP\" costuma ser a granularidade errada?"
+    options:
+      - "Porque CAP descreve o comportamento sob partição, mas a maioria dos produtos modernos expõe o botão de consistência por chamada, não por sistema inteiro"
+      - "Porque CAP só se aplica a bancos relacionais, e produtos NoSQL como MongoDB e Cosmos DB não são cobertos pelo teorema original"
+      - "Porque CP e AP descrevem apenas o comportamento de escrita, e a leitura sempre segue um contrato à parte, definido pelo driver"
+      - "Porque nenhum produto de mercado implementa consistência forte de verdade, então o rótulo é sempre otimista em relação ao que é entregue"
+    answer: 0
+    explanation: "CAP fala de linearizabilidade durante partição — nada mais — e a maior parte dos produtos deixa o nível de consistência configurável por operação (synchronous_commit por transação no Postgres, writeConcern por chamada no Mongo, nível por requisição no Cosmos). Rotular \"o sistema\" esconde que a escolha certa é por operação. O teorema vale para qualquer sistema distribuído, não só relacional, e a leitura não é um contrato à parte — ela é uma das três decisões do mesmo botão."
+
+  - question: "Um standby do Postgres tem `recovery_min_apply_delay = 200ms`. Qual perfil de consistência garante zero leitura obsoleta ao ler desse standby logo após o commit?"
+    options:
+      - "Qualquer perfil com `synchronous_commit = on`, porque essa configuração já implica réplica sincronizada em qualquer leitura subsequente"
+      - "O perfil que usa `remote_apply` como padrão de confirmação, porque só ele espera a réplica aplicar antes de responder ao cliente"
+      - "O perfil `remote_write`, porque a réplica já recebeu a mudança no sistema operacional antes de o commit retornar"
+      - "Nenhum perfil resolve isso sem desabilitar o `recovery_min_apply_delay`, já que o atraso é aplicado antes do WAL chegar à réplica"
+    answer: 1
+    explanation: "`remote_apply` só responde \"commitado\" depois que a réplica de fato aplicou a mudança — inclusive esperando o atraso artificial. `on` sozinho (sem `remote_apply`) e `remote_write` confirmam antes da aplicação, então uma leitura imediata no standby ainda pode não ver a escrita. O atraso injetado age só na aplicação, não no recebimento do WAL — por isso dá para medir a diferença entre os perfis em vez de simplesmente desabilitar o atraso."
+
+  - question: "Um MongoDB com `writeConcern: { w: 1 }` confirma uma escrita ao cliente, e o primário cai antes de replicar para qualquer secundário. O que acontece com essa escrita depois do failover?"
+    options:
+      - "Ela é reaplicada automaticamente pelo novo primário assim que ele detecta a lacuna no oplog recebido do antigo primário"
+      - "Ela pode desaparecer sem erro nenhum — o cliente recebeu sucesso, mas nenhuma réplica tinha a mudança para promover"
+      - "Ela é preservada porque o MongoDB sempre grava em disco local antes de responder, independentemente do write concern configurado"
+      - "O failover é bloqueado até o administrador decidir manualmente se a escrita deve ou não ser descartada"
+    answer: 1
+    explanation: "`w: 1` só exige confirmação do nó que recebeu a escrita — normalmente o primário. Se ele morre antes de replicar, a escrita nunca existiu para o resto do cluster, e o cliente já tinha recebido sucesso. Não há reaplicação automática nem bloqueio de failover esperando decisão humana; é o mesmo mecanismo do commit assíncrono do Postgres, com outro nome. `w: majority` é o botão que evita exatamente essa perda."
+
+  - question: "Uma aplicação usa Cosmos DB com consistência Session, atrás de um balanceador que não propaga o session token entre instâncias. O que acontece com a garantia de read-your-writes?"
+    options:
+      - "Ela se degrada para consistência Eventual sem nenhum erro visível, porque sem o token a leitura não sabe que precisa esperar aquela escrita"
+      - "A requisição falha com um erro explícito de token ausente, obrigando a aplicação a tratar o caso antes de prosseguir"
+      - "O Cosmos detecta a ausência do token e promove automaticamente a leitura para o nível Strong da conta, garantindo a consistência mesmo sem o token"
+      - "A garantia se mantém, porque o Cosmos associa o token à conexão TCP e não à instância da aplicação que fez a chamada"
+    answer: 0
+    explanation: "Sem o token da escrita anterior, a leitura simplesmente não tem como saber que precisa aguardar aquela versão — e passa a se comportar como Eventual, silenciosamente. Não há erro, não há promoção automática de nível, e o token é responsabilidade da aplicação propagar entre instâncias stateless, não da camada de transporte. É o modo de falha mais perigoso da tabela deste marco: nada avisa que a garantia sumiu."
+
+  - question: "Das seis operações do `STORES.md`, qual delas exige o modelo de consistência mais forte (linearizável)?"
+    options:
+      - "O TPV do dia, por instituição, consultado uma vez por dia para o relatório regulatório"
+      - "O extrato por conta e período, consultado pelo aplicativo dezenas de milhares de vezes por minuto"
+      - "O saldo consultado no momento de decidir se um débito pode ser autorizado"
+      - "O payload bruto recebido do PSP, lido inteiro por id quando um pagamento precisa ser auditado"
+    answer: 2
+    explanation: "Autorizar um débito contra um saldo desatualizado é como se constrói saldo negativo que não deveria existir — por isso essa leitura precisa ver a escrita mais recente, sem exceção: é o caso linearizável. O TPV do dia e o extrato toleram réplica e minutos ou segundos de atraso; o payload do PSP é lido por id sem concorrência de escrita relevante, então eventual basta. Autorização é a única das seis que não admite réplica atrasada."
+
+  - question: "Qual das afirmações sobre o comando `WAIT` do Redis está correta?"
+    options:
+      - "`WAIT` transforma a replicação em semi-síncrona sob demanda, mas não torna o Redis um sistema CP: uma escrita já confirmada ainda pode ser perdida num failover"
+      - "`WAIT` é equivalente ao `synchronous_commit = remote_apply` do Postgres, garantindo que a escrita nunca seja perdida após um failover"
+      - "`WAIT` funciona como um lock distribuído, impedindo que qualquer réplica atrasada responda a uma leitura até alcançar o líder"
+      - "`WAIT` só tem efeito em clusters Redis com mais de três nós, sendo ignorado silenciosamente em topologias menores"
+    answer: 0
+    explanation: "`WAIT n timeout` espera `n` réplicas confirmarem o recebimento das escritas, reduzindo a janela de perda — mas a documentação do próprio comando é explícita: isso não faz do Redis um sistema fortemente consistente, porque a garantia de replicação síncrona sozinha não basta, e escritas confirmadas ainda podem sumir dependendo da configuração de persistência no failover. Não é lock, não equivale a `remote_apply`, e funciona em qualquer topologia com réplicas, não só acima de três nós."

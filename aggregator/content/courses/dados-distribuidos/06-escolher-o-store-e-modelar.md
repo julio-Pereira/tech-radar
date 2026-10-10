@@ -35,7 +35,8 @@ a projeção tem um schema, e o schema tem um dono.
 | **Grafo** | travessia de relacionamentos em profundidade | agregação analítica, escrita de altíssimo volume | anéis de fraude, ligação entre contas |
 
 A pergunta que corta caminho: **o que você tem é uma pergunta por chave, uma pergunta por
-relacionamento, ou uma pergunta por conjunto?** Cada resposta aponta uma família.
+relacionamento, ou uma pergunta por conjunto?** Cada resposta aponta uma família. A garantia de
+consistência que a operação exige é o segundo critério, tratado no `dados-distribuidos/15`.
 
 E vale dizer o que o Postgres já cobre, porque isso adia muita decisão: `jsonb` com GIN atende ao
 caso documento na maior parte dos volumes; um índice bem escolhido atende ao caso chave-valor até
@@ -137,7 +138,7 @@ comum de store adicionado por entusiasmo: quase toda pergunta de fraude de prime
 **Complemento.** Pegue a query do payload do PSP e implemente as duas versões: `jsonb` com índice
 GIN no Postgres, e uma coleção num banco de documento. Compare latência de leitura por id,
 tamanho em disco e esforço de operação. A conclusão costuma ser desconfortável para quem já tinha
-decidido.
+decidido — e é executado com número real no `dados-distribuidos/16`.
 
 **Checagem**
 
