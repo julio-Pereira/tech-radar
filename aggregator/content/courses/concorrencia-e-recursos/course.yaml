@@ -1,0 +1,67 @@
+slug: concorrencia-e-recursos
+title: "Concorrência e Recursos Finitos para Fintech"
+subtitle: "Do data race ao deadlock, do executor ao pool de conexões: como um caminho de débito sobrevive à intercalação e à carga — em Java e em Go — e como você prova e enxerga isso."
+category: "Concorrência"
+tags: [concorrencia, paralelismo, threads, goroutines, race-condition, data-race, deadlock, locks, modelo-de-memoria, thread-pool, connection-pool, virtual-threads, java, go, fintech]
+level: advanced
+lang: pt-BR
+# 10 marcos, 600 min. A regra é ~2x a soma dos estimatedMinutes (leitura mais
+# hands-on): 600 x 2 / 60 = 20. Registrada no PROJETO.md.
+estimatedHours: 20
+glossary: GLOSSARIO.md
+sources:
+  - title: "Java Language Specification — Chapter 17: Threads and Locks (memory model)"
+    url: https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html
+  - title: "The Go Memory Model"
+    url: https://go.dev/ref/mem
+  - title: "Java Concurrency in Practice"
+    url: https://jcip.net/
+  - title: "JEP 444 — Virtual Threads"
+    url: https://openjdk.org/jeps/444
+  - title: "JEP 491 — Synchronize Virtual Threads without Pinning"
+    url: https://openjdk.org/jeps/491
+  - title: "JEP 506 — Scoped Values"
+    url: https://openjdk.org/jeps/506
+  - title: "JEP 505 — Structured Concurrency (Fifth Preview)"
+    url: https://openjdk.org/jeps/505
+  - title: "OpenJDK jcstress — concurrency stress tests"
+    url: https://github.com/openjdk/jcstress
+  - title: "Go — Data Race Detector"
+    url: https://go.dev/doc/articles/race_detector
+  - title: "Go 1.25 Release Notes (testing/synctest, WaitGroup.Go, GOMAXPROCS)"
+    url: https://go.dev/doc/go1.25
+  - title: "Go — Managing connections (database/sql)"
+    url: https://go.dev/doc/database/manage-connections
+  - title: "Go — Diagnostics"
+    url: https://go.dev/doc/diagnostics
+  - title: "uber-go/goleak"
+    url: https://github.com/uber-go/goleak
+  - title: "HikariCP — About Pool Sizing"
+    url: https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
+  - title: "PostgreSQL — Explicit Locking (deadlocks)"
+    url: https://www.postgresql.org/docs/current/explicit-locking.html
+  - title: "Jepsen — consistency models and checkers"
+    url: https://jepsen.io/
+  - title: "Lincheck — testing concurrent data structures on the JVM"
+    url: https://github.com/JetBrains/lincheck
+  - title: "Awaitility"
+    url: https://github.com/awaitility/awaitility
+  - title: "Prometheus — Unit testing for rules (promtool)"
+    url: https://prometheus.io/docs/prometheus/latest/configuration/unit_testing_rules/
+  - title: "Spring Boot — Task Execution and Scheduling"
+    url: https://docs.spring.io/spring-boot/reference/features/task-execution-and-scheduling.html
+milestones:
+  # Bloco A — Fundamentos
+  - 01-taxonomia-da-concorrencia.md
+  - 02-modelo-de-memoria.md
+  - 03-locks-atomics-e-cas.md
+  # Bloco B — Quando a espera se enrosca
+  - 04-deadlock-livelock-e-starvation.md
+  - 05-executors-e-thread-pools.md
+  # Bloco C — Concorrência moderna e recursos finitos
+  - 06-virtual-threads-e-cancelamento.md
+  - 07-connection-pools-e-recursos-finitos.md
+  # Bloco D — Provar, enxergar, integrar
+  - 08-testar-concorrencia.md
+  - 09-diagnosticar-em-producao.md
+  - 10-concorrencia-no-ledger.md

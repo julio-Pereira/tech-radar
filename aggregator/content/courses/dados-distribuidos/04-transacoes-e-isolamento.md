@@ -2,7 +2,7 @@
 id: transacoes-e-isolamento
 title: "Transações e isolamento: o vocabulário que quase ninguém tem"
 summary: "Os níveis pelas anomalias que permitem, o write skew que passa despercebido em READ COMMITTED, e as três formas de garantir que o saldo não fica negativo. Marco crítico — quiz estendido."
-estimatedMinutes: 60
+estimatedMinutes: 65
 references:
   - title: "PostgreSQL — Transaction Isolation"
     url: https://www.postgresql.org/docs/current/transaction-iso.html
@@ -129,6 +129,27 @@ Materializar o conflito é o truque menos conhecido e o mais útil: o write skew
 havia uma linha em comum para colidir. Crie uma — a linha do grupo — e trave-a. O conflito
 invisível vira um conflito de escrita que o banco sabe resolver.
 
+## Deadlock no banco
+
+Toda transferência entre duas linhas quaisquer é candidata a **deadlock**: a sessão A trava a
+linha de origem e pede a de destino, a sessão B trava a de destino e pede a de origem — nenhuma
+das duas progride. O Postgres detecta o ciclo depois de esperar `deadlock_timeout` (o tempo que
+ele aguarda antes de rodar o algoritmo de detecção, porque rodá-lo a cada espera de lock tem
+custo), e aborta uma das transações com **`40P01`**.
+
+`40P01` é um erro **esperado**, não uma falha do sistema — exatamente como `serialization_failure`
+no `SERIALIZABLE` acima. A correção tem duas partes: **ordem total de aquisição** (sempre travar a
+linha de menor id primeiro, nunca a "de origem" primeiro) elimina a maioria dos deadlocks na
+origem; e **retry da transação abortada**, porque mesmo com ordem total, deadlocks residuais
+acontecem sob concorrência alta o bastante. Um código que trata `40P01` como erro fatal, sem
+retry, quebra sob a mesma carga que `SERIALIZABLE` quebraria sem o loop de retry — e pelo mesmo
+motivo: o abort é o mecanismo funcionando, não uma exceção a esconder.
+
+> **Reencontro adiante — `concorrencia-e-recursos/04`.** O mesmo raciocínio — condições de
+> Coffman, ordem total de aquisição, retry — aparece de novo em memória (locks de aplicação) e
+> num terceiro lugar que surpreende: o **pool de conexões**, quando uma unidade de trabalho
+> segura uma conexão e pede uma segunda do mesmo pool antes de devolver a primeira.
+
 ## Linearizabilidade × serializabilidade
 
 Duas garantias diferentes que a conversa costuma fundir:
@@ -187,6 +208,12 @@ código que passou pela revisão, e a constraint vale para todo mundo.
 6. **Correção 3 — constraint.** Modele um saldo materializado por grupo com
    `CHECK (usado <= limite)` e mostre que a segunda transação falha sem nenhum lock explícito.
 7. `git commit` com o script das três correções e uma linha sobre o custo de cada uma.
+8. **Deadlock de banco.** Abra de novo duas sessões `psql`. Na sessão A, `UPDATE conta SET saldo
+   = saldo - 1 WHERE id = 1;` sem `COMMIT`. Na sessão B, `UPDATE conta SET saldo = saldo - 1
+   WHERE id = 2;` sem `COMMIT`. Agora, na sessão A, `UPDATE ... WHERE id = 2;` (trava, esperando
+   B); na sessão B, `UPDATE ... WHERE id = 1;`. Depois de `deadlock_timeout`, uma das duas recebe
+   `40P01`. Repita a mesma sequência com as duas sessões atualizando sempre na ordem `id = 1`
+   antes de `id = 2`, e confirme que o deadlock não ocorre mais.
 
 **Desafio — provar a invariante sob concorrência.** Escolha uma das três correções para o
 `fin-store` e escreva um teste que dispara **50 threads** debitando a mesma conta em paralelo,
@@ -229,5 +256,7 @@ formato da curva — não o número absoluto — é o que você vai usar para de
   banco inteiro.
 - `SERIALIZABLE` no Postgres custa aborts e exige retry em toda a aplicação; constraint,
   `FOR UPDATE` e materialização do conflito são as alternativas cirúrgicas.
+- Deadlock entre duas linhas quaisquer é candidato em toda transferência; `40P01` é esperado, e a
+  correção é ordem total de aquisição mais retry — nunca tratar como erro fatal.
 - A invariante mora no banco, não no `if` da aplicação — porque o `if` vale só para o código que
   passou pela revisão.

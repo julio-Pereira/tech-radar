@@ -1,0 +1,36 @@
+questions:
+  - question: "Duas threads fazem `get` e depois `put` num `ConcurrentHashMap`, decidindo um valor com base no `get`. O detector de data race não acusa nada. Por quê?"
+    options:
+      - "Porque a própria coleção concorrente é imune a qualquer bug de concorrência, sempre"
+      - "Porque cada `get`/`put` é seguro isoladamente; o problema é a sequência entre eles"
+      - "Porque o detector de race do Go só existe nessa linguagem, nunca em código Java"
+      - "Porque a race condition deixa de existir assim que a coleção vira thread-safe"
+    answer: 1
+    explanation: "Um detector de data race instrumenta acessos à memória e acusa quando duas threads tocam a mesma posição sem happens-before, com pelo menos uma escrita. Cada `get` e cada `put` de um `ConcurrentHashMap` é internamente seguro — não há acesso cru à memória ali. O bug é lógico: a decisão tomada entre o `get` e o `put` pode estar obsoleta quando o `put` acontece, porque outra thread mudou o valor no meio. Isso é race condition sem data race, e nenhuma instrumentação de memória enxerga isso."
+
+  - question: "`lost update` (duas transações leem o mesmo saldo e uma escrita apaga a outra) é a mesma classe de bug de qual cenário em memória?"
+    options:
+      - "De um data race clássico, como um contador incrementado sem nenhuma sincronização"
+      - "De um check-then-act: ler, decidir, escrever, sem que a sequência seja atômica"
+      - "De um deadlock entre duas threads segurando locks em ordens opostas uma da outra"
+      - "De uma publicação insegura de objeto, lido pela metade por outra thread qualquer"
+    answer: 1
+    explanation: "`lost update` é exatamente check-then-act, um andar abaixo: ler o saldo, calcular o novo valor, escrever — sem que isolamento suficiente torne a sequência atômica. É a mesma estrutura do bug do ConcurrentHashMap, só que a \"coleção concorrente\" agora é uma tabela sob READ COMMITTED. Data race, deadlock e publicação insegura são categorias diferentes, tratadas nos marcos seguintes."
+
+  - question: "Um caminho de débito tem fração serial `s = 0,25` (25% do tempo em seção crítica). Pela lei de Amdahl, qual é aproximadamente o teto de speedup, não importa quantos workers sejam usados?"
+    options:
+      - "4×"
+      - "25×"
+      - "100×"
+      - "Não há teto algum"
+    answer: 0
+    explanation: "O limite de Amdahl é 1/s quando n → ∞: com s = 0,25, o teto é 1/0,25 = 4×. Isso é exatamente por que medir a fração serial antes de pedir mais threads importa — 64 workers não entregam 64× quando um quarto do tempo é inerentemente serial. 25× e 100× ignoram a fórmula, e \"sem teto\" é o erro que a lei de Amdahl existe para corrigir."
+
+  - question: "Por que a USL prevê que o throughput pode cair com mais workers, algo que a lei de Amdahl sozinha não prevê?"
+    options:
+      - "Porque a USL assume que todo programa tem bugs de memória que só pioram com a escala real"
+      - "Porque a USL soma um custo de coerência entre workers, que cresce com o número deles"
+      - "Porque a USL só se aplica a sistemas distribuídos, nunca a um único processo isolado"
+      - "Porque a USL ignora de vez a fração serial e mede apenas o hardware disponível"
+    answer: 1
+    explanation: "Amdahl modela só a fração serial, então seu limite é assintótico mas nunca cai. A USL acrescenta o termo de coerência — o custo de workers sincronizarem entre si (contenção de lock, tráfego de cache, barramento) — que cresce com o número de workers e pode dominar o ganho, fazendo o throughput real cair além de um certo ponto. Não é sobre bugs de memória nem exclusivo de sistemas distribuídos; é sobre o preço de coordenar mais participantes."

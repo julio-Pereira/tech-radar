@@ -1,0 +1,54 @@
+questions:
+  - question: "Um pool atende chamadas com 80 ms de espera de rede para 5 ms de processamento local, numa máquina de 8 núcleos. Pela fórmula `núcleos × (1 + espera/computação)`, qual é o tamanho útil aproximado?"
+    options:
+      - "8 threads, porque a fórmula não vale para trabalho I/O-bound"
+      - "Cerca de 136 threads, pela razão espera/computação de 16:1"
+      - "16 threads, ignorando o número de núcleos"
+      - "800 threads, multiplicando núcleos pela espera em milissegundos"
+    answer: 1
+    explanation: "A razão espera/computação é 80/5 = 16. A fórmula dá 8 × (1 + 16) = 8 × 17 = 136. A fórmula existe exatamente para trabalho I/O-bound — é ali que ela se aplica, porque a thread fica ociosa esperando a resposta de rede em vez de consumir CPU. Ignorar os núcleos ou multiplicar a espera em milissegundos diretamente não corresponde à fórmula nem ao raciocínio por trás dela."
+
+  - question: "Por que `newFixedThreadPool`, com fila padrão ilimitada, é um antipadrão de produção, apesar de muito citado em tutoriais?"
+    options:
+      - "Porque o número de threads nunca pode ser alterado em tempo de execução"
+      - "Porque a fila aceita trabalho sem teto até a memória do processo se esgotar"
+      - "Porque não é compatível com virtual threads do JDK 21+"
+      - "Porque usa `CallerRunsPolicy` por padrão, degradando a latência de toda submissão"
+    answer: 1
+    explanation: "O problema não é o número fixo de threads — é a fila ilimitada atrás delas. Quando a capacidade do pool é excedida, a fila cresce sem teto em vez de rejeitar trabalho, transformando uma sobrecarga temporária em um vazamento de memória silencioso. Fila limitada com política de rejeição explícita (AbortPolicy, CallerRunsPolicy) é a alternativa que torna a sobrecarga visível e tratável. O tamanho de threads pode ser reconfigurado via `setCorePoolSize` em alguns casos, e nada aqui tem relação com virtual threads ou com uma política de rejeição específica embutida por padrão."
+
+  - question: "O que `CallerRunsPolicy` faz quando a fila de um executor está cheia, e por que isso cria contrapressão?"
+    options:
+      - "Descarta a tarefa silenciosamente, sem notificar quem a submeteu originalmente"
+      - "A thread que submeteu a tarefa a executa, sentindo o custo diretamente"
+      - "Lança uma exceção imediata, interrompendo a thread que submeteu a tarefa"
+      - "Enfileira a tarefa numa fila secundária ilimitada, só adiando o problema real"
+    answer: 1
+    explanation: "`CallerRunsPolicy` faz a thread chamadora (a que tentou submeter) executar a tarefa rejeitada sincronamente, em vez de descartá-la ou falhar. Isso cria contrapressão real: enquanto a thread chamadora está ocupada rodando essa tarefa, ela não pode submeter mais trabalho — o produtor sente diretamente o custo da sobrecarga, o que tende a desacelerar a taxa de submissão sem precisar de nenhum mecanismo externo. `AbortPolicy` é quem lança exceção; descartar silenciosamente e enfileirar numa fila secundária não são políticas padrão do `ThreadPoolExecutor`."
+
+  - question: "Por que uma tarefa bloqueante submetida ao `commonPool` pode degradar um `parallelStream` completamente independente, rodando ao mesmo tempo?"
+    options:
+      - "Porque `commonPool` é compartilhado pela JVM inteira, dimensionado para núcleos-1"
+      - "Porque `parallelStream` sempre lança exceção quando duas instâncias rodam juntas"
+      - "Porque isso só acontece se as duas acessarem a mesma variável compartilhada em memória"
+      - "Porque o JIT desliga o paralelismo ao detectar qualquer chamada bloqueante no código"
+    answer: 0
+    explanation: "O `commonPool` é compartilhado por toda a JVM — inclusive por bibliotecas internas que usam parallelStream sem o desenvolvedor saber. Uma tarefa bloqueante ocupando uma das threads limitadas desse pool reduz a capacidade disponível para qualquer outro uso concorrente de parallelStream, mesmo sem nenhuma relação lógica ou variável compartilhada entre os dois usos — é contenção por um recurso compartilhado invisível, não um bug de dados."
+
+  - question: "Por que, em Go, é mais comum \"limitar a concorrência\" (`errgroup.SetLimit`, semáforo por channel) do que \"dimensionar um pool de goroutines\"?"
+    options:
+      - "Goroutines são baratas; o limite real é o que o recurso de destino aguenta"
+      - "Go não permite controlar quantas goroutines rodam ao mesmo tempo"
+      - "`GOMAXPROCS` já faz esse trabalho automaticamente, tornando limites redundantes"
+      - "Goroutines, ao contrário de threads Java, não podem bloquear em I/O"
+    answer: 0
+    explanation: "Goroutines são baratas de criar e multiplexadas pelo runtime sobre um número menor de threads de sistema — o custo de \"ter muitas\" é bem menor que o de uma thread de plataforma em Java. O que de fato precisa de limite é a concorrência contra um recurso finito a jusante (conexões de banco, chamadas a uma API externa), e é isso que `errgroup.SetLimit` ou um semáforo via channel controlam. `GOMAXPROCS` limita paralelismo de CPU, não concorrência esperando I/O, e goroutines bloqueiam em I/O normalmente — o runtime só lida com isso de forma mais barata."
+
+  - question: "Sob 3× a carga sustentável, qual é o contraste esperado no p99 das tarefas processadas entre fila limitada (com rejeição) e fila ilimitada?"
+    options:
+      - "Idênticos: o tamanho da fila não afeta a latência de quem já está sendo processado"
+      - "Limitada mantém o p99 dos aceitos sob o SLO; ilimitada cresce sem teto"
+      - "Limitada rejeita sempre, inclusive tarefas que caberiam na capacidade"
+      - "Ilimitada sempre tem p99 menor, já que nenhuma tarefa é descartada"
+    answer: 1
+    explanation: "Fila limitada com rejeição sacrifica algumas tarefas (rejeitadas explicitamente) para manter a latência das aceitas dentro do SLO — o sistema degrada de forma controlada. Fila ilimitada aceita tudo, mas cada tarefa nova espera atrás de uma fila que só cresce sob sobrecarga sustentada, então o p99 (e eventualmente até o p50) crescem sem limite até a memória esgotar. Não é verdade que fila limitada rejeite tudo acima de 100% nem que fila ilimitada produza p99 menor — é exatamente o oposto do que a fila ilimitada entrega sob carga sustentada."

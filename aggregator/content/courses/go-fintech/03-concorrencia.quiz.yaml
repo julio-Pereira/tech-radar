@@ -34,3 +34,13 @@ questions:
       - "Que os lançamentos gravados estão equilibrados — se não estão, algo se perdeu no meio"
     answer: 3
     explanation: "A checagem prova a integridade contábil do que foi gravado: cada movimentação gerou o par completo. Ela não prova cobertura — uma transação inteira ignorada mantém a soma zerada — nem diz nada sobre saldo negativo ou ordem. Por isso ela é rede de segurança somada ao `-race` e à contagem de linhas, não no lugar delas."
+
+  - question: "O sharding por conta garante que a mesma conta nunca sofre corrida de saldo dentro do `walletctl`. Essa garantia também vale se um segundo processo (outro serviço) escrever na mesma conta?"
+    options:
+      - "Sim, porque o hash da conta é determinístico e vale para qualquer processo que o calcule"
+      - "Não: sharding por goroutine só serializa dentro de um processo; entre processos a invariante precisa de transação e ordem de aquisição no banco"
+      - "Sim, desde que os dois processos usem o mesmo número de workers configurado"
+      - "Não, e não há solução possível além de impedir que dois serviços escrevam na mesma conta"
+    answer: 1
+    explanation: "O sharding por conta é uma garantia de **processo único**: ele serializa transações da mesma conta porque elas caem na mesma goroutine daquele processo específico. Um segundo processo não compartilha essa fila de goroutines — ele precisa da mesma proteção que `dados-distribuidos/04` e `/10` ensinam entre processos: transação, ordem de aquisição de lock e, quando preciso, lock distribuído com fencing token. Calcular o mesmo hash em dois processos não cria nenhuma exclusão mútua entre eles."
+
