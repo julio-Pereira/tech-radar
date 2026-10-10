@@ -1,0 +1,36 @@
+questions:
+  - question: "Um desenvolvedor porta um código Java que usa `synchronized` de forma recursiva (a mesma thread readquire o lock que já segura) para Go, trocando por `sync.Mutex`. O que acontece?"
+    options:
+      - "Funciona igual: `Mutex` em Go também é reentrante por padrão, como `synchronized`"
+      - "A goroutine trava na segunda chamada a `Lock()`, porque `Mutex` não é reentrante"
+      - "O runtime detecta a recursão sozinho e converte em chamada sem lock algum"
+      - "Compila normalmente, mas falha silenciosamente, sem travar e sem erro nenhum"
+    answer: 1
+    explanation: "`synchronized` em Java é reentrante: a mesma thread pode readquirir o monitor que já segura, contando as entradas. `sync.Mutex` em Go não tem esse conceito — uma segunda chamada a `Lock()` pela mesma goroutine que já o detém bloqueia indefinidamente, porque o mutex não sabe distinguir \"a mesma goroutine de novo\" de \"outra goroutine concorrente\". É um dos bugs clássicos de portar código de Java para Go sem revisar a suposição de reentrância."
+
+  - question: "Por que uma chamada de rede dentro de uma seção crítica é sempre um problema, mesmo quando o serviço remoto normalmente responde rápido?"
+    options:
+      - "Chamadas de rede sempre lançam exceção dentro de blocos sincronizados"
+      - "A duração da chamada vira espera para toda thread que disputa o lock"
+      - "Chamadas de rede não podem ser serializadas, só paralelizadas"
+      - "Isso só é problema em Go, já que a JVM paraleliza I/O internamente"
+    answer: 1
+    explanation: "A seção crítica serializa o acesso ao recurso protegido — e qualquer latência dentro dela vira latência imposta a todas as threads que esperam o lock, não só à que está fazendo a chamada. Em operação normal isso pode passar despercebido; no dia em que o serviço remoto degrada, o que era uma chamada lenta isolada vira um sistema inteiro travado atrás do lock. A regra \"sem I/O sob lock\" existe exatamente para que a latência externa nunca vire contenção interna."
+
+  - question: "`LongAdder` costuma ter melhor desempenho que `AtomicLong` em qual cenário específico?"
+    options:
+      - "Baixa contenção, uma única thread incrementando ocasionalmente"
+      - "Alta contenção, muitas threads incrementando o mesmo contador"
+      - "Em qualquer cenário, sem nenhuma contrapartida"
+      - "Só quando o contador é lido mais vezes do que incrementado"
+    answer: 1
+    explanation: "`LongAdder` mantém várias células internas e soma na leitura, especificamente para evitar que muitas threads disputem a mesma posição de memória via CAS. Sob alta contenção isso reduz drasticamente o retry de CAS que `AtomicLong` sofreria. Sob baixa contenção o overhead de manter múltiplas células não compensa, e `AtomicLong` tende a ser mais simples e igualmente rápido — por isso a escolha depende do padrão de contenção, não é uma substituição universal."
+
+  - question: "Qual é a diferença de granularidade entre lock global e lock por conta no débito, e o que ela custa em cada direção?"
+    options:
+      - "Global serializa tudo; por conta só serializa a mesma conta, com mais código"
+      - "Lock por conta é sempre mais lento, por criar mais objetos de lock na memória"
+      - "Lock global só funciona em Java; em Go só existe lock por conta, nunca global"
+      - "Não há diferença real de comportamento: a escolha entre os dois é puramente estética"
+    answer: 0
+    explanation: "Lock global é a opção mais simples de raciocinar (um único ponto de serialização, fácil provar que a invariante vale), mas serializa até transferências entre contas completamente não relacionadas. Lock por conta (ou striping) permite que operações em contas diferentes avancem em paralelo, à custa de mais cuidado na implementação — e só ajuda de fato quando a carga está distribuída entre várias contas, não concentrada numa só."

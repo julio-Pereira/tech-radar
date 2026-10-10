@@ -1,0 +1,36 @@
+questions:
+  - question: "Com 10 mil virtual threads precisando acessar um pool de só 20 conexões de banco, qual é a ferramenta certa para limitar quantas tocam o banco ao mesmo tempo?"
+    options:
+      - "Criar um segundo pool de virtual threads com exatamente 20 threads dedicadas"
+      - "Um `Semaphore(20)`, já que o gargalo é o pool de conexões, não as threads"
+      - "Aumentar o número de virtual threads até o JDK limitar o acesso sozinho"
+      - "Trocar as virtual threads por threads de plataforma, que têm limite nativo"
+    answer: 1
+    explanation: "Virtual threads são baratas — o problema nunca foi quantas existem, e sim quanta concorrência o recurso de destino (o pool de 20 conexões) consegue absorver. Um `Semaphore(20)` limita exatamente isso, deixando as virtual threads livres para existir aos milhões enquanto só 20 por vez de fato seguram uma conexão. Criar outro pool de threads não resolve o gargalo (que é o pool de conexões, não de threads), e trocar por threads de plataforma reintroduziria o próprio problema que virtual threads resolvem."
+
+  - question: "No JDK 21, uma virtual thread bloqueia dentro de um bloco `synchronized`. O que acontece com a thread de plataforma que a carrega?"
+    options:
+      - "Nada: desde o JDK 21, `synchronized` nunca fixa a thread de plataforma"
+      - "Fica presa (pinning) a ela, porque JEP 491 só é GA a partir do JDK 24"
+      - "A JVM substitui o `synchronized` por `ReentrantLock` em tempo de execução"
+      - "A virtual thread é promovida a thread de plataforma permanentemente"
+    answer: 1
+    explanation: "JEP 491 (Synchronize Virtual Threads without Pinning) só se tornou GA no JDK 24. Em JDK 21, uma virtual thread que bloqueia dentro de synchronized ainda fixa sua thread de plataforma carregadora, que fica indisponível para outras virtual threads enquanto isso — anulando parte do ganho de escalabilidade. A mitigação em JDK 21 é trocar o synchronized problemático por ReentrantLock, não esperar que a JVM faça isso sozinha."
+
+  - question: "O que \"cancelamento cooperativo\" significa, tanto para `interrupt()` em Java quanto para `context.Done()` em Go?"
+    options:
+      - "A JVM/runtime param a thread/goroutine de imediato, sem ação do código"
+      - "O sinal apenas marca um estado; o código precisa checá-lo e reagir"
+      - "Só funciona se duas threads/goroutines concordarem em parar juntas"
+      - "Só chamadas de rede podem ser canceladas; computação pura, nunca"
+    answer: 1
+    explanation: "Em nenhuma das duas linguagens o cancelamento é preemptivo por padrão: `interrupt()` marca um flag que o código precisa checar (ou estar numa chamada que responde a interrupção); `context.Done()` fecha um canal que o código precisa observar, tipicamente num `select`. Se o código nunca checa, a execução simplesmente continua — por isso vazamento de goroutine e thread presa mesmo após \"cancelamento\" são bugs reais e comuns, não exceções."
+
+  - question: "Qual é um exemplo clássico de vazamento de goroutine, e por que ele é definitivo?"
+    options:
+      - "Uma goroutine que demora alguns segundos a mais do que o esperado normalmente"
+      - "Envio para um channel sem receptor: bloqueia para sempre, sem timeout"
+      - "Uma goroutine com variável local coletada no próximo ciclo do GC"
+      - "Uma goroutine que falha com panic e é recuperada por `recover()` no código"
+    answer: 1
+    explanation: "Enviar para um channel sem nenhum receptor bloqueia a goroutine remetente indefinidamente — não há timeout implícito, não há liberação automática. Essa goroutine fica viva para sempre, consumindo memória e, eventualmente, acumulando junto com outras do mesmo bug. Uma goroutine lenta ainda termina; uma variável local é coletada normalmente pelo GC assim que a goroutine termina; um panic recuperado também termina a execução normalmente — nenhum desses é vazamento."

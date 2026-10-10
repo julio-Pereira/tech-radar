@@ -1,0 +1,54 @@
+questions:
+  - question: "Sem nenhuma relação happens-before entre a escrita de uma thread e a leitura de outra, o que o modelo de memória garante sobre o que a leitura vai ver?"
+    options:
+      - "Garante a escrita mais recente, desde que ambas estejam no mesmo processo"
+      - "Nada: nem visibilidade, nem ordem das escritas anteriores"
+      - "Garante visibilidade, mas não a ordem relativa entre escritas"
+      - "Garante a ordem, mas não um prazo para a leitura acontecer"
+    answer: 1
+    explanation: "Happens-before é a única relação que o modelo de memória oferece como garantia. Na ausência dela, compilador, CPU e cache estão livres para reordenar e atrasar a visibilidade de escritas — não existe garantia residual de visibilidade nem de ordem. Isso vale tanto para Java quanto para Go, com mecanismos diferentes (synchronized/volatile/final de um lado, channel/sync/atomic do outro) estabelecendo a mesma relação."
+
+  - question: "Um campo `volatile boolean ativo` é lido em loop por uma thread e escrito por outra. Se fosse `volatile int contador` incrementado por duas threads, o que `volatile` NÃO garantiria?"
+    options:
+      - "Visibilidade da flag — garantida; atomicidade de `contador++` — não garantida"
+      - "Atomicidade de qualquer operação sobre o campo, tornando qualquer lock desnecessário"
+      - "Nada sozinho; seria preciso também `synchronized` em volta para a flag funcionar"
+      - "Visibilidade só para booleanos; para `int` seria preciso usar `AtomicInteger`"
+    answer: 0
+    explanation: "`volatile` garante visibilidade e ordenação da escrita em relação a leituras subsequentes, mas não atomicidade de operações compostas. `contador++` é ler, incrementar e escrever em três passos; duas threads podem intercalar esses passos e perder um incremento mesmo com o campo `volatile`. Isso é diferente de uma flag booleana lida/escrita como operação única, onde a visibilidade é exatamente o que faltava."
+
+  - question: "Por que o double-checked locking sem `volatile` no campo pode publicar um objeto parcialmente construído?"
+    options:
+      - "Porque o construtor lança uma exceção silenciosa quando a JVM está em modo otimizado"
+      - "Porque a escrita da referência e a dos campos internos podem ser reordenadas"
+      - "Porque é incompatível com qualquer classe que tenha mais de um campo"
+      - "Porque o GC pode coletar o objeto antes de ele terminar de inicializar os campos"
+    answer: 1
+    explanation: "Sem `volatile`, não há happens-before entre a inicialização dos campos do objeto e a publicação da referência na variável compartilhada — o compilador ou a CPU podem reordenar essas escritas. Uma segunda thread, fazendo a primeira checagem sem lock, pode ver a referência já não-nula enquanto os campos ainda têm valores padrão. `volatile` no campo da referência impede exatamente essa reordenação, restabelecendo a publicação segura."
+
+  - question: "Um objeto de configuração tem todos os campos `final`, atribuídos no construtor, publicado só depois. Por que isso é seguro mesmo sem `volatile` na variável que guarda a referência?"
+    options:
+      - "Porque campos `final` ficam em cache de instrução, compartilhado entre threads"
+      - "Porque classes com qualquer campo `final` são automaticamente imunes a reordenação"
+      - "Porque a atribuição do `final` no construtor happens-before o uso da referência"
+      - "Porque campos `final` só são lidos após o garbage collector liberar o original"
+    answer: 2
+    explanation: "A regra de publicação segura via `final` é uma garantia explícita do modelo de memória: a atribuição de um campo `final` no construtor happens-before qualquer uso da referência por outra thread, desde que a referência não \"escape\" do construtor antes de ele terminar. Não tem relação com cache de instrução, não torna a classe inteira imune a outros bugs, e não depende do garbage collector."
+
+  - question: "Um bug de memória nunca apareceu em mil execuções num laptop x86, mas quebrou no primeiro dia num servidor ARM. Qual é a explicação mais provável?"
+    options:
+      - "ARM não implementa threads de verdade, apenas simula via interrupções de hardware"
+      - "x86 (TSO) esconde reordenações que ARM, mais fraco, permite e revela"
+      - "O laptop tinha menos núcleos, tornando essa race matematicamente impossível nele"
+      - "Servidores ARM sempre têm mais carga, e só a carga afeta esse tipo de bug"
+    answer: 1
+    explanation: "x86 usa Total Store Order, um modelo relativamente forte que não permite boa parte das reordenações que quebram código sem sincronização correta — por isso o bug \"funciona por acaso\" ali na maioria das execuções. ARM permite mais reordenação, e o mesmo código sem a sincronização certa tem mais chance real de expor o bug. Não é sobre ausência de threads nem só sobre número de núcleos ou carga — é sobre o que cada arquitetura garante por padrão."
+
+  - question: "Por que trocar um `synchronized` simples por operações `Atomic*`/CAS compostas, sem medir nem repensar a lógica, costuma recriar o bug do marco anterior?"
+    options:
+      - "Porque `Atomic*` é sempre mais lento, só piorando desempenho, sem risco novo"
+      - "Porque compor atomics isolados sem seção crítica recria o check-then-act"
+      - "Porque `Atomic*` não existe em Java, só em Go, invalidando a troca"
+      - "Porque CAS sempre falha sob qualquer contenção, tornando o código incorreto"
+    answer: 1
+    explanation: "Cada operação atômica individual é segura, mas compor várias delas (ler um atomic, decidir algo, escrever outro atomic) sem que a sequência inteira seja atômica é exatamente o check-then-act do marco 01 — só que disfarçado de código \"moderno\". Atomics resolvem um problema pontual de visibilidade/CAS, não substituem uma seção crítica quando a invariante depende de mais de uma variável ou de uma decisão entre leitura e escrita. `Atomic*` existe em Java (java.util.concurrent.atomic) e CAS não falha sempre sob contenção — ele faz retry."

@@ -1,0 +1,54 @@
+questions:
+  - question: "Qual é a fórmula para dimensionar o tamanho de um pool de conexões, e o que ela exige medir primeiro?"
+    options:
+      - "Número de réplicas × 10, um valor fixo e independente de qualquer carga real"
+      - "TPS × tempo de retenção — exige medir quanto tempo a conexão fica presa"
+      - "`max_connections` do banco dividido pelo número de tabelas acessadas"
+      - "Número de núcleos da máquina que roda a aplicação, nada mais que isso"
+    answer: 1
+    explanation: "É a mesma lei de Little do marco 05 (dimensionamento de executores), aplicada ao recurso \"conexão\": quantas unidades de trabalho em andamento ao mesmo tempo (TPS × tempo de retenção) é o que o pool precisa suportar. Multiplicar réplicas por um valor fixo ou dividir pelo número de núcleos ou tabelas não captura o fator que de fato determina a demanda: quanto tempo cada conexão fica emprestada."
+
+  - question: "Por que a mesma aplicação, em Java com HikariCP e em Go com `database/sql`, pode se comportar de modo oposto sob carga, sem configuração explícita de pool?"
+    options:
+      - "HikariCP é limitado por padrão (10); `database/sql` é ilimitado por padrão (0)"
+      - "Go não suporta pool de conexões nativamente, só via bibliotecas externas de terceiros"
+      - "HikariCP sempre abre uma conexão totalmente nova a cada requisição recebida"
+      - "`database/sql` fecha a conexão logo após cada query, tornando pool irrelevante"
+    answer: 0
+    explanation: "Os defaults são opostos: HikariCP já vem com um teto (10) que protege o banco de uma avalanche de conexões; `database/sql` vem sem teto algum por padrão, abrindo quantas o banco permitir. Sob carga, o serviço Java naturalmente enfileira acima de 10 conexões simultâneas enquanto o serviço Go tenta abrir conexões sem limite, podendo esgotar o `max_connections` do banco sozinho. Go suporta pool nativamente via `database/sql`, e ele reutiliza conexões — só não limita por padrão."
+
+  - question: "Em `http.Transport` (Go), qual é o padrão de `MaxIdleConnsPerHost`, e por que ele surpreende em alto volume contra um único host?"
+    options:
+      - "100, igual ao `MaxIdleConns` geral do transporte — sem nenhuma surpresa real"
+      - "2 — baixo o bastante para abrir/fechar conexões repetidamente sob volume"
+      - "Ilimitado, exatamente como `SetMaxOpenConns` em `database/sql` por padrão"
+      - "0, desabilitando reuso de conexão a menos que configurado manualmente antes"
+    answer: 1
+    explanation: "`DefaultMaxIdleConnsPerHost` é 2, bem menor que o `MaxIdleConns` geral (100). Para um cliente HTTP que fala com um único host de alto volume (ex.: um PSP específico), isso significa que só 2 conexões ociosas ficam reservadas para reuso — o resto é aberto e fechado a cada rajada, cobrando o custo de handshake repetidamente. É um dos primeiros ajustes feitos ao tunar um cliente HTTP de produção em Go."
+
+  - question: "O que `leakDetectionThreshold` do HikariCP faz, e qual é o menor valor aceito para habilitá-lo?"
+    options:
+      - "Fecha automaticamente a conexão suspeita assim que detectada, sem registrar nada disso"
+      - "Registra um aviso quando uma conexão fica presa além do limiar; mínimo de 2000 ms"
+      - "Bloqueia a criação de novas conexões até a suspeita ser devolvida manualmente"
+      - "Desconecta a aplicação inteira do banco assim que detecta qualquer vazamento"
+    answer: 1
+    explanation: "O `leakDetectionThreshold` apenas loga um aviso — ele não fecha a conexão nem bloqueia a aplicação, só sinaliza que uma conexão está emprestada há mais tempo que o esperado, o que normalmente indica que alguém esqueceu de devolvê-la. O default é 0 (desligado), e o próprio Hikari rejeita valores abaixo de 2000 ms por considerar que o custo de monitorar não compensa abaixo desse piso."
+
+  - question: "HPA escala um serviço de 3 para 20 réplicas, cada uma com pool de 20 conexões, contra um Postgres com `max_connections = 100`. O que o CI deveria pegar, e por quê?"
+    options:
+      - "Que `maxReplicas × pool` (400) excede com folga o limite do banco (100)"
+      - "Nada: o Postgres rejeita conexões extras automaticamente, sem nenhum risco real"
+      - "Que o HikariCP se autoajusta sozinho ao detectar outras réplicas no mesmo banco"
+      - "Nada: o problema só existe se as 20 réplicas subirem exatamente ao mesmo tempo"
+    answer: 0
+    explanation: "O defeito é estrutural, não de uma réplica específica: 20 réplicas × 20 conexões cada é 400, quatro vezes o limite do banco. O Postgres de fato rejeita conexões além do limite, mas rejeitar em produção — com réplicas competindo e algumas nunca conseguindo conexão — é exatamente o incidente que a verificação em CI existe para prevenir antes do deploy. Nenhum pool JDBC se autoajusta com base em quantas outras réplicas existem, e a condição não depende de todas subirem ao mesmo tempo: basta a soma do pico ultrapassar o limite."
+
+  - question: "Um pool de conexões esgota sob pico de carga. Qual é a resposta correta ao cliente, e por quê?"
+    options:
+      - "500 Internal Server Error, já que algo impediu o processamento da chamada"
+      - "503 com `Retry-After`: pressão transitória, com sugestão de nova tentativa"
+      - "200 OK com corpo vazio, para não alarmar o monitoramento do lado do cliente"
+      - "404 Not Found, já que o recurso pedido não pôde ser localizado a tempo"
+    answer: 1
+    explanation: "Esgotamento de pool é uma condição transitória e esperada sob pico — não um erro de aplicação. 503 com `Retry-After` comunica exatamente isso: \"tente de novo, e aqui está uma sugestão de quando\". 500 genérico mistura esse caso com bugs reais, dificultando diferenciação em dashboards e alertas; 200 esconde o problema; 404 está semanticamente errado, já que o recurso existe — só não há conexão disponível para buscá-lo agora."

@@ -1,0 +1,36 @@
+questions:
+  - question: "A matriz \"mecanismo por contenção\" recomenda ator/single-writer em vez de CAS composto para qual cenário?"
+    options:
+      - "1 processo, com invariante simples e baixa contenção entre as threads"
+      - "1 processo, com invariante composta e alta contenção entre threads"
+      - "N processos, sob qualquer nível de contenção entre eles"
+      - "Apenas quando a linguagem do projeto usada é Go"
+    answer: 1
+    explanation: "A matriz do marco aponta que, quando a invariante cobre mais de uma variável e a contenção é alta, compor múltiplas operações CAS para manter tudo consistente fica complexo e propenso a erro — é exatamente o cenário onde single-writer/ator (uma única goroutine/thread dona do estado, sem necessidade de nenhum lock ou CAS) compensa o custo de serialização pela fila de mensagens. Em baixa contenção com invariante simples, um lock básico ou um único CAS já bastam; ator funciona tanto dentro de um processo (marco 03) quanto não é exclusivo de nenhuma linguagem específica."
+
+  - question: "Qual antipadrão combina diretamente o problema do deadlock de pool (marco 04) com o de dimensionamento (marco 07)?"
+    options:
+      - "`Thread.sleep` usado para sincronizar um teste de concorrência qualquer"
+      - "Retry sem jitter segurando a conexão de pool enquanto espera tentar de novo"
+      - "`synchronized` aplicado indiscriminadamente em todos os métodos de uma classe"
+      - "`parallelStream` usado para fazer chamadas de rede dentro do `commonPool`"
+    answer: 1
+    explanation: "Um retry sem jitter, que mantém a conexão de pool emprestada enquanto espera para tentar de novo após uma falha (por exemplo, um `40P01` ou um deadlock de pool), amplifica exatamente o problema de recurso finito do marco 07 em cima de uma condição que já era sintoma do marco 04. `Thread.sleep` em teste, `synchronized` em tudo e `parallelStream` para I/O são antipadrões reais desta trilha, mas cada um isolado, ligado a um único marco."
+
+  - question: "Por que remover uma camada de proteção e ver qual teste falha é prova válida de que ela é necessária, e não só uma suposição razoável?"
+    options:
+      - "Porque é a única forma possível de medir o desempenho real do sistema sem aquela camada de proteção"
+      - "Porque uma suíte baseada em invariantes deveria quebrar exatamente ali, se a camada for necessária"
+      - "Porque é a única forma conhecida de encontrar qualquer bug de memória em produção real"
+      - "Porque isso substitui por completo qualquer revisão de código feita por humanos no time"
+    answer: 1
+    explanation: "Essa técnica é a aplicação direta do teste de mutação do marco 08 ao sistema inteiro: se a suíte testa invariantes corretamente, retirar uma camada de proteção genuinamente necessária deve fazer o teste correspondente falhar. Se nada falha, ou a camada era mesmo desnecessária, ou — mais frequentemente — a suíte tem um buraco de cobertura que só essa remoção deliberada revelou. Não é sobre desempenho, não é a única forma de achar bugs de memória, e não substitui revisão humana — complementa com evidência executável."
+
+  - question: "O que fica fora do escopo desta trilha e passa a ser assunto de `performance-resiliencia`?"
+    options:
+      - "Dimensionar pools de threads e de conexões com base em medição real"
+      - "Degradar o sistema com intenção, acima da capacidade já dimensionada"
+      - "Detectar e corrigir deadlock entre transações concorrentes dentro do banco"
+      - "Testar invariantes de concorrência usando verificação de histórico"
+    answer: 1
+    explanation: "A fronteira declarada no marco é clara: esta trilha ensina o mecanismo de recurso finito (pool, executor, fila limitada com rejeição) e garante que ele está corretamente dimensionado e testado. O que fazer quando, mesmo assim, a carga ultrapassa a capacidade — como degradar deliberadamente em vez de simplesmente rejeitar ou quebrar — é tratado como política de resiliência, fora do escopo aqui. Dimensionamento, deadlock e teste de invariante são, pelo contrário, o núcleo desta trilha."

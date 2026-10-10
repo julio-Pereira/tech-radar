@@ -5,7 +5,7 @@ category: "Go/Backend"
 tags: [go, golang, backend, fintech]
 level: advanced
 lang: pt-BR
-estimatedHours: 8
+estimatedHours: 9
 sources:
   - title: "Effective Go (documento oficial)"
     url: https://go.dev/doc/effective_go

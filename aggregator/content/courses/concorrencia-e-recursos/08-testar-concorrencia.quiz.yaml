@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que um teste que faz `time.Sleep(100ms)` e então confere se uma operação assíncrona terminou é um cheiro de teste frágil?"
+    options:
+      - "Porque `Sleep` consome CPU ativamente durante toda a espera, sem ceder nada"
+      - "Porque a janela fixa aposta na velocidade da máquina, falhando sob CI lento"
+      - "Porque `Sleep` não é permitido em testes Go, por restrição própria da linguagem"
+      - "Porque esse tipo de problema só existe em Java, nunca ocorre em código Go"
+    answer: 1
+    explanation: "Um `Sleep`/espera fixa acopla o teste à suposição de que aquela janela de tempo é suficiente — o que varia com a carga da máquina, contenção de CI compartilhado, e até o hardware. O resultado típico é um teste que passa na máquina do autor e falha intermitentemente em CI, mesmo quando o código está correto. `Sleep` não consome CPU ativamente (a thread/goroutine cede o processador), é perfeitamente permitido em Go, e o problema é idêntico nas duas linguagens — por isso Awaitility existe para Java e poll condicional é a prática equivalente em Go."
+
+  - question: "O detector de race do Go acusou zero problemas numa execução de teste. O que isso prova sobre o código?"
+    options:
+      - "Prova ausência de data race em qualquer execução futura, sob qualquer carga"
+      - "Prova só que nenhum data race ocorreu naquela execução específica"
+      - "Prova ausência de race conditions lógicas também, cobrindo toda a família"
+      - "Prova que o código é thread-safe sob qualquer número de goroutines"
+    answer: 1
+    explanation: "O detector de race é dinâmico: ele instrumenta e observa uma execução real, e só pode acusar o que de fato aconteceu naquela execução. Uma intercalação diferente — mais threads, outra ordem de agendamento — pode expor um data race que não apareceu desta vez. Por isso `-count`, `-shuffle` e `-cpu` variam a execução: mais tentativas aumentam a chance de expor o bug, mas nunca é uma prova de ausência. E o detector de race não pega race condition lógica (marco 01), que não envolve acesso cru inseguro a memória."
+
+  - question: "Qual é a diferença entre testar \"a thread A termina antes da B\" e testar \"a soma do saldo nunca muda sob qualquer intercalação\"?"
+    options:
+      - "Não há diferença prática real entre os dois tipos de teste"
+      - "O primeiro é sequência frágil; o segundo é invariante, válida em qualquer ordem"
+      - "O primeiro só vale para testes escritos em Java; o segundo só para testes em Go"
+      - "O segundo é mais fraco, por ignorar o comportamento individual de cada thread"
+    answer: 1
+    explanation: "Afirmar uma ordem específica de conclusão entre threads/goroutines é apostar numa escolha de agendamento que o sistema não garante — isso torna o teste frágil e, pior, pode mascarar bugs reais ao forçar uma ordem artificial. Uma invariante (conservação, neste caso) precisa valer não importa a ordem real — é isso que a torna um critério robusto de correção sob concorrência, e é a base da verificação de histórico/linearizabilidade."
+
+  - question: "Um time remove o lock de um caminho de escrita do `debit()` e a suíte de testes continua verde no CI. O que isso revela?"
+    options:
+      - "Que o código funciona sem aquele lock, podendo ser removido em produção"
+      - "Que a suíte não detectava a ausência daquela proteção — passava sem provar"
+      - "Que teste de mutação é uma técnica inválida para qualquer código concorrente"
+      - "Que o CI está mal configurado e precisa ser reiniciado imediatamente"
+    answer: 1
+    explanation: "Esse é exatamente o propósito do teste de mutação: se remover uma proteção real não faz a suíte falhar, a suíte não estava de fato testando a invariante que a proteção protege — ela passava por acaso (a intercalação necessária para expor o bug nunca ocorreu naquela execução), não por correção comprovada. A conclusão correta é reforçar a suíte (mais carga, mais rodadas, um teste de invariante mais direto), nunca concluir que o lock era desnecessário."

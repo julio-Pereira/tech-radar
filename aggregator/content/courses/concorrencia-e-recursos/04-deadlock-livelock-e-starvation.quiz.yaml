@@ -1,0 +1,54 @@
+questions:
+  - question: "Quais são as quatro condições de Coffman, e qual delas a ordem total de aquisição de locks quebra?"
+    options:
+      - "Exclusão mútua, posse e espera, não-preempção, espera circular; quebra a espera circular"
+      - "Exclusão mútua, posse e espera, não-preempção, espera circular; quebra a exclusão mútua"
+      - "Apenas posse e espera, e espera circular; a ordem total elimina a posse e a espera"
+      - "Throughput, latência, disponibilidade e consistência; a ordem total melhora a consistência"
+    answer: 0
+    explanation: "As quatro condições de Coffman são exclusão mútua, posse e espera, não-preempção e espera circular — as quatro juntas são necessárias e suficientes para um deadlock. Impor uma ordem total de aquisição (por exemplo, sempre pelo id menor primeiro) garante que nunca existe um ciclo de espera entre threads, porque todas convergem para a mesma sequência — isso quebra especificamente a espera circular, sem precisar mexer nas outras três condições."
+
+  - question: "Por que o runtime de Go detecta \"all goroutines are asleep\" mas não um deadlock entre apenas duas goroutines, num programa com centenas delas?"
+    options:
+      - "Só verifica se TODAS estão bloqueadas; um ciclo parcial não dispara nada"
+      - "Deadlocks parciais são tecnicamente impossíveis no modelo de channels de Go"
+      - "O detector só funciona com a flag `-race` ativada na compilação do binário"
+      - "Detecta perfeitamente os dois casos, mas só reporta acima de 100 goroutines no ciclo"
+    answer: 0
+    explanation: "A checagem do runtime do Go é literalmente \"todas as goroutines do programa estão bloqueadas\" — um estado fácil de detectar sem rastrear o grafo de dependência entre locks. Um deadlock entre duas goroutines específicas, com o resto do programa seguindo normalmente, não ativa essa condição global e passa silencioso. Por isso a trilha ensina watchdogs próprios (dump de goroutines, detecção por timeout) em vez de confiar no runtime para esse caso."
+
+  - question: "Duas sessões fazem `UPDATE` cruzado nas mesmas duas linhas, em ordem oposta, no Postgres. O que o banco faz, e qual é a resposta correta da aplicação?"
+    options:
+      - "Trava indefinidamente até um DBA matar uma sessão manualmente"
+      - "Aborta uma transação com `40P01`; a aplicação deve capturar e repetir"
+      - "Serializa as duas silenciosamente, sem erro e sem lentidão perceptível"
+      - "Rejeita a segunda sessão com erro de conexão, exigindo reconectar"
+    answer: 1
+    explanation: "O Postgres roda um algoritmo de detecção de deadlock depois de esperar `deadlock_timeout`, escolhe uma das transações envolvidas no ciclo e a aborta com `40P01` (\"deadlock_detected\"). Isso não exige intervenção de DBA nem reconexão — é um erro esperado em qualquer sistema com transferência entre duas linhas quaisquer, e a aplicação precisa estar preparada para capturá-lo e repetir a transação automaticamente."
+
+  - question: "Um pool de 2 conexões atende 2 threads, cada uma precisando de 2 conexões ao mesmo tempo (ex.: via `REQUIRES_NEW`). O que acontece, e envolve algum lock de memória?"
+    options:
+      - "As quatro conexões ficam presas; não há lock de memória, é contenção pelo pool"
+      - "O pool cria conexões extras automaticamente para evitar qualquer impasse"
+      - "Uma das threads é cancelada pelo driver JDBC assim que detecta o impasse formado"
+      - "Só acontece se também houver um `synchronized` mal posicionado em algum lugar"
+    answer: 0
+    explanation: "Cada thread segura uma conexão e pede uma segunda do mesmo pool antes de devolver a primeira; com só duas conexões disponíveis e duas threads cada uma precisando de duas, nenhuma consegue completar. É deadlock no sentido pleno (posse e espera, espera circular, recurso não compartilhável), mas o recurso disputado é uma conexão de pool, não uma seção crítica em memória — por isso a detecção certa é por `connectionTimeout`, não por `ThreadMXBean` ou dump de goroutines."
+
+  - question: "Por que nem `async` nem virtual threads eliminam o risco de deadlock distribuído entre dois serviços (A espera B que espera A)?"
+    options:
+      - "Baratam manter uma chamada pendente, mas não eliminam a espera mútua entre chamadas"
+      - "São equivalentes a locks distribuídos, então o problema já estaria resolvido"
+      - "Deadlock distribuído só ocorre em chamadas síncronas, que `async` elimina por definição"
+      - "Virtual threads detectam ciclos entre serviços, como o runtime do Go faz localmente"
+    answer: 0
+    explanation: "`async` e virtual threads mudam o custo de manter uma chamada pendente (não consomem uma thread de plataforma inteira), mas a dependência circular entre dois serviços esperando resposta um do outro continua existindo logicamente, independente do modelo de execução. Sem um coordenador global de detecção de ciclo entre processos distintos, a única defesa prática é dar um prazo a cada chamada e desistir quando ele estoura."
+
+  - question: "Qual é a diferença entre livelock e starvation, usando o exemplo de writer starvation num `RWMutex`?"
+    options:
+      - "São o mesmo fenômeno descrito com nomes diferentes, sem distinção prática real"
+      - "Livelock: threads ativas que se anulam; starvation: uma thread nunca é servida"
+      - "Livelock só ocorre em sistemas distribuídos; starvation só dentro de um processo"
+      - "Starvation só se resolve por timeout; livelock só por ordem total de aquisição"
+    answer: 1
+    explanation: "Livelock envolve threads ativas, reagindo uma à outra, sem nenhuma delas de fato parada — mas também sem nenhuma progredindo, porque cada reação desfaz o progresso da anterior. Starvation é sobre uma thread específica sendo sistematicamente preterida por um recurso, enquanto outras conseguem acesso normalmente — writer starvation num RWMutex é o caso canônico: leitores nunca param de chegar, e o escritor nunca encontra uma janela livre. Nenhum dos dois é exclusivo de sistemas distribuídos ou tem uma única técnica fixa de correção."

@@ -1,0 +1,36 @@
+questions:
+  - question: "O p99 de um serviço sobe de 200 ms para 9 segundos, e a CPU está em 8%. Qual é o primeiro passo correto?"
+    options:
+      - "Assumir um algoritmo ineficiente e otimizar o código mais quente no perfil de CPU"
+      - "Reconhecer que CPU baixa com latência alta é espera, e perguntar \"o quê?\""
+      - "Reiniciar o serviço de imediato, já que CPU baixa sempre indica travamento"
+      - "Aumentar réplicas via HPA, já que mais capacidade de CPU resolve a lentidão"
+    answer: 1
+    explanation: "CPU alta com latência alta sugere computação real (candidato a otimização de algoritmo); CPU baixa com latência alta é o padrão clássico de espera — o processo não está ocupado computando, está bloqueado por algo. Otimizar CPU, reiniciar ou escalar HPA não endereçam espera por lock, pool ou I/O — na verdade, escalar réplicas pode piorar um esgotamento de pool de banco, como o marco 07 mostrou."
+
+  - question: "Um dump Java mostra 200 threads em `BLOCKED`, esperando o mesmo monitor. Qual é o perfil Go equivalente para esse sintoma?"
+    options:
+      - "Vazamento de memória; o equivalente é o perfil de heap"
+      - "Contenção de lock; o equivalente é o perfil de mutex do pprof"
+      - "JVM prestes a travar; não há equivalente, Go não tem monitores"
+      - "GC pausado; o equivalente é o perfil de CPU"
+    answer: 1
+    explanation: "Muitas threads em `BLOCKED` no mesmo monitor é a assinatura clássica de contenção pesada por um lock — todas esperando para entrar numa seção crítica que outra thread segura. O perfil de mutex do `pprof` (`SetMutexProfileFraction`) responde exatamente essa pergunta em Go: onde e quanto o programa espera por locks. Não tem relação direta com heap, GC ou CPU, e Go tem sim o conceito equivalente de exclusão mútua via `Mutex`."
+
+  - question: "Por que alertar em sintomas de saturação (`pool_pending > 0` sustentado) é preferível a alertar na causa raiz específica?"
+    options:
+      - "Porque alertar na causa raiz é tecnicamente impossível em qualquer sistema real"
+      - "Porque a causa muda, mas o sintoma de saturação do recurso finito é estável"
+      - "Porque sintomas de saturação nunca geram nenhum falso positivo, por definição"
+      - "Porque causas raiz só podem ser diagnosticadas depois que o incidente termina"
+    answer: 1
+    explanation: "Tentar prever e alertar em cada causa raiz possível é um alvo móvel — amanhã a causa é outra, e o alerta específico de hoje não cobre o incidente de amanhã. O sintoma de saturação (o recurso finito sob pressão) é o denominador comum de várias causas diferentes, e por isso é a base mais robusta e duradoura para um alerta. Isso não elimina falsos positivos nem torna diagnóstico de causa impossível durante o incidente — só muda onde o alerta dispara primeiro."
+
+  - question: "O que um dump de thread/goroutine (instantâneo único) não mostra, que um profile contínuo (JFR, Pyroscope) mostra?"
+    options:
+      - "O dump mostra exatamente tudo que um profile contínuo mostra, sem diferença alguma"
+      - "A evolução ao longo do tempo: quando a contenção começou e seu padrão antes"
+      - "O dump não mostra absolutamente nada sobre locks, só sobre uso de CPU"
+      - "O dump só funciona em programas Go; o profile contínuo só em programas Java"
+    answer: 1
+    explanation: "Um dump é um retrato de um instante — útil para confirmar \"o que está acontecendo agora\", mas incapaz de mostrar como se chegou até ali ou qual era o padrão minutos antes. Profiling contínuo (JFR rodando em produção, ou uma ferramenta como Pyroscope) preserva essa linha do tempo, permitindo investigar retroativamente \"o que aconteceu às 15h03 de ontem\" sem ter precisado capturar nada manualmente naquele momento. Um dump de thread mostra exatamente estado de locks/monitores, e ambas as técnicas existem nas duas linguagens."

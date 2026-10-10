@@ -2,7 +2,7 @@
 id: concorrencia
 title: "Concorrência aplicada a pagamentos"
 summary: "O modelo CSP de Go num processador de pagamentos em lote — com sharding por conta para evitar saldo negativo."
-estimatedMinutes: 35
+estimatedMinutes: 40
 references:
   - title: "Go Concurrency Patterns: Pipelines"
     url: https://go.dev/blog/pipelines
@@ -25,6 +25,16 @@ threads da JVM — e conversam por **channels**. As ferramentas do dia a dia:
 
 As virtual threads do Java 21+ (Project Loom) aproximam o modelo, mas a ergonomia de
 `channels` + `select` não tem equivalente direto. Vale conhecer ambos.
+
+**Channel/ator não é dogma, é critério.** A escolha certa depende do que está sendo protegido:
+**channel ou ator** quando o que importa é a **propriedade de um dado** — uma goroutine é a única
+dona de um estado, e todo mundo manda mensagem em vez de disputar acesso (é o sharding por conta
+abaixo); **`Mutex`** quando a seção crítica é curta e vários acessos concorrentes a um mesmo
+objeto em memória são inevitáveis; e **o banco**, com transação e ordem de aquisição, quando a
+invariante precisa valer **entre processos** — nenhum channel nem nenhum `Mutex` de uma goroutine
+protege um dado que outro processo também escreve. `dados-distribuidos/04` ensina as anomalias
+que acontecem quando essa última fronteira é ignorada, e `/10` cobre lock distribuído e fencing
+token para quando um lock em memória não basta nem dentro do mesmo processo.
 
 ## Exemplo numa fintech: batch de 100k transações
 
@@ -75,12 +85,23 @@ o teste deve subir pelo menos 500 goroutines despachando para o mesmo conjunto p
 de contas (para forçar contenção real) e afirmar, ao final, que o saldo de cada conta
 bate com a soma esperada — sem flag de `-race` acusando nada.
 
+**O que `-race` não vê.** O detector de race do Go acusa um acesso concorrente inseguro à mesma
+memória que **de fato ocorreu** na execução — ele não prova ausência, e não pega **race condition
+lógica** (ler um valor de uma estrutura segura, decidir algo, escrever depois, sem que a sequência
+inteira seja atômica). Um `-race` limpo não é certidão de que o sharding por conta está correto;
+é só a confirmação de que não há acesso cru inseguro naquela execução específica.
+
 **Checagem.** (a) Por que sharding por conta evita lock global sem perder paralelismo
-entre contas diferentes? (b) O que `go test -race` detecta que um teste funcional não
-detecta?
+entre contas diferentes? (b) O que `go test -race` detecta, e o que ele não detecta mesmo
+passando limpo?
 
 ## Principais aprendizados
 
-- Modele concorrência com channels e `context`, não com memória compartilhada e locks.
-- Sharding por conta torna a mesma conta sequencial e contas distintas paralelas.
+- Channel/ator, `Mutex` e transação de banco protegem coisas diferentes: propriedade de dado,
+  seção crítica curta em memória, e invariante entre processos — a escolha é por critério, não
+  por dogma de linguagem.
+- Sharding por conta torna a mesma conta sequencial e contas distintas paralelas, mas só protege
+  **dentro de um processo**; entre processos, a invariante precisa do banco.
+- `go test -race` acusa data race que ocorreu — ele não prova ausência, e não pega race condition
+  lógica (`dados-distribuidos/04`).
 - Reconciliação ao fim do batch e `go test -race` são rede de segurança, não opcional.
