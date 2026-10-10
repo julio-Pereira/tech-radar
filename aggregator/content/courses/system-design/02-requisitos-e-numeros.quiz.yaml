@@ -1,0 +1,54 @@
+questions:
+  - question: "Um documento de design afirma \"o Pix faz 3.000 TPS\" como base de cálculo. O que está errado nessa afirmação, segundo este marco?"
+    options:
+      - "É alegação sem fonte; devia ser premissa rotulada ou número linkado ao regulador"
+      - "Documentos de arquitetura financeira seguem um padrão internacional obrigatório de notação de unidades, e TPS não consta na lista de unidades aprovadas para uso em relatórios técnicos regulados"
+      - "O valor 3.000 está matematicamente incorreto para qualquer sistema de grande escala"
+      - "Documentos de design nunca devem conter número, só descrição qualitativa"
+    answer: 0
+    explanation: "A regra do marco é clara: premissa é rotulada como premissa (\"assumo 3.000 TPS de pico\"), e número que vem do regulador é linkado à fonte, nunca copiado como fato solto — porque ele muda, e o documento não pode ficar desatualizado em relação à fonte real. Não existe tal padrão internacional de unidades aprovadas, o valor em si não está incorreto matematicamente, e documentos de design usam número o tempo todo, só não sem proveniência."
+
+  - question: "Um fluxo síncrono tem cinco saltos, cada um com p99 de 50 ms medido isoladamente. Por que o p99 do fluxo completo não é simplesmente 250 ms?"
+    options:
+      - "Somar os cinco pressupõe que todos estariam no pior caso ao mesmo tempo, o que é raro"
+      - "Porque, de acordo com a teoria de filas aplicada a sistemas distribuídos modernos, cada salto adicional numa cadeia síncrona multiplica o percentil anterior por um fator fixo de correção estatística"
+      - "Porque p99 só vale para um único salto isolado"
+      - "Porque cada salto responde sempre em tempo constante"
+    answer: 0
+    explanation: "Somar p99 assume que todos os saltos estão simultaneamente no pior caso — um evento muito mais raro que qualquer salto individual estar. Não existe esse \"fator fixo de correção estatística\" inventado na segunda opção; p99 se aplica a qualquer distribuição, com um ou vários saltos; e nenhum serviço real responde em tempo constante."
+
+  - question: "Por que sistemas com fan-out para muitos microsserviços sofrem de p99 agregado desproporcionalmente pior que qualquer serviço individual?"
+    options:
+      - "Mais saltos aumentam a chance de que ao menos um esteja no seu próprio p99"
+      - "Microsserviços são, por definição arquitetural, sempre mais lentos que um monolito equivalente em qualquer cenário de carga comparável, independente do número de saltos envolvidos"
+      - "O protocolo HTTP impõe latência fixa por salto"
+      - "O número de saltos nunca influencia a latência total"
+    answer: 0
+    explanation: "Esse é o fenômeno que Dean & Barroso descrevem como \"the tail at scale\": com mais saltos independentes, a probabilidade de que pelo menos um deles esteja numa execução lenta cresce, puxando a cauda da distribuição agregada. Não é uma propriedade arquitetural de microsserviços em si (a comparação com monolito não é o ponto), não vem de nenhum limite fixo do protocolo HTTP, e tem relação direta com o número de saltos."
+
+  - question: "Com orçamento de 1 segundo e quatro saltos síncronos, por que este marco recomenda não dividir 250 ms igualmente entre eles?"
+    options:
+      - "A divisão deve ser desigual, com mais folga ao salto mais variável e margem reservada"
+      - "Porque toda metodologia formal de orçamento de latência em sistemas financeiros regulados exige que a divisão entre saltos siga obrigatoriamente uma distribuição logarítmica fixa, nunca linear"
+      - "Porque dividir igualmente é impossível de calcular"
+      - "Porque cada salto deve receber, por regra, metade do total"
+    answer: 0
+    explanation: "Distribuição igualitária ignora que saltos diferentes têm variabilidade diferente, e não deixa margem para a variação agregada do fluxo inteiro. Não existe essa \"distribuição logarítmica obrigatória\" da segunda opção — é invenção; a divisão desigual é perfeitamente calculável, e não há regra de metade fixa."
+
+  - question: "Qual é o papel da lei de Little (concorrência = taxa de chegada × tempo de permanência) no dimensionamento de capacidade?"
+    options:
+      - "Converte taxa de chegada e tempo de permanência no número de unidades simultâneas"
+      - "Ela é uma fórmula proprietária desenvolvida especificamente para sistemas de pagamento instantâneo, sem aplicação fora desse domínio regulado de fintech"
+      - "Calcula diretamente o custo mensal de infraestrutura necessário"
+      - "Substitui por completo a necessidade de medição real"
+    answer: 0
+    explanation: "A lei de Little dá o número de \"coisas em andamento\" ao mesmo tempo em regime estável — exatamente o que dimensiona réplicas, conexões e memória necessárias. É uma fórmula geral de teoria de filas, nada proprietária nem específica de pagamentos; não calcula custo de infraestrutura diretamente; e não substitui medição real — o marco pede justamente confrontar a previsão com uma medição."
+
+  - question: "Uma medição real contra um componente do `fin-blueprint` dá um resultado 3× maior que o previsto pelo `capacity.yaml`. O que o teste exige nesse caso?"
+    options:
+      - "Que a premissa responsável pelo desvio seja nomeada, já que a razão saiu do intervalo aceito"
+      - "Que todo o processo de estimativa de capacidade da organização seja suspenso e revisado por um comitê externo de auditoria técnica independente"
+      - "Nada: qualquer desvio é esperado e não exige ação"
+      - "Que a medição seja repetida até coincidir com a previsão"
+    answer: 0
+    explanation: "O critério do marco é que a razão medido/previsto fique entre 0,5 e 2; fora desse intervalo, o teste exige nomear a premissa culpada — não suspender processos organizacionais nem forçar a medição a bater com a previsão por repetição. Um desvio de 3× está fora do intervalo aceito e precisa de explicação registrada, não de silêncio."

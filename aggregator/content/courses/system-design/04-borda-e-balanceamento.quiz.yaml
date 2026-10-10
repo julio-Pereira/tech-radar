@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que `hash(chave) % N` é um algoritmo caro de usar para rotear tráfego a backends, quando `N` muda?"
+    options:
+      - "Quando N muda, quase toda chave remapeia para um backend diferente"
+      - "Porque a operação de módulo é computacionalmente mais cara que qualquer alternativa criptográfica disponível para roteamento de tráfego em tempo real"
+      - "Porque hash não pode ser usado para nenhum tipo de roteamento de rede"
+      - "Porque N nunca muda em produção, tornando o algoritmo puramente teórico"
+    answer: 0
+    explanation: "Com módulo simples, mudar N desloca quase todo o mapeamento chave→backend, mesmo que só um nó tenha entrado ou saído — o oposto do que se quer ao escalar ou lidar com falha. O custo não é de CPU da operação de módulo (que é trivial), hash é amplamente usado para roteamento, e N muda o tempo todo em produção real (escala, falha, deploy)."
+
+  - question: "Com um backend 10× mais lento que os demais, por que power of two choices (P2C) reage melhor que round-robin?"
+    options:
+      - "Round-robin ignora carga; P2C escolhe o menos carregado entre dois candidatos aleatórios"
+      - "Porque P2C mantém, de forma centralizada e sincronizada, uma contagem exata e instantânea de requisições em voo em cada um dos backends do pool inteiro a cada decisão de roteamento"
+      - "Porque round-robin nunca pode ser usado em conjunto com nenhum health check"
+      - "Porque P2C sempre escolhe o backend fisicamente mais próximo do cliente que originou a chamada"
+    answer: 0
+    explanation: "Round-robin distribui igualmente sem olhar carga real, então o backend degradado continua recebendo sua fatia cheia e a fila nele cresce. P2C olha dois candidatos por decisão e escolhe o menos carregado — reduz o risco sem precisar de estado global exato e sincronizado (o que seria caro de manter em escala), e não tem relação com proximidade geográfica nem incompatibilidade com health check."
+
+  - question: "Qual é o risco de ejetar outliers sem nenhum teto de segurança sobre a fração do pool que pode ser ejetada?"
+    options:
+      - "Sob falha correlacionada (todos degradando juntos), ejetar demais vira indisponibilidade total"
+      - "Nenhum: ejeção de outlier é sempre segura, não importa quantos nós sejam removidos do pool de uma vez, já que o tráfego é automaticamente redistribuído"
+      - "A ejeção de outlier nunca remove mais de um nó por vez, então o risco descrito não existe"
+      - "Ejetar sem teto só afeta o tráfego de leitura, nunca o de escrita, em qualquer sistema"
+    answer: 0
+    explanation: "Se um problema afeta vários backends ao mesmo tempo (uma dependência comum degradando, por exemplo), ejetar sem limite pode remover o pool inteiro da rotação — transformando degradação parcial em indisponibilidade completa. Por isso a prática correta nunca ejeta mais que uma fração do pool de uma vez. Não há garantia automática de segurança sem esse teto, a ejeção pode remover mais de um nó, e o risco vale tanto para leitura quanto para escrita."
+
+  - question: "Por que retry sem orçamento é descrito como \"o jeito mais eficiente de transformar degradação parcial em queda total\"?"
+    options:
+      - "Cada chamada que falha e é repetida multiplica a carga sobre um backend já sofrendo"
+      - "Porque todo mecanismo de retry, em qualquer implementação de qualquer linguagem, é por definição incompatível com qualquer forma de monitoramento de carga em tempo real"
+      - "Porque retry nunca deveria ser usado em sistemas financeiros, sob nenhuma circunstância"
+      - "Porque retry só afeta a latência percebida pelo cliente, nunca a carga real sobre o backend"
+    answer: 0
+    explanation: "Sem limite, cada falha gera uma nova tentativa, que pode falhar de novo e gerar outra — multiplicando a carga exatamente sobre o recurso que já está sofrendo, numa espiral que acelera o colapso. Um orçamento de retry corta essa espiral fazendo a chamada falhar rápido quando o limite estoura. Retry é compatível com monitoramento, tem uso legítimo em sistemas financeiros quando bem orçado, e afeta diretamente a carga real sobre o backend, não só a latência percebida."

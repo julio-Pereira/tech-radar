@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que \"porque é Pix\" não é um critério válido para justificar separar `pix-gateway` de `ledger-core`?"
+    options:
+      - "É um nome, não um dos cinco critérios de corte (deploy, escala, falha, regulatório, time)"
+      - "Porque o Banco Central exige, por norma técnica explícita, que toda integração de Pix seja implementada obrigatoriamente como um microsserviço fisicamente isolado em datacenter próprio"
+      - "Porque Pix nunca deveria ter um gateway dedicado"
+      - "Porque todo nome de domínio é automaticamente um critério de corte válido"
+    answer: 0
+    explanation: "O corte precisa de um dos cinco critérios reais presente — no caso do `pix-gateway`, isolamento de falha e escala independente do SPI. \"Porque é Pix\" é só um rótulo, não um argumento sobre acoplamento, escala, falha, regulação ou time. Não existe essa norma do Banco Central citada na segunda opção; ela é inventada."
+
+  - question: "Um sistema tem vários repositórios e deploys independentes, mas uma mudança de schema sempre exige coordenar três times e nenhum serviço sobrevive à queda do outro. O que isso é?"
+    options:
+      - "Monolito distribuído: parece microsserviços, mas se comporta como monolito acoplado"
+      - "Um exemplo correto e bem-sucedido de arquitetura de microsserviços madura e desacoplada"
+      - "Arquitetura hexagonal aplicada corretamente a um domínio financeiro complexo"
+      - "Um padrão aceitável desde que cada serviço tenha seu próprio banco de dados fisicamente"
+    answer: 0
+    explanation: "Ter vários deploys não é o mesmo que ter isolamento real — os sinais descritos (coordenação obrigatória entre times, nenhuma tolerância à queda do outro) são exatamente a definição de monolito distribuído: a complexidade operacional de distribuído, sem nenhuma das vantagens de isolamento. Isso não é microsserviços maduro nem hexagonal bem aplicado, e ter bancos fisicamente separados não resolve o problema se o acoplamento operacional continuar existindo."
+
+  - question: "O que uma fitness function (como um teste ArchUnit que falha se `payments` importar algo interno de `ledger`) faz que um diagrama de arquitetura sozinho não faz?"
+    options:
+      - "Transforma a fronteira em regra verificada continuamente no CI, não só intenção documentada"
+      - "Gera automaticamente toda a documentação C4 de nível Componente a partir da leitura do código-fonte"
+      - "Substitui por completo a necessidade de qualquer ADR sobre decisões de corte do sistema"
+      - "Garante que o desempenho do sistema nunca degrada abaixo de um SLO predefinido"
+    answer: 0
+    explanation: "Um diagrama não impede ninguém de importar um pacote interno sob pressão de prazo; a fitness function roda no CI e derruba o build quando a fronteira é violada, tornando a regra executável em vez de só documentada. Ela não gera diagramas C4 sozinha, não substitui ADR (que registra o porquê da decisão, não só o quê), e não tem relação com SLO de desempenho."
+
+  - question: "Qual dos cinco critérios de corte está mais claramente presente na decisão de separar `pix-gateway` de `ledger-core`?"
+    options:
+      - "Isolamento de falha: uma instabilidade do SPI externo não pode travar o ledger inteiro"
+      - "Tamanho de time: apenas esse critério, isoladamente, já justificaria qualquer corte de serviço independente do resto"
+      - "Nenhum dos cinco critérios está de fato presente nesse corte específico, que é puramente estético"
+      - "Isolamento regulatório é o único critério que importa para qualquer integração com sistemas de pagamento"
+    answer: 0
+    explanation: "O `pix-gateway` fala com um sistema externo (o SPI) que tem SLA e modo de falha próprios — isolar essa instabilidade do resto da contabilidade é isolamento de falha concreto, somado a escala independente. Tamanho de time sozinho não basta como critério único e suficiente; o corte não é puramente estético (há critério real presente); e isolamento regulatório, embora relevante em outros casos, não é o único critério que importa aqui."

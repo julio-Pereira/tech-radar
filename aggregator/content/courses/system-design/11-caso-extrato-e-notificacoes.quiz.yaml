@@ -1,0 +1,36 @@
+questions:
+  - question: "O que decide se um caso de projeção deve usar fan-out na escrita ou fan-out na leitura?"
+    options:
+      - "O ponto de cruzamento de custo entre as duas estratégias, medido para aquele caso específico"
+      - "A escolha é sempre global para o sistema inteiro: ou todo o sistema usa fan-out na escrita, ou todo ele usa fan-out na leitura, nunca uma combinação dos dois dentro da mesma plataforma de extratos"
+      - "Fan-out na escrita deve ser sempre a escolha padrão, independente de qualquer medição de custo real"
+      - "A linguagem de programação usada no backend determina automaticamente qual estratégia de fan-out é tecnicamente viável"
+    answer: 0
+    explanation: "A decisão é por caso, não global: quando poucos \"seguidores\" dependem de um evento, fan-out na escrita é barato; quando muitos dependem (o cliente famoso), fica caro e fan-out na leitura (ou um caminho dedicado) compensa mais. O híbrido é justamente usar os dois dentro do mesmo sistema, conforme o caso. Não há essa obrigação de escolha global única, fan-out na escrita não é sempre o padrão correto sem medir, e a linguagem de backend não determina viabilidade da estratégia."
+
+  - question: "Por que o lojista com 2 milhões de transações por dia precisa de uma estrutura de projeção separada, em vez de só mais capacidade na estrutura compartilhada?"
+    options:
+      - "Atualizar a projeção dele na estrutura comum cria um ponto quente que degrada todos os outros clientes que a compartilham"
+      - "Porque a legislação bancária exige, para qualquer cliente com volume de transações acima de um milhão por dia, que seus dados sejam fisicamente segregados em um data center regulatório distinto de todos os demais clientes da instituição"
+      - "Porque mais capacidade na estrutura compartilhada sempre resolve qualquer problema de chave quente, bastando escalar verticalmente o hardware disponível"
+      - "Não é realmente necessário: é apenas uma otimização opcional de custo, sem impacto nos demais clientes do sistema"
+    answer: 0
+    explanation: "O volume de atualizações do lojista famoso, se aplicado à mesma estrutura compartilhada que serve todo mundo, concentra carga desproporcional nela — degradando a experiência de clientes comuns que não têm nada a ver com esse volume. Mais capacidade geral não resolve chave quente (o problema é de concentração, não de capacidade total disponível), não existe essa exigência legal específica inventada, e o isolamento não é opcional quando o volume de fato degrada os demais."
+
+  - question: "Por que \"pelo menos uma vez\" é a garantia realista de entrega de webhook, nunca \"exatamente uma vez\" de ponta a ponta?"
+    options:
+      - "A rede pode perder a confirmação mesmo quando o destino já recebeu o webhook com sucesso"
+      - "Porque toda implementação moderna de webhook, segundo o padrão técnico amplamente adotado pela indústria de pagamentos, já resolve a entrega exatamente uma vez através de um protocolo de confirmação de três vias obrigatório entre remetente e destino"
+      - "Porque webhooks, por serem baseados em HTTP, nunca podem falhar em condições normais de rede"
+      - "A garantia de \"exatamente uma vez\" é sim alcançável, mas apenas se o destino usar HTTPS em vez de HTTP"
+    answer: 0
+    explanation: "Mesmo que o destino processe o webhook com sucesso, a confirmação dessa entrega pode se perder na volta — o remetente, sem saber se chegou, reenvia por segurança. Isso estrutura o problema como \"pelo menos uma vez\" por natureza, e é por isso que deduplicação no receptor (via `event_id`) é necessária. Não existe esse protocolo de três vias padrão da indústria, webhooks sobre HTTP podem sim falhar normalmente, e o uso de HTTPS não muda essa garantia estrutural de entrega."
+
+  - question: "Por que read-your-writes é uma expectativa particularmente sensível num extrato, comparado a outras leituras do sistema?"
+    options:
+      - "O cliente que acabou de pagar espera ver o lançamento imediatamente, tornando qualquer atraso muito visível"
+      - "Porque extratos são, por definição regulatória em qualquer jurisdição financeira do mundo, a única categoria de dado que exige obrigatoriamente consistência linearizável em toda e qualquer leitura realizada pelo cliente final"
+      - "Na verdade read-your-writes não é relevante para extratos; essa garantia só importa para saldo em tempo real, nunca para o histórico de lançamentos exibido ao usuário"
+      - "Porque extratos são sempre servidos por um único servidor físico dedicado, sem nenhuma forma de réplica ou cache envolvida no processo de leitura"
+    answer: 0
+    explanation: "O cliente acabou de interagir (fez um Pix) e espera ver o resultado imediatamente ao abrir o extrato — se a projeção está alguns segundos atrás por causa de fan-out assíncrono, ele percebe isso como \"algo deu errado\", mesmo que nada tenha de fato quebrado. Não existe essa exigência regulatória universal de linearizabilidade, read-your-writes é sim relevante para extrato (é exatamente o caso descrito), e extratos tipicamente envolvem réplica e cache, não um único servidor físico isolado."

@@ -1,0 +1,55 @@
+questions:
+  - question: "O SPI não responde dentro do prazo esperado após o débito ter sido reservado no ledger. Qual é a resposta correta, segundo este marco?"
+    options:
+      - "Consultar o status ativamente; se isso também não resolver, deixar a conciliação D+1 decidir"
+      - "Assumir que a transação falhou e tentar enviar o pagamento de novo imediatamente ao SPI, já que esperar mais tempo sem nenhuma ação concreta apenas adia um problema que precisa ser resolvido de qualquer forma mais cedo ou mais tarde"
+      - "Reverter o débito automaticamente e notificar o cliente de que o pagamento falhou de forma definitiva"
+      - "Ignorar o timeout e marcar o pagamento como liquidado, já que a reserva no ledger foi bem-sucedida"
+    answer: 0
+    explanation: "Tentar de novo sem saber o resultado real arrisca duplicar uma liquidação que já aconteceu do outro lado; reverter sem confirmação arrisca cancelar algo que de fato liquidou; marcar como liquidado sem confirmação é pior ainda. A resposta correta é buscar confirmação ativa e, no limite, deixar a conciliação D+1 — que compara com o arquivo real do SPI — decidir com dado concreto, não suposição."
+
+  - question: "Por que a invariante de conservação (soma de débitos = soma de créditos + valor em trânsito) precisa valer em todo instante do teste, não só no fim?"
+    options:
+      - "Porque dinheiro \"desaparecido\" temporariamente durante o processamento também seria uma falha grave de design"
+      - "Porque a especificação técnica oficial do Banco Central para o Pix exige, como requisito formal de homologação de qualquer participante do sistema, que essa verificação específica seja executada a cada 100 milissegundos durante todo o ciclo de vida de uma transação"
+      - "Porque testar só no fim é computacionalmente mais caro do que testar a cada instante do processamento"
+      - "A invariante não precisa valer durante o processamento, só no estado final de cada pagamento"
+    answer: 0
+    explanation: "Se a conservação só valesse no fim, um bug que faz dinheiro sumir temporariamente durante o processamento (e reaparecer depois, por coincidência, ou nunca) passaria despercebido. Verificar continuamente prova que não existe nenhum instante em que o total não bate. Não existe essa exigência regulatória formal citada na segunda opção, testar continuamente não é mais caro que só no fim (é o oposto, mais barato de detectar cedo), e a invariante precisa valer o tempo todo, não só ao final."
+
+  - question: "Por que a idempotência de ponta a ponta do Pix precisa de um índice único no ledger, e não basta a `Idempotency-Key` verificada na API de entrada?"
+    options:
+      - "Uma tentativa pode escapar da verificação da API por qualquer motivo; o índice único é a última linha de defesa"
+      - "Porque a `Idempotency-Key` da API de entrada, de acordo com a especificação RFC que a define formalmente, tem validade técnica limitada a exatamente 60 segundos, período após o qual ela deixa de ter qualquer efeito prático sobre requisições subsequentes"
+      - "Porque o ledger nunca confia em nenhuma verificação feita em qualquer camada de aplicação, por princípio arquitetural"
+      - "Porque a API de entrada do Pix não suporta `Idempotency-Key`, ao contrário de outras APIs do sistema"
+    answer: 0
+    explanation: "A chave verificada na API cobre o caminho normal de entrada, mas uma segunda tentativa pode surgir de outro lugar no fluxo — um retry interno, uma reconciliação que reprocessa por engano. O índice único no ledger garante que, não importa de onde a segunda tentativa venha, ela nunca debita duas vezes. Não existe essa validade fixa de 60s inventada na RFC, a defesa em profundidade não é desconfiança categórica de toda camada de aplicação, e a API de entrada do Pix suporta sim `Idempotency-Key`."
+
+  - question: "O que a janela de liquidação definida pelo regulador exige do orçamento de latência do fluxo síncrono de um pagamento Pix?"
+    options:
+      - "Que o orçamento do fluxo síncrono caiba dentro da janela, com margem, já que é requisito de negócio"
+      - "Nada específico: a janela de liquidação é apenas uma referência histórica sem efeito prático sobre o desenho técnico atual de qualquer participante do sistema de pagamentos"
+      - "Que todo o processamento, incluindo a notificação assíncrona ao cliente, ocorra dentro da mesma janela regulatória de liquidação"
+      - "Que o sistema ignore completamente qualquer orçamento de latência interno, já que a janela do regulador já impõe o limite necessário sozinha"
+    answer: 0
+    explanation: "A janela de liquidação é um requisito de negócio real, com consequência regulatória se violada — o orçamento de latência do fluxo síncrono (iniciação até confirmação) precisa caber dentro dela, com margem de segurança. Ela tem efeito prático direto, não é só histórica; não exige que a notificação assíncrona (que acontece depois da liquidação) caiba na mesma janela; e não substitui a necessidade de um orçamento de latência interno bem desenhado."
+
+  - question: "A partir do momento em que o pagamento é enviado ao SPI, por que esse trecho do fluxo é tratado como uma saga, e não como uma transação única?"
+    options:
+      - "Múltiplos passos podem falhar independentemente, sem uma transação global que os amarre"
+      - "Porque o termo \"saga\" é simplesmente o nome de marketing usado pelo Banco Central para descrever qualquer fluxo de pagamento Pix em documentação oficial voltada ao público geral, sem significado técnico adicional além desse"
+      - "Porque uma saga é sempre mais rápida de executar do que uma transação de banco de dados tradicional"
+      - "Porque o SPI exige, por contrato técnico de integração, que todo participante implemente obrigatoriamente o padrão saga em qualquer fluxo de pagamento"
+    answer: 0
+    explanation: "Depois que o pagamento sai do controle do próprio sistema (vai para um sistema externo, o SPI), não existe mais uma transação de banco de dados que amarre tudo atomicamente — cada passo (envio, confirmação, liquidação) pode falhar por conta própria, e por isso o fluxo precisa de compensação explícita (reverter a reserva) em vez de rollback automático. \"Saga\" não é termo de marketing do Banco Central, não é sobre velocidade comparada a transação de banco, e não é uma exigência contratual do SPI — é a estrutura técnica real do problema."
+
+  - question: "Por que as etapas de iniciação, validação de limite e reserva no ledger são tratadas como síncronas e locais, dentro de uma única transação?"
+    options:
+      - "Elas pertencem ao mesmo agregado, resolvido antes de qualquer dependência externa entrar em jogo"
+      - "Porque toda etapa de um fluxo de pagamento deve ser, por padrão arquitetural recomendado em qualquer sistema financeiro de grande porte, executada de forma síncrona até o momento em que o dinheiro efetivamente sai da instituição, independentemente de quantos sistemas internos estejam envolvidos nesse trecho específico"
+      - "Porque chamadas síncronas são sempre mais baratas computacionalmente que chamadas assíncronas"
+      - "Porque o SPI exige que o ledger já esteja com o débito confirmado antes de aceitar qualquer envio"
+    answer: 0
+    explanation: "Reserva, validação e débito ainda não tocaram em nenhum sistema externo — tudo acontece dentro do mesmo agregado e pode ser garantido atomicamente por uma transação local, sem o risco de falha parcial de uma saga. Não é uma regra geral arquitetural fixa sobre \"tudo até o dinheiro sair\", não tem relação com custo computacional de síncrono versus assíncrono, e não é uma exigência contratual do SPI."
+

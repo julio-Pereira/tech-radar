@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que o orçamento de latência domina a arquitetura da decisão de antifraude, mais do que a sofisticação do modelo estatístico usado?"
+    options:
+      - "Um modelo melhor que não cabe no orçamento do fluxo não é uma opção disponível na prática"
+      - "Porque modelos de machine learning são sempre tecnicamente mais lentos que qualquer conjunto de regras explícitas, independentemente da complexidade da regra ou do tamanho do modelo envolvido na comparação"
+      - "Porque o orçamento de latência de qualquer decisão de antifraude é fixado por norma internacional em exatamente 80 milissegundos, sem exceção possível para nenhum tipo de transação"
+      - "Na prática a sofisticação do modelo é sempre mais importante, e o orçamento de latência é apenas um detalhe de implementação secundário"
+    answer: 0
+    explanation: "A decisão precisa acontecer dentro do orçamento do fluxo síncrono que a contém — se o modelo mais sofisticado não cabe nesse tempo, ele simplesmente não é uma opção viável para produção, vira projeto de pesquisa à parte. Não há garantia geral de que modelo é sempre mais lento que regra (depende do caso), não existe essa norma fixando 80ms universalmente, e o orçamento não é um detalhe secundário — ele domina a arquitetura, como o marco afirma."
+
+  - question: "O que diferencia um atributo \"online\" de um \"offline\" num sistema de antifraude, e que problema um *feature store* evita?"
+    options:
+      - "Online é calculado em tempo real; offline é pré-calculado em lote — sem separação clara, um modelo pode ser treinado com dado que a produção não calcula a tempo"
+      - "Atributos online e offline são termos equivalentes usados de forma intercambiável na literatura técnica, sem nenhuma diferença prática relevante entre os dois tipos"
+      - "Online só existe para transações de valor alto; offline só se aplica a transações de valor baixo, por definição do próprio conceito"
+      - "A diferença é puramente de formato de arquivo: online usa JSON, offline sempre usa um formato binário proprietário"
+    answer: 0
+    explanation: "Atributos online refletem o estado atual (calculados na hora), offline são pré-calculados em lote e mais baratos de consultar, mas mais velhos. Sem uma camada que sirva os dois de forma consistente para treino e produção, é comum treinar o modelo com um atributo que a produção não consegue calcular dentro do orçamento de tempo real — um bug que só aparece depois do deploy. Os termos não são intercambiáveis, não têm relação com faixa de valor, e a diferença não é sobre formato de arquivo."
+
+  - question: "O que torna uma regra \"em modo sombra\" de fato uma sombra, segundo este marco?"
+    options:
+      - "Ela roda em paralelo à decisão real e nunca, em nenhuma circunstância, influencia a resposta"
+      - "Ela precisa estar ativa por no mínimo seis meses consecutivos antes de poder ser promovida a decisão real, segundo o processo padrão de validação de modelos em produção descrito neste marco"
+      - "Qualquer regra que roda em paralelo à decisão principal já é, por definição, considerada modo sombra, independente de influenciar ou não a resposta final"
+      - "O modo sombra se aplica apenas a modelos estatísticos, nunca a regras explícitas baseadas em limiares de valor"
+    answer: 0
+    explanation: "A disciplina é absoluta: se a regra ou modelo em modo sombra tem qualquer chance de alterar a resposta dada ao usuário, ela deixou de ser sombra — o único propósito é observar o que teria decidido, sem efeito real. Não há um prazo mínimo fixo de seis meses mencionado no marco, influenciar a resposta desqualifica a regra de ser chamada de sombra (não é automático só por rodar em paralelo), e o conceito se aplica tanto a regras quanto a modelos."
+
+  - question: "Por que a decisão de falhar aberto ou fechado, quando um enriquecimento crítico falha, é modelada como uma matriz por faixa de valor, em vez de uma constante única do sistema?"
+    options:
+      - "O custo esperado de um falso negativo ou positivo varia com o valor da transação em risco"
+      - "Porque sistemas de antifraude, de acordo com as melhores práticas internacionalmente reconhecidas do setor financeiro, são sempre obrigados a falhar fechado em cem por cento dos casos, sem exceção baseada em valor"
+      - "Porque uma constante única é tecnicamente impossível de implementar em qualquer linguagem de programação moderna usada para sistemas de decisão em tempo real"
+      - "A escolha entre faixas de valor é irrelevante; o que importa de fato é apenas o tipo de enriquecimento que falhou, nunca o valor da transação"
+    answer: 0
+    explanation: "Uma transação pequena, sob enriquecimento indisponível, tem custo esperado de deixar passar menor que o custo de atrito em alto volume — passa. Uma transação grande, na mesma condição, tem custo esperado de deixar passar maior que o custo de retenção manual — é retida. Essa é exatamente a lógica de uma matriz por faixa, não de constante fixa. Não existe essa obrigação universal de falhar sempre fechado, a implementação de uma constante é trivial tecnicamente (só não é a escolha certa), e o valor da transação é central à decisão, não irrelevante."

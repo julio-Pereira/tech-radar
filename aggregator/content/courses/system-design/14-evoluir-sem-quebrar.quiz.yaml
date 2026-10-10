@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que toda feature flag precisa de dono e data de expiração, segundo este marco?"
+    options:
+      - "Sem isso, flags acumulam como dívida: caminhos de código nunca testados juntos e difíceis de rastrear"
+      - "Porque frameworks modernos de feature flag recusam tecnicamente ativar qualquer flag que não tenha data de expiração preenchida no momento da criação, por limitação da própria ferramenta"
+      - "Apenas por convenção estética de documentação, sem nenhum impacto técnico real sobre o comportamento do sistema em produção"
+      - "Porque toda flag, por definição, deixa de funcionar automaticamente após 90 dias se não tiver data de expiração configurada manualmente"
+    answer: 0
+    explanation: "Flags sem dono e prazo tendem a ficar para sempre, acumulando combinações nunca testadas juntas e `if`s que ninguém mais sabe se são seguros de remover — é a dívida de flag que o marco descreve. Não é limitação técnica de ferramenta (a maioria permite flag sem expiração), não é só estética (tem impacto real na manutenibilidade), e flags não expiram automaticamente sozinhas por padrão."
+
+  - question: "O que o padrão *strangler fig* resolve que uma reescrita completa do sistema não resolve?"
+    options:
+      - "Permite que o novo sistema assuma responsabilidades aos poucos, sem o risco de uma troca total de uma vez"
+      - "Strangler fig só é aplicável a sistemas escritos originalmente em linguagens de programação consideradas legadas, como Cobol, nunca a sistemas modernos construídos nos últimos cinco anos"
+      - "Reescrita completa é sempre tecnicamente impossível em sistemas financeiros regulados, tornando strangler fig a única opção legalmente permitida"
+      - "Não há diferença real de risco entre os dois: strangler fig é apenas um nome de marketing para o mesmo processo de reescrita completa"
+    answer: 0
+    explanation: "Reescrever tudo de uma vez concentra risco (big-bang), custo e atraso num único ponto de corte; o *strangler fig* distribui esse risco, migrando responsabilidade por responsabilidade enquanto o sistema antigo continua funcionando para o que ainda não migrou. Não é exclusivo de sistemas legados em linguagens específicas, reescrita completa é tecnicamente possível (só mais arriscada), e não é apenas um rótulo de marketing — é uma estratégia distinta com trade-offs próprios."
+
+  - question: "Por que execução em paralelo (dark launch) é o padrão recomendado especificamente para migrar um cálculo financeiro, em vez de apenas um canary de tráfego comum?"
+    options:
+      - "A implementação antiga continua sendo a fonte real enquanto a nova é validada contra ela, sobre o mesmo dado"
+      - "Porque canary de tráfego comum é tecnicamente incompatível com qualquer sistema que processe valores monetários, por uma limitação arquitetural inerente a esse tipo de infraestrutura"
+      - "Porque execução em paralelo é sempre mais rápida de implementar do que configurar um canary tradicional de tráfego"
+      - "Não há diferença real entre os dois padrões; a escolha é apenas uma questão de preferência de nomenclatura entre times diferentes"
+    answer: 0
+    explanation: "Num canary comum, uma fração do tráfego já recebe a resposta da versão nova — se ela estiver errada, algum cliente real já foi afetado. Na execução em paralelo, a resposta real continua vindo da versão antiga enquanto a nova só é comparada, sem nunca decidir nada sozinha, até ser validada. Canary comum não é incompatível com sistemas financeiros (só é mais arriscado para esse caso específico), execução em paralelo não é necessariamente mais rápida de implementar, e a diferença entre os dois é estrutural, não só de nome."
+
+  - question: "Além da data de remoção, o que uma política de depreciação de API precisa ter, segundo este marco?"
+    options:
+      - "Um sinal técnico (como o cabeçalho `Sunset`) e um canal real de aviso a quem depende da versão"
+      - "Apenas a assinatura formal de um diretor executivo aprovando a remoção, sem necessidade de nenhum outro mecanismo técnico ou comunicação adicional aos consumidores da API"
+      - "A política de depreciação não precisa de mais nada além da data; qualquer outro elemento é opcional e raramente necessário na prática"
+      - "Um período obrigatório de exatamente doze meses entre o anúncio e a remoção efetiva, fixo para qualquer tipo de mudança de API"
+    answer: 0
+    explanation: "Uma data sozinha, sem sinalização técnica (o `Sunset` que o marco 05 já introduziu) e sem canal real de aviso, é fácil de ninguém perceber até a remoção acontecer de fato. Os três elementos juntos — data, sinal, canal — são o que torna a depreciação segura de verdade. Não é sobre assinatura executiva, os elementos adicionais não são opcionais e raramente usados (são centrais), e não existe um prazo fixo universal de doze meses para qualquer mudança."

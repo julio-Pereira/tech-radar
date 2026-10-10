@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que o ciclo desta trilha coloca \"corte do sistema\" depois de \"número\", e não antes?"
+    options:
+      - "Porque cortar antes do número produz módulos do tamanho errado"
+      - "Porque toda ferramenta moderna de modelagem C4 exige que o número total de requisições por segundo já esteja calculado e registrado antes de desenhar qualquer fronteira entre contêineres"
+      - "Porque o corte é sempre a etapa mais barata do processo inteiro"
+      - "Porque não existe relação de ordem real entre as duas etapas"
+    answer: 0
+    explanation: "Cada etapa do ciclo é insumo da próxima. Sem saber volume, pico e latência alvo (o número), cortar o sistema em serviços é decidir fronteiras sem saber onde a carga realmente concentra — um módulo pode nascer grande demais ou pequeno demais. A ordem não é convenção nem limitação de ferramenta: é dependência lógica entre as decisões, e nenhuma ferramenta de C4 impõe essa exigência técnica."
+
+  - question: "O que torna uma ADR um compromisso operacional, e não apenas um registro histórico da decisão?"
+    options:
+      - "A presença de um gatilho de reversão"
+      - "O número de alternativas consideradas e documentadas formalmente no corpo do texto da decisão"
+      - "A assinatura de um arquiteto sênior aprovando o documento"
+      - "O uso de um template específico de ferramenta corporativa"
+    answer: 0
+    explanation: "Contexto, decisão e alternativas documentam o passado; o gatilho de reversão é o que torna a ADR acionável no futuro — ele diz exatamente quando revisitar a escolha, em vez de deixar isso para um desconforto vago que ninguém age sobre. Número de alternativas, assinatura formal e ferramenta usada não mudam essa propriedade central."
+
+  - question: "\"Projete um sistema de pagamentos\" recebe doze perguntas de esclarecimento antes de qualquer desenho. Por que isso conta como entrega, não como enrolação?"
+    options:
+      - "Porque algumas perguntas mudam a arquitetura, e decidir por omissão sai mais caro"
+      - "Porque a norma regulatória do setor financeiro brasileiro exige um mínimo formal de doze perguntas documentadas antes de qualquer início de desenho de arquitetura"
+      - "Porque fazer perguntas sempre impressiona mais o avaliador do que um desenho pronto"
+      - "Porque o requisito como foi enunciado originalmente está sempre errado"
+    answer: 0
+    explanation: "Perguntas como \"existe estorno?\" ou \"o limite é por conta ou por titular?\" mudam decisões estruturais — não são só esclarecimento cosmético. Deixar de perguntar não evita a decisão: só a empurra para ser tomada por acidente, sem ninguém assumir a responsabilidade por ela, o que é mais caro de corrigir depois. Não há norma fixando doze perguntas, e a meta não é performar conhecimento nem presumir que o requisito original está errado."
+
+  - question: "Qual é o uso correto dos quatro níveis de zoom do C4 segundo este marco?"
+    options:
+      - "Escolher pela audiência: Contexto/Container cobrem a maioria, Componente só onde precisa de detalhe"
+      - "Usar sempre o nível de Componente, porque ele contém o máximo de informação disponível em qualquer cenário de apresentação"
+      - "Usar o nível de Código como padrão único para qualquer tipo de audiência"
+      - "Tratar os quatro níveis como intercambiáveis entre si, sem distinção"
+    answer: 0
+    explanation: "O erro mais comum é usar o nível errado para a audiência: Componente é ruído para a diretoria, e Contexto é vazio demais para quem vai implementar. Contexto e Container bastam para a maioria das decisões de arquitetura; Componente entra só quando um container específico precisa de detalhe de corte interno. Usar sempre o nível mais detalhado, ou tratá-los como intercambiáveis, ignora exatamente essa função de cada nível."

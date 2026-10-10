@@ -1,0 +1,54 @@
+questions:
+  - question: "Um time coloca a regra \"cliente premium pode exceder o limite de transação em 20%\" diretamente na configuração do gateway. Por que este marco considera isso um erro?"
+    options:
+      - "Regra de negócio no gateway fica invisível para quem lê o serviço e difícil de testar fora de integração"
+      - "Porque gateways modernos, por limitação arquitetural inerente a qualquer implementação, são tecnicamente incapazes de processar qualquer lógica condicional baseada em atributos do cliente"
+      - "Porque toda regra de negócio deve obrigatoriamente morar num banco de dados separado, nunca em código de serviço"
+      - "Não é um erro: o gateway é sempre o lugar certo para toda regra que envolve limite de transação"
+    answer: 0
+    explanation: "O gateway deveria resolver preocupações transversais — autenticação, cota, transformação — e regra de negócio específica (como um bônus de limite por plano) pertence ao serviço que implementa a operação, onde é visível e testável. Gateways conseguem processar lógica condicional tecnicamente; o problema não é capacidade, é organização da responsabilidade — e não há regra fixa exigindo banco separado."
+
+  - question: "Por que a janela fixa de rate limit permite que um cliente efetivamente dobre seu limite nominal numa janela de dois segundos ao redor da virada entre janelas?"
+    options:
+      - "O cliente pode gastar o limite inteiro no fim de uma janela e o limite inteiro de novo no início da próxima"
+      - "Porque toda implementação de janela fixa contém, por definição no RFC que a padroniza, uma margem de tolerância de exatamente 100% acima do valor configurado pelo operador do sistema"
+      - "Porque a janela fixa nunca reseta a contagem, acumulando indefinidamente ao longo do tempo"
+      - "Porque o relógio do servidor sempre atrasa dois segundos em relação ao relógio do cliente"
+    answer: 0
+    explanation: "Como a contagem reseta exatamente na virada do intervalo, nada impede o cliente de esgotar o limite no último instante de uma janela e esgotá-lo de novo no primeiro instante da seguinte — na prática, duas janelas cheias concentradas numa fração pequena de tempo. Não existe RFC com essa margem de 100%, a janela de fato reseta (não acumula), e o problema não tem relação com desalinhamento de relógio entre cliente e servidor."
+
+  - question: "Qual é a diferença prática entre identificar um consumidor de API por chave de API simples e por cliente OAuth2 com escopo, no contexto de Open Finance?"
+    options:
+      - "Cliente OAuth2 carrega escopo granular e a identidade do usuário que consentiu, o que uma chave simples não carrega"
+      - "Não há diferença de fato relevante: ambas as formas de identidade são criptograficamente equivalentes em todo cenário de autorização delegada, incluindo consentimento de terceiro"
+      - "Chave de API é sempre mais segura que qualquer fluxo OAuth2, em qualquer cenário de uso"
+      - "OAuth2 só pode ser usado por aplicações móveis, nunca por integrações servidor-a-servidor"
+    answer: 0
+    explanation: "No Open Finance, o TPP age em nome do usuário final com consentimento explícito — isso exige uma identidade que carregue tanto a aplicação chamadora quanto o escopo autorizado pelo usuário, o que o fluxo OAuth2 com escopo entrega e uma chave de API simples não. As duas formas não são equivalentes nesse cenário, chave de API não é inerentemente mais segura, e OAuth2 funciona tanto para app móvel quanto para integração servidor-a-servidor."
+
+  - question: "Um pipeline de medição de uso recebe 100 mil eventos, dos quais 1% são duplicatas e alguns chegam fora de ordem. O que o torna \"pronto para cobrar alguém\", segundo este marco?"
+    options:
+      - "Idempotência por `event_id`, tolerância a duplicata e fora de ordem, e reconciliação auditável"
+      - "A capacidade de processar os eventos na velocidade máxima teórica que a infraestrutura de rede subjacente permite, sem qualquer perda mensurável de throughput durante picos de carga"
+      - "O uso exclusivo de um banco de dados relacional certificado para fins contábeis"
+      - "A ausência total de qualquer duplicata na fonte de eventos, garantida antes da ingestão"
+    answer: 0
+    explanation: "O pipeline precisa contar cada evento de uso exatamente uma vez (idempotência por `event_id`), tolerar a realidade de que duplicata e desordem acontecem, e permitir reconciliar o valor faturado contra a soma de eventos únicos depois do fato. Velocidade de processamento não é o critério de prontidão para cobrança, não há exigência de banco relacional específico, e exigir ausência total de duplicata na fonte é irrealista — o pipeline precisa lidar com ela, não eliminá-la a priori."
+
+  - question: "O Redis que sustenta o rate limit de uma API cai. Segundo este marco, quem decide se o sistema falha aberto ou fechado?"
+    options:
+      - "É uma decisão de negócio com dono nomeado, conforme o custo de cada lado do erro"
+      - "A decisão é sempre técnica e automática: todo sistema bem desenhado falha aberto por padrão em qualquer cenário de indisponibilidade de dependência de infraestrutura"
+      - "A decisão é sempre falhar fechado, sem exceção, em qualquer tipo de API ou endpoint"
+      - "Essa decisão não precisa ser tomada previamente; é resolvida ad-hoc durante o incidente"
+    answer: 0
+    explanation: "O marco trata isso como o mesmo raciocínio de orçamento de erro: qual lado custa mais, medido em dinheiro ou risco — não uma regra técnica universal. Endpoints de leitura comum podem tolerar falhar aberto; operações caras ou sensíveis exigem falhar fechado. Não existe padrão automático único, \"sempre fechado\" ignora o trade-off real, e decidir durante o incidente é exatamente o que uma decisão prévia com dono evita."
+
+  - question: "Por que GCRA (Generic Cell Rate Algorithm) é preferido a manter contadores separados em cenários de rate limit distribuído sob alta concorrência?"
+    options:
+      - "Ele modela o limite com um único valor de estado por chave, em vez de contadores múltiplos"
+      - "Porque GCRA é o único algoritmo de rate limit capaz de operar sem nenhum tipo de armazenamento compartilhado entre instâncias diferentes do serviço, mesmo sob replicação geográfica"
+      - "Porque GCRA elimina completamente a necessidade de qualquer verificação de rede antes de aceitar uma requisição"
+      - "Porque GCRA é mais fácil de explicar a um time, independente do custo computacional real envolvido"
+    answer: 0
+    explanation: "GCRA mantém, por chave, um único valor representando quando a próxima chamada seria teoricamente permitida — mais barato de manter consistente sob concorrência alta do que vários contadores que precisam ser incrementados e lidos atomicamente juntos. Ele ainda depende de algum armazenamento compartilhado em cenários distribuídos, não elimina verificação de rede quando o estado é remoto, e a escolha é sobre eficiência de estado, não sobre facilidade didática."

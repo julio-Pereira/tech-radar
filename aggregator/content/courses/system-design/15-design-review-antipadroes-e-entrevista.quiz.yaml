@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que uma revisão de design que só responde \"parece bom\" não conta como revisão de verdade, segundo este marco?"
+    options:
+      - "Ela não testa o que falta, o que é mais caro de reverter, ou o que quebra se um número dobrar"
+      - "Porque toda revisão de arquitetura, para ser considerada válida, precisa ser conduzida por no mínimo três revisores seniores simultaneamente presentes na mesma sala, segundo a prática padrão descrita neste marco"
+      - "Porque \"parece bom\" é tecnicamente uma resposta correta, só que formulada de um jeito pouco profissional"
+      - "Não há diferença real entre aprovar rapidamente e revisar a fundo; o resultado final é sempre o mesmo documento aprovado"
+    answer: 0
+    explanation: "Revisão de verdade faz perguntas que expõem lacuna — o que não foi testado, a decisão mais cara de reverter, a tabela de falhas incompleta. \"Parece bom\" não expõe nada disso, é confirmação, não escrutínio. Não existe essa exigência de três revisores simultâneos, \"parece bom\" não é resposta tecnicamente válida de revisão, e o resultado de uma revisão superficial tende a deixar passar problemas que uma revisão real pegaria."
+
+  - question: "O que diferencia a avaliação de um candidato a tech lead da de um candidato sênior, numa entrevista de system design, segundo este marco?"
+    options:
+      - "Tech lead também é avaliado pela capacidade de guiar a conversa e lidar com ambiguidade sem travar"
+      - "Tech lead é avaliado exclusivamente pela quantidade de diagramas C4 desenhados durante os 45 minutos da entrevista, sem nenhuma consideração sobre a qualidade das decisões tomadas ou da condução da conversa"
+      - "Não há diferença real de critério entre os dois níveis; a única distinção é o salário oferecido ao final do processo seletivo"
+      - "Sênior é avaliado apenas pela velocidade de resposta, nunca pela profundidade técnica das justificativas apresentadas"
+    answer: 0
+    explanation: "Sênior é avaliado por profundidade técnica e defesa de trade-offs; tech lead soma a isso a capacidade de conduzir a conversa, fazer as perguntas certas antes de desenhar, e não travar diante de ambiguidade — uma camada de habilidade além do conhecimento técnico isolado. Não há essa métrica de quantidade de diagramas, a diferença não é só salarial, e sênior é avaliado pela profundidade das justificativas, não pela velocidade pura de resposta."
+
+  - question: "Quais três perguntas um candidato precisa antecipar, mesmo sem serem feitas explicitamente, em qualquer desenho de sistema que envolve dinheiro?"
+    options:
+      - "Onde está a invariante de conservação, qual é o plano de conciliação, e o que o regulador exige"
+      - "Qual linguagem de programação será usada, qual provedor de nuvem é mais barato, e qual framework de testes é recomendado para o projeto específico que está sendo desenhado durante a entrevista"
+      - "Quantos desenvolvedores serão necessários, qual é o prazo de entrega do projeto, e qual é o orçamento total disponível para a equipe de engenharia"
+      - "Qual é o nome do produto, quem é o público-alvo da campanha de marketing, e qual é a cor principal da identidade visual do aplicativo"
+    answer: 0
+    explanation: "Essas três perguntas revelam se o candidato está pensando em fintech como domínio específico — com suas invariantes de dinheiro, necessidade de conciliação e exigência regulatória — ou só desenhando \"um sistema distribuído genérico com dinheiro no nome dos campos\". As outras opções listam preocupações de projeto genéricas ou de produto/marketing, irrelevantes para o critério específico deste marco sobre domínio financeiro."
+
+  - question: "Por que *resume-driven design* é considerado um antipadrão, mesmo quando a tecnologia escolhida é tecnicamente competente e funcional?"
+    options:
+      - "A escolha é feita pela empregabilidade que confere ao currículo, não pelo problema real sendo resolvido"
+      - "Porque toda tecnologia usada em sistemas financeiros deve obrigatoriamente ser validada e certificada previamente por um órgão regulador antes de qualquer decisão de arquitetura poder ser tomada por qualquer engenheiro"
+      - "Na verdade não é um antipadrão real; é apenas um termo informal sem nenhuma consequência prática mencionada neste marco"
+      - "Porque qualquer tecnologia nova, por definição, é sempre pior do que uma tecnologia já estabelecida e amplamente usada no mercado"
+    answer: 0
+    explanation: "O problema não é a competência técnica da tecnologia escolhida — é o critério por trás da escolha: decidir pelo que parece bem no currículo de quem decide, não pelo que o problema de fato precisa. Isso tende a introduzir complexidade e risco desnecessários, mesmo com uma ferramenta tecnicamente sólida. Não existe essa exigência de certificação regulatória prévia de tecnologia, o antipadrão tem consequência prática real (descrita no marco), e tecnologia nova não é sempre pior que a estabelecida — o ponto é o critério de escolha, não a idade da tecnologia."

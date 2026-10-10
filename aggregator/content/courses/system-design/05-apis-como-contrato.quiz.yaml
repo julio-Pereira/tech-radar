@@ -1,0 +1,36 @@
+questions:
+  - question: "Uma API v2 torna o campo `description` obrigatório na requisição de iniciação de pagamento, mantendo o resto igual. Isso é uma mudança compatível ou incompatível, e por quê?"
+    options:
+      - "Incompatível: clientes antigos que não enviam o campo passam a falhar"
+      - "Compatível, porque qualquer campo adicionado a um contrato de API é sempre uma evolução aditiva e nunca quebra nenhum consumidor existente em produção"
+      - "Compatível, desde que o campo tenha um nome descritivo o suficiente"
+      - "Incompatível apenas se o campo for do tipo string, nunca para outros tipos"
+    answer: 0
+    explanation: "Tornar um campo obrigatório na requisição quebra qualquer cliente que não o envia — ele não pode saber que precisa mudar antes de o servidor rejeitar a chamada. \"Aditivo\" só é seguro quando o campo continua opcional; tornar obrigatório nunca é aditivo nesse sentido, nome descritivo não muda nada, e o problema existe independente do tipo do campo."
+
+  - question: "Por que o número de campo de uma mensagem `.proto` (ex.: `description = 3`) nunca pode ser reutilizado, mesmo depois de remover o campo original?"
+    options:
+      - "Um consumidor antigo esperando o tipo antigo naquele número interpretaria o novo campo errado, sem erro visível"
+      - "Porque o Protocol Buffers trava permanentemente qualquer número de campo já usado uma vez, impedindo literalmente a compilação do arquivo se houver reuso, não importa o contexto"
+      - "Porque isso é apenas uma convenção de estilo sem nenhum efeito técnico real no runtime"
+      - "Porque apenas o `buf` impõe essa regra; o compilador oficial do Protocol Buffers não se importa"
+    answer: 0
+    explanation: "A serialização binária do Protocol Buffers identifica campos pelo número, não pelo nome — reusar um número para um campo de tipo diferente faz um consumidor desatualizado decodificar bytes como se fossem outro tipo, silenciosamente, sem erro. Não é travado pelo compilador (por isso ferramentas como `buf breaking` existem para pegar isso), não é só estilo, e o problema é do formato binário em si, não exclusivo de uma ferramenta específica."
+
+  - question: "Para comunicação entre um TPP externo do Open Finance e a API pública do banco, qual é geralmente a escolha certa entre REST e gRPC, segundo o critério deste marco?"
+    options:
+      - "REST com OpenAPI público: consumidor externo, sem necessidade de acoplamento temporal estreito"
+      - "gRPC, porque ele é universalmente mais rápido que REST em qualquer cenário de uso, incluindo para consumidores totalmente externos à organização, sem exceção"
+      - "Nenhum dos dois: integrações regulatórias externas devem usar exclusivamente filas de mensagens"
+      - "A escolha é indiferente, já que o desempenho medido entre REST e gRPC é sempre idêntico"
+    answer: 0
+    explanation: "O critério é quem consome: para um parceiro externo com ferramentas e expectativas de REST/OpenAPI, essa é a escolha natural — gRPC exige mais fricção para consumidores fora do ecossistema (gRPC-Web, gateway adicional). gRPC não é universalmente mais rápido para todo cenário possível, integrações regulatórias não são exclusivamente assíncronas por evento, e o desempenho entre os dois varia conforme o caso, não é idêntico por definição."
+
+  - question: "O que `Idempotency-Key` resolve que um `POST` comum, sem essa chave, não resolve?"
+    options:
+      - "Evita débito duplicado quando o cliente reenvia por não saber se a chamada anterior chegou"
+      - "Garante que a requisição será processada na mesma ordem em que foi originalmente enviada pelo cliente, mesmo sob alta concorrência de múltiplos workers no servidor"
+      - "Criptografa o corpo da requisição em trânsito, substituindo a necessidade de TLS"
+      - "Reduz a latência média de qualquer chamada POST em comparação com uma chamada sem a chave"
+    answer: 0
+    explanation: "Quando o cliente não recebe resposta (timeout de rede, por exemplo), ele não sabe se o `POST` original foi processado — reenviar sem proteção pode duplicar um débito. A `Idempotency-Key` faz o servidor reconhecer a repetição e devolver a mesma resposta, sem reprocessar. Ela não garante ordem de processamento, não substitui TLS, e não tem relação com redução de latência."

@@ -1,0 +1,73 @@
+slug: system-design
+title: "System Design para Fintech"
+subtitle: "Do requisito ao número, do número ao corte, do corte à defesa escrita: como decidir uma arquitetura financeira — e provar que ela se sustenta quando algo falha."
+category: "Arquitetura"
+tags: [system-design, arquitetura, capacidade, api-first, api-management, load-balancing, rate-limiting, grpc, feature-flags, multi-regiao, adr, c4, fintech]
+level: advanced
+lang: pt-BR
+# 15 marcos, 915 min. A regra é ~2x a soma dos estimatedMinutes (leitura mais
+# hands-on): 915 x 2 / 60 = 30,5 -> 30. Registrada no PROJETO.md.
+estimatedHours: 30
+glossary: GLOSSARIO.md
+sources:
+  - title: "The C4 model for visualising software architecture"
+    url: https://c4model.com/
+  - title: "Architecture Decision Records (ADR)"
+    url: https://adr.github.io/
+  - title: "Google SRE Book"
+    url: https://sre.google/sre-book/table-of-contents/
+  - title: "AWS Builders' Library"
+    url: https://aws.amazon.com/builders-library/
+  - title: "Designing Data-Intensive Applications"
+    url: https://dataintensive.net/
+  - title: "The Tail at Scale (Dean & Barroso)"
+    url: https://research.google/pubs/the-tail-at-scale/
+  - title: "RFC 9457 — Problem Details for HTTP APIs"
+    url: https://www.rfc-editor.org/rfc/rfc9457
+  - title: "OpenAPI Specification"
+    url: https://spec.openapis.org/oas/latest.html
+  - title: "oasdiff — OpenAPI diff and breaking changes"
+    url: https://github.com/oasdiff/oasdiff
+  - title: "Buf — breaking change detection"
+    url: https://buf.build/docs/breaking/overview/
+  - title: "Google API Improvement Proposals (AIP)"
+    url: https://google.aip.dev/
+  - title: "Envoy Proxy — documentation"
+    url: https://www.envoyproxy.io/docs
+  - title: "Martin Fowler — Feature Toggles"
+    url: https://martinfowler.com/articles/feature-toggles.html
+  - title: "Martin Fowler — Strangler Fig"
+    url: https://martinfowler.com/bliki/StranglerFigApplication.html
+  - title: "TLA+ — Leslie Lamport"
+    url: https://lamport.azurewebsites.net/tla/tla.html
+  - title: "Open Finance Brasil — Especificações"
+    url: https://openfinancebrasil.atlassian.net/wiki/spaces/OF/overview
+  - title: "Banco Central do Brasil — Pix"
+    url: https://www.bcb.gov.br/estabilidadefinanceira/pix
+  - title: "LikeC4 — Architecture as Code"
+    url: https://likec4.dev/
+  - title: "Stoplight Spectral — OpenAPI linter"
+    url: https://github.com/stoplightio/spectral
+  - title: "Shopify Toxiproxy"
+    url: https://github.com/Shopify/toxiproxy
+milestones:
+  # Bloco A — Método e números
+  - 01-system-design-e-um-metodo.md
+  - 02-requisitos-e-numeros.md
+  - 03-onde-cortar-o-sistema.md
+  # Bloco B — Fronteira e contratos
+  - 04-borda-e-balanceamento.md
+  - 05-apis-como-contrato.md
+  - 06-api-management-e-monetizacao.md
+  # Bloco C — Estado e fluxo
+  - 07-estado-como-decisao.md
+  - 08-sincrono-assincrono-e-orcamento.md
+  # Bloco D — Quatro desenhos completos
+  - 09-caso-pix-ponta-a-ponta.md
+  - 10-caso-open-finance-consentimento.md
+  - 11-caso-extrato-e-notificacoes.md
+  - 12-caso-antifraude-em-tempo-real.md
+  # Bloco E — Operar, evoluir e defender
+  - 13-disponibilidade-regiao-e-celulas.md
+  - 14-evoluir-sem-quebrar.md
+  - 15-design-review-antipadroes-e-entrevista.md

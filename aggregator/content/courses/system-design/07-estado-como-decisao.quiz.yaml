@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que a resposta a \"saldo disponível é fonte, derivado ou cache?\" é \"depende da operação\", e não uma classificação fixa do dado?"
+    options:
+      - "A mesma informação pode ter garantias diferentes: forte na autorização, tolerante a atraso na exibição"
+      - "Porque \"saldo disponível\" é tecnicamente um conceito indefinido em qualquer arquitetura de sistemas financeiros modernos, tornando a pergunta sem resposta possível em qualquer contexto"
+      - "Porque todo dado financeiro deve sempre ser tratado exclusivamente como fonte da verdade, em qualquer leitura, sem exceção"
+      - "Porque a classificação depende apenas de qual banco de dados armazena o valor fisicamente"
+    answer: 0
+    explanation: "Para autorizar um débito, o saldo precisa de garantia de recência — comportamento de fonte. Para uma tela secundária do app, um valor levemente atrasado basta — comportamento de cache. É o mesmo dado, classificado diferente conforme quem o consome e para quê, não uma propriedade fixa do campo \"saldo\" em si. O conceito é perfeitamente definido, não é sempre fonte em toda leitura, e a classificação não depende de qual banco armazena fisicamente o valor."
+
+  - question: "Qual é o critério que decide se vale a pena introduzir CQRS (modelo de leitura separado do de escrita) para um dado específico?"
+    options:
+      - "Quando o modelo de leitura precisa de otimização que o modelo de escrita não suporta bem"
+      - "CQRS deve ser aplicado por padrão a todo dado de qualquer sistema financeiro, como prática recomendada universal, independente das características específicas do caso"
+      - "Apenas quando o volume de escrita supera o volume de leitura em pelo menos dez vezes"
+      - "Nunca: CQRS é um antipadrão que deveria ser evitado em qualquer arquitetura de produção"
+    answer: 0
+    explanation: "CQRS ganha quando leitura e escrita têm formas tão diferentes que um único modelo serve mal os dois — por exemplo, um extrato agregado e ordenado de um jeito que o lançamento individual não é. Quando os modelos são parecidos, a separação só soma complexidade. Não é prática universal obrigatória, não depende de uma proporção fixa de volume, e não é um antipadrão a ser sempre evitado — tem seu lugar quando justificado."
+
+  - question: "Qual é o critério numérico que decide \"este dado precisa shardar agora?\", segundo este marco?"
+    options:
+      - "A resposta inverte exatamente no limiar entre taxa de escrita sustentável medida e taxa de crescimento projetada"
+      - "A decisão de shardar deve sempre ser tomada preventivamente, assim que o sistema entra em produção, independentemente de qualquer medição real de taxa de escrita sustentável ou projeção de crescimento futuro"
+      - "Shardar só é justificável depois que o sistema já apresentou pelo menos um incidente real de saturação em produção"
+      - "O número de tabelas no schema é o único fator que determina a necessidade de sharding"
+    answer: 0
+    explanation: "O marco trata isso como uma função: abaixo do limiar medido (com margem), a resposta é não; acima, é sim — e o teste de fronteira confirma que a resposta inverte exatamente nesse ponto, não numa zona cinzenta. Não é uma decisão preventiva automática desde o dia 1, não exige esperar um incidente real primeiro, e número de tabelas não é o fator decisivo."
+
+  - question: "Por que confundir um dado derivado (como o extrato) com a fonte da verdade (o ledger) é descrito como o erro mais caro de classificação de estado?"
+    options:
+      - "Uma divergência entre eles vira incidente de \"qual está certo\", em vez do esperado atraso de projeção"
+      - "Porque dados derivados, por definição técnica em qualquer sistema distribuído, nunca podem ser consultados por nenhum processo automatizado, apenas por humanos em interfaces visuais"
+      - "Porque isso torna o sistema inteiro juridicamente inválido para fins de auditoria regulatória, independente de qualquer outro fator do desenho"
+      - "Porque dados derivados sempre custam mais para armazenar do que a fonte da verdade original"
+    answer: 0
+    explanation: "Quando o derivado é tratado como se fosse a fonte, uma divergência entre os dois (um atraso normal de projeção, por exemplo) é interpretada como um erro grave de \"qual está certo\", em vez do comportamento esperado de uma projeção que ainda não alcançou a fonte. Não há essa restrição técnica sobre consulta automatizada, a validade jurídica depende de muito mais que essa confusão isolada, e custo de armazenamento não é o ponto central do problema descrito."
