@@ -31,11 +31,15 @@ da fronteira: o que o banco faz quando a anotação já foi processada.
 ## Pré-requisitos
 
 - Docker para subir Postgres 16+ (dois contêineres, para replicação) e Redis
+- Docker para subir um **replica set MongoDB local** de 3 membros (marco 16)
 - `psql` no host — boa parte da trilha é duas sessões `psql` lado a lado
 - Uma linguagem qualquer para os testes de concorrência: Go, Java ou Python servem
 - Um gerador de carga simples (`pgbench` já vem com o Postgres e resolve quase tudo)
-- **Não precisa:** cloud paga, cluster gerenciado, licença comercial, Kubernetes.
-  O marco 07 fala de RDS/Aurora e o 08 de NewSQL — os dois por comparação, não por uso.
+- **Opcional:** emulador Linux (vNext, em preview) do Cosmos DB via Docker, só para o marco 16 —
+  modelagem, chave de partição e leitura da doc de custo em RU; audite o *feature support*
+  publicado antes de assumir que algo é medível nele.
+- **Não precisa:** cloud paga, cluster gerenciado, licença comercial, Kubernetes, conta Azure ou
+  Atlas. O marco 07 fala de RDS/Aurora e o 08 de NewSQL — os dois por comparação, não por uso.
 
 ## Incrementos por marco
 
@@ -59,6 +63,8 @@ trilha, e as duas são normalmente tomadas por default.
 | 12 | PITR para 5 minutos antes de um `DELETE` proposital | O tempo de restore está cronometrado e escrito no runbook |
 | 13 | Pipeline de anonimização para a cópia de homologação | Um teste injeta PII e prova que ela não sobrevive ao pipeline |
 | 14 | CDC do `fin-store` para um store analítico, com data contract | O SLO de freshness tem número, dono e alerta |
+| 15 | `MATRIZ.md`: perfil de consistência por operação, com custo medido | Os invariantes 1–3 do marco passam e nenhuma linha diz "forte" sem custo ou `não medido` |
+| 16 | Modelo de documento do payload do PSP / dossiê de KYC, com chave de partição defendida | 1 documento em 100 webhooks concorrentes; leitura obsoleta reproduzida e corrigida |
 
 ## Definição de pronto (capstone)
 
@@ -75,6 +81,9 @@ trilha, e as duas são normalmente tomadas por default.
 - [ ] Toda migration é reversível ou explicitamente irreversível, com ADR
 - [ ] Nenhum CPF real existe fora de produção
 - [ ] Uma ADR por bloco, cada uma com contexto, decisão, alternativas e **gatilho de reversão**
+- [ ] Toda operação do caminho quente tem **perfil de consistência declarado** em `MATRIZ.md`,
+      com custo medido onde o store permite; nenhuma linha diz "somos CP" ou "somos AP"; o que
+      não foi medido está marcado como `não medido`
 
 ## Game day
 
@@ -89,9 +98,12 @@ Provoque cada cenário e escreva um post-mortem de uma página — inclusive qua
 4. **Derrubar o Redis** no pico. O sistema degrada ou cai? Se cai, ele não era cache.
 5. **`ALTER TABLE` numa tabela quente** enquanto uma transação longa está aberta. Veja a
    fila de locks crescer — e meça em quantos segundos a leitura também trava.
+6. **Ler o saldo de um standby** com `recovery_min_apply_delay` configurado, durante o pico de
+   carga. Quantas leituras voltaram obsoletas? O perfil declarado na `MATRIZ.md` já previa isso?
 
 ## Regra do tempo declarado
 
 `estimatedHours` da trilha é ~2× a soma dos `estimatedMinutes` dos marcos: leitura mais
 hands-on. Nesta trilha a proporção é mais honesta que nas outras, porque quase todo
-hands-on é medição — e medir custa mais que ler.
+hands-on é medição — e medir custa mais que ler. Com os marcos 15 e 16, a soma é 885 minutos,
+e `estimatedHours` é 30.

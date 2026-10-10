@@ -35,7 +35,8 @@ Injeção de SQL é a mais famosa, mas a família é maior, e o padrão se repet
 confiável interpretado como código ou comando em algum interpretador.
 
 - **NoSQL injection** — o operador (`$where`, `$ne`) injetado num filtro de MongoDB
-  quando o filtro é montado por concatenação de string em vez de por objeto tipado.
+  quando o filtro é montado por concatenação de string em vez de por objeto tipado
+  (modelagem de documento em `dados-distribuidos/16`).
 - **LDAP injection** — o mesmo problema, num filtro LDAP de autenticação.
 - **SSTI** (Server-Side Template Injection) — quando a entrada do usuário é interpretada
   pelo motor de template, e não só inserida nele.

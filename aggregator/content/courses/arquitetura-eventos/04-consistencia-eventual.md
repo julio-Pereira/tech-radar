@@ -186,3 +186,7 @@ envio" — e isso muda tudo sobre como você a monitora. Escreva o alerta que vo
   transação — e nenhum evento conserta essa escolha.
 - Saldo disponível × saldo contábil é uma janela de inconsistência que o negócio já
   nomeou: o caminho não é esconder a janela, é batizá-la.
+
+**Onde isso continua.** Traduzir o modelo exigido por operação em botão de produto (`w`,
+`synchronous_commit`, nível de consistência) e em custo medido em milissegundos é o assunto do
+`dados-distribuidos/15`.
