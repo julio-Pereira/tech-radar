@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que colunas homogêneas comprimem melhor que uma linha inteira mista, segundo este marco?"
+    options:
+      - "Porque valores vizinhos na mesma coluna tendem a se repetir ou variar pouco, o que dicionário, RLE e empacotamento de bits exploram diretamente"
+      - "Porque toda coluna armazenada em formato colunar é convertida automaticamente para texto antes de qualquer compressão ser aplicada"
+      - "Na verdade este marco afirma que linha e coluna comprimem sempre na mesma proporção, e a diferença citada é apenas um mito de marketing de produto"
+      - "Porque colunar, por definição de formato, nunca armazena valores repetidos, eliminando a necessidade de qualquer algoritmo de compressão"
+    answer: 0
+    explanation: "Dicionário, RLE e empacotamento de bits exploram a regularidade dentro de uma única coluna — valores repetidos ou de intervalo estreito — algo que uma linha, misturando tipos e cardinalidades diferentes, não oferece. Não há conversão automática para texto, a diferença de compressão é real e mensurável, e colunar não elimina valores repetidos por definição."
+
+  - question: "Em que condição a poda por estatística min/max não ajuda, mesmo estando presente no row group?"
+    options:
+      - "Quando os dados não estão ordenados nem particionados pela coluna usada no filtro da consulta"
+      - "A poda sempre ajuda independente de qualquer característica dos dados, segundo este marco, sem nenhuma condição que a anule"
+      - "Apenas quando o arquivo Parquet não tem rodapé (footer) gravado, uma situação descrita como impossível de ocorrer na prática"
+      - "Quando a consulta usa agregação em vez de filtro simples, já que agregações são descritas como incompatíveis com poda por row group"
+    answer: 0
+    explanation: "A poda só funciona bem quando os valores da coluna filtrada estão concentrados por row group — ou seja, quando os dados estão ordenados ou particionados por essa coluna. Sem essa organização, cada row group pode conter toda a faixa de valores, e o min/max não exclui nada. A poda não é incondicional, o rodapé sempre existe no formato Parquet, e agregações também se beneficiam de poda quando há filtro associado."
+
+  - question: "Por que UPDATE e DELETE são caros num arquivo colunar, e quais são as duas formas de mitigar esse custo sem reescrever tudo a cada operação?"
+    options:
+      - "Porque o arquivo é imutável; máscara de deleção ou delete file evitam reescrever o arquivo inteiro a cada operação"
+      - "Porque, tecnicamente, todo arquivo colunar é somente leitura em nível de sistema operacional, exigindo permissão de administrador para qualquer alteração"
+      - "Não são caros: este marco afirma que UPDATE e DELETE em colunar custam exatamente o mesmo que num banco por linha, sem diferença de custo"
+      - "A única forma de mitigar o custo, segundo este marco, é desabilitar completamente a compressão da coluna afetada antes de qualquer exclusão"
+    answer: 0
+    explanation: "Um arquivo colunar é imutável por desenho; a máscara de deleção (um bitmap que marca linhas a ignorar) e o delete file (um arquivo auxiliar que lista o que foi removido) são as duas formas de registrar a mudança sem reescrever o arquivo inteiro a cada operação — ao custo de acumular filtro extra na leitura até a próxima compactação. Não há restrição de permissão de sistema operacional envolvida, o custo é real e diferente de um banco por linha, e desabilitar compressão não é a mitigação citada."
+
+  - question: "Por que um relatório de diretoria rodando direto no OLTP e o ledger rodando no colunar são descritos neste marco como o mesmo erro, em direções opostas?"
+    options:
+      - "Porque os dois colocam uma carga no store errado para o padrão de acesso que ela representa, ignorando a troca que cada formato impõe"
+      - "Na verdade este marco trata os dois cenários como problemas completamente distintos, sem nenhuma relação estrutural entre eles"
+      - "Porque, tecnicamente, apenas o relatório no OLTP causa algum problema real; o ledger no colunar é descrito como uma escolha neutra sem custo"
+      - "Porque ambos os cenários, segundo este marco, só geram problema quando o volume de dados é inferior a um milhão de linhas"
+    answer: 0
+    explanation: "Os dois casos são o mesmo erro de fundo: ignorar que cada formato de armazenamento é uma troca desenhada para um padrão de acesso específico — relatório de agregação pesada não pertence ao caminho transacional, e invariante linha a linha com update/delete não pertence ao colunar. Não são problemas distintos, o ledger no colunar tem custo real (acesso pontual e update caros), e a relação não depende de um limiar de volume de dados."

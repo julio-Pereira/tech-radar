@@ -8,8 +8,8 @@ category: "Dados/Storage"
 tags: [dados, database, banco-de-dados, sql, nosql, postgres, mongodb, cosmosdb, sharding, replicacao, consistencia, cache, fintech]
 level: advanced
 lang: pt-BR
-# 16 marcos, 885 min de leitura (775 + 55 + 55). ~2× a soma (regra do PROJETO.md) = 29,5h.
-estimatedHours: 30
+# 18 marcos, 1015 min de leitura. ~2× a soma (regra do PROJETO.md) = 33,8h -> 34.
+estimatedHours: 34
 glossary: GLOSSARIO.md
 sources:
   - title: "PostgreSQL Documentation"
@@ -32,6 +32,20 @@ sources:
     url: https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels
   - title: "Kleppmann — Please stop calling databases CP or AP"
     url: https://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html
+  - title: "Apache Parquet — format specification"
+    url: https://parquet.apache.org/docs/
+  - title: "DuckDB — documentation"
+    url: https://duckdb.org/docs/
+  - title: "ClickHouse — MergeTree engine"
+    url: https://clickhouse.com/docs/engines/table-engines/mergetree-family/mergetree
+  - title: "Apache Iceberg — table spec"
+    url: https://iceberg.apache.org/spec/
+  - title: "Amazon DynamoDB Developer Guide"
+    url: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/
+  - title: "Apache Cassandra — documentation"
+    url: https://cassandra.apache.org/doc/latest/
+  - title: "Dynamo: Amazon's Highly Available Key-value Store"
+    url: https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf
 milestones:
   # Bloco A — Teoria
   - 01-o-modelo-de-falha-e-o-tempo.md
@@ -54,3 +68,6 @@ milestones:
   # Bloco E — Decidir com critério
   - 15-consistencia-como-criterio-de-escolha.md
   - 16-bancos-de-documento-mongodb-e-cosmos.md
+  # Bloco F — Armazenar para a pergunta certa
+  - 17-armazenamento-colunar-e-store-analitico.md
+  - 18-wide-column-e-familia-dynamo.md

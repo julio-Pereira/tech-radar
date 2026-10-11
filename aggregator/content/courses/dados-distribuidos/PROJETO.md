@@ -23,6 +23,8 @@ você não fez a trilha correspondente:
 | serve | limite disponível, com cache de TTL curto e verificação na autorização | `pix-gateway`, trilha spring-boot |
 | consome | `payments.authorized` para alimentar projeção (via outbox/CDC) | `pix-stream`, trilha kafka |
 | emite | CDC da tabela de lançamentos para o store analítico | marco 14 |
+| emite | tabela de lançamentos em Parquet particionado por data, para consulta colunar | marco 17 |
+| serve | store de chaves de idempotência e histórico por conta em wide-column, como alternativa comparada | marco 18 |
 
 **O que este projeto não é.** Ele não ensina JPA, `@Entity`, repository nem propagation
 de transação — isso é `spring-boot/05`, e continua valendo. Aqui você está do outro lado
@@ -38,8 +40,12 @@ da fronteira: o que o banco faz quando a anotação já foi processada.
 - **Opcional:** emulador Linux (vNext, em preview) do Cosmos DB via Docker, só para o marco 16 —
   modelagem, chave de partição e leitura da doc de custo em RU; audite o *feature support*
   publicado antes de assumir que algo é medível nele.
+- DuckDB (CLI) e `parquet-tools` ou equivalente, para o marco 17; ClickHouse em contêiner é
+  opcional, só para o Complemento do marco 17
+- Docker para **Cassandra de 1 nó** e **DynamoDB Local**, para o marco 18
 - **Não precisa:** cloud paga, cluster gerenciado, licença comercial, Kubernetes, conta Azure ou
   Atlas. O marco 07 fala de RDS/Aurora e o 08 de NewSQL — os dois por comparação, não por uso.
+  Confirmar licenças e versões de DuckDB, ClickHouse, Cassandra e DynamoDB Local na Fase 0.
 
 ## Incrementos por marco
 
@@ -65,6 +71,8 @@ trilha, e as duas são normalmente tomadas por default.
 | 14 | CDC do `fin-store` para um store analítico, com data contract | O SLO de freshness tem número, dono e alerta |
 | 15 | `MATRIZ.md`: perfil de consistência por operação, com custo medido | Os invariantes 1–3 do marco passam e nenhuma linha diz "forte" sem custo ou `não medido` |
 | 16 | Modelo de documento do payload do PSP / dossiê de KYC, com chave de partição defendida | 1 documento em 100 webhooks concorrentes; leitura obsoleta reproduzida e corrigida |
+| 17 | `COLUNAR.md` + export Parquet + 3 consultas comparadas | Resultados idênticos ao Postgres; poda ≥80% no filtro de 1 dia; custo do apagar medido |
+| 18 | `ACESSOS.md` (query → chave) + simulador de quórum + store de idempotência | `QUORUM` não perde nem lê obsoleto com 1 nó morto; 100 escritas condicionais → 1 sucesso |
 
 ## Definição de pronto (capstone)
 
@@ -84,6 +92,10 @@ trilha, e as duas são normalmente tomadas por default.
 - [ ] Toda operação do caminho quente tem **perfil de consistência declarado** em `MATRIZ.md`,
       com custo medido onde o store permite; nenhuma linha diz "somos CP" ou "somos AP"; o que
       não foi medido está marcado como `não medido`
+- [ ] Consulta analítica pesada roda **apenas** no colunar, nunca no OLTP; existe procedimento de
+      apagar dado de um titular no store analítico, com custo medido
+- [ ] Todo uso de wide-column tem **matriz de acessos** (query → chave) sem *scan* no caminho
+      quente, e **limite declarado** de tamanho de partição
 
 ## Game day
 
@@ -100,10 +112,14 @@ Provoque cada cenário e escreva um post-mortem de uma página — inclusive qua
    fila de locks crescer — e meça em quantos segundos a leitura também trava.
 6. **Ler o saldo de um standby** com `recovery_min_apply_delay` configurado, durante o pico de
    carga. Quantas leituras voltaram obsoletas? O perfil declarado na `MATRIZ.md` já previa isso?
+7. **Apagar os dados de um cliente** do Parquet. Quantos bytes foram reescritos? Está dentro do
+   prazo da política?
+8. **Matar 1 nó** do simulador de quórum com `ONE` e com `QUORUM`. Quantas leituras obsoletas?
+   Bate com o perfil declarado na `MATRIZ.md`?
 
 ## Regra do tempo declarado
 
 `estimatedHours` da trilha é ~2× a soma dos `estimatedMinutes` dos marcos: leitura mais
 hands-on. Nesta trilha a proporção é mais honesta que nas outras, porque quase todo
-hands-on é medição — e medir custa mais que ler. Com os marcos 15 e 16, a soma é 885 minutos,
-e `estimatedHours` é 30.
+hands-on é medição — e medir custa mais que ler. Com os 18 marcos, a soma é 1015 minutos, e
+`estimatedHours` é 34.

@@ -1,8 +1,8 @@
 ---
 id: escolher-o-store
 title: "Escolher o store e modelar para a query"
-summary: "O modelo de dados serve à query, não ao diagrama: o que cada família de banco responde barato, o preço escrito da desnormalização e o critério para adicionar o segundo store."
-estimatedMinutes: 50
+summary: "O modelo de dados serve à query, não ao diagrama: o que cada família de banco responde barato, o preço escrito da desnormalização e o critério para adicionar o segundo store — inclusive os especializados."
+estimatedMinutes: 60
 references:
   - title: "AWS — Purpose-built databases"
     url: https://aws.amazon.com/products/databases/
@@ -94,6 +94,41 @@ O caso simétrico também existe: manter tudo em Postgres quando o workload anal
 em nó gigante do que custaria um warehouse é teimosia, não simplicidade. A defesa precisa ser
 numérica nas duas direções.
 
+## Stores especializados: busca, série temporal, grafo e vetorial — e o critério de não adotar
+
+Quatro famílias que aparecem com frequência em discussão e raramente merecem entrar, cada uma com
+sua alternativa dentro do Postgres que **adia** a decisão até a query realmente doer:
+
+**Busca (índice invertido).** Elasticsearch/OpenSearch respondem busca textual relevante,
+facetada, com *fuzzy matching* — nunca devem ser **fonte da verdade** (o índice é reconstruível a
+partir de outro store, sempre), são **quase tempo real** (há um atraso de indexação, não
+instantâneo) e sofrem de **explosão de mapeamento** quando campos dinâmicos criam tipos novos sem
+controle. **Quando Postgres basta**: `tsvector` + GIN resolve busca textual simples até um volume
+respeitável, sem o custo operacional de um segundo cluster.
+
+**Série temporal.** Métricas e medições com timestamp, otimizadas para compressão por intervalo de
+tempo, **downsampling** (reduzir resolução de dado antigo) e retenção por idade — Prometheus e
+TimescaleDB como exemplos. O `fin-watch` é o caso natural. **Quando Postgres basta**: tabela
+particionada por tempo (`dados-distribuidos/07`) com agregação pré-calculada resolve volumes
+moderados sem um motor dedicado.
+
+**Grafo.** Vale o mesmo critério que a trilha já aplicou na tabela acima: só entra se a
+**travessia for profunda de verdade** — "vários saltos, relação importa mais que agregação". A
+maioria das perguntas de fraude de primeiro nível é um `JOIN` de duas tabelas, não uma travessia de
+grafo. **Quando Postgres basta**: praticamente sempre, até a travessia provar o contrário com
+número de saltos medido.
+
+**Vetorial.** Índice de busca por similaridade (aproximado, não exato) sobre embeddings — a troca
+central é **recall × latência**: um índice mais preciso custa mais tempo de busca, e ajustar esse
+botão é a decisão de projeto. O **custo de re-embedding** (reprocessar todo o conjunto quando o
+modelo que gera os vetores muda de versão) é o custo escondido que a maioria subestima antes de
+adotar. **Quando Postgres basta**: `pgvector` cobre volumes moderados com índice aproximado
+embutido, sem um banco vetorial dedicado.
+
+Para os quatro, o **critério de três partes** já visto nesta trilha continua valendo, sem exceção:
+a query é crítica, o store atual (ou a extensão do Postgres) não resolve com folga, e a diferença
+foi **medida** — nunca adotado por entusiasmo ou por currículo de conferência.
+
 ## Exemplo numa fintech
 
 Seis queries reais do `fin-platform`, e onde cada uma deveria morar:
@@ -120,11 +155,14 @@ comum de store adicionado por entusiasmo: quase toda pergunta de fraude de prime
 
 1. O store escolhido para cada uma e a justificativa pela **pergunta** (por chave, por
    relacionamento, por conjunto) — não por moda.
-2. Uma seção defendendo por que o número total de stores distintos não pode ser menor. Se você
+2. Uma coluna **"alternativa dentro do Postgres"** — `tsvector`/GIN, `jsonb`, `pgvector`, tabela
+   particionada por tempo — mesmo para a linha onde você escolheu o store especializado, deixando
+   explícito o que você está trocando por ele.
+3. Uma seção defendendo por que o número total de stores distintos não pode ser menor. Se você
    propôs três, mostre por que dois não resolvem.
-3. Para cada store além do primeiro: quem faz backup, quem está no plantão, e qual é a fonte da
+4. Para cada store além do primeiro: quem faz backup, quem está no plantão, e qual é a fonte da
    verdade se ele divergir do relacional.
-4. Uma linha por query dizendo o que acontece se aquele store ficar indisponível por 10 minutos.
+5. Uma linha por query dizendo o que acontece se aquele store ficar indisponível por 10 minutos.
 
 **Invariantes testáveis**
 
@@ -147,6 +185,14 @@ decidido — e é executado com número real no `dados-distribuidos/16`.
    duplicado que mudou?
 3. Por que o relatório derruba a autorização, e por que otimizar a query dele não resolve?
 4. Quais são os três testes que um segundo store precisa passar para entrar?
+5. Para busca, série temporal, grafo e vetorial, qual é a alternativa dentro do Postgres que adia a
+   decisão de adotar o store especializado?
+6. Por que o índice invertido de busca nunca deve ser fonte da verdade?
+
+> **Reencontro — `17`, `18`.** O colunar citado na tabela desta seção ("agregação sobre bilhões,
+> poucas colunas") é ensinado por dentro no `dados-distribuidos/17` — aqui é só a linha da tabela,
+> lá é o store. A família Dynamo/Cassandra, que nem aparece nesta tabela porque ainda não tinha
+> hands-on, ganha o mesmo tratamento no `dados-distribuidos/18`.
 
 ## Principais aprendizados
 
@@ -158,4 +204,5 @@ decidido — e é executado com número real no `dados-distribuidos/16`.
 - OLAP dentro do OLTP é problema de isolamento de workload — réplica dedicada, janela, e CDC quando
   o volume justificar.
 - O segundo store precisa passar em três testes: a query é crítica, o store atual não resolve com
-  folga, e a diferença foi medida.
+  folga, e a diferença foi medida — vale também para busca, série temporal, grafo e vetorial, cada
+  um com uma alternativa dentro do Postgres que adia a decisão.
