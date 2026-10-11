@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que um RFC com uma única opção 'analisada' não é uma decisão, segundo este marco?"
+    options:
+      - "Sem ao menos duas opções reais, o documento é uma justificativa retroativa de algo já decidido"
+      - "Porque, tecnicamente, nenhuma ferramenta de documentação permite registrar mais de uma opção num mesmo RFC"
+      - "Este marco recomenda sempre apresentar uma única opção, tratando múltiplas opções como sinal de indecisão da equipe"
+      - "Um RFC de opção única é inválido apenas quando a decisão envolve mudança de infraestrutura de nuvem, segundo este marco"
+    answer: 0
+    explanation: "O marco exige ao menos duas opções reais, porque um RFC com uma só não documenta uma análise de verdade — documenta uma justificativa escrita depois que a decisão já foi tomada de outra forma. Não há limitação técnica de ferramenta, o marco recomenda múltiplas opções (não uma só), e a exigência vale para qualquer tipo de decisão, não só infraestrutura de nuvem."
+
+  - question: "Por que o mesmo conteúdo de uma decisão precisa de apresentações diferentes por público, segundo este marco?"
+    options:
+      - "Um documento único tende a servir mal aos dois: o executivo se perde em detalhe técnico, o engenheiro não acha o detalhe que precisa"
+      - "Porque, tecnicamente, é impossível incluir informação de custo e informação de contrato técnico no mesmo arquivo de documento"
+      - "Este marco recomenda escrever apenas para o público executivo, tratando a versão técnica como opcional e dispensável"
+      - "A separação por público serve só para cumprir uma norma de formatação de documentos corporativos, sem relação com clareza de comunicação"
+    answer: 0
+    explanation: "Tentar servir dois públicos com necessidades diferentes (risco/custo/prazo para executivos, contrato técnico/prova para engenheiros) num único documento costuma servir mal a ambos — por isso duas apresentações do mesmo conteúdo. Não há impossibilidade técnica de incluir os dois tipos de informação num arquivo, o marco recomenda as duas versões (nenhuma é dispensável), e a razão é clareza de comunicação, não norma de formatação."
+
+  - question: "O que um pre-mortem descobre que a pergunta direta 'o que pode dar errado?' frequentemente não descobre, segundo este marco?"
+    options:
+      - "Riscos mais fáceis de admitir quando o fracasso já é hipoteticamente real, não uma possibilidade abstrata"
+      - "O pre-mortem, segundo este marco, descobre exclusivamente riscos de natureza financeira, nunca riscos técnicos ou operacionais"
+      - "Este marco trata pre-mortem e a pergunta direta como equivalentes, produzindo exatamente a mesma lista de riscos nos dois casos"
+      - "Um pre-mortem só é útil depois que o projeto já falhou de fato, nunca antes da execução da decisão"
+    answer: 0
+    explanation: "Invertendo a pergunta para 'assumindo que já falhou, por quê' torna mais fácil para as pessoas admitirem riscos que, como possibilidade abstrata futura, elas hesitariam em levantar diretamente. Não há restrição a riscos financeiros, as duas técnicas não produzem a mesma lista (por isso o pre-mortem é usado), e ele é feito antes da execução, não depois da falha real."
+
+  - question: "Por que este marco afirma explicitamente que a forma de um RFC bem construído não garante persuasão?"
+    options:
+      - "Nenhum RFC resolve um conflito de poder real ou uma diferença genuína de valores — isso exige conversa direta"
+      - "Porque, tecnicamente, nenhum RFC pode ser lido por mais de uma pessoa ao mesmo tempo, limitando seu alcance de persuasão"
+      - "Este marco afirma o oposto: um RFC com a forma correta sempre persuade qualquer parte interessada, sem exceção"
+      - "A forma de um RFC só falha em persuadir quando o documento é mais longo que duas páginas, segundo este marco"
+    answer: 0
+    explanation: "O marco é honesto sobre essa limitação: as invariantes verificam a forma (estrutura, campos obrigatórios) de um RFC bem construído, mas forma não garante persuasão quando o que está em jogo é um conflito real de poder ou de valores entre equipes — isso exige conversa direta. RFCs podem ser lidos por várias pessoas normalmente, o marco não afirma garantia de persuasão (afirma o oposto), e o limite não é sobre tamanho do documento."

@@ -1,0 +1,54 @@
+questions:
+  - question: "Qual é a diferença entre comitê de arquitetura e processo de aconselhamento, e por que o segundo escala melhor, segundo este marco?"
+    options:
+      - "Comitê centraliza decisão num grupo pequeno; aconselhamento distribui o direito de decidir, só exigindo consulta prévia"
+      - "Não há diferença real entre os dois, segundo este marco, além do nome usado por cada organização para o mesmo processo"
+      - "Processo de aconselhamento, segundo este marco, exige sempre aprovação final de um comitê central antes de qualquer decisão"
+      - "Comitê de arquitetura escala melhor que processo de aconselhamento, segundo a comparação feita neste marco"
+    answer: 0
+    explanation: "O comitê centraliza a decisão num grupo pequeno, que se torna gargalo quando o volume de decisões cresce; o processo de aconselhamento distribui o direito de decidir para quem está mais próximo do problema, exigindo apenas consulta a quem é afetado e a quem tem experiência — sem aprovação prévia central, por isso escala melhor. Os dois não são o mesmo processo com nomes diferentes, aconselhamento não exige aprovação final de comitê (é o oposto da ideia), e é ele, não o comitê, que escala melhor segundo o marco."
+
+  - question: "Por que confundir padrão com diretriz causa atrito ou permite violação sistemática, dependendo da direção da confusão, segundo este marco?"
+    options:
+      - "Tratar diretriz como padrão gera atrito; tratar padrão como diretriz permite violação sem ninguém notar"
+      - "Padrão e diretriz, segundo este marco, são termos completamente intercambiáveis, sem nenhuma consequência prática da confusão entre eles"
+      - "A confusão entre os dois só é relevante para decisões de infraestrutura de nuvem, sem relação com código ou processo"
+      - "Este marco recomenda eliminar a categoria 'diretriz', tratando toda recomendação de arquitetura sempre como padrão obrigatório"
+    answer: 0
+    explanation: "Padrão é obrigatório e verificado, com consequência se violado; diretriz é recomendação sem bloqueio. Tratar uma diretriz como padrão gera atrito quando alguém a ignora com razão legítima; tratar um padrão como diretriz permite que seja violado sistematicamente sem que ninguém perceba, porque não há verificação. Os termos não são intercambiáveis, a distinção vale para qualquer tipo de decisão (não só nuvem), e o marco não recomenda eliminar a categoria diretriz."
+
+  - question: "Por que um radar tecnológico só tem valor se mantido pela própria equipe, com revisão periódica, segundo este marco?"
+    options:
+      - "Um radar copiado de fonte externa e nunca atualizado vira rapidamente um documento decorativo, fora da realidade"
+      - "Porque, tecnicamente, um radar tecnológico só pode ser construído com uma ferramenta comercial específica licenciada por fornecedor"
+      - "Este marco recomenda sempre copiar um radar público existente, sem necessidade de manutenção ou adaptação ao contexto local"
+      - "O radar tecnológico, segundo este marco, perde todo valor se mantido internamente, precisando ser auditado por terceiros"
+    answer: 0
+    explanation: "Sem manutenção e revisão periódica pela própria equipe, um radar copiado de outra fonte deixa de refletir a realidade específica da organização, tornando-se decorativo. Não há exigência de ferramenta comercial licenciada, o marco recomenda manutenção própria (não cópia estática), e manter internamente é o que dá valor ao radar, não o contrário."
+
+  - question: "O que distingue paved road verificado automaticamente de um checklist manual revisado esporadicamente, em termos de escalabilidade, segundo este marco?"
+    options:
+      - "A verificação automatizada escala sem crescer o time de governança proporcionalmente; o checklist manual não"
+      - "Não há diferença de escalabilidade entre os dois métodos, segundo este marco, desde que ambos sejam documentados formalmente"
+      - "O checklist manual, segundo este marco, é sempre mais confiável que a verificação automatizada, apesar de escalar pior"
+      - "A verificação automatizada só funciona para serviços escritos em uma única linguagem de programação, limitando sua escala"
+    answer: 0
+    explanation: "Verificar conformidade automaticamente permite que a governança escale sem exigir que o time de governança cresça na mesma proporção que o número de serviços; um checklist manual revisado esporadicamente não tem essa propriedade, dependendo de capacidade humana limitada. Os dois métodos não escalam igual, o marco não trata checklist manual como mais confiável (defende o oposto), e verificação automatizada não está limitada a uma única linguagem."
+
+  - question: "Por que uma exceção de governança precisa ter dono e prazo, e o que acontece quando o prazo é verificado com relógio falso em teste, segundo este marco?"
+    options:
+      - "Sem dono e prazo, a exceção tende a se tornar permanente por inércia; com relógio falso avançado além do prazo, o CI deve falhar"
+      - "Dono e prazo, segundo este marco, servem apenas como metadado informativo, sem nenhuma consequência automatizada associada a eles"
+      - "Este marco recomenda que exceções nunca tenham prazo, para evitar que um time precise negociar uma extensão repetidamente"
+      - "O relógio falso, segundo este marco, é usado apenas para simular fuso horário diferente, sem relação com expiração de exceção"
+    answer: 0
+    explanation: "Sem dono e prazo declarados, uma exceção tende a se tornar permanente sem nunca ser revisada de novo; o teste com relógio falso avançado além do prazo verifica que o CI realmente bloqueia a exceção vencida, não apenas documenta a regra em texto. Dono e prazo têm consequência automatizada real (não são só metadado), o marco recomenda sempre ter prazo (não eliminá-lo), e o relógio falso serve especificamente para testar expiração, não fuso horário."
+
+  - question: "Qual é a relação entre este marco e a trilha entrega-continua-e-devops quanto ao modelo de pipeline conforme, segundo este marco?"
+    options:
+      - "Entrega-continua-e-devops constrói o modelo de pipeline; este marco verifica se um serviço está conforme a ele, sem reconstruir o modelo"
+      - "Este marco e entrega-continua-e-devops constroem, cada um independentemente, seu próprio modelo de pipeline, sem nenhuma relação entre eles"
+      - "Este marco constrói o modelo de pipeline completo, e entrega-continua-e-devops apenas o consome sem nenhuma responsabilidade de verificação"
+      - "A relação entre as duas trilhas, segundo este marco, se limita a compartilhar o mesmo motor de política sobre arquivos de nuvem"
+    answer: 0
+    explanation: "O marco é explícito: entrega-continua-e-devops (marco 10, referenciado como trilha planejada até sua publicação) é quem constrói o modelo de pipeline que materializa o paved road; este marco verifica a conformidade de um serviço a esse modelo, sem reconstruí-lo. As duas trilhas não constroem modelos independentes e desconectados, a responsabilidade de construir é da outra trilha (não desta), e a relação não se limita ao motor de política de nuvem (que é compartilhado com um marco diferente, o 05)."

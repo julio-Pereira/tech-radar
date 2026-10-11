@@ -1,0 +1,37 @@
+slug: arquitetura-de-solucoes
+title: "Arquitetura de Soluções: Integrar, Comprar, Hospedar e Governar Sistemas numa Fintech"
+subtitle: "Do mapa de capacidades à revisão arquitetural: integração e legado, comprar ou construir, nuvem com guardrails, governança sem gargalo e decisões que sobrevivem à revisão."
+category: "Arquitetura"
+tags: [arquitetura-de-solucoes, integracao, legado, core-bancario, build-vs-buy, tco, nuvem, governanca, paved-road, modernizacao, rfc, fintech]
+level: advanced
+lang: pt-BR
+estimatedHours: 18
+glossary: GLOSSARIO.md
+sources:
+  - { title: "Enterprise Integration Patterns (Hohpe & Woolf)", url: https://www.enterpriseintegrationpatterns.com/ }
+  - { title: "Software Architecture: The Hard Parts (Ford et al.)", url: https://www.oreilly.com/library/view/software-architecture-the/9781492086888/ }
+  - { title: "Fundamentals of Software Architecture (Richards & Ford)", url: https://www.oreilly.com/library/view/fundamentals-of-software/9781492043447/ }
+  - { title: "The Architect Elevator (Gregor Hohpe)", url: https://architectelevator.com/book/ }
+  - { title: "Team Topologies", url: https://teamtopologies.com/ }
+  - { title: "Wardley Maps (Simon Wardley)", url: https://learnwardleymapping.com/ }
+  - { title: "Scaling the Practice of Architecture, Conversationally (Andrew Harmel-Law)", url: https://martinfowler.com/articles/scaling-architecture-conversationally.html }
+  - { title: "Documenting Architecture Decisions (Michael Nygard)", url: https://www.cognitect.com/blog/2011/11/15/documenting-architecture-decisions }
+  - { title: "Well-Architected — princípios (visão geral, neutra de fornecedor)", url: https://learn.microsoft.com/azure/well-architected/ }
+  - { title: "Open Policy Agent — documentation", url: https://www.openpolicyagent.org/docs/ }
+  - { title: "FinOps Foundation — framework", url: https://www.finops.org/framework/ }
+  - { title: "Banco Central do Brasil — normas (resiliência, terceirização, nuvem)", url: https://www.bcb.gov.br/estabilidadefinanceira/buscanormas }
+milestones:
+  # Bloco A — Entender o que existe
+  - 01-paisagem-de-sistemas-e-capacidades.md
+  # Bloco B — Conectar
+  - 02-integracao-entre-sistemas.md
+  - 03-core-bancario-e-legado.md
+  # Bloco C — Decidir e hospedar
+  - 04-comprar-ou-construir.md
+  - 05-arquitetura-de-nuvem-e-guardrails.md
+  # Bloco D — Governar e evoluir
+  - 06-governanca-e-paved-road.md
+  - 07-modernizacao-de-portfolio.md
+  # Bloco E — Convencer e fechar
+  - 08-influencia-e-comunicacao.md
+  - 09-revisao-arquitetural-do-fin-platform.md

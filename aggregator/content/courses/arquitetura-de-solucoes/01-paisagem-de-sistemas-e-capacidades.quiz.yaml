@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é a diferença entre arquitetura corporativa, de soluções e de software, segundo este marco?"
+    options:
+      - "Decidem em escalas diferentes: portfólio inteiro, integração entre sistemas, e estrutura dentro de um sistema, respectivamente"
+      - "Os três termos, segundo este marco, são sinônimos usados de forma intercambiável para descrever a mesma atividade"
+      - "A diferença é apenas de nomenclatura por empresa: cada organização escolhe livremente qual termo usar, sem distinção real de escopo"
+      - "Arquitetura de software decide no nível do portfólio inteiro, e arquitetura corporativa decide dentro de um único sistema"
+    answer: 0
+    explanation: "Arquitetura corporativa decide no nível do portfólio; arquitetura de soluções decide como sistemas se conectam, integram, e onde hospedar; arquitetura de software decide dentro de um sistema (módulos, fronteiras internas) — escalas diferentes, não sinônimos. Não é uma questão de escolha arbitrária de nomenclatura por empresa, e a alternativa que inverte as definições de corporativa e de software está trocada."
+
+  - question: "O que significa 'sistema de registro', e o que acontece quando dois sistemas guardam o mesmo dado sem um ser claramente cópia do outro, segundo este marco?"
+    options:
+      - "É a fonte definitiva de um dado; sem essa definição, qual valor está certo quando os dois discordam não tem resposta"
+      - "Sistema de registro é um termo que se refere apenas ao banco de dados físico usado, sem relação com qual sistema é a fonte da verdade"
+      - "Quando dois sistemas guardam o mesmo dado, este marco afirma que o mais recente automaticamente se torna o sistema de registro"
+      - "Não há problema real nessa situação, segundo este marco, desde que os dois sistemas sejam atualizados pela mesma equipe"
+    answer: 0
+    explanation: "Sistema de registro é a fonte definitiva de um dado específico; sem definir qual é, a pergunta sobre qual valor está certo quando dois lugares discordam simplesmente não tem resposta, porque nunca foi decidida de propósito. O termo não se refere ao banco físico, não há regra automática de 'o mais recente vence', e o problema existe independente de qual equipe atualiza cada sistema."
+
+  - question: "Por que separar estado atual de estado alvo torna uma lacuna discutível, em vez de misturada com aspiração, segundo este marco?"
+    options:
+      - "Sem a separação, toda conversa mistura 'o que temos' com 'o que queremos', dificultando saber o que é real"
+      - "Porque, tecnicamente, é impossível documentar estado atual e estado alvo no mesmo documento de arquitetura corporativa"
+      - "Este marco recomenda documentar apenas o estado alvo, já que o estado atual é considerado irrelevante para decisões futuras"
+      - "A separação serve só para fins de arquivamento histórico, sem nenhuma influência sobre decisões de arquitetura em andamento"
+    answer: 0
+    explanation: "Sem documentar os dois separadamente, qualquer discussão de arquitetura mistura o que de fato existe hoje com o que se deseja no futuro, tornando difícil avaliar se uma proposta é descritiva ou aspiracional. Não há essa impossibilidade técnica de documentar os dois juntos, o marco recomenda documentar ambos (não só o alvo), e a separação tem influência direta nas decisões em andamento, não é só arquivamento."
+
+  - question: "Qual é o valor prático de um mapa de Wardley, dado que ele não é uma medição precisa, segundo este marco?"
+    options:
+      - "Vale pela conversa que provoca, ajudando o time a concordar sobre o que é diferenciador versus o que já é commodity"
+      - "Este marco afirma que o mapa de Wardley não tem valor prático real, sendo apenas um exercício acadêmico sem aplicação"
+      - "O valor está exclusivamente em gerar um documento formal exigido por auditoria externa de arquitetura corporativa"
+      - "O mapa de Wardley serve apenas para calcular o custo exato de manutenção de cada sistema do portfólio"
+    answer: 0
+    explanation: "O marco é explícito: a utilidade está na discussão que o mapa provoca sobre o que vale construir (diferenciador) versus comprar (commodity), não no mapa como artefato de medição precisa. O marco não trata o mapa como sem valor prático, não é um requisito de auditoria citado no texto, e não serve para calcular custo exato de manutenção."

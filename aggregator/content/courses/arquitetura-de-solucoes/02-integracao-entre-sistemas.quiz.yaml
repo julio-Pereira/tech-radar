@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que banco compartilhado é descrito como o pior dos quatro estilos de integração, segundo este marco?"
+    options:
+      - "Nenhum dos dois pode mudar o schema sem coordenar com o outro, e a fronteira de responsabilidade desaparece"
+      - "Porque, tecnicamente, dois sistemas nunca conseguem se conectar ao mesmo banco de dados simultaneamente"
+      - "Este marco trata banco compartilhado como o melhor estilo entre os quatro, por eliminar a necessidade de contrato explícito"
+      - "Porque banco compartilhado, segundo este marco, só funciona com bancos de dados de documento, nunca com relacionais"
+    answer: 0
+    explanation: "Quando dois sistemas leem e escrevem nas mesmas tabelas, nenhum pode mudar o schema sozinho sem potencialmente quebrar o outro, e a fronteira de responsabilidade entre os dois sistemas desaparece na prática. Dois sistemas podem, sim, se conectar ao mesmo banco tecnicamente (é exatamente o problema), o marco trata esse estilo como o pior, não o melhor, e a crítica vale para qualquer tipo de banco, não só documento."
+
+  - question: "Qual é o critério real que decide entre chamada síncrona e mensageria, segundo este marco?"
+    options:
+      - "O que acontece na indisponibilidade: síncrono propaga a falha, mensageria absorve na fila"
+      - "A escolha depende exclusivamente de qual linguagem de programação os dois sistemas usam internamente"
+      - "Este marco recomenda sempre usar mensageria, tratando chamada síncrona como opção obsoleta em qualquer cenário"
+      - "O critério é apenas de preferência estética da equipe, sem relação real com comportamento de falha do sistema remoto"
+    answer: 0
+    explanation: "A decisão central é sobre o comportamento diante de indisponibilidade: uma chamada síncrona falha imediatamente se o outro lado não responde; mensageria absorve essa indisponibilidade temporariamente, com a mensagem esperando na fila. A escolha não depende de linguagem de programação, o marco não descarta chamada síncrona como obsoleta, e não é uma questão de preferência estética."
+
+  - question: "Por que um modelo canônico mal mantido vira gargalo, apesar de reduzir tradução ponto a ponto, segundo este marco?"
+    options:
+      - "Toda mudança precisa de consenso entre todos os sistemas que o usam, cada vez mais lento conforme mais aderem"
+      - "Porque, tecnicamente, um modelo canônico só pode ser usado por no máximo dois sistemas simultaneamente, segundo este marco"
+      - "Este marco afirma que modelo canônico nunca deveria ser usado, por ser sempre inferior à tradução ponto a ponto"
+      - "O gargalo citado é exclusivamente de desempenho de rede, sem relação com coordenação entre equipes"
+    answer: 0
+    explanation: "O modelo canônico reduz a necessidade de tradução ponto a ponto entre cada par de sistemas, mas qualquer mudança nele exige consenso de todos que o consomem — conforme mais sistemas aderem, esse consenso fica mais lento de obter, e o modelo vira gargalo de coordenação. Não há limite técnico de dois sistemas, o marco não recomenda abandonar modelo canônico (reconhece seu valor e seu risco), e o gargalo é de coordenação organizacional, não de desempenho de rede."
+
+  - question: "O que o catálogo de integrações precisa registrar para responder 'o que acontece se este sistema cair?' sem depender de memória de alguém presente, segundo este marco?"
+    options:
+      - "Padrão, contrato, estratégia de idempotência, modo de falha, SLA e dono — todos os campos, sem opcionais"
+      - "Apenas o nome do sistema e a data da última atualização do catálogo, sem necessidade de mais detalhes"
+      - "O catálogo, segundo este marco, não precisa registrar modo de falha, já que isso é sempre óbvio a partir do nome da integração"
+      - "Basta registrar o dono da integração; os demais campos são tratados como dispensáveis neste marco"
+    answer: 0
+    explanation: "O marco lista explicitamente seis elementos que o catálogo precisa ter por item: padrão, contrato, estratégia de idempotência, modo de falha, SLA e dono — sem eles, a pergunta sobre o que acontece numa falha depende de memória, não de registro confiável. Nome e data não bastam, modo de falha é citado como elemento central (não óbvio pelo nome), e dono sozinho não substitui os demais campos."
+
+  - question: "Por que um dead letter existe em vez de simplesmente descartar uma mensagem que falhou repetidamente, segundo este marco?"
+    options:
+      - "Para ficar disponível para investigação, em vez de ser perdida ou bloquear o processamento das demais"
+      - "Porque, tecnicamente, nenhum sistema de mensageria é capaz de descartar uma mensagem sem antes passar por uma fila de dead letter"
+      - "Este marco recomenda sempre descartar mensagens que falham, tratando dead letter como uma prática desnecessária e ultrapassada"
+      - "O dead letter serve apenas para fins de contagem estatística, sem nenhuma relação com investigação de falhas reais"
+    answer: 0
+    explanation: "Mover a mensagem com falha repetida para uma fila separada evita dois problemas: perdê-la silenciosamente (sem rastro para investigar) e deixá-la bloquear o processamento normal das mensagens seguintes. Sistemas de mensageria podem descartar mensagens sem dead letter (é uma escolha de design, não obrigação técnica), o marco recomenda usar dead letter (não descartar), e sua função vai além de contagem estatística — é sobre permitir investigação."
+
+  - question: "O que distingue um contrato implícito de um contrato explícito versionado, e por que o primeiro 'funciona até não funcionar', segundo este marco?"
+    options:
+      - "Contrato implícito não está escrito em lugar nenhum; funciona até alguém mudar um dos lados sem saber da expectativa do outro"
+      - "Não há diferença prática real entre os dois tipos de contrato, segundo este marco, já que ambos acabam formalizados eventualmente"
+      - "Contrato explícito versionado, segundo este marco, é sempre mais lento de implementar e por isso evitado na maioria das integrações"
+      - "Contrato implícito se refere exclusivamente a integrações por arquivo, nunca a integrações por API ou evento"
+    answer: 0
+    explanation: "Um contrato implícito não existe como artefato escrito — a comunicação funciona enquanto ninguém muda nenhum dos dois lados de um jeito que quebre a expectativa não documentada do outro; é só uma questão de tempo até isso acontecer. Os dois tipos de contrato são, sim, diferentes na prática (não convergem sozinhos), o marco não trata contrato explícito como sempre mais lento de implementar, e contrato implícito pode ocorrer em qualquer um dos quatro estilos de integração, não só arquivo."

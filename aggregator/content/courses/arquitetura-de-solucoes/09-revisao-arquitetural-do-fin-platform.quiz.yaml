@@ -1,0 +1,36 @@
+questions:
+  - question: "O que distingue um risco identificado de um 'não-risco', e por que identificar não-riscos é tão valioso quanto identificar riscos reais, segundo este marco?"
+    options:
+      - "Não-risco é algo que parecia arriscado mas, examinado, não é; identificá-lo evita gastar atenção onde não precisa"
+      - "Não há diferença real entre os dois termos, segundo este marco, que os trata como sinônimos ao longo de todo o texto"
+      - "Um não-risco, segundo este marco, é sempre mais grave que um risco identificado, exigindo prioridade máxima na correção"
+      - "Identificar não-riscos serve apenas para preencher o relatório com mais itens, sem valor real para quem recebe a revisão"
+    answer: 0
+    explanation: "Um não-risco é algo que, à primeira vista, parecia uma preocupação legítima, mas examinado com cuidado se revela não ser um problema real — documentá-lo explicitamente evita que a equipe gaste atenção futura reinvestigando a mesma coisa. Os dois termos não são sinônimos, um não-risco não é mais grave (é o oposto: não é risco de fato), e seu valor é real, não apenas preenchimento de relatório."
+
+  - question: "Por que impacto, probabilidade e facilidade de reversão juntos priorizam risco melhor do que qualquer um isolado, segundo este marco?"
+    options:
+      - "Um risco de alto impacto mas fácil de reverter pode esperar; um de impacto moderado mas irreversível merece atenção antes"
+      - "Porque, tecnicamente, é impossível calcular impacto ou probabilidade de um risco sem considerar também sua facilidade de reversão"
+      - "Este marco recomenda usar apenas impacto como critério de priorização, tratando os outros dois fatores como redundantes"
+      - "A combinação dos três fatores serve exclusivamente para fins de relatório de auditoria, sem influência na ordem real de ação"
+    answer: 0
+    explanation: "O exemplo do próprio marco mostra a lógica: um risco de alto impacto, mas fácil de corrigir se acontecer, pode esperar; um risco de impacto moderado, mas essencialmente irreversível, merece atenção antes — nenhum dos três fatores isolado capturaria essa nuance. Os três fatores podem ser calculados independentemente (não há essa dependência técnica), o marco usa os três juntos (não só impacto), e a priorização tem influência real na ordem de ação, não é só para auditoria."
+
+  - question: "O que torna uma recomendação 'acionável', segundo este marco?"
+    options:
+      - "Decisão específica, dono, prazo e critério de pronto — sem os quatro, é uma observação genérica sem consequência prática"
+      - "Uma recomendação é acionável, segundo este marco, apenas quando está escrita em formato de tabela, independente do conteúdo"
+      - "Basta que a recomendação identifique o problema; decisão, dono e prazo são tratados como opcionais neste marco"
+      - "Acionável significa apenas que a recomendação foi aprovada por um comitê de arquitetura antes de ser publicada"
+    answer: 0
+    explanation: "O marco contrasta 'deveríamos melhorar a integração' (vago) com uma recomendação que especifica a decisão, o dono, o prazo e o critério de pronto — os quatro elementos juntos são o que torna algo executável de fato, não apenas uma observação. Formato de tabela não é o critério, os quatro elementos não são opcionais (são exigidos), e não há exigência de aprovação por comitê citada aqui."
+
+  - question: "Por que uma revisão baseada só em artefatos estáticos não consegue avaliar tudo que importa sobre um sistema real, segundo este marco?"
+    options:
+      - "Comportamento sob carga real e de incidente real só se observa com o sistema rodando, não em artefatos parados"
+      - "Porque, tecnicamente, artefatos estáticos como ADRs e código nunca podem ser lidos por uma ferramenta de lint automatizada"
+      - "Este marco afirma que artefatos estáticos são sempre suficientes para avaliar qualquer aspecto de um sistema, sem exceção"
+      - "A limitação citada neste marco se aplica apenas a sistemas escritos em mais de uma linguagem de programação simultaneamente"
+    answer: 0
+    explanation: "O marco é explícito sobre essa limitação: avaliar comportamento sob carga ou durante um incidente real exige o sistema rodando com dados reais de operação, algo que artefatos estáticos (código, ADRs, modelos) não capturam por si só. ADRs e código são, sim, lidos por lint normalmente, o marco reconhece essa limitação (não afirma suficiência total), e ela não depende do número de linguagens usadas no sistema."
