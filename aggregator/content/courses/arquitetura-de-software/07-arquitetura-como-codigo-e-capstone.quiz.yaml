@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que um modelo C4 como texto versionado pode ser comparado automaticamente com o código, e um diagrama desenhado à mão não pode?"
+    options:
+      - "Porque o texto é dado estruturado que um script pode ler e confrontar com o grafo real extraído do código"
+      - "Porque, tecnicamente, nenhuma ferramenta de diagrama visual consegue exportar imagens em formato PNG ou SVG"
+      - "Na verdade este marco afirma que diagramas desenhados à mão são sempre mais precisos que qualquer modelo em texto"
+      - "Porque C4 como código exige necessariamente o uso de inteligência artificial para interpretar o diagrama"
+    answer: 0
+    explanation: "Um modelo em texto versionado é dado estruturado, que um script pode ler e comparar programaticamente contra o grafo de dependências real extraído do código — um diagrama desenhado à mão numa ferramenta visual não oferece essa estrutura comparável. Não há limitação de exportação de imagem envolvida, o marco não afirma que diagramas manuais são mais precisos (pelo contrário), e a comparação não depende de IA, é comparação de grafos."
+
+  - question: "O que é drift, e por que ele não é necessariamente um erro, mas é sempre algo que precisa ser visto?"
+    options:
+      - "Divergência entre modelo e código; pode ser decisão legítima não documentada, mas nunca deve passar despercebida"
+      - "Drift é, segundo este marco, sempre sinônimo direto de bug de produção, exigindo correção imediata e automática sem revisão humana"
+      - "Drift se refere exclusivamente à divergência de horário entre servidores, sem relação com modelo de arquitetura ou código"
+      - "Este marco afirma que drift é sempre um erro grave e nunca pode representar uma decisão legítima da equipe"
+    answer: 0
+    explanation: "Drift é a divergência entre o modelo documentado e as dependências reais do código — pode ser legítimo (uma decisão tomada e não documentada) ou pode ser um problema real, mas em qualquer caso precisa ser visível para alguém decidir o que fazer, nunca descoberto por acidente. Não é sinônimo automático de bug, não tem relação com divergência de relógio, e o marco trata drift como podendo ser legítimo, não sempre um erro grave."
+
+  - question: "Por que ADR e arquitetura como código são complementares, e não um substituto um do outro, segundo este marco?"
+    options:
+      - "O código mostra o quê (dependências reais); a ADR explica o porquê — nenhuma ferramenta extrai motivo do código"
+      - "Porque, tecnicamente, ADRs só podem ser escritas depois que todo o código relacionado já foi completamente implementado e testado"
+      - "Este marco recomenda abandonar ADRs completamente, substituindo-as integralmente por scripts de comparação modelo-código"
+      - "Porque arquitetura como código, segundo este marco, só funciona em projetos que não possuem nenhum registro de ADR"
+    answer: 0
+    explanation: "O código e as ferramentas de comparação mostram o que o sistema faz (dependências reais); a ADR captura o porquê de uma decisão — nenhuma automação extrai motivação do código sozinho, por isso os dois são complementares. Não há essa exigência de ordem de implementação, o marco não recomenda abandonar ADRs, e arquitetura como código não depende da ausência de ADRs para funcionar."
+
+  - question: "O que, especificamente, este marco diz que não deve ser automatizado, e por quê?"
+    options:
+      - "Decisões e seus porquês — nenhuma ferramenta extrai do código por que a equipe escolheu um caminho"
+      - "A extração do grafo de dependências reais do código, porque isso exigiria acesso direto ao repositório de versão"
+      - "A geração de diagramas C4 a partir do modelo em texto, já que diagramas devem ser sempre desenhados manualmente"
+      - "O lint de ADR que verifica status, alternativas e gatilho de reversão, pois essa verificação deve ser sempre manual"
+    answer: 0
+    explanation: "O marco é específico: decisões e seus motivos não são automatizáveis, porque isso é exatamente o papel da ADR, que nenhuma ferramenta consegue inferir sozinha a partir do código. A extração do grafo de dependências é, na verdade, automatizada (é a base da comparação com o modelo), a geração de diagramas a partir do texto é justamente o que o marco recomenda automatizar, e o lint de ADR também é tratado como verificação automatizável."

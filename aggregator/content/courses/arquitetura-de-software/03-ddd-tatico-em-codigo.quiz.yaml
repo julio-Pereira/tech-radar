@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que Money deve ser imutável e nunca representado em ponto flutuante, segundo este marco?"
+    options:
+      - "Mutação permite mudar o valor 'no lugar'; ponto flutuante acumula erro de arredondamento garantido"
+      - "Porque, tecnicamente, nenhuma linguagem de programação moderna oferece suporte nativo a números de ponto flutuante"
+      - "Porque imutabilidade e tipo inteiro são exigências regulatórias explícitas do Banco Central citadas neste marco"
+      - "Na verdade este marco recomenda ponto flutuante para Money, desde que o número de casas decimais seja fixado em dois"
+    answer: 0
+    explanation: "Imutabilidade elimina a possibilidade de qualquer código mudar um valor monetário 'no lugar' depois de criado, e representar em centavos inteiros evita o erro de arredondamento que ponto flutuante acumula de forma garantida, não hipotética, ao longo do tempo. Ponto flutuante existe nativamente nas linguagens citadas, não há exigência regulatória específica mencionada no texto, e o marco recomenda exatamente o oposto da alternativa de usar flutuante com duas casas."
+
+  - question: "O que torna uma Transferencia um agregado de verdade, e não 'um saco de dados com nome bonito', segundo este marco?"
+    options:
+      - "Nenhuma combinação de chamadas públicas consegue deixá-la num estado que viole sua invariante"
+      - "O fato de a classe ter um nome em português, seguindo a convenção de nomenclatura de domínio adotada nesta trilha"
+      - "A presença de pelo menos um construtor público, independente de qualquer validação executada dentro dele"
+      - "O uso da anotação `@Entity` do framework de persistência, que por si só classifica a classe como agregado"
+    answer: 0
+    explanation: "O critério do marco é comportamental: se nenhuma sequência de chamadas pela API pública consegue violar a invariante (valor negativo, conclusão duplicada, estado intermediário inválido), é um agregado de verdade. Nome em português não é o critério, um construtor sem validação não garante nada, e uma anotação de framework de persistência não define, por si só, uma fronteira de consistência."
+
+  - question: "Por que um agregado referencia outro por identificador, nunca por objeto, segundo este marco?"
+    options:
+      - "Evita carregamento em cascata e evita que uma transação pareça abranger dois agregados que deveriam ser consistentes por si só"
+      - "Porque, tecnicamente, é impossível em Java ou Go manter uma referência direta de objeto entre duas classes de domínio diferentes"
+      - "Apenas por convenção estética de código, sem nenhuma consequência real de desempenho ou de modelagem de transação"
+      - "Porque referenciar por identificador é exigido pelo padrão ArchUnit mencionado em outro marco desta trilha, sem relação com modelagem de domínio"
+    answer: 0
+    explanation: "Referenciar por id evita duas coisas: forçar o carregamento em cascata de outro agregado, e fazer parecer que uma operação abrange dois agregados que deveriam, cada um, ser consistente por conta própria. Não há impossibilidade técnica de manter referência de objeto em Java ou Go, a escolha tem consequência real (não é só estética), e a motivação não vem de uma regra de ArchUnit, vem de modelagem de domínio."
+
+  - question: "Quando uma regra de negócio pertence a um domain service em vez de a uma entidade, segundo este marco?"
+    options:
+      - "Quando envolve múltiplos agregados ou um cálculo que não é responsabilidade natural de nenhum deles especificamente"
+      - "Sempre: este marco recomenda mover toda regra de negócio para domain services, deixando entidades só com getters e setters"
+      - "Nunca: o marco trata domain service como um antipadrão a ser evitado em qualquer circunstância de modelagem"
+      - "Apenas quando a regra precisa acessar o banco de dados diretamente, sem passar por nenhum repositório"
+    answer: 0
+    explanation: "O domain service existe para regras que não cabem naturalmente numa única entidade — envolvendo múltiplos agregados ou um cálculo sem dono natural — mas o marco alerta que colocar ali regra que deveria estar dentro de um agregado produz o mesmo modelo anêmico do marco 01. Não é recomendação de mover toda regra para lá, não é tratado como antipadrão absoluto, e não depende de acesso direto a banco."
+
+  - question: "Por que um repositório sempre devolve e salva o agregado inteiro, segundo este marco?"
+    options:
+      - "Carregar só uma fração abre porta para estado inconsistente que o teste do agregado isolado não pegaria"
+      - "Porque frameworks de persistência modernos, segundo este marco, são incapazes tecnicamente de salvar apenas parte de um objeto"
+      - "Apenas por uma questão de desempenho de consulta, sem nenhuma relação com a consistência do estado do agregado"
+      - "Porque a definição de repositório exige, por regra sintática da linguagem, que todos os campos sejam sempre serializados juntos"
+    answer: 0
+    explanation: "O risco apontado é de consistência: carregar ou persistir uma fração do agregado cria uma via para estado inconsistente que escapa até de um teste unitário bem feito do agregado isolado, porque o problema mora na borda entre agregado e persistência. Não é uma limitação técnica de framework, não é só uma questão de desempenho, e não é uma regra sintática de serialização da linguagem."
+
+  - question: "Por que um evento de domínio só pode ser publicado depois que a invariante do agregado já foi confirmada, segundo este marco?"
+    options:
+      - "Publicar antes arrisca anunciar um estado que, se a operação falhar depois, nunca existiu de fato"
+      - "Porque, tecnicamente, nenhum sistema de mensageria é capaz de processar um evento publicado antes do fim de uma transação"
+      - "Apenas por uma convenção de nomenclatura de eventos, sem nenhuma consequência real para quem consome o evento"
+      - "Porque publicar antes da confirmação é mais lento do que publicar depois, segundo uma medição citada neste marco"
+    answer: 0
+    explanation: "O risco é semântico: se o evento sai antes de a operação confirmar a invariante, um consumidor pode reagir a um estado que, no fim, nunca existiu de verdade porque a operação falhou depois de emitir o evento. Não é uma limitação de sistemas de mensageria, não é apenas convenção de nome, e não é uma questão de velocidade de publicação medida no texto."

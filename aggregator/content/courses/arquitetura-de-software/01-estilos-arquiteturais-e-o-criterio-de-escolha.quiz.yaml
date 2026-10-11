@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que arquitetura se distingue de design pelo custo de reverter a decisão, segundo este marco?"
+    options:
+      - "Porque uma decisão difícil de reverter que não é verificada erode sem que ninguém perceba até ser tarde"
+      - "Porque toda decisão de arquitetura, por definição, envolve necessariamente mais de dez arquivos de código simultaneamente"
+      - "Na verdade este marco trata arquitetura e design como sinônimos completos, sem nenhuma distinção prática real entre os dois termos"
+      - "Porque decisões de design nunca podem ser verificadas por teste automatizado, enquanto decisões de arquitetura sempre podem"
+    answer: 0
+    explanation: "O critério do marco é o custo de reverter: escolher o formato de uma função muda numa tarde, mas uma regra de dependência que cem arquivos já assumem é cara de reverter — e por isso precisa de verificação contínua, não só de boa intenção. Não há limiar de número de arquivos envolvido, os dois termos não são tratados como sinônimos, e design também pode ser verificado por teste quando faz sentido."
+
+  - question: "Quais são os três vícios clássicos da arquitetura em camadas citados neste marco?"
+    options:
+      - "Sinkhole, camada de passagem e modelo anêmico"
+      - "Acoplamento cíclico, dívida técnica e ausência de testes, os mesmos problemas tratados nos marcos 05 e 06 desta trilha"
+      - "Vazamento de memória, condição de corrida e deadlock entre camadas, problemas típicos de concorrência descritos em outra trilha"
+      - "Falta de cache, ausência de índice de banco e consulta N+1, problemas de desempenho sem relação com a estrutura de camadas"
+    answer: 0
+    explanation: "O marco nomeia especificamente sinkhole (chamada que atravessa camadas sem fazer nada além de repassar), camada de passagem (pulada na prática até perder significado) e modelo anêmico (regra de negócio fora do objeto). Os vícios da alternativa errada sobre ciclos e dívida são tema de marcos posteriores desta trilha, os problemas de concorrência pertencem a outra trilha, e os problemas de desempenho citados não são vícios de camadas."
+
+  - question: "O que significa 'a dependência aponta para o domínio', e por que hexagonal, onion e clean compartilham essa regra?"
+    options:
+      - "O domínio nunca depende de infraestrutura; as três variações usam a mesma regra testável sob nomes diferentes"
+      - "Significa que o domínio deve sempre depender diretamente do banco de dados escolhido, para garantir performance máxima nas três variações"
+      - "As três variações, segundo este marco, na verdade usam regras de dependência diferentes e incompatíveis entre si, apesar do nome parecido"
+      - "Significa apenas que a pasta chamada 'domain' deve ficar na raiz do projeto, independente de qualquer regra real de importação entre módulos"
+    answer: 0
+    explanation: "A regra comum é que adaptadores (banco, fila, HTTP) implementam portas definidas pelo domínio, nunca o contrário — o domínio não importa infraestrutura. Hexagonal, onion e clean são variações de vocabulário sobre essa mesma regra verificável. Não há dependência do domínio sobre o banco, as três não usam regras incompatíveis entre si, e a regra não é sobre nome ou posição de pasta, é sobre direção real de importação."
+
+  - question: "Qual pergunta, segundo este marco, decide o estilo arquitetural certo para um contexto específico?"
+    options:
+      - "O que o estilo torna fácil versus caro, julgado contra o atributo que a mudança futura precisa proteger"
+      - "Qual estilo a maioria das equipes do mercado está adotando atualmente, segundo pesquisas de popularidade de ferramentas"
+      - "Qual estilo exige o menor número total de arquivos no projeto, independente de qualquer atributo de qualidade específico"
+      - "Qual estilo o time já usou com sucesso em um projeto anterior, repetindo a escolha anterior por padrão"
+    answer: 0
+    explanation: "O marco é explícito: todo estilo tem um preço, e a escolha certa depende do que ele torna fácil versus o que torna caro, julgado contra o atributo de qualidade (tamanho do domínio, volatilidade, equipe) que a mudança futura mais provável precisa proteger — nunca moda ou hábito anterior isoladamente. Popularidade de mercado, contagem de arquivos e repetição por hábito são exatamente os critérios que o marco rejeita como justificativa isolada."
