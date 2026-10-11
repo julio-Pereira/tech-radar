@@ -1,0 +1,54 @@
+questions:
+  - question: "O que distingue um join point-in-time de um join SQL comum pelo valor mais recente?"
+    options:
+      - "O point-in-time busca o valor da feature como era no instante da decisão, não o valor atual"
+      - "Na prática os dois tipos de join produzem sempre exatamente o mesmo resultado, então a distinção feita no texto é apenas teórica e sem efeito prático nos dados"
+      - "Um join comum é sempre mais rápido de executar e, por isso, é a opção recomendada neste marco para qualquer dataset de treino, independente do risco de vazamento"
+      - "Point-in-time se refere exclusivamente à hora do dia da consulta, sem nenhuma relação com o conceito de instante da decisão de oferta"
+    answer: 0
+    explanation: "O join comum pega o valor mais recente disponível hoje; o point-in-time busca o valor que a feature tinha no momento exato da decisão representada pela linha — por isso um join comum já é vazamento quando aplicado à construção de um dataset de treino. Os dois joins não produzem o mesmo resultado em geral, velocidade de execução não é o critério relevante aqui, e o conceito não tem relação com hora do dia."
+
+  - question: "Qual das opções é um exemplo correto de vazamento de pré-processamento, segundo este marco?"
+    options:
+      - "Calcular a média e o desvio usados para normalizar as features usando dados do conjunto de validação, não só o de treino"
+      - "Treinar o modelo apenas com dados de um único cliente repetidos múltiplas vezes no conjunto de treino, sem qualquer outro tipo de viés envolvido no processo"
+      - "Usar uma taxa de aprendizado (learning rate) considerada alta demais pela maioria das referências consultadas durante o treinamento do modelo de gradient boosting"
+      - "Escolher um número de árvores insuficiente no modelo de gradient boosting, o que o texto atribui diretamente à categoria de vazamento de pré-processamento"
+    answer: 0
+    explanation: "Vazamento de pré-processamento ocorre quando estatísticas de normalização (média, desvio) são calculadas incluindo dados de validação ou teste, não só de treino — contaminando a avaliação com informação que não deveria estar disponível. Repetir um único cliente é outro tipo de problema (não o citado), e hiperparâmetros de treino (taxa de aprendizado, número de árvores) não são, por si só, uma forma de vazamento."
+
+  - question: "Por que um split aleatório, em vez de temporal, é inválido para avaliar um modelo de oferta?"
+    options:
+      - "Porque mistura passado e futuro: uma linha de validação pode ter data anterior a uma linha de treino, o que nunca ocorre em produção"
+      - "Porque splits aleatórios são, na prática, computacionalmente mais caros de gerar do que splits temporais para qualquer volume de dados considerado neste marco"
+      - "Porque o split aleatório é proibido por lei para qualquer dataset que envolva decisão automatizada de oferta de crédito, segundo a LGPD"
+      - "Não há diferença real entre os dois tipos de split para esse problema; a escolha entre eles é apenas uma questão de preferência estilística da equipe de dados"
+    answer: 0
+    explanation: "Um split aleatório pode colocar na validação uma linha mais antiga que uma linha de treino, simulando uma situação que o modelo em produção nunca enfrenta (prever o passado com dados do futuro). O split temporal evita exatamente isso. Custo computacional não é o motivo citado, não há proibição legal desse tipo específico de split, e a escolha tem consequência real de validade, não é só estilo."
+
+  - question: "Por que uma decisão de oferta tomada muito recentemente simplesmente não pode entrar no dataset de treino como rótulo definido?"
+    options:
+      - "Porque o rótulo (contratação, inadimplência) tem uma janela de maturação que ainda não se fechou para essa decisão"
+      - "Porque decisões recentes são, por definição legal, sempre anônimas e não podem ser associadas a um `consentId` válido para fins de treino de modelo"
+      - "Porque o `sim-clientes` não gera dados sintéticos para decisões tomadas nos últimos 30 dias, por limitação técnica do simulador descrita neste marco"
+      - "Não existe essa restrição: qualquer decisão, independente de quando foi tomada, pode entrar no dataset com o rótulo que estiver disponível no momento da consulta"
+    answer: 0
+    explanation: "O rótulo só existe com confiança depois que a janela de maturação se fecha (meses, no caso de inadimplência); tratar uma decisão recente como rótulo definido antes disso é um erro silencioso que infla a classe errada. Isso não tem relação com anonimização ou consentimento, não é uma limitação arbitrária do simulador, e a restrição é real, não inexistente."
+
+  - question: "Qual das afirmações sobre vazamento de grupo está correta?"
+    options:
+      - "Ocorre quando linhas do mesmo cliente aparecem tanto no treino quanto na validação, inflando a métrica porque o modelo já viu aquele cliente"
+      - "Vazamento de grupo só pode ocorrer em datasets com menos de mil linhas, tornando-se matematicamente impossível em qualquer dataset maior segundo este marco"
+      - "É o nome dado neste marco especificamente ao vazamento que ocorre quando duas equipes diferentes calculam a mesma feature de formas distintas"
+      - "Vazamento de grupo é sinônimo exato de vazamento de alvo; o texto usa os dois termos de forma intercambiável para descrever o mesmo fenômeno"
+    answer: 0
+    explanation: "Vazamento de grupo é especificamente sobre linhas do mesmo cliente espalhadas entre treino e validação, o que infla artificialmente a métrica. Não há limite de tamanho de dataset que o torne impossível, o fenômeno de duas equipes calculando a mesma feature de formas diferentes é training/serving skew (marco 03), e vazamento de alvo é um tipo distinto, não sinônimo."
+
+  - question: "Por que uma linha cujo consentimento só passou a cobrir a finalidade de oferta depois da data da decisão precisa ser excluída do dataset de treino?"
+    options:
+      - "Porque a linha representaria uma decisão que, no instante em que foi tomada, não tinha base legal válida para aquela finalidade"
+      - "Essa linha não precisa ser excluída; o texto afirma que basta registrar uma observação no log de auditoria para que ela permaneça válida no dataset de treino"
+      - "Porque, tecnicamente, uma linha nessa condição sempre corrompe o formato físico do arquivo Parquet do dataset, impedindo a leitura de todas as outras linhas"
+      - "Apenas por uma questão de boa prática opcional; o marco deixa explícito que a exclusão não é obrigatória, apenas recomendada"
+    answer: 0
+    explanation: "A validade do consentimento é avaliada no instante da decisão, não no instante da construção do dataset; sem cobertura da finalidade naquele momento, a decisão não tinha base legal e a linha precisa ser excluída, sem exceção. Não basta anotar e manter, não há corrupção de formato de arquivo envolvida, e a exclusão é tratada como obrigatória, não opcional."

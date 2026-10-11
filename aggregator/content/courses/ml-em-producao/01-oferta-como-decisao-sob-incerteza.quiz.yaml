@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que uma métrica de modelo (AUC) pode melhorar sem que a métrica de negócio se mova?"
+    options:
+      - "Porque a métrica de modelo é só um proxy, e pode estar mal escolhida ou já saturada pelo baseline"
+      - "Isso é impossível: toda melhora de AUC implica, por definição matemática direta, uma melhora proporcional e imediata na métrica de negócio correspondente"
+      - "Porque a métrica de negócio é sempre medida com um atraso de pelo menos um ano em relação à métrica de modelo, tornando a comparação impossível de se fazer"
+      - "Porque AUC só pode ser calculada em ambiente de teste, nunca em produção, então a comparação entre as duas métricas não tem sentido algum"
+    answer: 0
+    explanation: "Métrica de modelo é um proxy mensurável offline; um ganho nela não garante ganho de negócio se o proxy for mal escolhido ou se o baseline já tivesse capturado a maior parte do valor disponível. Não há uma relação matemática direta garantida entre as duas, a diferença de prazo de medição não é a razão estrutural apontada no texto, e AUC pode, sim, ser monitorada em produção."
+
+  - question: "O que faz o custo de mostrar a oferta errada ser assimétrico ao custo de deixar de mostrar a certa?"
+    options:
+      - "São custos de natureza diferente — atrito e descrédito de um lado, receita perdida do outro — raramente iguais em magnitude"
+      - "Na prática os dois custos são sempre exatamente iguais, e a ideia de assimetria é apenas uma simplificação didática sem aplicação real na matriz de custo"
+      - "O custo de mostrar a oferta errada é zero por definição, já que o cliente sempre pode simplesmente ignorar uma oferta irrelevante sem nenhuma consequência"
+      - "A assimetria só existe em produtos de crédito; em qualquer outro tipo de oferta bancária os dois custos citados no texto são equivalentes"
+    answer: 0
+    explanation: "Mostrar a oferta errada custa em atrito, descrédito e eventual opt-out; deixar de mostrar a certa custa em receita perdida — naturezas diferentes, raramente de mesma magnitude. Por isso a matriz de custo, não uma acurácia genérica, deveria guiar o limiar. Não são iguais por definição, mostrar a oferta errada não é de custo zero, e a assimetria não se restringe a produtos de crédito."
+
+  - question: "Em que condições a resposta correta é não construir o sistema de ML, segundo este marco?"
+    options:
+      - "Volume baixo para treinar/validar com confiança, custo de manutenção maior que o ganho sobre o baseline, ou a regra simples já captura o essencial"
+      - "Nunca: para qualquer decisão de oferta repetida mais de uma vez, construir um sistema de ML é sempre a escolha tecnicamente superior segundo este marco"
+      - "Apenas quando a equipe de dados não tem nenhum cientista de dados disponível no momento do projeto, independente de qualquer outro fator"
+      - "Somente quando a regulação proíbe explicitamente o uso de ML para aquele tipo específico de decisão de oferta"
+    answer: 0
+    explanation: "O marco lista três sinais concretos para não construir o sistema: volume insuficiente, custo de manutenção maior que o ganho esperado sobre o baseline, ou um baseline que já captura o essencial do valor. Essa decisão não depende de disponibilidade momentânea de pessoal nem é uma proibição regulatória — e a trilha explicitamente não trata ML como escolha automaticamente superior."
+
+  - question: "O que o *policy gate* garante que o modelo, por construção, nunca pode violar?"
+    options:
+      - "Que nenhum candidato sem consentimento válido para a finalidade, elegibilidade e dentro do limite de frequência chegue ao modelo"
+      - "Que o modelo sempre vai escolher a oferta de maior valor esperado para a empresa, independente de qualquer critério de consentimento do cliente"
+      - "Que toda decisão do modelo seja aprovada manualmente por um analista humano antes de qualquer oferta ser exibida ao cliente"
+      - "Que o baseline por regras seja descartado definitivamente assim que o primeiro modelo de ML for promovido a produção"
+    answer: 0
+    explanation: "O policy gate roda antes do modelo e filtra consentimento, finalidade, elegibilidade e frequência — o modelo nunca vê, e não pode promover, um candidato já rejeitado por essa barreira. Isso não garante que o modelo maximize valor para a empresa sem respeitar o cliente, não exige aprovação manual de cada decisão, e o baseline continua existindo como régua de comparação mesmo após promover um modelo."

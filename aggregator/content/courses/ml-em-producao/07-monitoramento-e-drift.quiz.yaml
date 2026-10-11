@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é a diferença entre data drift, concept drift e label drift, segundo este marco?"
+    options:
+      - "Data drift muda a entrada, concept drift muda a relação entrada-resultado, label drift muda a distribuição do próprio rótulo"
+      - "Os três termos são sinônimos neste marco, usados de forma intercambiável para descrever qualquer degradação de desempenho do modelo"
+      - "Data drift e concept drift se referem exclusivamente a mudanças de hardware no ambiente de serving, sem relação com distribuição estatística"
+      - "Label drift é o nome dado neste marco ao vazamento de rótulo descrito no marco 02, sem nenhuma relação com monitoramento em produção"
+    answer: 0
+    explanation: "O marco distingue claramente: data drift é mudança na distribuição das features de entrada, concept drift é mudança na relação entre features e resultado, e label drift é mudança na distribuição do próprio rótulo — cada um com sinais diferentes. Não são sinônimos, não têm relação com hardware, e label drift não é o vazamento do marco 02, que é um problema distinto de construção do dataset."
+
+  - question: "Por que um problema de qualidade de entrada precisa de um alerta distinto do de drift, mesmo com sintoma parecido?"
+    options:
+      - "Porque a causa e o remédio são diferentes, mesmo que o sintoma final (decisões piores) pareça o mesmo"
+      - "Na verdade este marco recomenda usar exatamente o mesmo alerta para os dois casos, já que distingui-los não traria benefício prático segundo o texto"
+      - "Porque problema de qualidade de entrada, ao contrário de drift, nunca afeta a taxa de ausência de feature nem qualquer métrica observável"
+      - "Porque alertas de qualidade de entrada são, por definição técnica, impossíveis de calibrar com um limiar declarado, diferente dos alertas de drift"
+    answer: 0
+    explanation: "Apesar do sintoma final parecido (decisões piores), a causa raiz é diferente — um problema de qualidade de dados (nulos, fora de faixa) exige um remédio diferente de um deslocamento real de distribuição — por isso merecem alertas distintos. O marco recomenda justamente separar os dois, qualidade de entrada está ligada à taxa de ausência de feature, e esses alertas também podem ser calibrados com limiar declarado."
+
+  - question: "Por que monitorar desempenho do modelo com rótulo atrasado exige usar proxies ou coortes maduras?"
+    options:
+      - "Porque o rótulo real leva meses para maturar, e esperar por ele tornaria o monitoramento ao vivo impossível sem alguma aproximação"
+      - "Porque proxies e coortes maduras são, segundo este marco, exatamente equivalentes ao rótulo real, sem nenhuma perda de precisão na medição"
+      - "Porque o `sim-clientes` não gera rótulos reais para nenhuma decisão, tornando proxies a única fonte de dado disponível em qualquer cenário"
+      - "Este marco recomenda ignorar completamente o desempenho do modelo até que o rótulo real esteja disponível, sem usar proxy alguma nesse período"
+    answer: 0
+    explanation: "Como o rótulo real (inadimplência, contratação) leva tempo para maturar, monitorar desempenho sem esperar por ele exige proxies (sinais mais rápidos e imperfeitos) ou olhar só para decisões já maduras — e o marco deixa claro que nenhuma das duas opções é tão boa quanto o rótulo real, apenas aproximações declaradas. O `sim-clientes` de fato gera rótulo real simulado com atraso, e o marco não recomenda ignorar o desempenho nesse período."
+
+  - question: "Quais são os três gatilhos típicos de retreino citados neste marco, e por que retreinar com muita frequência tem custo sem ganho correspondente?"
+    options:
+      - "Drift, degradação por proxy e calendário periódico; retreinar demais desperdiça o custo do ciclo de treino sem ganho equivalente"
+      - "Apenas o calendário periódico é citado como gatilho válido; drift e degradação por proxy são descritos como gatilhos não confiáveis o suficiente"
+      - "Mudança de versão da biblioteca de ML, mudança de equipe responsável, e férias do time de dados são os três gatilhos citados neste marco"
+      - "Retreinar com mais frequência nunca tem custo adicional relevante, segundo este marco, já que o pipeline de treino é descrito como instantâneo"
+    answer: 0
+    explanation: "O marco lista drift, degradação de desempenho medida por proxy e um calendário periódico como os três gatilhos típicos; retreinar com frequência além do necessário repete todo o custo do ciclo de treino e validação sem um ganho correspondente. Drift e degradação por proxy são, sim, tratados como gatilhos válidos, os gatilhos citados não incluem mudança de biblioteca ou de equipe, e o pipeline de treino tem custo real, não é instantâneo."

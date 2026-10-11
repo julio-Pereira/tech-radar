@@ -1,0 +1,36 @@
+questions:
+  - question: "Quais três elementos precisam estar fixados e registrados juntos para reproduzir um treino, segundo este marco?"
+    options:
+      - "Versão do dado (hash do dataset), versão do código e as seeds de qualquer fonte de aleatoriedade"
+      - "Apenas o número de árvores do modelo de gradient boosting e a taxa de aprendizado usada no treino"
+      - "O nome do engenheiro responsável pelo treino e a data em que o pipeline foi executado, sem necessidade de registrar código ou dado"
+      - "Exclusivamente a versão da biblioteca de machine learning utilizada, já que ela determina sozinha o resultado do treino"
+    answer: 0
+    explanation: "O marco é explícito: sem versão do dado, versão do código e seeds fixadas e registradas juntas, não há como responder com confiança 'o que gerou esse modelo'. Hiperparâmetros isolados não bastam, autoria e data não garantem reprodutibilidade sem dado e código versionados, e a versão da biblioteca sozinha não determina o resultado sem as outras três."
+
+  - question: "O que calibração mede, e por que é diferente de uma métrica de ranking como AUC?"
+    options:
+      - "Se a probabilidade corresponde à frequência real, enquanto AUC mede só a ordenação"
+      - "Calibração e AUC medem exatamente a mesma propriedade do modelo; o texto as usa como sinônimos ao longo de todo este marco, sem nenhuma distinção prática entre as duas"
+      - "Calibração mede o tempo de resposta do modelo em produção, enquanto AUC mede apenas o tempo de treino do pipeline"
+      - "Calibração é uma métrica exclusiva de modelos de regressão linear e não se aplica a modelos de gradient boosting, segundo este marco"
+    answer: 0
+    explanation: "Calibração verifica se uma probabilidade declarada (por exemplo, 70%) corresponde à frequência real de acerto num grupo grande de previsões com esse valor; AUC mede apenas a qualidade da ordenação, sem garantir que os números de probabilidade sejam literalmente confiáveis. As duas métricas não são sinônimas, nenhuma delas mede tempo de resposta ou de treino, e calibração se aplica também a modelos de gradient boosting."
+
+  - question: "Por que a validação deste marco usa split temporal, e não validação cruzada aleatória?"
+    options:
+      - "Pelo mesmo motivo do split de treino: validação cruzada aleatória misturaria passado e futuro de forma que nunca ocorre em produção"
+      - "Porque validação cruzada aleatória é tecnicamente incompatível com o formato Parquet usado para armazenar o dataset de treino"
+      - "Porque split temporal é sempre computacionalmente mais rápido de calcular do que qualquer forma de validação cruzada, independente do volume de dados"
+      - "Não há motivo técnico real: o marco afirma que a escolha entre os dois tipos de validação é apenas uma preferência estilística sem consequência prática"
+    answer: 0
+    explanation: "O marco conecta explicitamente a validação ao split temporal do marco 02 — pelo mesmo motivo de evitar misturar passado e futuro de forma que não corresponde à realidade de produção. Não há incompatibilidade de formato de arquivo envolvida, velocidade computacional não é o critério citado, e a escolha tem consequência de validade real, não é apenas estilística."
+
+  - question: "Por que um modelo com uma melhora real e estatisticamente significativa de métrica pode, ainda assim, não valer a pena promover?"
+    options:
+      - "Porque o custo operacional adicional de mantê-lo em produção pode superar o ganho de receita estimado pela matriz de custo"
+      - "Isso nunca acontece: toda melhora estatisticamente significativa de métrica, segundo este marco, deve obrigatoriamente ser promovida a produção sem exceção"
+      - "Porque qualquer melhora de métrica abaixo de 0,05 de AUC é automaticamente descartada por uma regra numérica fixa definida neste marco"
+      - "Porque modelos com melhora estatisticamente significativa são, por definição, sempre rejeitados pelo teste de calibração descrito no marco"
+    answer: 0
+    explanation: "O exemplo do marco mostra exatamente esse caso: uma melhora real de AUC que exige uma feature cara e um pipeline mais complexo, cujo custo operacional supera o ganho de receita estimado. A margem mínima declarada existe para recusar esse tipo de promoção. Não há obrigatoriedade automática de promover toda melhora significativa, não existe o limiar numérico fixo de 0,05 citado, e significância estatística não implica reprovação automática de calibração."

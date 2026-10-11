@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que o dataset de treino sozinho não contém informação sobre o que aconteceria sem a oferta?"
+    options:
+      - "Porque ele só registra decisões que já foram tomadas; o resultado para quem nunca recebeu oferta é desconhecido por construção"
+      - "Porque o `sim-clientes`, segundo este marco, remove deliberadamente todas as linhas de clientes que não contrataram nenhuma oferta antes de salvar o dataset"
+      - "Na verdade o dataset contém sim essa informação completa; o problema do viés de seleção descrito neste marco se refere a outro fenômeno"
+      - "Porque o join point-in-time do marco 02 exclui por padrão qualquer decisão associada a um grupo de controle"
+    answer: 0
+    explanation: "O dataset de treino é composto de decisões já tomadas; o que teria acontecido com um candidato que nunca recebeu oferta alguma simplesmente não está representado nesses dados — por isso exploração ou holdout são necessários para preencher essa lacuna. O `sim-clientes` não remove essas linhas por decisão de design, o viés de seleção é exatamente esse fenômeno, e o join point-in-time do marco 02 não exclui dados de controle por padrão."
+
+  - question: "O que distingue a unidade de randomização correta (cliente) de uma unidade errada (decisão) num experimento de ofertas?"
+    options:
+      - "Com decisão como unidade, o mesmo cliente pode cair em braços diferentes em momentos diferentes, contaminando a leitura do experimento"
+      - "Não há diferença prática real entre as duas unidades; o texto as trata como escolhas equivalentes de implementação ao longo deste marco"
+      - "Randomizar por decisão é sempre estatisticamente mais potente que randomizar por cliente, segundo este marco, independente do risco de contaminação"
+      - "A unidade de randomização, segundo o texto, só importa para experimentos com duração superior a seis meses corridos"
+    answer: 0
+    explanation: "Se a unidade for a decisão em vez do cliente, o mesmo cliente pode acabar exposto a braços diferentes do experimento em momentos diferentes, contaminando a comparação entre grupos — por isso a unidade correta é o cliente, com atribuição determinística. As duas escolhas não são equivalentes, não há garantia de maior potência estatística ao randomizar por decisão, e a importância da unidade não depende da duração do experimento."
+
+  - question: "O que SRM detecta, e por que nenhuma conclusão do experimento é confiável até ele ser corrigido?"
+    options:
+      - "Detecta quando a proporção observada entre braços diverge da configurada, sinal de que a atribuição em si está quebrada"
+      - "SRM mede exclusivamente a satisfação declarada do cliente em uma pesquisa pós-oferta, sem relação com a proporção de atribuição entre braços"
+      - "SRM é o nome dado neste marco à métrica de receita incremental esperada de uma oferta bem-sucedida, calculada ao final do experimento"
+      - "Segundo este marco, um SRM detectado não compromete a validade das conclusões, apenas sugere aumentar o tamanho da amostra usada"
+    answer: 0
+    explanation: "SRM (sample ratio mismatch) sinaliza quando a proporção observada entre braços (por exemplo, 70/30 em vez de 50/50) diverge do configurado — um sinal de que o mecanismo de atribuição está quebrado, o que invalida qualquer comparação de métricas entre os braços até ser corrigido. Não é uma medida de satisfação declarada nem de receita, e o marco trata SRM como algo que compromete sim a validade das conclusões, não como algo a ignorar aumentando amostra."
+
+  - question: "Por que espiar o resultado de um experimento antes do fim planejado infla a taxa de falso positivo?"
+    options:
+      - "Porque checar significância repetidamente até achar um ponto favorável aumenta a chance de encontrar um resultado aparentemente significativo por acaso"
+      - "Na verdade espiar o resultado antes do fim planejado reduz a taxa de falso positivo, segundo este marco, por fornecer mais pontos de verificação estatística"
+      - "Porque, tecnicamente, o sistema de experimentação trava e perde os dados coletados sempre que alguém consulta o resultado antes da data de término"
+      - "Espiar resultado cedo só é um problema quando a unidade de randomização usada é a decisão, não o cliente; com cliente como unidade não há risco"
+    answer: 0
+    explanation: "Verificar significância repetidamente ao longo do experimento, parando no primeiro ponto favorável, aumenta a chance de capturar uma flutuação aleatória como se fosse um efeito real — por isso tamanho de amostra e duração são calculados antes, não ajustados durante. Espiar cedo não reduz falso positivo, não há perda de dados por consulta, e o problema existe independente de qual unidade de randomização foi escolhida."
+
+  - question: "O que a probabilidade da ação registrada em cada decisão permite calcular depois, sem rodar um novo experimento do zero?"
+    options:
+      - "Permite que um estimador como IPS recupere, do log histórico, uma estimativa do efeito de outra política"
+      - "Permite apenas recalcular o hash do dataset de treino usado naquela decisão específica, sem nenhuma relação com avaliação de política"
+      - "Essa probabilidade, segundo este marco, só serve para fins de auditoria de conformidade regulatória, sem uso em avaliação estatística"
+      - "Permite recuperar automaticamente o rótulo real da decisão antes do fim da janela de maturação declarada no marco 02"
+    answer: 0
+    explanation: "Registrar a probabilidade da ação tomada por decisão permite usar estimadores como IPS (inverse propensity scoring) sobre o log histórico para estimar, de forma contrafactual, o efeito de uma política diferente da que gerou os dados — sem precisar esperar por um experimento novo inteiro. Não tem relação com hash de dataset, não se limita a auditoria de conformidade, e não acelera a maturação do rótulo real."
+
+  - question: "Por que um cap de frequência de contato por cliente é necessário mesmo num experimento estatisticamente bem desenhado?"
+    options:
+      - "Porque é um guardrail independente da estatística do experimento, protegendo o cliente de excesso de contato em qualquer braço"
+      - "Porque, sem o cap, o teste de SRM descrito neste marco deixaria de funcionar corretamente para qualquer proporção de atribuição"
+      - "O cap de frequência, segundo este marco, é apenas uma recomendação opcional, sem necessidade real de ser testado ou aplicado automaticamente"
+      - "Porque o cap de frequência é o único mecanismo capaz de corrigir um viés de seleção já presente no dataset de treino original"
+    answer: 0
+    explanation: "O cap de frequência é um guardrail que protege o cliente de excesso de contato, independente de o experimento estar estatisticamente bem desenhado ou não — ele atua em paralelo à estatística do experimento, não como parte dela. Não tem relação direta com o funcionamento do teste de SRM, o marco trata o cap como aplicado e testado, não apenas recomendado, e ele não corrige viés de seleção do dataset de treino."

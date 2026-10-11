@@ -1,0 +1,54 @@
+questions:
+  - question: "Quando a escolha entre servir batch, online ou híbrido é uma decisão de arquitetura, e não de estilo?"
+    options:
+      - "Sempre: ela depende do orçamento de latência e de quanto a decisão pode estar desatualizada sem perder valor"
+      - "Apenas quando o time já usou ONNX Runtime antes; nesses casos a escolha deixa de ser arbitrária segundo este marco"
+      - "Nunca: segundo o marco, batch e online produzem sempre o mesmo resultado prático, então a escolha é puramente estética"
+      - "Somente para modelos de gradient boosting; para outros tipos de modelo a escolha entre batch e online não tem nenhuma consequência"
+    answer: 0
+    explanation: "A escolha é sempre de arquitetura: depende do orçamento de latência disponível e de quão tolerável é servir uma decisão pré-calculada que pode estar desatualizada. Não depende de experiência prévia com ONNX, os dois modos não são equivalentes em resultado prático, e a consideração vale para qualquer tipo de modelo, não só gradient boosting."
+
+  - question: "O que um fallback de serving precisa ter definido antes do incidente, e por quê?"
+    options:
+      - "Quem decide o padrão de fallback por tipo de oferta — para não ser inventado sob pressão durante a falha real"
+      - "Apenas o nome do engenheiro de plantão responsável por aprovar manualmente cada fallback no momento em que ele ocorre"
+      - "Nada precisa ser definido antes; o texto recomenda decidir o fallback apropriado no momento exato em que o incidente acontece"
+      - "Um certificado digital válido, já que o fallback é tratado neste marco como um mecanismo exclusivamente de segurança criptográfica"
+    answer: 0
+    explanation: "O marco é explícito: 'quem decide o padrão' (qual fallback usar, para qual tipo de oferta) é uma decisão de produto registrada antes do incidente, não inventada durante ele. Não se trata de aprovação manual por uma pessoa de plantão, o texto recomenda justamente o oposto de decidir só na hora, e fallback aqui não é um mecanismo criptográfico."
+
+  - question: "Por que o policy gate precisa rodar de novo no serving, mesmo já tendo rodado na construção dos candidatos?"
+    options:
+      - "Porque o consentimento pode ter sido revogado no intervalo entre o cálculo da oferta e sua exibição ao cliente"
+      - "Porque, tecnicamente, o policy gate perde seu estado interno sempre que o modelo é promovido a um novo estágio no registry"
+      - "Esse segundo gate é redundante e apenas uma precaução supérflua; o marco recomenda removê-lo sempre que possível para reduzir latência"
+      - "Porque o policy gate da construção de candidatos nunca verifica consentimento, apenas elegibilidade e frequência, deixando essa checagem só para o serving"
+    answer: 0
+    explanation: "Entre o cálculo da decisão e a exibição ao cliente passa tempo real, suficiente para uma revogação de consentimento ocorrer — por isso o gate roda de novo no serving, e uma oferta cujo consentimento caiu nesse intervalo não pode ser mostrada. O gate não perde estado por promoção de modelo, não é supérfluo, e o gate da construção de candidatos já verifica consentimento desde o marco 01."
+
+  - question: "O que o log de decisão precisa conter para que uma decisão seja reproduzível depois, por replay?"
+    options:
+      - "Entradas (ou hash delas), versão do modelo, versões das features e da política, resultado, e um decisionId único"
+      - "Apenas o decisionId; todos os outros dados são recalculados automaticamente a partir do estado atual do sistema no momento do replay"
+      - "Somente o nome do cliente e a oferta exibida, já que o texto trata esses dois campos como suficientes para qualquer auditoria futura"
+      - "O log de decisão, segundo este marco, não precisa conter nenhuma versão de modelo ou feature, apenas o resultado final apresentado"
+    answer: 0
+    explanation: "O replay depende de reconstruir exatamente o contexto da decisão original: entradas, versão do modelo, versões das features e da política aplicadas, o resultado e um decisionId — sem isso, 'a mesma saída' não pode ser garantida. O estado atual do sistema muda com o tempo e não substitui esse registro, nome e oferta isolados não bastam, e versões de modelo e feature são centrais, não dispensáveis."
+
+  - question: "Como o serviço de ofertas reusa problemas que não são específicos de ML, segundo este marco?"
+    options:
+      - "Cache de features, pools de conexão e concorrência sob carga são problemas de qualquer serviço síncrono de alto tráfego"
+      - "Não reusa nenhum problema de engenharia geral; todos os desafios do serviço de ofertas são, segundo o marco, exclusivos de sistemas de ML"
+      - "Apenas o problema de calibração do modelo é compartilhado com outros serviços; cache e pools são exclusivos deste domínio"
+      - "O serviço de ofertas evita completamente cache e pools de conexão por design, já que lida sempre com decisões calculadas em tempo real"
+    answer: 0
+    explanation: "O marco lista explicitamente cache de features (TTL do marco 03), pools de conexão (`concorrencia-e-recursos/05` e `/07`) e concorrência sob carga como problemas comuns de qualquer serviço síncrono de alto tráfego, não específicos de ML. O serviço não evita cache e pools, calibração não é o único ponto compartilhado, e vários desafios citados são de engenharia geral, não exclusivos de ML."
+
+  - question: "Por que servir o modelo em JVM via ONNX Runtime é tratado como complemento 'sujeito à Fase 0', e não como parte garantida do escopo desta trilha?"
+    options:
+      - "Porque o suporte e a licença do ONNX Runtime para esse caso de uso ainda não foram verificados no momento do plano"
+      - "Porque servir em JVM é tecnicamente impossível com modelos de gradient boosting, segundo uma limitação citada neste marco"
+      - "Porque o texto afirma que ONNX Runtime é incompatível, por design, com qualquer serviço escrito em Python"
+      - "Porque servir em JVM está fora do escopo de qualquer trilha deste currículo, incluindo esta, por decisão arquitetural permanente"
+    answer: 0
+    explanation: "O marco marca esse item explicitamente como 'sujeito à Fase 0' porque suporte e licenças das bibliotecas (ONNX Runtime incluído) ainda não foram verificados — não é uma impossibilidade técnica declarada, não é incompatibilidade de design com Python, e não é uma exclusão permanente de escopo, apenas uma verificação pendente antes de comprometer o conteúdo a essa rota de serving."

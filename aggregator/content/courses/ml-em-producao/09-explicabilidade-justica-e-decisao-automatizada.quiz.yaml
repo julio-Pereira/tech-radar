@@ -1,0 +1,54 @@
+questions:
+  - question: "O que esta trilha garante tecnicamente para apoiar o direito de revisão, independente do texto exato da norma?"
+    options:
+      - "Que toda decisão de oferta pode ser reexecutada com as entradas e a versão do modelo históricas"
+      - "Que nenhuma decisão automatizada de oferta pode legalmente ser contestada pelo cliente, segundo a interpretação adotada por este marco"
+      - "Que o modelo é retreinado automaticamente sempre que um cliente solicita revisão de uma decisão específica tomada no passado"
+      - "Que toda decisão de oferta é aprovada por um humano antes de ser exibida, eliminando por completo a necessidade de revisão posterior"
+    answer: 0
+    explanation: "A garantia técnica desta trilha, independente do texto normativo exato, é a capacidade de reexecutar qualquer decisão com as entradas e a versão histórica do modelo e das features — a base concreta para qualquer revisão. A trilha não afirma que decisões são incontestáveis, não implica retreino automático a cada pedido, e não elimina revisão por aprovação humana prévia de toda decisão."
+
+  - question: "Por que remover o atributo protegido direto da lista de features não basta para evitar discriminação?"
+    options:
+      - "Porque um proxy — uma feature que correlaciona fortemente com o atributo protegido — pode reintroduzir o mesmo problema por um caminho indireto"
+      - "Na verdade este marco afirma que remover o atributo direto é suficiente e que proxies não representam risco real de discriminação"
+      - "Porque o CI do registro de features, segundo este marco, é incapaz de verificar automaticamente a ausência de atributos protegidos diretos"
+      - "Porque atributos protegidos, segundo este marco, nunca são de fato armazenados em nenhuma tabela usada por esta trilha, tornando a remoção irrelevante"
+    answer: 0
+    explanation: "Um proxy (como CEP correlacionando com classe social) pode carregar o mesmo sinal discriminatório do atributo protegido mesmo sem o atributo estar explicitamente presente — por isso detectar correlação ou informação mútua antes de aceitar a feature é necessário. O marco trata proxy como risco real, o CI verifica sim a ausência do atributo direto automaticamente, e atributos protegidos existem nos dados sintéticos para fins de auditoria."
+
+  - question: "O que distingue razão de impacto de diferença de oportunidade como métricas de disparidade?"
+    options:
+      - "Razão de impacto compara taxas de resultado favorável entre grupos; diferença de oportunidade compara taxas de acerto entre grupos"
+      - "As duas métricas são, segundo este marco, matematicamente idênticas e intercambiáveis em qualquer cenário de auditoria de disparidade"
+      - "Razão de impacto só pode ser calculada para decisões de crédito; diferença de oportunidade só se aplica a decisões de oferta sem crédito"
+      - "Diferença de oportunidade mede exclusivamente o tempo de resposta do serviço entre grupos, sem relação com resultado da decisão"
+    answer: 0
+    explanation: "Razão de impacto olha para a taxa de resultado favorável entre grupos; diferença de oportunidade olha para a taxa de acerto entre grupos — aspectos diferentes de disparidade, e o marco é explícito que nenhuma das duas é a métrica definitiva isolada. Não são idênticas, não há essa restrição de aplicabilidade por tipo de produto, e nenhuma das duas mede tempo de resposta."
+
+  - question: "Por que um grupo sintético correspondente ao atributo protegido é usado só em auditoria, nunca como feature do modelo?"
+    options:
+      - "Porque ele existe só para medir o resultado da decisão sobre o grupo, nunca para alimentar ou influenciar a decisão em si"
+      - "Porque, tecnicamente, o modelo de gradient boosting usado nesta trilha não é capaz de processar atributos sintéticos como entrada"
+      - "Porque o grupo sintético, segundo este marco, é removido automaticamente do ambiente depois de cada execução de auditoria, impedindo seu uso como feature"
+      - "Não há essa distinção real: o marco permite usar o grupo sintético tanto como feature quanto para auditoria, dependendo da preferência da equipe"
+    answer: 0
+    explanation: "O grupo sintético serve exclusivamente para medir disparidade de resultado entre grupos, mantendo o atributo fora do caminho de decisão — usá-lo como feature reintroduziria exatamente o problema que a auditoria tenta detectar. Não é uma limitação técnica do modelo, não há remoção automática pós-auditoria citada, e o marco não trata isso como opcional ou dependente de preferência da equipe."
+
+  - question: "Qual é a linha entre o que esta trilha decide (oferecer o produto de crédito) e o que fica fora de escopo?"
+    options:
+      - "O modelo decide se oferece o produto; limite e taxa de crédito continuam sendo decisão de um motor de risco separado, fora de escopo"
+      - "Esta trilha decide tanto se oferece o produto quanto o limite e a taxa de crédito; nenhuma dessas decisões é delegada a outro motor"
+      - "O escopo desta trilha inclui decisão de risco de crédito completa, incluindo aprovação final e definição de taxa, segundo o plano original"
+      - "Não existe distinção de escopo entre oferta e crédito neste marco; os dois termos são tratados como sinônimos ao longo de toda a trilha"
+    answer: 0
+    explanation: "A trilha decide apenas se o produto de crédito é oferecido como opção — elegibilidade e limite continuam vindo de um motor de risco/política existente, explicitamente fora do escopo desta trilha, para mantê-la afastada da regulação mais pesada de modelo de risco de crédito. A trilha não assume decisão de limite ou taxa, e oferta e crédito não são tratados como sinônimos."
+
+  - question: "Por que uma revisão de decisão precisa reexecutar a decisão com dados históricos, e não rodar o modelo atual sobre os dados atuais?"
+    options:
+      - "Porque rodar o modelo atual sobre dados atuais produziria uma resposta diferente da decisão original, sem responder à pergunta feita pelo cliente"
+      - "Porque o modelo atual, segundo este marco, é sempre tecnicamente incompatível com qualquer dado anterior à sua própria data de promoção"
+      - "Não há diferença prática relevante entre as duas abordagens; o marco trata reexecução histórica e reexecução atual como equivalentes para fins de revisão"
+      - "Porque dados históricos, segundo este marco, são apagados automaticamente antes que qualquer pedido de revisão possa ser processado"
+    answer: 0
+    explanation: "A decisão original foi tomada com uma versão específica do modelo e das features, num instante específico; rodar o modelo atual sobre os dados atuais responderia a uma pergunta diferente ('o que o sistema decidiria hoje'), não à pergunta real da revisão ('por que essa decisão foi tomada naquele momento'). Não há incompatibilidade técnica genérica com dado anterior, as duas abordagens não são equivalentes, e dados históricos não são apagados antes de permitir revisão — pelo contrário, sua retenção é parte do desenho."
