@@ -113,8 +113,13 @@ o servidor do mês. Limite por usuário, alerta por consulta cara, e revisão do
 Os oito antipadrões fecham a teoria e a prática de armazenamento e operação. O que falta é o
 segundo critério de decisão — não só *qual store*, mas *qual garantia de consistência* — e o caso
 de banco de documento que o marco 06 citou e nenhum marco ainda ensinou a fazer bem. O checklist
-de uma página e o Capstone da trilha estão no `dados-distribuidos/16`, depois de os dois marcos
+de uma página e o Capstone da trilha estão no `dados-distribuidos/18`, depois de os marcos
 seguintes fecharem essa lacuna.
+
+O caminho deste marco termina num store analítico — mas até aqui a trilha só ensinou **o
+caminho** (CDC, camadas, data contract). **Como esse store é por dentro** — layout colunar,
+compressão, poda por estatística, e o que apagar custa num arquivo imutável — está no
+`dados-distribuidos/17`.
 
 ## Exemplo numa fintech
 
@@ -219,4 +224,4 @@ argumento que encerra a discussão.
   número, dono e alerta por caso de uso.
 - Custo se controla com telemetria de uso, retenção por classe de dado e limite em query ad-hoc.
 - Os oito antipadrões têm um denominador comum: uma decisão de dados tomada sem número — o
-  checklist verificável e o Capstone da trilha fecham em `dados-distribuidos/16`.
+  checklist verificável e o Capstone da trilha fecham em `dados-distribuidos/18`.

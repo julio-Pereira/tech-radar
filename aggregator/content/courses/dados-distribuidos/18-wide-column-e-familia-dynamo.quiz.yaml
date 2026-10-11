@@ -1,0 +1,54 @@
+questions:
+  - question: "O que R + W > N garante, e quais dois fatores podem fazer essa aritmética não garantir sobreposição mesmo quando ela bate?"
+    options:
+      - "Garante sobreposição entre leitura e escrita; sloppy quorum e escrita concorrente quebram essa premissa"
+      - "Garante apenas que o cluster inteiro está disponível no momento da operação, sem nenhuma relação direta com sobreposição de réplicas"
+      - "Essa fórmula, segundo este marco, é absoluta e nenhum fator operacional é capaz de comprometer a garantia que ela oferece"
+      - "Garante que a escrita sempre chega a todas as N réplicas antes de a operação ser considerada concluída pelo cliente"
+    answer: 0
+    explanation: "R + W > N garante sobreposição entre o conjunto de réplicas lidas e escritas, de modo que a leitura veria a escrita mais recente — mas o sloppy quorum (quando nós que não são donos da chave aceitam a escrita via hinted handoff) e a escrita concorrente sem resolução quebram essa premissa mesmo com a aritmética satisfeita. A fórmula não garante disponibilidade do cluster inteiro, não é absoluta como a alternativa errada sugere, e não exige que a escrita chegue a todas as N réplicas, só a W delas."
+
+  - question: "Por que LWW é aceitável para um histórico de eventos append-only e inaceitável para saldo?"
+    options:
+      - "Porque append-only não tem conflito real sobre o mesmo valor; saldo exige invariante lida e escrita de forma coordenada"
+      - "Na verdade este marco trata LWW como igualmente arriscado nos dois casos, sem distinguir append-only de um valor mutável como saldo"
+      - "Porque LWW, tecnicamente, só está disponível em bancos que armazenam dado em formato colunar, nunca em wide-column"
+      - "Porque o histórico de eventos, segundo este marco, nunca é replicado entre nós, eliminando qualquer possibilidade de conflito de escrita"
+    answer: 0
+    explanation: "Em dados append-only não há duas escritas concorrentes competindo pelo mesmo valor a ser sobrescrito, então a resolução por timestamp não descarta informação relevante; já o saldo depende de uma invariante que precisa ser lida e escrita de forma coordenada, e LWW resolve o conflito descartando uma escrita sem aviso. O marco distingue claramente os dois casos, LWW é um conceito de resolução de conflito independente de formato colunar, e o histórico de eventos é, sim, replicado como qualquer outro dado em wide-column."
+
+  - question: "O que distingue partição quente de partição ilimitada, e qual é a mitigação comum para as duas?"
+    options:
+      - "Partição quente concentra tráfego desproporcional numa chave; partição ilimitada cresce sem teto; bucketing por tempo mitiga as duas"
+      - "As duas descrevem exatamente o mesmo fenômeno neste marco, apenas com nomes diferentes, e compartilham também a mesma causa técnica"
+      - "Partição quente só ocorre em DynamoDB e partição ilimitada só ocorre em Cassandra, segundo uma distinção feita neste marco por produto"
+      - "A única mitigação citada neste marco para qualquer uma das duas é aumentar o fator de replicação (RF) da tabela afetada"
+    answer: 0
+    explanation: "Partição quente é sobre tráfego concentrado numa chave (o celebrity problem); partição ilimitada é sobre uma partição crescendo sem corte temporal — problemas distintos, mas ambos mitigados por bucketing por tempo na chave de partição, que distribui carga e limita o tamanho. Não são o mesmo fenômeno, não há essa distinção por produto, e aumentar o fator de replicação não é a mitigação citada para nenhum dos dois."
+
+  - question: "Por que uma escrita condicional resolve idempotência sem lock, e o que a diferencia de uma transação como TransactWriteItems ou LWT?"
+    options:
+      - "A condição sobre o estado atual faz a segunda tentativa falhar sem lock; transações custam mais e cobrem múltiplos itens, não uma chave isolada"
+      - "Escrita condicional e transação são, segundo este marco, exatamente a mesma operação sob nomes diferentes, sem distinção real de custo ou escopo"
+      - "Escrita condicional exige sempre um lock distribuído explícito sobre a chave, o que a torna tecnicamente equivalente a uma transação completa"
+      - "A diferença citada neste marco é apenas de nomenclatura entre fornecedores: DynamoDB chama de condicional o que Cassandra chama de transação"
+    answer: 0
+    explanation: "A escrita condicional aplica a mudança só se uma condição sobre o estado atual for verdadeira — sem lock, a segunda tentativa de gravar a mesma chave de idempotência simplesmente falha a condição. Transações (TransactWriteItems, LWT) custam mais por envolverem um round-trip de consenso e cobrem operações sobre múltiplos itens, um escopo mais amplo. Não são a mesma operação, escrita condicional não exige lock distribuído explícito, e a diferença não é apenas de nomenclatura entre fornecedores."
+
+  - question: "O que um GSI do DynamoDB sacrifica para existir, e por que isso é esperado, não um defeito?"
+    options:
+      - "Sacrifica consistência imediata — a leitura via GSI pode estar obsoleta — porque a atualização do índice é assíncrona"
+      - "Sacrifica a capacidade de ser consultado por qualquer atributo que não seja a chave primária da tabela, tornando-o equivalente a um LSI"
+      - "Segundo este marco, GSI não sacrifica nada: ele é estritamente superior a um índice relacional em todas as dimensões de consistência e custo"
+      - "Sacrifica o fator de replicação da tabela base, reduzindo-o automaticamente sempre que um GSI novo é criado sobre essa tabela"
+    answer: 0
+    explanation: "O GSI é eventualmente consistente por padrão: a escrita na tabela base pode não ter propagado ainda para o índice no momento da leitura — um comportamento esperado do desenho, não um bug a corrigir. Um GSI existe justamente para consultar por um atributo diferente da chave primária (o oposto da alternativa errada), não há superioridade estrita sobre índice relacional declarada no marco, e a criação de um GSI não reduz o fator de replicação da tabela base."
+
+  - question: "Cite dois cenários em que wide-column é a escolha certa e dois em que é erro, segundo este marco."
+    options:
+      - "Certo: idempotência por chave e histórico por conta; erro: invariante entre itens (ledger) e consulta ad-hoc que muda com frequência"
+      - "Certo: qualquer dado transacional com múltiplas invariantes; erro: dado de sessão com TTL curto e alta taxa de escrita por chave conhecida"
+      - "Segundo este marco, wide-column é sempre a escolha certa para qualquer sistema de alta escrita, sem nenhum cenário descrito como erro real"
+      - "Certo: consulta ad-hoc que muda com frequência; erro: escrita altíssima e previsível com acesso por chave conhecida de antemão"
+    answer: 0
+    explanation: "O marco lista explicitamente idempotência por chave e histórico de eventos por conta como encaixes corretos, e invariante entre itens (o ledger) e consulta ad-hoc que muda com frequência como os erros clássicos — justamente o oposto do que as outras opções descrevem. Não há afirmação de que wide-column é sempre certo para alta escrita sem exceção, e os pares de certo/erro das outras alternativas estão invertidos ou trocados em relação ao que o texto afirma."

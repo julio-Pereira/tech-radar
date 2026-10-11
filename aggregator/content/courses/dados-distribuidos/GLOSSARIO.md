@@ -363,3 +363,159 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **No fin-platform:** `ANY 1 (s1, s2)`, que sobrevive à perda de um standby sem parar de aceitar escrita.
 **Erro comum:** declarar um único standby síncrono e transformar sua queda em parada total de escrita.
 **Onde na prática:** marco 15.
+
+## Armazenamento colunar e analítico
+
+### Armazenamento colunar
+**Em uma frase:** layout de storage que guarda os valores de cada coluna próximos no disco, em vez dos valores de cada linha.
+**No fin-platform:** o formato do `COLUNAR.md`, onde o relatório de TPV lê só `valor` e `data` sem tocar as outras colunas do lançamento.
+**Erro comum:** tratar colunar como "banco mais rápido" em vez de um formato desenhado para varredura de poucas colunas sobre muitas linhas.
+**Onde na prática:** marco 17.
+
+### Row group
+**Em uma frase:** um bloco de linhas dentro de um arquivo Parquet, com estatísticas próprias por coluna.
+**No fin-platform:** a unidade que a poda por data pula sem ler, quando o filtro cai fora do intervalo min/max do bloco.
+**Erro comum:** esperar poda eficaz sem ordenar ou particionar o dado pela coluna do filtro.
+**Onde na prática:** marco 17.
+
+### Estatística min/max e poda (pruning)
+**Em uma frase:** o metadado de valor mínimo e máximo por row group, usado para pular blocos inteiros sem ler uma linha.
+**No fin-platform:** a consulta de um dia específico pulando a maior parte dos row groups de um arquivo ordenado por data.
+**Erro comum:** medir "poda" sem comparar contra a varredura completa — sem o antes e o depois, o número não prova nada.
+**Onde na prática:** marco 17.
+
+### Execução vetorizada
+**Em uma frase:** processar um lote de valores de uma coluna por instrução, em vez de uma linha por vez.
+**No fin-platform:** o que torna a agregação por dia, sobre 10 milhões de lançamentos, mais rápida que iterar linha a linha.
+**Erro comum:** achar que o ganho vem só do formato de armazenamento — a execução do motor também importa.
+**Onde na prática:** marco 17.
+
+### Compressão por dicionário e RLE
+**Em uma frase:** duas técnicas que exploram a baixa variação de valores dentro de uma coluna — código curto por valor distinto, ou contagem de repetições.
+**No fin-platform:** a coluna `status` do lançamento, com poucos valores distintos repetidos milhões de vezes, comprimindo a uma fração do tamanho original.
+**Erro comum:** esperar o mesmo ganho de compressão numa coluna de alta cardinalidade, como um identificador aleatório.
+**Onde na prática:** marco 17.
+
+### Parte imutável e merge em segundo plano
+**Em uma frase:** o caminho de escrita que nunca modifica um arquivo existente, só cria arquivos novos e depois os funde num processo de fundo.
+**No fin-platform:** o mesmo parentesco com SSTable e compactação de LSM-tree, aplicado ao Parquet e ao MergeTree do ClickHouse.
+**Erro comum:** não antecipar que o merge em segundo plano compete por I/O exatamente durante picos de ingestão.
+**Onde na prática:** marco 17.
+
+### Formato de tabela de lakehouse
+**Em uma frase:** uma camada de metadados sobre arquivos colunares (Iceberg, Delta) que adiciona snapshot, time travel e evolução de schema sem reescrever dado antigo.
+**No fin-platform:** tratado em nível conceitual — saber o que resolve, sem exigir uso real na trilha.
+**Erro comum:** confundir o formato de arquivo (Parquet) com o formato de tabela (Iceberg/Delta) — são camadas diferentes, uma sobre a outra.
+**Onde na prática:** marco 17.
+
+### Delete file
+**Em uma frase:** um arquivo auxiliar que lista linhas removidas de um arquivo colunar imutável, aplicado na leitura sem reescrever o original.
+**No fin-platform:** a forma rápida de registrar uma remoção pontual, que acumula custo de leitura até a próxima compactação.
+**Erro comum:** acumular delete files sem compactação periódica, até a leitura pagar mais para filtrar do que para ler dado vivo.
+**Onde na prática:** marco 17.
+
+### Crypto-shredding (no colunar)
+**Em uma frase:** cifrar a coluna sensível com uma chave por titular, de forma que apagar a chave torna o conteúdo irrecuperável sem tocar o arquivo.
+**No fin-platform:** a saída de menor custo para o direito de exclusão da LGPD num arquivo colunar com bilhões de linhas de todos os titulares.
+**Erro comum:** tentar resolver o apagar por reescrita completa do arquivo quando o volume não permite, sem considerar a alternativa de chave por titular.
+**Onde na prática:** marcos 13 e 17.
+
+## Wide-column e família Dynamo
+
+### Chave de partição (wide-column)
+**Em uma frase:** a parte da chave que decide em qual nó um item mora — a decisão mais cara de reverter em Dynamo/Cassandra.
+**No fin-platform:** `accountId` como chave de partição do extrato, desenhada antes de qualquer query ser escrita.
+**Erro comum:** escolher a chave de partição depois de modelar as entidades, em vez de a partir da query.
+**Onde na prática:** marco 18.
+
+### Chave de ordenação (clustering)
+**Em uma frase:** a parte da chave que decide a ordem dos itens dentro da mesma partição, permitindo range query eficiente.
+**No fin-platform:** `paymentId` como chave de ordenação dentro da partição por conta, servindo "últimos pagamentos desta conta" sem scan.
+**Erro comum:** tratar a chave de ordenação como um campo qualquer, sem desenhá-la para a query de range que ela precisa servir.
+**Onde na prática:** marco 18.
+
+### Query-first (tabela por query)
+**Em uma frase:** modelar uma tabela para uma query específica, com desnormalização, em vez de normalizar por entidade e juntar depois.
+**No fin-platform:** uma tabela para "extrato por conta" e outra para "idempotência por chave", em vez de uma tabela genérica de "eventos".
+**Erro comum:** modelar como em relacional e só descobrir o erro de acesso quando o volume expõe scan ou partição quente.
+**Onde na prática:** marco 18.
+
+### Single-table design
+**Em uma frase:** modelar o sistema inteiro numa única tabela física, com prefixos de chave distinguindo tipos de item.
+**No fin-platform:** uma técnica controversa — ganha em operação (uma tabela para gerenciar), perde em legibilidade e flexibilidade de query nova.
+**Erro comum:** adotar por padrão sem medir se a economia operacional compensa a perda de flexibilidade para o caso real.
+**Onde na prática:** marco 18.
+
+### GSI/LSI
+**Em uma frase:** índices secundários do DynamoDB — GSI consulta por atributo diferente da chave primária com leitura eventualmente consistente; LSI vive dentro da partição base.
+**No fin-platform:** um GSI por `pspId` para consultar pagamentos por parceiro sem redesenhar a chave primária.
+**Erro comum:** esperar que uma leitura via GSI, feita imediatamente após a escrita, sempre reflita o valor mais recente.
+**Onde na prática:** marco 18.
+
+### Partição quente
+**Em uma frase:** uma chave de partição que concentra tráfego desproporcional, sobrecarregando o nó responsável por ela.
+**No fin-platform:** `pspId` como chave de partição, quando poucos parceiros concentram quase todo o volume — o celebrity problem em outro nome.
+**Erro comum:** escolher uma chave de alta concentração natural (parceiro, tipo de produto) sem medir a distribuição real antes.
+**Onde na prática:** marco 18.
+
+### Partição ilimitada
+**Em uma frase:** uma partição que cresce sem corte temporal, até bater em limites práticos de tamanho e latência.
+**No fin-platform:** "todos os eventos desta conta" sem recorte por mês, crescendo para sempre enquanto a conta existir.
+**Erro comum:** não aplicar bucketing por tempo na chave desde o desenho, descobrindo o problema só quando a partição já está grande.
+**Onde na prática:** marco 18.
+
+### Tombstone
+**Em uma frase:** o marcador que um DELETE grava em Cassandra, mantido até a próxima compactação depois de um período de graça.
+**No fin-platform:** uma fila implementada como inserção e remoção repetida na mesma partição, acumulando tombstones até degradar a leitura.
+**Erro comum:** medir o tamanho dos dados vivos sem contar os tombstones acumulados, subestimando o custo real da partição.
+**Onde na prática:** marco 18.
+
+### Sloppy quorum e hinted handoff
+**Em uma frase:** quando os nós donos corretos de uma chave estão fora, outros nós aceitam a escrita (hinted handoff) para manter disponibilidade — e isso quebra a premissa de `R + W > N`.
+**No fin-platform:** uma escrita de extrato aceita por um nó "errado" durante uma falha, entregue depois ao nó correto quando ele volta.
+**Erro comum:** confiar que `R + W > N` garante sobreposição mesmo sob sloppy quorum, sem checar se ele está ativo.
+**Onde na prática:** marco 18.
+
+### Read repair e anti-entropy (Merkle)
+**Em uma frase:** dois mecanismos que convergem réplicas desatualizadas — read repair ao servir uma leitura, anti-entropy por comparação periódica de árvores de hash.
+**No fin-platform:** o processo de fundo que corrige uma réplica que ficou atrás depois de uma falha de rede breve.
+**Erro comum:** esperar que os dois mecanismos corrijam divergência instantaneamente — eles convergem com o tempo, não imediatamente.
+**Onde na prática:** marco 18.
+
+### Last-write-wins (LWW)
+**Em uma frase:** resolução de conflito por timestamp, que descarta a escrita "perdedora" sem erro, sem log e sem aviso.
+**No fin-platform:** aceitável para um histórico de eventos append-only; inaceitável para saldo, onde é perda de dado silenciosa.
+**Erro comum:** usar multi-leader ou wide-column com LWW para qualquer valor que sofre escrita concorrente real, como saldo.
+**Onde na prática:** marcos 02 e 18.
+
+### Escrita condicional
+**Em uma frase:** uma escrita que só se aplica se uma condição sobre o estado atual for verdadeira — concorrência otimista sem lock.
+**No fin-platform:** o store de chaves de idempotência, onde a segunda tentativa de gravar a mesma chave falha pela condição, não por erro de rede.
+**Erro comum:** confundir escrita condicional com transação — ela resolve uma chave isolada, não uma invariante entre itens.
+**Onde na prática:** marco 18.
+
+### RCU/WCU
+**Em uma frase:** a moeda de capacidade do DynamoDB — unidades de leitura e escrita, provisionadas ou on-demand.
+**No fin-platform:** o paralelo direto do RU do Cosmos DB, cada um com sua própria tabela de custo por tipo de operação.
+**Erro comum:** comparar RCU/WCU com RU como se fossem a mesma unidade, sem conferir a tabela de custo de cada produto.
+**Onde na prática:** marco 18.
+
+## Stores especializados
+
+### Índice invertido
+**Em uma frase:** a estrutura de dados por trás de busca textual relevante — mapeia termo para os documentos que o contêm.
+**No fin-platform:** o motor de busca do catálogo de produtos, nunca a fonte da verdade do catálogo em si.
+**Erro comum:** tratar o índice de busca como fonte da verdade, em vez de um derivado reconstruível e quase tempo real.
+**Onde na prática:** marco 06.
+
+### Downsampling
+**Em uma frase:** reduzir a resolução de dado histórico de série temporal, mantendo tendência com menos pontos.
+**No fin-platform:** métricas do `fin-watch` de um ano atrás guardadas por hora, não por segundo.
+**Erro comum:** guardar toda métrica na resolução original para sempre, pagando armazenamento sem ganho de análise correspondente.
+**Onde na prática:** marco 06.
+
+### Índice vetorial aproximado (recall)
+**Em uma frase:** um índice de busca por similaridade que troca precisão exata (recall) por velocidade de busca.
+**No fin-platform:** `pgvector` como ponto de partida antes de qualquer banco vetorial dedicado, até a query comprovar que não basta.
+**Erro comum:** adotar um banco vetorial dedicado sem medir se `pgvector` já resolve o volume, e sem contar o custo de re-embedding.
+**Onde na prática:** marco 06.
