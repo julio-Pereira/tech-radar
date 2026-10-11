@@ -1,0 +1,36 @@
+questions:
+  - question: "O que o funil de adoção revela que uma métrica única de 'equipes usando a plataforma' não revelaria, segundo este marco?"
+    options:
+      - "Onde as equipes desistem — descoberta sem experimentação é um problema diferente de migrar e depois voltar ao caminho antigo"
+      - "O funil de adoção, segundo este marco, mede exatamente a mesma informação que a métrica única, apenas com mais etapas visuais"
+      - "Este marco recomenda substituir completamente o funil por uma única métrica de satisfação geral, por ser mais simples"
+      - "O funil só é útil para plataformas que atendem menos de cinco equipes, perdendo relevância em escala maior"
+    answer: 0
+    explanation: "Cada etapa do funil (descobriu, experimentou, migrou, ficou) aponta para um tipo de problema diferente — uma equipe que nunca experimenta tem um problema distinto de uma que migra e depois volta ao caminho antigo; uma métrica única de adoção esconde essa diferença. O funil não é redundante com a métrica única (captura informação adicional), o marco não recomenda substituí-lo por satisfação geral, e sua utilidade cresce, não diminui, com mais equipes."
+
+  - question: "Por que a sequência correta de aposentar um caminho antigo é bloquear novos usos antes de migrar o legado, segundo este marco?"
+    options:
+      - "Migrar o legado antes de bloquear novos usos deixa a porta antiga aberta, prolongando o problema indefinidamente"
+      - "Porque, tecnicamente, é impossível migrar qualquer sistema legado enquanto o caminho antigo ainda aceita novos usos"
+      - "Este marco recomenda sempre migrar o legado primeiro, independente de bloquear ou não novos usos simultaneamente"
+      - "A ordem entre as duas etapas, segundo este marco, não tem relevância prática real para o tempo total da aposentadoria"
+    answer: 0
+    explanation: "Se novos serviços ainda puderem usar o caminho antigo enquanto o legado é migrado, o problema nunca diminui de verdade — por isso bloquear novos usos primeiro é o que garante que o esforço de migração do legado tem um fim visível. Migrar legado com o caminho antigo ainda aberto é, sim, tecnicamente possível (só ineficaz), o marco recomenda bloquear antes (não migrar legado primeiro), e a ordem tem impacto real no tempo total do processo."
+
+  - question: "Por que uma equipe que resiste à migração por motivo regulatório legítimo não deveria ser forçada nem simplesmente ignorada, segundo este marco?"
+    options:
+      - "A resistência legítima é sinal de uma capacidade que a plataforma ainda precisa construir, não teimosia a ser superada por imposição"
+      - "Porque, tecnicamente, nenhuma plataforma interna pode legalmente exigir migração de uma equipe sob qualquer circunstância regulatória"
+      - "Este marco recomenda sempre forçar a migração mesmo com motivo regulatório, priorizando a adoção completa da plataforma"
+      - "A resistência só é válida quando a equipe em questão já atingiu a etapa 'ficou' do funil de adoção em outro contexto anterior"
+    answer: 0
+    explanation: "O exemplo do marco mostra exatamente isso: a resistência aponta para um requisito regulatório real que a plataforma ainda não atende — a resposta correta é a plataforma ganhar essa capacidade, não forçar a migração nem desistir da equipe. Não há proibição legal genérica envolvida (é sobre atender ou não um requisito específico), o marco recomenda não forçar (o oposto da alternativa), e a legitimidade da resistência não depende de histórico prévio de adoção da equipe."
+
+  - question: "Por que o estudo de comprar × construir a própria IDP precisa ser neutro, sem recomendar produto, segundo este marco?"
+    options:
+      - "Ferramentas e licenças mudam rápido; o conteúdo da trilha precisa ficar independente de produto específico"
+      - "Porque, tecnicamente, nenhuma ferramenta de portal ou composição de infraestrutura pode ser avaliada de forma comparativa"
+      - "Este marco recomenda sempre adotar Backstage como portal e Crossplane como motor de composição, sem avaliação comparativa real"
+      - "A neutralidade só é exigida quando a decisão de comprar ou construir envolve mais de um fornecedor simultaneamente"
+    answer: 0
+    explanation: "Ferramentas de portal e de composição de infraestrutura evoluem e mudam de licença rapidamente; manter o conteúdo da trilha neutro, com critérios explícitos em vez de recomendação de produto específico, evita que o material fique amarrado a uma ferramenta que pode mudar de maturidade ou licença. Avaliação comparativa entre ferramentas é, sim, possível e é o que o marco propõe, não há recomendação fixa de Backstage/Crossplane (são citados só como exemplo de estudo), e a neutralidade vale independente do número de fornecedores avaliados."

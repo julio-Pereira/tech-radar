@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que segurança que depende de 'cada time lembrar' é descrita como fadada a falhar, segundo este marco?"
+    options:
+      - "Cedo ou tarde alguém esquece — segurança embutida de graça no caminho padrão não depende de lembrança"
+      - "Porque, tecnicamente, nenhuma equipe de engenharia é capaz de seguir um checklist de segurança com mais de três itens"
+      - "Este marco recomenda documentar o checklist com mais detalhe, em vez de embutir a segurança no caminho padrão"
+      - "A falha só ocorre quando a equipe não tem certificação formal de segurança, segundo o critério citado neste marco"
+    answer: 0
+    explanation: "A lógica é simples e direta: depender de lembrança humana para aplicar uma configuração de segurança garante que, em algum momento, alguém vai esquecer; embutir o controle como default no golden path remove essa dependência. Não há limite arbitrário de itens de checklist, o marco recomenda embutir no caminho padrão (não só documentar melhor), e a falha não depende de certificação formal da equipe."
+
+  - question: "Por que a plataforma é um dos alvos mais valiosos da organização, segundo este marco?"
+    options:
+      - "Concentra o poder de agir em nome de todas as equipes, dando a quem a comprometer acesso equivalente"
+      - "Porque, tecnicamente, a plataforma é o único sistema da organização que armazena dados de clientes em qualquer circunstância"
+      - "Este marco afirma que a plataforma só é um alvo valioso quando hospedada fora da infraestrutura própria da empresa"
+      - "A plataforma é um alvo valioso apenas durante o horário comercial, quando mais equipes estão ativamente usando-a"
+    answer: 0
+    explanation: "Por concentrar o poder de criar, modificar e remover recursos em nome de todas as equipes, comprometer o control plane da plataforma pode dar a um atacante acesso equivalente ao de todas elas — um raio de explosão muito maior do que comprometer um serviço isolado. A plataforma não é o único sistema com dados de clientes, o valor do alvo não depende de hospedagem externa, e não há relação com horário comercial."
+
+  - question: "O que significa 'o time herda o controle, não o reimplementa', e por que isso produz consistência, segundo este marco?"
+    options:
+      - "Um controle embutido no golden path é herdado por quem o usa, evitando reimplementações inconsistentes"
+      - "Significa que cada time deve copiar manualmente a implementação do controle de segurança de outro time já existente"
+      - "Este marco recomenda que cada equipe reimplemente o controle de segurança à sua própria maneira, para maior flexibilidade"
+      - "A herança de controle, segundo este marco, só se aplica a equipes que usam exclusivamente a linguagem Go"
+    answer: 0
+    explanation: "Quando o controle de conformidade já está embutido no caminho pavimentado, toda equipe que usa esse caminho herda o controle automaticamente, sem precisar reimplementá-lo — o que evita que times diferentes implementem a mesma verificação de formas sutilmente inconsistentes. Não envolve cópia manual entre times, o marco recomenda herança (não reimplementação independente), e não há essa restrição de linguagem."
+
+  - question: "Por que segurança excessivamente restritiva pode ser pior para a segurança geral do que uma restrição calibrada, segundo este marco?"
+    options:
+      - "Restrição excessiva empurra equipes a contornar a plataforma criando recursos por fora, pior para a segurança"
+      - "Porque, tecnicamente, restrições de segurança acima de um certo nível sempre causam falha de disponibilidade da plataforma"
+      - "Este marco recomenda maximizar a restrição ao máximo possível, sem nenhuma preocupação com autonomia das equipes"
+      - "A restrição excessiva só é um problema quando a plataforma está hospedada em mais de uma região geográfica"
+    answer: 0
+    explanation: "Se a restrição for tão rígida que as equipes decidem contornar a plataforma (criando recursos por fora dela 'porque é mais rápido'), o controle que a restrição deveria garantir simplesmente desaparece — uma restrição um pouco mais permissiva, mas realmente seguida, protege mais na prática. Não há relação com falha de disponibilidade, o marco recomenda calibrar (não maximizar) a restrição, e o problema não depende de multi-região."
+
+  - question: "Por que a conta de serviço da própria plataforma precisa ter permissões mínimas, e o que acontece se um curinga for adicionado à lista permitida, segundo este marco?"
+    options:
+      - "Permissões mínimas limitam o raio de explosão; um curinga na lista permitida reprova o teste"
+      - "Porque, tecnicamente, contas de serviço com permissões amplas nunca conseguem executar operações de reconciliação corretamente"
+      - "Este marco recomenda sempre usar um curinga nas permissões da plataforma, para simplificar a configuração de acesso"
+      - "A exigência de permissão mínima só se aplica à conta de serviço usada pelo portal visual, nunca à usada pela API"
+    answer: 0
+    explanation: "Permissões mínimas reduzem o que um comprometimento da própria plataforma permitiria fazer; o marco é explícito que adicionar um curinga à lista permitida de permissões deveria reprovar o teste de verificação, exatamente para impedir essa prática por comodidade. Contas com permissão ampla executam reconciliação normalmente (o risco é de segurança, não de funcionalidade), o marco recomenda evitar curinga (não usá-lo sempre), e a exigência vale para qualquer conta de serviço da plataforma, não só a do portal."
+
+  - question: "Por que um segredo plantado num pedido ou num template precisa ser rejeitado antes de qualquer persistência, segundo este marco?"
+    options:
+      - "Para o valor sensível nunca ficar armazenado, nem por um instante, evitando exposição mesmo temporária"
+      - "Porque, tecnicamente, persistir um segredo em texto claro é impossível em qualquer banco de dados usado pela plataforma"
+      - "Este marco recomenda persistir o segredo normalmente e removê-lo depois, numa rotina de limpeza agendada semanalmente"
+      - "A rejeição só é necessária quando o segredo pertence a um ambiente de produção, nunca em ambientes de homologação"
+    answer: 0
+    explanation: "O exemplo do marco mostra exatamente isso: a varredura roda antes da gravação, rejeitando o pedido para que o token nunca chegue a ser armazenado, nem temporariamente — diferente de persistir e limpar depois, o que deixaria uma janela de exposição real. Persistir segredo em texto claro é, infelizmente, tecnicamente possível (por isso a varredura é necessária), o marco recomenda rejeitar antes (não limpar depois), e a regra vale para qualquer ambiente, não só produção."

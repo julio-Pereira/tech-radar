@@ -1,0 +1,35 @@
+slug: engenharia-de-plataforma
+title: "Engenharia de Plataforma: a Plataforma Interna que Transforma DevOps em Produto"
+subtitle: "Cliente interno, API de autosserviço, catálogo, golden paths que sobrevivem ao dia 2, ambientes como serviço, segurança embutida, SLO, custo e adoção medida — uma IDP para a fintech."
+category: "Plataforma"
+tags: [engenharia-de-plataforma, idp, golden-path, catalogo-de-software, autosservico, platform-as-a-product, finops, team-topologies, devex, fintech]
+level: advanced
+lang: pt-BR
+estimatedHours: 19
+glossary: GLOSSARIO.md
+sources:
+  - { title: "CNCF Platforms White Paper", url: https://tag-app-delivery.cncf.io/whitepapers/platforms/ }
+  - { title: "CNCF Platform Engineering Maturity Model", url: https://tag-app-delivery.cncf.io/whitepapers/platform-eng-maturity-model/ }
+  - { title: "Team Topologies", url: https://teamtopologies.com/ }
+  - { title: "What is platform engineering? (platformengineering.org)", url: https://platformengineering.org/blog/what-is-platform-engineering }
+  - { title: "Backstage — documentation (como estudo comparativo)", url: https://backstage.io/docs/ }
+  - { title: "Crossplane — documentation (como estudo comparativo)", url: https://docs.crossplane.io/ }
+  - { title: "Kubernetes — Operator pattern", url: https://kubernetes.io/docs/concepts/extend-kubernetes/operator/ }
+  - { title: "Accelerate (Forsgren, Humble, Kim)", url: https://itrevolution.com/product/accelerate/ }
+  - { title: "DORA — pesquisa e métricas de entrega", url: https://dora.dev/ }
+  - { title: "Terraform — documentation", url: https://developer.hashicorp.com/terraform/docs }
+  - { title: "FinOps Foundation — framework", url: https://www.finops.org/framework/ }
+  - { title: "Open Policy Agent — documentation", url: https://www.openpolicyagent.org/docs/ }
+milestones:
+  # Bloco A — Produto e arquitetura
+  - 01-plataforma-como-produto.md
+  - 02-arquitetura-de-uma-idp.md
+  # Bloco B — Capacidades
+  - 03-catalogo-de-software-e-propriedade.md
+  - 04-golden-paths-em-escala.md
+  - 05-ambientes-como-servico.md
+  - 06-seguranca-e-conformidade-como-capacidade.md
+  # Bloco C — Operar e crescer
+  - 07-operar-a-plataforma.md
+  - 08-custo-e-finops-da-plataforma.md
+  - 09-adocao-migracao-e-capstone.md

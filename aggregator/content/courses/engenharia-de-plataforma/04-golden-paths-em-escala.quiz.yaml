@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que um escape hatch precisa ser auditado e ter prazo, segundo este marco?"
+    options:
+      - "Sem auditoria e prazo, um desvio legítimo pode se tornar permanente sem nunca ser revisado de novo"
+      - "Porque, tecnicamente, nenhum golden path pode ser implementado sem pelo menos um escape hatch configurado desde o início"
+      - "Este marco recomenda nunca permitir escape hatches, tratando qualquer desvio do caminho padrão como proibido"
+      - "Auditoria e prazo em escape hatches servem apenas para cumprir uma exigência de relatório trimestral, sem efeito prático real"
+    answer: 0
+    explanation: "Um escape hatch sem registro e sem prazo tende a se tornar um desvio permanente, nunca reavaliado — a mesma lógica da exceção com prazo de governança, aplicada aqui ao golden path. Não há exigência técnica de ter um escape hatch configurado por padrão, o marco permite desvios legítimos (não os proíbe), e a função de auditoria/prazo é prática, não só burocrática."
+
+  - question: "Qual é o trade-off entre geração e herança, segundo este marco?"
+    options:
+      - "Geração diverge naturalmente do template com o tempo; herança propaga atualizações, mas com acoplamento mais forte"
+      - "Geração e herança, segundo este marco, produzem exatamente o mesmo resultado técnico, diferindo apenas no nome do comando usado"
+      - "Herança é sempre superior a geração em qualquer cenário, segundo a comparação apresentada neste marco"
+      - "Geração sempre propaga atualizações automaticamente para os repositórios já criados, o oposto do que este marco descreve"
+    answer: 0
+    explanation: "Geração cria arquivos iniciais que depois evoluem separadamente do template (divergência natural); herança mantém o serviço dependente do componente compartilhado, propagando atualizações, mas com acoplamento mais forte que pode limitar customização local — um trade-off real entre os dois. Não produzem o mesmo resultado, nenhuma das duas é descrita como sempre superior, e geração não propaga atualização automática (é a herança que faz isso)."
+
+  - question: "Por que mesclagem de três vias reporta conflitos em vez de escolher automaticamente um lado, segundo este marco?"
+    options:
+      - "Porque sobrescrever a personalização local silenciosamente destruiria uma decisão deliberada de alguém, sem aviso"
+      - "Porque, tecnicamente, a técnica de três vias é incapaz de determinar qual dos dois lados é mais recente no tempo"
+      - "Este marco recomenda que a atualização sempre prefira automaticamente a versão nova do template, ignorando personalização"
+      - "Reportar conflito em vez de escolher um lado serve apenas para gerar métricas de uso da ferramenta de atualização"
+    answer: 0
+    explanation: "Escolher automaticamente um lado arriscaria sobrescrever uma personalização feita deliberadamente por alguém, sem que ninguém seja avisado — reportar o conflito com arquivo e motivo é o que preserva a decisão humana e evita essa perda silenciosa. A técnica de três vias consegue, sim, comparar as versões (não é limitação de tempo), o marco recomenda reportar em vez de sempre preferir a versão nova, e a função não é geração de métrica de uso."
+
+  - question: "O que o CI do próprio template pega que o CI do serviço gerado, sozinho, não pegaria, segundo este marco?"
+    options:
+      - "Um template que quebra a própria geração — pego antes de publicado, não pelo primeiro time que o usar"
+      - "O CI do template, segundo este marco, verifica exclusivamente a sintaxe YAML dos arquivos do template, nada além disso"
+      - "Não há diferença real entre as duas verificações, segundo este marco, já que ambas detectam exatamente os mesmos problemas"
+      - "O CI do template só é útil para detectar vulnerabilidades de segurança, nunca problemas de geração ou de build"
+    answer: 0
+    explanation: "O CI do template gera um serviço a partir dele, constrói e roda os gates — pegando um problema na geração ou no template em si antes que qualquer time real tente usá-lo e descubra o problema na prática. O CI do template vai além de sintaxe YAML (inclui gerar, construir e rodar gates), as duas verificações não são idênticas (cobrem momentos diferentes), e seu propósito não se limita a segurança."
+
+  - question: "Por que uma janela de depreciação anunciada é preferível a um desligamento surpresa, segundo este marco?"
+    options:
+      - "Dá tempo para os consumidores migrarem, com comunicação clara do prazo final, em vez de uma quebra inesperada"
+      - "Porque, tecnicamente, é impossível desligar uma versão de template sem antes anunciar uma janela de depreciação formal"
+      - "Este marco recomenda desligamento surpresa sempre que o número de consumidores afetados for pequeno"
+      - "A janela de depreciação serve apenas para fins de registro histórico, sem efeito real sobre quem consome o template"
+    answer: 0
+    explanation: "Anunciar a depreciação com antecedência dá aos times tempo real para planejar a migração, evitando que uma versão desapareça sob eles sem aviso. Não há impossibilidade técnica de desligar sem aviso (só seria pior prática), o marco não recomenda desligamento surpresa em nenhum caso, e a janela tem efeito prático direto sobre quem consome, não é só registro."
+
+  - question: "Em que situação não padronizar com um golden path é a decisão correta, segundo este marco?"
+    options:
+      - "Um protótipo descartável ou uma necessidade genuinamente única que nenhum template serviria bem"
+      - "Este marco afirma que toda situação se beneficia de padronização, sem exceção válida a considerar"
+      - "Não padronizar só é aceitável quando a equipe que pede a exceção tem mais de cinco anos de experiência"
+      - "A decisão de não padronizar depende exclusivamente de qual linguagem de programação está sendo usada no serviço"
+    answer: 0
+    explanation: "O marco reconhece explicitamente que protótipos descartáveis ou necessidades genuinamente únicas são casos em que forçar o caminho padrão custa mais do que vale — padronização não é incondicional. O marco não trata padronização como sempre benéfica (reconhece exceções), não há critério de tempo de experiência da equipe, e a decisão não depende da linguagem usada."
