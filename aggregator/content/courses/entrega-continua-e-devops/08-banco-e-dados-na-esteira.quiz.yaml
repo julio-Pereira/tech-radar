@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que a ordem correta é sempre migrar o schema antes de implantar o app novo, segundo este marco?"
+    options:
+      - "Se o app novo espera uma coluna ainda inexistente, falha imediatamente; migrar antes evita essa janela de incompatibilidade"
+      - "Porque, tecnicamente, nenhum banco de dados é capaz de aceitar uma migração de schema depois que o app já foi implantado"
+      - "Este marco recomenda o oposto: implantar o app primeiro e só depois migrar o schema, para reduzir o tempo de indisponibilidade"
+      - "A ordem entre migração e deploy, segundo este marco, não tem nenhuma relação com o funcionamento correto do app"
+    answer: 0
+    explanation: "Se o app novo for implantado antes da migração e esperar uma coluna que ainda não existe, ele falha de imediato; migrar o schema primeiro, combinado com a matriz de compatibilidade, garante que a versão anterior do app continue funcionando enquanto a nova é implantada. Bancos aceitam migração independente do momento do deploy, o marco recomenda migrar antes (não depois), e a ordem tem relação direta com o app funcionar ou não."
+
+  - question: "O que a matriz de compatibilidade N-1 × N e N × N+1 verifica, e por que essa verificação é necessária durante um deploy gradual?"
+    options:
+      - "Verifica se versões adjacentes do app funcionam contra o mesmo schema, porque durante o deploy gradual elas coexistem de propósito"
+      - "Verifica apenas se o banco de dados suporta a versão mais recente da linguagem de programação usada pela aplicação"
+      - "A matriz de compatibilidade, segundo este marco, só é relevante em deploys instantâneos do tipo blue/green, nunca em deploys graduais"
+      - "Essa verificação existe apenas para fins de documentação histórica, sem influência real no comportamento do deploy"
+    answer: 0
+    explanation: "Durante um deploy gradual (rolling, canário), as versões N-1 e N do app coexistem rodando contra o mesmo schema por um período — a matriz verifica explicitamente que essa coexistência funciona nos dois sentidos. A matriz não é sobre versão de linguagem de programação, é especialmente relevante em deploys graduais (não em blue/green instantâneo, que evita essa coexistência), e tem influência direta e real no comportamento do deploy, não é só documentação."
+
+  - question: "Por que um linter de DDL perigoso precisa conhecer o comportamento específico da versão do banco, segundo este marco?"
+    options:
+      - "Porque o que conta como DDL perigoso (trava longa, índice sem opção concorrente) pode mudar entre versões do banco"
+      - "Porque, tecnicamente, um linter de DDL é incapaz de funcionar com qualquer banco de dados relacional moderno"
+      - "Este marco afirma que toda versão de qualquer banco trata exatamente as mesmas operações como igualmente perigosas, sem exceção"
+      - "Porque o linter, segundo este marco, só precisa verificar a sintaxe SQL, sem relação com o comportamento real de execução"
+    answer: 0
+    explanation: "O marco é explícito ao marcar 'conferir o comportamento exato por versão do banco' — porque o que é considerado perigoso (como índice sem opção concorrente) pode mudar entre versões do mesmo banco, exigindo que o linter seja ajustado conforme a versão real em uso. Linters de DDL funcionam, sim, com bancos relacionais modernos, o marco não afirma uniformidade entre versões (afirma o oposto), e a preocupação é com comportamento de execução, não só sintaxe."
+
+  - question: "Por que uma migração de dados longa precisa ser retomável, e o que isso exige do seu desenho, segundo este marco?"
+    options:
+      - "Se interrompida, retomar não deve reprocessar dados já migrados nem perder progresso; isso exige registrar o progresso de forma durável"
+      - "Porque, tecnicamente, nenhuma migração de dados pode levar mais de uma hora sem falhar automaticamente por timeout do banco"
+      - "Este marco recomenda sempre reiniciar a migração do zero após qualquer interrupção, independente do volume de dados já processado"
+      - "Retomável, segundo este marco, significa apenas que a migração pode ser executada por qualquer membro da equipe, sem relação com interrupção"
+    answer: 0
+    explanation: "Uma migração de dados longa, interrompida por falha ou timeout, precisa retomar sem reprocessar o que já foi migrado nem perder o progresso — isso exige que o próprio processo registre seu avanço de forma durável, não dependente de uma única execução ininterrupta. Não há limite genérico de uma hora citado, o marco recomenda não reiniciar do zero (o oposto da alternativa), e 'retomável' não tem relação com quem executa a migração."

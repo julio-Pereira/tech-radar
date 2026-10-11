@@ -1,0 +1,37 @@
+slug: entrega-continua-e-devops
+title: "Entrega Contínua e DevOps: da Esteira ao Controle de Mudança numa Fintech"
+subtitle: "Pipeline como código de produção: fluxo medido, integração contínua de verdade, testes como gates, infraestrutura como código com Terraform, rollback guiado por SLO e evidência de auditoria embutida."
+category: "DevOps"
+tags: [ci-cd, devops, github-actions, terraform, dora, trunk-based, iac, gitops, rollback, controle-de-mudanca, platform-engineering, fintech]
+level: advanced
+lang: pt-BR
+estimatedHours: 21
+glossary: GLOSSARIO.md
+sources:
+  - { title: "Accelerate (Forsgren, Humble, Kim)", url: https://itrevolution.com/product/accelerate/ }
+  - { title: "DORA — pesquisa e as métricas de entrega", url: https://dora.dev/ }
+  - { title: "Continuous Delivery (Humble & Farley)", url: https://continuousdelivery.com/ }
+  - { title: "Trunk Based Development", url: https://trunkbaseddevelopment.com/ }
+  - { title: "GitHub Actions — documentation", url: https://docs.github.com/actions }
+  - { title: "actionlint", url: https://github.com/rhysd/actionlint }
+  - { title: "Terraform — documentation", url: https://developer.hashicorp.com/terraform/docs }
+  - { title: "OpenTofu — documentation", url: https://opentofu.org/docs/ }
+  - { title: "Open Policy Agent — documentation", url: https://www.openpolicyagent.org/docs/ }
+  - { title: "Release It! (Michael Nygard)", url: https://pragprog.com/titles/mnee2/release-it-second-edition/ }
+  - { title: "SLSA — Supply-chain Levels for Software Artifacts", url: https://slsa.dev/ }
+  - { title: "The Twelve-Factor App", url: https://12factor.net/pt_br/ }
+milestones:
+  # Bloco A — Fluxo e esteira
+  - 01-devops-como-fluxo-e-medicao.md
+  - 02-anatomia-da-pipeline.md
+  - 03-integracao-continua-de-verdade.md
+  # Bloco B — Qualidade e artefato
+  - 04-testes-como-gates.md
+  - 05-construir-uma-vez-e-promover.md
+  # Bloco C — Infraestrutura e release
+  - 06-infraestrutura-como-codigo-com-terraform.md
+  - 07-release-e-rollback-guiados-por-slo.md
+  - 08-banco-e-dados-na-esteira.md
+  # Bloco D — Controle e esteira como produto
+  - 09-controle-de-mudanca-regulado.md
+  - 10-esteira-como-produto-e-capstone.md

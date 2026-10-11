@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que a ordem dos estágios de uma pipeline é uma função do custo declarado, e não de convenção?"
+    options:
+      - "Porque um estágio barato e rápido que falha evita desperdiçar o tempo de um estágio caro que viria depois"
+      - "Porque, tecnicamente, o GitHub Actions executa estágios sempre em ordem alfabética de nome do job, independente de configuração"
+      - "Na verdade este marco recomenda sempre executar o estágio mais lento primeiro, para detectar problemas de infraestrutura antes"
+      - "Porque convenção e hábito são, segundo este marco, os únicos critérios válidos para decidir a ordem de qualquer pipeline"
+    answer: 0
+    explanation: "Se um lint de 5 segundos falha, não há razão para gastar 12 minutos num teste de integração sobre um código que já falhou numa verificação básica — por isso o custo declarado, do mais barato ao mais caro, define a ordem. GitHub Actions não ordena jobs por nome alfabético automaticamente, o marco recomenda o oposto de rodar o lento primeiro, e convenção é exatamente o que o critério de custo substitui."
+
+  - question: "Por que uma chave de cache baseada no nome do branch, em vez do hash do lockfile, é descrita como um bug sutil e perigoso?"
+    options:
+      - "Porque pode servir um cache desatualizado e incorreto silenciosamente, sem gerar nenhum erro visível"
+      - "Porque, tecnicamente, chaves baseadas em nome de branch são proibidas pela documentação oficial do GitHub Actions"
+      - "Porque essa chave sempre invalida o cache a cada execução, tornando o cache completamente inútil, mas de forma visível e fácil de notar"
+      - "Porque o nome do branch, segundo este marco, nunca pode ser lido corretamente pelo mecanismo de cache de nenhuma ferramenta de CI"
+    answer: 0
+    explanation: "Se o lockfile mudar mas a chave do cache não refletir isso (por depender só do branch), o cache antigo é reutilizado mesmo com dependências diferentes — um erro silencioso, sem mensagem de falha, difícil de diagnosticar. Não há proibição documentada dessa prática, o problema não é invalidação excessiva e visível (é o oposto: reuso indevido), e não há limitação técnica de leitura do nome do branch."
+
+  - question: "O que distingue 'pipeline como código fino' de um run: com lógica condicional embutida, segundo este marco?"
+    options:
+      - "No código fino a decisão vive em função testável fora do YAML; no run: embutido só se verifica rodando tudo"
+      - "Não há distinção real: este marco trata as duas abordagens como equivalentes em testabilidade e manutenção"
+      - "Pipeline como código fino, segundo este marco, significa escrever o workflow inteiro em uma única linha de YAML, sem quebras"
+      - "A diferença é apenas estética: um run: embutido é mais longo visualmente, mas tem exatamente a mesma testabilidade"
+    answer: 0
+    explanation: "Pipeline como código fino move a decisão para uma função testável isoladamente, fora do YAML; um run: com lógica condicional embutida só pode ser verificado executando a pipeline inteira, tornando testes unitários da lógica impossíveis sem isso. As duas abordagens não são equivalentes em testabilidade, código fino não é sobre compactar YAML numa linha, e a diferença é funcional, não estética."
+
+  - question: "Por que o pinning por SHA completo é necessário mesmo quando a action de terceiros parece confiável hoje?"
+    options:
+      - "Uma tag móvel pode ser repontada pelo mantenedor para outro conteúdo sem aviso, mesmo que fosse confiável"
+      - "Porque, tecnicamente, tags móveis como v2 não são suportadas pelo GitHub Actions em nenhuma circunstância de uso"
+      - "Porque toda action de terceiros, segundo este marco, é automaticamente maliciosa após seis meses de publicação"
+      - "Porque o pinning por SHA é exigido apenas em repositórios públicos, nunca em repositórios privados de uma fintech"
+    answer: 0
+    explanation: "O risco é que uma tag móvel (v2, latest) pode ser repontada pelo mantenedor (ou por um atacante que comprometa a conta dele) para apontar a outro conteúdo sem aviso, mudando o que a pipeline executa sem que ninguém tenha mudado a referência no próprio workflow. Tags móveis são, sim, suportadas tecnicamente pelo GitHub Actions, não há essa regra de maliciosidade automática por tempo, e a prática vale tanto para repositórios públicos quanto privados."
+
+  - question: "Por que concorrência e cancelamento de execução são tratados como úteis em CI e perigosos em deploy, segundo este marco?"
+    options:
+      - "Cancelar uma verificação de CI só economiza tempo; cancelar um deploy no meio pode deixar o sistema num estado intermediário"
+      - "Porque, tecnicamente, o GitHub Actions não permite cancelar execuções de deploy, apenas execuções de CI de verificação"
+      - "Este marco trata os dois casos como igualmente seguros, sem nenhuma distinção real de risco entre cancelar CI e cancelar deploy"
+      - "Porque cancelamento em CI sempre corrompe o cache de dependências, enquanto cancelamento em deploy nunca tem esse efeito"
+    answer: 0
+    explanation: "Cancelar a execução anterior de CI de um PR (quando um commit novo chega) só economiza tempo de computação sem risco real; cancelar um deploy no meio pode deixar o sistema nem na versão antiga nem na nova, um estado intermediário perigoso. Não há essa limitação de ferramenta sobre cancelar deploys, o marco distingue claramente o risco dos dois cenários, e a corrupção de cache não é o motivo citado para o risco de cancelamento em deploy."
+
+  - question: "O que distingue a resposta correta a um teste instável ('quarentena com dono e prazo') da resposta errada mais comum ('roda de novo até passar')?"
+    options:
+      - "Quarentena com dono e prazo mantém o problema visível; rodar de novo até passar mascara o problema"
+      - "Não há diferença prática real entre as duas abordagens: ambas resolvem o teste instável com a mesma eficácia, segundo este marco"
+      - "Rodar de novo até passar é a abordagem recomendada por este marco, enquanto quarentena é tratada como antipadrão a evitar"
+      - "A diferença é que quarentena exige pagar uma ferramenta comercial, enquanto rodar de novo até passar é sempre gratuito"
+    answer: 0
+    explanation: "Quarentena com dono e prazo mantém o teste instável visível e sob responsabilidade de alguém até ser corrigido; simplesmente repetir a execução até passar esconde o problema, que continua existindo e pode mascarar uma falha real futura. As duas abordagens não são igualmente eficazes, o marco recomenda quarentena como a resposta correta (não o oposto), e a distinção não tem relação com custo de ferramenta."

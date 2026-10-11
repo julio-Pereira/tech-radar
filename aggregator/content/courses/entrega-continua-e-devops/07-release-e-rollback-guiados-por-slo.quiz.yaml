@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é a diferença entre deploy e release, e qual mecanismo as separa na prática, segundo este marco?"
+    options:
+      - "Deploy é código no ambiente; release é código visível ao cliente; feature flags separam as duas"
+      - "Deploy e release, segundo este marco, são sinônimos completos, sem nenhuma distinção prática real entre eles"
+      - "Deploy se refere apenas a ambientes de homologação e release se refere apenas a ambientes de produção, sem outra diferença"
+      - "A separação entre os dois é feita exclusivamente pelo registro de artefatos, sem relação com feature flags"
+    answer: 0
+    explanation: "Deploy coloca o código rodando no ambiente; release o torna visível ao cliente — a feature flag (retomada do marco 03) é o mecanismo que separa os dois, permitindo deploy frequente sem forçar lançamento simultâneo. Os dois termos não são sinônimos, a distinção não é sobre qual ambiente, e o mecanismo central citado é a feature flag, não o registro de artefatos."
+
+  - question: "Por que a decisão de promover ou reverter um canary precisa de janela e tolerância, não só um dos dois, segundo este marco?"
+    options:
+      - "Sem janela, decide-se sobre dado insuficiente; sem tolerância, ruído normal é tratado como regressão"
+      - "Janela e tolerância, segundo este marco, medem exatamente a mesma coisa, tornando um dos dois sempre redundante"
+      - "A janela serve só para fins de auditoria posterior, sem nenhuma influência real na decisão de promover ou reverter"
+      - "Apenas a tolerância é necessária; a janela de observação é citada neste marco como um detalhe dispensável na prática"
+    answer: 0
+    explanation: "A janela garante que há dados suficientes antes de decidir; a tolerância distingue ruído normal de regressão real — sem a janela, decide-se com pressa sobre pouca informação; sem a tolerância, qualquer flutuação dispara reação como se fosse problema real. As duas medem coisas diferentes (não são redundantes), a janela influencia diretamente a decisão (não é só auditoria), e a tolerância sozinha não acrescenta nada sem tempo suficiente de observação."
+
+  - question: "Por que migração de banco complica rollback, e o que expand/contract resolve nesse cenário, segundo este marco?"
+    options:
+      - "O código anterior pode ser incompatível com o schema migrado; expand/contract mantém as duas versões operando juntas"
+      - "Migração de banco, segundo este marco, nunca tem relação real com rollback de código, sendo processos completamente independentes"
+      - "Expand/contract resolve o problema impedindo qualquer rollback depois que uma migração de schema é aplicada, sem exceção"
+      - "O problema só ocorre quando a migração é aplicada manualmente, nunca quando automatizada por uma ferramenta de CI"
+    answer: 0
+    explanation: "Se o código voltar para a versão anterior mas o schema já tiver avançado para a versão nova, a versão anterior pode não funcionar corretamente contra o schema atual — expand/contract (dados-distribuidos/11) existe justamente para que as duas versões de código consigam operar sobre o mesmo schema durante a transição. Os dois processos têm, sim, relação direta, expand/contract não impede todo rollback (viabiliza ele), e o problema não depende de a migração ser manual ou automatizada."
+
+  - question: "Por que uma janela de congelamento recusa deploys não emergenciais automaticamente, em vez de só 'desencorajar' por convenção, segundo este marco?"
+    options:
+      - "Uma convenção apenas desencorajada tende a ser ignorada sob pressão; a recusa automática torna a regra confiável mesmo sob pressão"
+      - "Porque, tecnicamente, nenhuma ferramenta de CI é capaz de implementar uma recusa automática de deploy baseada em data"
+      - "Este marco recomenda que a janela de congelamento seja sempre apenas uma recomendação verbal, nunca um bloqueio automatizado"
+      - "A recusa automática existe só para cumprir uma exigência regulatória específica citada neste marco, sem relação com confiabilidade do processo"
+    answer: 0
+    explanation: "Uma regra que depende de alguém lembrar e respeitar por convenção tende a ser contornada exatamente no momento de pressão em que mais importaria; tornar a recusa automática (com relógio falso testável) garante que a regra vale mesmo sob pressão, com a exceção explícita do hotfix. Ferramentas de CI conseguem, sim, implementar essa checagem por data, o marco recomenda automação (o oposto de só recomendação verbal), e não há exigência regulatória específica citada como motivo."

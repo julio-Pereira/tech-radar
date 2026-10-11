@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que ter um servidor de CI rodando testes automaticamente não é a mesma coisa que praticar integração contínua, segundo este marco?"
+    options:
+      - "Porque a prática real é definida por frequência de integração e tamanho de lote, não pela existência de automação"
+      - "Porque, tecnicamente, nenhum servidor de CI é capaz de rodar testes sem intervenção manual de um engenheiro presente"
+      - "Na verdade este marco afirma que ter um servidor de CI já é suficiente, por definição, para caracterizar integração contínua"
+      - "Porque integração contínua, segundo este marco, se refere exclusivamente à frequência de deploys em produção, não de integração ao tronco"
+    answer: 0
+    explanation: "Um time com ramos de duas semanas, mesmo com testes automáticos a cada push, está fazendo integração adiada e automatizada, não integração contínua — a prática real exige integrar no tronco com frequência e em lotes pequenos. Servidores de CI rodam sem intervenção manual presente, o marco afirma o oposto de que automação só já basta, e o foco é integração ao tronco, não frequência de deploy (tema do marco 05/07)."
+
+  - question: "Como feature flags permitem integrar trabalho incompleto sem expô-lo a usuários, segundo este marco?"
+    options:
+      - "Separam integração (código no tronco, testado) de ativação (visível a usuários), desligadas por padrão até estarem prontas"
+      - "Porque, tecnicamente, o código com feature flag nunca é compilado junto com o resto do sistema até ser ativado manualmente"
+      - "Feature flags, segundo este marco, exigem que o código incompleto fique num ramo separado até a funcionalidade estar completa"
+      - "Porque toda feature flag apaga automaticamente o código antigo assim que a nova versão é ativada, sem necessidade de limpeza"
+    answer: 0
+    explanation: "A feature flag integra o código no tronco principal, desligado por padrão, testado contra tudo que já existe, mas só visível para usuários quando ativada — a mesma distinção entre deploy e release do marco 07. O código é, sim, compilado junto desde a integração, flags são usadas justamente para evitar ramos longos (o oposto da alternativa), e a limpeza do código antigo não é automática."
+
+  - question: "Por que uma fila de merge testa a fusão, e não cada ramo isoladamente — e o que isso previne que testes individuais não previnem?"
+    options:
+      - "Previne que dois PRs, cada um passando isolado, quebrem a main juntos por interação que nenhum teste exercitou"
+      - "Porque, tecnicamente, testar cada ramo isoladamente é impossível quando há mais de um PR aberto ao mesmo tempo no repositório"
+      - "Uma fila de merge, segundo este marco, serve apenas para ordenar visualmente os PRs no painel do GitHub, sem efeito nos testes"
+      - "O objetivo da fila de merge é acelerar a aprovação de PRs, sem nenhuma relação com testes de combinação de mudanças"
+    answer: 0
+    explanation: "Dois PRs podem passar cada um sozinho e ainda quebrar a main juntos, se tocarem partes do sistema que interagem de forma não testada por nenhum dos dois isoladamente — a fila de merge testa especificamente o resultado da fusão antes de aplicá-la. Testar ramos isolados continua sendo possível com múltiplos PRs abertos, a fila não é só uma ordenação visual, e seu propósito não é velocidade de aprovação, é correção da combinação."
+
+  - question: "Por que a prioridade, quando a main quebra, é reverter primeiro e investigar depois, segundo este marco?"
+    options:
+      - "Investigar com a main vermelha bloqueia o time; revertida, a investigação acontece sem essa pressão"
+      - "Porque, tecnicamente, é impossível investigar a causa de uma falha sem primeiro desfazer a mudança que a causou"
+      - "Este marco recomenda o oposto: investigar a fundo antes de qualquer reversão, para não perder a evidência do problema"
+      - "Porque reverter automaticamente corrige o bug subjacente, eliminando a necessidade de qualquer investigação posterior"
+    answer: 0
+    explanation: "Com a main vermelha, todo o time fica bloqueado enquanto a investigação continua; revertendo primeiro, o bloqueio acaba e a investigação da mudança revertida acontece depois, isolada e sem pressão de travar todo mundo. Investigar a causa não exige necessariamente manter a mudança aplicada, o marco recomenda reverter antes de investigar (não o oposto), e reverter não corrige o bug em si, só remove o efeito imediato da main quebrada."

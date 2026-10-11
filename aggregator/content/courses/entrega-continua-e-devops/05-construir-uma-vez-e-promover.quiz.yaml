@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que reconstruir 'o mesmo código' numa etapa separada não garante o mesmo artefato que foi testado, segundo este marco?"
+    options:
+      - "Dependências transitivas, timestamp de build ou versão de ferramenta podem divergir entre as duas construções"
+      - "Porque, tecnicamente, nenhum sistema de build é capaz de produzir o mesmo binário duas vezes a partir do mesmo commit"
+      - "Na verdade este marco recomenda sempre reconstruir antes de cada promoção, para garantir que o artefato está atualizado"
+      - "Porque o commit em si muda automaticamente de hash entre duas execuções de build, mesmo sem nenhuma alteração de código"
+    answer: 0
+    explanation: "Entre duas construções do 'mesmo' código, uma dependência transitiva pode ter sido atualizada, um timestamp pode entrar no binário, ou o ambiente de build pode ter mudado de versão — qualquer uma dessas diferenças silenciosas faz o artefato reconstruído divergir do que foi testado. Builds reproduzíveis são possíveis mas não garantidos por padrão, o marco recomenda promover sem reconstruir (o oposto da alternativa), e o hash de um commit não muda sozinho entre execuções."
+
+  - question: "O que a lista explícita de diferenças de configuração permitidas entre ambientes previne, segundo este marco?"
+    options:
+      - "Previne que uma divergência de configuração não planejada passe despercebida entre ambientes"
+      - "Previne que o artefato seja promovido de homologação para produção em qualquer circunstância, mesmo com aprovação explícita"
+      - "A lista existe apenas para fins de documentação, sem nenhuma verificação automática associada a ela segundo este marco"
+      - "Previne que o mesmo artefato rode em dois ambientes diferentes, forçando sempre builds separados por ambiente"
+    answer: 0
+    explanation: "A configuração vive fora do artefato, e a lista explícita define quais diferenças entre ambientes são esperadas; qualquer divergência fora dessa lista é, por definição, não planejada e merece investigação. A lista não bloqueia promoção em si, o marco trata essa verificação como automatizável (não só documental), e o ponto central é justamente permitir que o mesmo artefato rode em ambientes diferentes."
+
+  - question: "Por que um ambiente efêmero sem teardown garantido se torna custo permanente disfarçado de temporário, segundo este marco?"
+    options:
+      - "Porque, sem a destruição completa ao final, o recurso criado para o PR continua existindo e gerando custo indefinidamente"
+      - "Porque, tecnicamente, um ambiente efêmero sempre custa mais do que um ambiente de homologação permanente, mesmo com teardown"
+      - "Este marco recomenda nunca usar ambientes efêmeros, preferindo sempre um único ambiente de homologação compartilhado"
+      - "Porque o teardown, segundo este marco, só é necessário quando o ambiente efêmero envolve algum recurso de banco de dados"
+    answer: 0
+    explanation: "Um ambiente efêmero existe para ser temporário; sem o teardown garantido, o recurso criado para aquele PR específico permanece ativo indefinidamente, acumulando custo como se fosse permanente, mesmo que ninguém mais o esteja usando. O custo comparativo com homologação permanente não é o ponto, o marco recomenda ambientes efêmeros como prática válida (não evitá-los), e o teardown vale para qualquer tipo de recurso, não só banco de dados."
+
+  - question: "Como a versão semântica é calculada automaticamente a partir de commits estruturados, segundo este marco?"
+    options:
+      - "Um commit de mudança incompatível incrementa major, uma funcionalidade nova incrementa minor, e uma correção incrementa patch"
+      - "A versão semântica, segundo este marco, é sempre decidida manualmente por um responsável de release, sem nenhuma automação possível"
+      - "O cálculo depende exclusivamente da data do commit, incrementando a versão a cada dia em que houve pelo menos um commit"
+      - "Major, minor e patch são incrementados sempre juntos, na mesma proporção, a cada commit estruturado registrado no histórico"
+    answer: 0
+    explanation: "A partir da convenção de commits estruturados, o tipo de cada commit (mudança incompatível, funcionalidade nova, correção) determina automaticamente qual parte da versão semântica incrementar — sem decisão manual a cada release. O marco descreve esse cálculo como automatizável (o oposto da alternativa manual), não depende de data do commit, e os três números não incrementam juntos na mesma proporção."

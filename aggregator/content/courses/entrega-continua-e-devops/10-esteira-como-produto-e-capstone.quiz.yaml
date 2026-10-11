@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que um modelo de pipeline reutilizável e versionado evita a divergência silenciosa que copiar-colar produz entre equipes, segundo este marco?"
+    options:
+      - "Mudar o modelo num lugar propaga a todas as equipes, em vez de cada cópia evoluir separadamente sem ninguém notar"
+      - "Porque, tecnicamente, é impossível copiar e colar um workflow de GitHub Actions entre repositórios diferentes"
+      - "Este marco recomenda que cada equipe mantenha sua própria cópia independente, sem nenhum modelo compartilhado"
+      - "Porque o modelo reutilizável, segundo este marco, elimina completamente a necessidade de qualquer gate de segurança ou qualidade"
+    answer: 0
+    explanation: "Quando dez equipes copiam a mesma pipeline, cada cópia diverge silenciosamente ao longo do tempo; um workflow reutilizável e versionado permite mudar a esteira num lugar e propagar a mudança, em vez de editar N repositórios um por um. Copiar workflows entre repositórios é, sim, tecnicamente possível (é exatamente o problema que o marco resolve), o marco recomenda o modelo compartilhado (não cópias independentes), e o modelo reutilizável inclui gates, não os elimina."
+
+  - question: "O que a esteira ganha, especificamente, ao ter SLO próprio em vez de ser tratada como infraestrutura 'que simplesmente deveria funcionar', segundo este marco?"
+    options:
+      - "Um orçamento de erro mensurável, que sinaliza se a esteira já está consumindo esse orçamento rápido demais"
+      - "A esteira, segundo este marco, não precisa de SLO próprio porque sua disponibilidade é sempre garantida pelo provedor de CI"
+      - "Ter SLO próprio serve apenas para fins de relatório executivo, sem nenhuma influência sobre decisões técnicas da equipe de plataforma"
+      - "O único ganho de ter SLO na esteira, segundo este marco, é cumprir uma exigência contratual do fornecedor de GitHub Actions"
+    answer: 0
+    explanation: "Como qualquer serviço crítico, a esteira ganha um orçamento de erro mensurável — se ela está consumindo esse orçamento rápido demais, é sinal de que algo estrutural precisa de atenção antes de adicionar mais gates que a tornariam mais lenta ou instável. Disponibilidade de provedor de CI não é garantida automaticamente, o SLO tem influência direta em decisões técnicas (não só relatório), e não há exigência contratual de fornecedor citada como motivo."
+
+  - question: "Por que runners auto-hospedados reduzem custo mas introduzem risco de segurança que precisa ser avaliado explicitamente, segundo este marco?"
+    options:
+      - "Um runner próprio executando código de PRs externos é uma superfície de ataque diferente de um runner gerenciado isolado"
+      - "Porque, tecnicamente, runners auto-hospedados são sempre mais lentos que runners gerenciados, independente de qualquer configuração"
+      - "Este marco recomenda nunca usar runners auto-hospedados, tratando-os como proibidos em qualquer cenário de uso"
+      - "O risco citado neste marco é exclusivamente de custo financeiro, sem nenhuma relação real com segurança da infraestrutura"
+    answer: 0
+    explanation: "Um runner auto-hospedado que executa código vindo de PRs externos (inclusive de contribuidores não confiáveis) é uma superfície de ataque diferente — e potencialmente maior — do que um runner gerenciado e isolado pelo provedor, por isso essa troca precisa ser pesada explicitamente. Velocidade não é o ponto da comparação, o marco não proíbe runners auto-hospedados (trata como opção com risco a avaliar), e o risco citado é de segurança, não só financeiro."
+
+  - question: "Por que o Capstone exige aplicar a disciplina ao workflow real do tech-radar, e não só ao projeto guia sintético, segundo este marco?"
+    options:
+      - "A prova de que a disciplina funciona é aplicá-la a um sistema real, reconferido contra o main atual"
+      - "Porque, tecnicamente, o projeto guia fin-pipeline é incapaz de gerar workflows válidos de GitHub Actions para teste"
+      - "Este marco trata a aplicação ao workflow real como opcional, recomendando focar exclusivamente no projeto guia sintético"
+      - "A exigência existe apenas para cumprir uma meta de contribuição de código aberto ao próprio repositório tech-radar"
+    answer: 0
+    explanation: "O Capstone pede explicitamente reconferir o main e revisar o workflow real do tech-radar (permissões, pinning, cache, separação de etapas, proteção do ambiente de publicação) — a prova final não é só sobre o projeto sintético, é sobre aplicar a disciplina a um sistema que realmente existe e pode ter mudado desde a escrita do marco. O fin-pipeline gera workflows válidos normalmente, o marco trata essa aplicação como exigida (não opcional), e não há meta de contribuição externa citada como motivo."
