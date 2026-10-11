@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que a plataforma é descrita como 'pedido → plano → reconciliação', em vez de só 'executar uma ação', segundo este marco?"
+    options:
+      - "A reconciliação é contínua, corrigindo qualquer desvio depois, não só uma execução que termina e é esquecida"
+      - "Porque, tecnicamente, o modelo de execução única é proibido pela especificação da API REST usada neste marco"
+      - "Este marco recomenda executar a ação diretamente sem plano nem reconciliação, para reduzir latência da requisição"
+      - "O modelo pedido-plano-reconciliação só é necessário quando o pedido envolve mais de dez recursos simultâneos"
+    answer: 0
+    explanation: "Diferente de uma ação única executada e esquecida, a reconciliação trabalha continuamente para que o estado real convirja ao desejado, corrigindo qualquer deriva que apareça depois — o mesmo padrão do Kubernetes generalizado para a plataforma inteira. Não há proibição de REST envolvida, o marco recomenda esse modelo (não execução direta sem plano), e não há limite de dez recursos para a aplicação do padrão."
+
+  - question: "Por que o mesmo pedido enviado duas vezes precisa produzir o mesmo resultado, e o que isso exige da API, segundo este marco?"
+    options:
+      - "Evita duplicar recurso após timeout; exige tratar o identificador do pedido como chave central"
+      - "Porque, tecnicamente, nenhuma API REST é capaz de processar o mesmo pedido mais de uma vez sem erro de sistema"
+      - "Este marco recomenda gerar um novo recurso a cada tentativa, mesmo que o pedido original já tenha sido processado"
+      - "A exigência de idempotência só vale para pedidos que envolvem apenas um único recurso, não múltiplos"
+    answer: 0
+    explanation: "Um timeout de rede pode fazer o cliente reenviar o mesmo pedido sem saber se o primeiro foi processado; tratar o identificador do pedido como chave central permite reconhecer a repetição e devolver o mesmo resultado, sem criar um segundo recurso. APIs REST processam requisições repetidas normalmente (o problema é não duplicar efeito, não um erro de sistema), o marco recomenda o oposto de gerar recurso novo a cada tentativa, e a exigência vale também para pedidos com múltiplos recursos."
+
+  - question: "Qual é a diferença entre plataforma fina e espessa, e por que a escolha entre elas é uma decisão arquitetural, segundo este marco?"
+    options:
+      - "Fina orquestra recursos que já existem; espessa possui mais lógica e estado próprios — afeta manutenção e coesão"
+      - "Plataforma fina e espessa, segundo este marco, são termos sinônimos usados de forma intercambiável sem distinção real"
+      - "Plataforma espessa, segundo este marco, nunca usa Terraform ou Kubernetes, construindo toda infraestrutura do zero internamente"
+      - "A escolha entre fina e espessa depende exclusivamente do tamanho da equipe de plataforma, sem relação com manutenção do sistema"
+    answer: 0
+    explanation: "Uma plataforma fina orquestra ferramentas existentes (Terraform, Kubernetes) sem possuir a infraestrutura diretamente, geralmente mais fácil de manter atualizada; uma espessa tem mais lógica própria, podendo oferecer experiência mais coesa ao custo de mais código para manter — uma troca real, não um detalhe de implementação. Os dois termos não são sinônimos, uma plataforma espessa pode, sim, usar Terraform ou Kubernetes por baixo, e a escolha não depende apenas do tamanho da equipe."
+
+  - question: "Por que política verificada só na entrada do pedido não é suficiente, mesmo com reconciliação contínua existindo, segundo este marco?"
+    options:
+      - "Uma política só na entrada não pega um recurso alterado manualmente depois, fora do fluxo da plataforma"
+      - "Porque, tecnicamente, verificar política na entrada do pedido é incompatível com qualquer mecanismo de reconciliação contínua"
+      - "Este marco recomenda verificar política apenas uma vez, na entrada, considerando qualquer outra camada redundante e dispensável"
+      - "A verificação na entrada só é insuficiente quando o pedido é feito via CLI, nunca quando feito via portal visual"
+    answer: 0
+    explanation: "As três camadas (entrada, reconciliação, destino) são complementares: verificar só na entrada não detecta uma mudança manual feita depois, fora do fluxo normal da plataforma — por isso a reconciliação e o destino também precisam aplicar política. Entrada e reconciliação não são incompatíveis (são complementares), o marco recomenda as três camadas juntas (não só entrada), e a insuficiência não depende de qual cliente (CLI ou portal) originou o pedido."
+
+  - question: "O que falha parcial com retomada exige do mecanismo, em comparação a simplesmente recomeçar do zero, segundo este marco?"
+    options:
+      - "Saber continuar de onde parou após falha transitória, sem recriar o já criado nem travar esperando alguém"
+      - "Porque, tecnicamente, recomeçar do zero é sempre impossível quando um pedido envolve mais de um recurso provisionado"
+      - "Este marco recomenda sempre recomeçar do zero após qualquer falha parcial, tratando retomada como prática desnecessária"
+      - "Retomada só é relevante quando a falha ocorre especificamente no componente de rede, nunca em outros tipos de recurso"
+    answer: 0
+    explanation: "O mecanismo precisa saber onde já progrediu e continuar a partir dali, sem recriar recursos que já existem nem ficar travado esperando alguém intervir manualmente diante de uma falha transitória. Recomeçar do zero é tecnicamente possível (só seria ineficiente e arriscado), o marco recomenda retomada (não recomeço do zero), e a necessidade de retomada não se limita a falhas de rede."
+
+  - question: "Por que o portal é descrito como 'só um dos clientes' do control plane, e não o control plane em si, segundo este marco?"
+    options:
+      - "O control plane processa pedidos e reconcilia; o portal só consome essa API, junto com CLI e automações"
+      - "Porque, tecnicamente, um portal visual não pode ser implementado sem substituir completamente o control plane da plataforma"
+      - "Este marco recomenda construir sempre o portal primeiro, antes de qualquer mecanismo de reconciliação existir"
+      - "O control plane, segundo este marco, é apenas um sinônimo alternativo para o nome do portal visual da plataforma"
+    answer: 0
+    explanation: "O control plane é o mecanismo que processa pedidos, calcula planos e reconcilia — o cérebro da plataforma; o portal é apenas um dos clientes possíveis desse mecanismo, ao lado de CLI e automação programática. Um portal não substitui o control plane (ele o consome), o marco alerta justamente contra construir portal antes do mecanismo real existir (o erro citado), e os dois termos não são sinônimos."

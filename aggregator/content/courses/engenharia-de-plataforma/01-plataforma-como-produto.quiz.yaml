@@ -1,0 +1,36 @@
+questions:
+  - question: "O que é carga cognitiva, e por que ela é o problema de fundo que uma plataforma deveria resolver, segundo este marco?"
+    options:
+      - "É o que a equipe precisa entender além do domínio de negócio; a plataforma absorve isso, não adiciona complexidade"
+      - "Carga cognitiva, segundo este marco, se refere apenas à quantidade de código escrito por uma equipe em um sprint"
+      - "Este marco trata carga cognitiva como um problema que só afeta equipes muito grandes, sem relação com equipes pequenas"
+      - "A plataforma, segundo este marco, deveria aumentar a carga cognitiva das equipes para forçá-las a entender a infraestrutura"
+    answer: 0
+    explanation: "Carga cognitiva é tudo que uma equipe de produto precisa entender (Kubernetes, Terraform, políticas) sem relação direta com o problema de negócio que deveria resolver — a plataforma existe para absorver isso, não para empilhar mais complexidade em cima. Não é sobre quantidade de código escrito, não há restrição a equipes grandes, e o marco recomenda reduzir carga cognitiva, não aumentá-la."
+
+  - question: "Qual é a diferença entre os três modos de interação (colaboração, X-as-a-service, facilitação), e qual deles escala melhor, segundo este marco?"
+    options:
+      - "Colaboração é intensa; X-as-a-service expõe capacidade pronta sem colaboração contínua; facilitação é ajuda temporária"
+      - "Os três modos, segundo este marco, têm exatamente a mesma capacidade de escala, sem diferença real entre eles"
+      - "Facilitação é o modo que escala melhor, porque envolve menos esforço inicial da equipe de plataforma"
+      - "Colaboração direta é o modo recomendado por este marco para toda interação entre plataforma e equipes de produto, em qualquer escala"
+    answer: 0
+    explanation: "Colaboração é intensa e cara de manter em escala; X-as-a-service expõe uma capacidade consumível sem necessidade de colaboração repetida, por isso escala melhor conforme o número de equipes crescer; facilitação é pontual, para destravar algo específico. Os três modos não escalam igual, facilitação não é o modo de melhor escala, e colaboração direta não é recomendada como padrão único para toda escala."
+
+  - question: "Por que tempo até o primeiro deploy é descrito como métrica particularmente informativa, segundo este marco?"
+    options:
+      - "Porque resume, num número só, o atrito acumulado de toda a jornada de dia 0 de uma equipe nova"
+      - "Porque, tecnicamente, é a única métrica de plataforma que pode ser calculada sem nenhum dado sintético ou real"
+      - "Este marco trata essa métrica como irrelevante, recomendando focar exclusivamente em métricas de satisfação subjetiva"
+      - "Tempo até o primeiro deploy mede apenas a velocidade da esteira de CI, sem relação com a experiência da equipe"
+    answer: 0
+    explanation: "Essa métrica condensa todo o atrito da jornada de dia 0 (descoberta, acesso, configuração, primeiro deploy) num único número fácil de comunicar e de comparar antes e depois de uma melhoria — por isso é central. Outras métricas de plataforma também dependem de dados, o marco não a trata como irrelevante (é central), e ela mede a jornada inteira, não só velocidade de CI."
+
+  - question: "O que torna uma métrica 'de vaidade', segundo a regra 'toda métrica declara a decisão que informa', citada neste marco?"
+    options:
+      - "Uma métrica sem decisão associada — ela existe, mas ninguém a usa para decidir nada concreto"
+      - "Qualquer métrica derivada de um modelo complexo como DORA ou SPACE é automaticamente de vaidade, segundo este marco"
+      - "Métrica de vaidade, segundo este marco, é toda métrica que mostra um número crescente ao longo do tempo"
+      - "Este marco afirma que não existe métrica de vaidade em contexto de plataforma, apenas em contexto de marketing"
+    answer: 0
+    explanation: "Uma métrica é de vaidade quando não tem uma decisão associada que ela informa — por mais sofisticado que seja o modelo de onde vem, se ninguém a usa para decidir algo concreto, ela não cumpre função real. Modelos como DORA/SPACE não são automaticamente de vaidade (podem informar decisões reais), crescimento ao longo do tempo não é o critério, e o marco trata vaidade como um risco real em contexto de plataforma, não exclusivo de marketing."

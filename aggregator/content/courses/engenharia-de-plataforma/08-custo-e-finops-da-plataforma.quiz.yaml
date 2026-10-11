@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é a diferença comportamental entre showback e chargeback, segundo este marco?"
+    options:
+      - "Showback mostra o custo sem cobrar, educando sem forçar mudança; chargeback cobra de verdade, criando incentivo direto"
+      - "Showback e chargeback, segundo este marco, produzem exatamente o mesmo efeito comportamental nas equipes, apenas com nomes diferentes"
+      - "Chargeback é sempre mais fácil de implementar que showback, por não exigir nenhuma maturidade organizacional prévia"
+      - "Showback cobra do orçamento da equipe, enquanto chargeback apenas exibe o custo sem nenhuma consequência financeira real"
+    answer: 0
+    explanation: "Showback é só visibilidade, sem cobrança real — tende a educar, sem forçar mudança imediata; chargeback cobra de fato do orçamento da equipe, criando um incentivo financeiro direto, mas exigindo processos organizacionais de orçamento por equipe que nem toda empresa tem prontos. Os dois efeitos não são iguais, chargeback exige mais maturidade (não menos), e as definições de showback e chargeback estão invertidas na última alternativa."
+
+  - question: "Por que custo sem dono deveria aparecer como um balde próprio visível, em vez de diluído no total, segundo este marco?"
+    options:
+      - "Diluído no total, ninguém o nota nem o investiga; como balde próprio, ele chama atenção e força uma investigação"
+      - "Porque, tecnicamente, é impossível somar custo sem dono ao custo total sem causar um erro de cálculo no sistema financeiro"
+      - "Este marco recomenda remover completamente do relatório qualquer custo que não tenha dono identificado, sem exibi-lo em lugar nenhum"
+      - "A visibilidade do custo sem dono só é relevante para equipes que usam exclusivamente infraestrutura compartilhada"
+    answer: 0
+    explanation: "Se o custo sem dono for diluído dentro do total, ele passa despercebido; destacado como um balde próprio, ele chama atenção específica e motiva investigação sobre por que aquele custo não tem responsável identificado. Somar custo sem dono ao total não causa erro de cálculo (é só uma questão de apresentação), o marco recomenda exibir, não remover, e a relevância vale para qualquer tipo de infraestrutura, não só compartilhada."
+
+  - question: "Por que um orçamento com alerta é preferível a um limite rígido sem aviso prévio, segundo este marco?"
+    options:
+      - "Avisar antes do limite dá tempo para ajustar o consumo, em vez de descobrir o problema tarde demais"
+      - "Porque, tecnicamente, um limite rígido sem alerta sempre bloqueia completamente a operação de qualquer sistema em produção"
+      - "Este marco recomenda nunca usar limite rígido, preferindo sempre deixar o orçamento ilimitado para qualquer equipe"
+      - "O alerta de orçamento só é relevante quando a equipe já ultrapassou o limite em meses anteriores consecutivos"
+    answer: 0
+    explanation: "Um alerta antecipado permite agir preventivamente, ajustando o consumo antes do estouro; um limite rígido sem aviso só é percebido quando o bloqueio já aconteceu, tarde para qualquer ajuste preventivo. Um limite rígido não bloqueia necessariamente toda a produção de forma automática e completa, o marco não recomenda orçamento ilimitado, e o alerta é útil mesmo sem histórico prévio de ultrapassagem."
+
+  - question: "Por que este marco é honesto sobre a dificuldade de medir o retorno da equipe de plataforma, mesmo sendo fácil medir o custo dela?"
+    options:
+      - "O custo é direto de somar; o retorno (tempo economizado, risco evitado) é mais difícil de quantificar"
+      - "Porque, tecnicamente, nenhuma equipe de engenharia consegue medir seu próprio custo de forma confiável, segundo este marco"
+      - "Este marco afirma que o retorno da plataforma é sempre impossível de medir, recomendando desistir de qualquer tentativa"
+      - "A dificuldade citada se aplica apenas a plataformas que não cobram chargeback de nenhuma equipe consumidora"
+    answer: 0
+    explanation: "Custo é relativamente direto de somar (salários, ferramentas, infraestrutura); retorno (tempo que deixou de ser perdido, risco que não se materializou) não tem a mesma facilidade de quantificação precisa — o marco reconhece essa assimetria em vez de fingir que as duas métricas são igualmente fáceis. Medir custo de equipe é, sim, viável normalmente, o marco não recomenda desistir de medir retorno (reconhece a dificuldade, não a impossibilidade), e a dificuldade não depende de a plataforma usar chargeback ou não."

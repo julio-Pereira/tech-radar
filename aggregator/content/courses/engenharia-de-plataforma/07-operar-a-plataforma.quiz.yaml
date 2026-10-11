@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que a separação entre plano de dados e plano de controle é a distinção operacional mais importante desta trilha, segundo este marco?"
+    options:
+      - "O que já está em execução não pode depender do control plane; a plataforma fora do ar não deveria interromper o que já existe"
+      - "Porque, tecnicamente, plano de dados e plano de controle sempre rodam na mesma máquina física, tornando a separação apenas lógica"
+      - "Este marco recomenda que todo workload já implantado dependa ativamente da API da plataforma para continuar funcionando"
+      - "A separação só é relevante quando a plataforma opera em múltiplas regiões geográficas simultaneamente"
+    answer: 0
+    explanation: "Se um workload já implantado dependesse do control plane para continuar rodando, uma indisponibilidade da plataforma derrubaria tudo que ela já ajudou a criar — por isso a separação garante que só novas operações (criar, mudar) ficam bloqueadas, não o que já existe. As duas camadas podem rodar em máquinas físicas diferentes, o marco recomenda justamente o oposto de dependência em tempo de execução, e a importância da separação não depende de multi-região."
+
+  - question: "Por que bug, pedido e dúvida precisam de tratamento distinto no modelo de suporte, segundo este marco?"
+    options:
+      - "Cada tipo de demanda tem natureza e urgência diferentes; tratá-los com a mesma fila e prioridade mistura coisas que deveriam ser separadas"
+      - "Porque, tecnicamente, um sistema de suporte só pode processar um tipo de solicitação por vez, exigindo filas separadas por limitação técnica"
+      - "Este marco recomenda tratar os três tipos de demanda sempre com a mesma prioridade máxima, para garantir resposta rápida"
+      - "A distinção só é relevante para plataformas que atendem mais de cem equipes simultaneamente"
+    answer: 0
+    explanation: "Um bug (algo quebrado) tem urgência diferente de um pedido (solicitação de algo novo) ou de uma dúvida (pergunta) — misturar os três na mesma fila e prioridade trata demandas de natureza muito diferente como se fossem equivalentes. Não há limitação técnica que exija filas separadas por essa razão, o marco recomenda tratamento diferenciado por tipo (não prioridade máxima uniforme), e a distinção vale independente do número de equipes atendidas."
+
+  - question: "Por que um alerta sem runbook correspondente é descrito como 'ansiedade sem direção' para quem está de plantão, segundo este marco?"
+    options:
+      - "O alerta dispara, mas sem passos definidos de diagnóstico e ação, sem saber o que fazer a seguir"
+      - "Porque, tecnicamente, um alerta sem runbook nunca é entregue corretamente ao sistema de notificação do plantão"
+      - "Este marco recomenda que todo alerta sem runbook seja automaticamente silenciado, para não gerar ansiedade na equipe"
+      - "A falta de runbook só é um problema quando o alerta ocorre fora do horário comercial declarado"
+    answer: 0
+    explanation: "O alerta dispara e exige atenção, mas sem um runbook que diga por onde começar o diagnóstico e quais ações tomar, quem está de plantão fica sem direção concreta, só com a urgência de que algo precisa ser feito. O alerta é, sim, entregue normalmente sem runbook (o problema é a falta de direção, não de entrega), o marco recomenda ter runbook (não silenciar o alerta), e o problema existe a qualquer hora, não só fora do expediente."
+
+  - question: "Por que nem toda plataforma precisa do mesmo nível de disponibilidade que o sistema transacional que ela ajuda a operar, segundo este marco?"
+    options:
+      - "O custo de alta disponibilidade deve ser pesado contra o impacto real, já que o plano de dados segue funcionando"
+      - "Porque, tecnicamente, é impossível garantir alta disponibilidade para qualquer control plane de plataforma interna"
+      - "Este marco recomenda que toda plataforma tenha exatamente a mesma disponibilidade do sistema transacional, sem exceção"
+      - "A disponibilidade da plataforma só importa durante janelas de manutenção programada do sistema transacional"
+    answer: 0
+    explanation: "Como o plano de dados (o que já roda) continua funcionando mesmo com a plataforma indisponível, o impacto real de uma indisponibilidade temporária do control plane é menor do que seria para o sistema transacional em si — o custo de garantir disponibilidade máxima precisa ser avaliado contra esse impacto real, não assumido como necessário. Alta disponibilidade de control plane é, sim, tecnicamente alcançável (só tem custo), o marco recomenda avaliar caso a caso (não igualar sempre), e a análise não se limita a janelas de manutenção."

@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que o catálogo vive 'ao lado do código' e, ao mesmo tempo, é consumido como dado por outras automações, segundo este marco?"
+    options:
+      - "Essa dualidade mantém o catálogo atualizado por quem o escreve, sem exigir um processo manual separado de sincronização"
+      - "Porque, tecnicamente, um descritor de catálogo não pode ser lido por nenhuma ferramenta externa ao repositório do componente"
+      - "Este marco recomenda manter o catálogo exclusivamente num sistema separado, mantido por uma equipe dedicada a isso"
+      - "A dualidade existe apenas para cumprir uma exigência de formatação de repositório, sem relação com atualização de dados"
+    answer: 0
+    explanation: "Manter o descritor perto do código (escrito por quem conhece o componente) e, ao mesmo tempo, permitir que automações o consumam como dado é o que evita a necessidade de sincronização manual constante entre um registro separado e a realidade do componente. Ferramentas externas conseguem, sim, ler descritores desse tipo, o marco recomenda o oposto de um sistema separado mantido por outra equipe, e a razão é atualização confiável, não formatação."
+
+  - question: "Por que propriedade é descrita como um contrato (escalonamento, canal), não só um nome preenchido num campo, segundo este marco?"
+    options:
+      - "Porque o dono se compromete a ser acordado quando algo quebra e a ter um canal de contato real, não só um registro histórico"
+      - "Porque, tecnicamente, o campo de dono no catálogo só aceita um identificador de usuário individual, nunca o nome de uma equipe"
+      - "Este marco trata o campo de dono como puramente informativo, sem nenhuma obrigação real associada a ele"
+      - "A propriedade só é tratada como contrato quando o componente pertence à camada de segurança da plataforma"
+    answer: 0
+    explanation: "O marco é explícito: dono implica compromisso real de escalonamento (quem é acordado) e canal de contato — se a equipe registrada não responde mais de fato por aquele componente, o campo deixa de refletir a realidade, mesmo preenchido. O campo pode, sim, registrar uma equipe (não só indivíduo), o marco trata propriedade como obrigação real (não puramente informativa), e essa exigência vale para qualquer componente, não só os de segurança."
+
+  - question: "Por que metadado desatualizado é descrito como pior que nenhum metadado, segundo este marco?"
+    options:
+      - "Gera confiança falsa, com alguém agindo sobre a informação errada, em vez de incerteza honesta que leva a verificar"
+      - "Porque, tecnicamente, um catálogo sem nenhum metadado é mais rápido de consultar do que um com dados desatualizados"
+      - "Este marco recomenda nunca registrar metadado de propriedade, para evitar o risco de desatualização ao longo do tempo"
+      - "A diferença entre os dois casos, segundo este marco, é apenas estética, sem consequência real na operação"
+    answer: 0
+    explanation: "Um metadado desatualizado (como um dono que não existe mais funcionalmente) faz alguém confiar e agir com base numa informação errada; a ausência total de metadado, por outro lado, leva a verificar antes de agir — uma incerteza honesta é mais segura que uma falsa certeza. Velocidade de consulta não é o ponto, o marco recomenda registrar metadado com frescor visível (não evitar registrar), e a diferença tem consequência operacional real, não é estética."
+
+  - question: "Como um scorecard de maturidade evita virar ranking punitivo, segundo a distinção feita neste marco?"
+    options:
+      - "A diferença está em como o resultado é usado — como ferramenta de melhoria guiada, não como ranking que pune quem está atrás"
+      - "Scorecards, segundo este marco, nunca podem virar ranking punitivo, porque o mecanismo de pontuação em si já impede essa interpretação"
+      - "A única forma de evitar o uso punitivo, segundo este marco, é remover completamente os critérios relacionados a segurança do scorecard"
+      - "Este marco recomenda não divulgar o resultado do scorecard para nenhuma equipe, mantendo-o visível apenas para a plataforma"
+    answer: 0
+    explanation: "O marco distingue explicitamente o mecanismo (a pontuação em si) do uso que se faz dela: como orientação de onde investir esforço de melhoria, é útil; como ranking que pune quem está atrás, é perigoso — a diferença está em como o resultado é usado, não na pontuação em si. O mecanismo não impede sozinho o uso punitivo, remover critérios de segurança não é a solução proposta, e o marco não recomenda esconder o resultado das equipes."

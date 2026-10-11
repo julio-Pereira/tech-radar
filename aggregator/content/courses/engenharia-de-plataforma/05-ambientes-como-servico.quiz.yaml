@@ -1,0 +1,54 @@
+questions:
+  - question: "O que compõe um 'ambiente' completo, além do espaço de nomes vazio, segundo este marco?"
+    options:
+      - "Cota e limites, rede com isolamento, identidade de quem pode agir, e etiquetas de dono e custo"
+      - "Apenas o espaço de nomes e um nome de equipe escrito livremente, sem necessidade de mais nenhum componente"
+      - "Este marco trata ambiente como sinônimo exato de namespace, sem nenhum componente adicional relevante"
+      - "Um ambiente completo, segundo este marco, se define exclusivamente pelo módulo Terraform usado para criá-lo"
+    answer: 0
+    explanation: "O marco lista explicitamente cota e limites padrão, rede com isolamento, identidade de quem pode agir dentro do ambiente, e etiquetas obrigatórias de dono e custo — um namespace vazio não é um ambiente completo. Um nome de equipe livre não substitui dono real do catálogo, ambiente e namespace não são tratados como sinônimos, e a definição vai além do módulo Terraform usado."
+
+  - question: "Por que negar um pedido de ambiente acima da cota precisa de mensagem clara, em vez de erro genérico, segundo este marco?"
+    options:
+      - "A mensagem clara informa o limite exato e como pedir exceção, em vez de deixar quem pediu sem saber o que fazer"
+      - "Porque, tecnicamente, nenhum sistema de cota é capaz de calcular o valor exato do limite configurado no momento da negação"
+      - "Este marco recomenda sempre aceitar o pedido acima da cota, ajustando o limite automaticamente para acomodá-lo"
+      - "A mensagem clara serve apenas para fins de log interno da plataforma, sem visibilidade para quem fez o pedido"
+    answer: 0
+    explanation: "Uma negação clara (qual é o limite, como pedir exceção se legítima) dá a quem pediu um caminho de ação; um erro genérico deixa a pessoa sem saber o que fazer a seguir. Sistemas de cota conseguem, sim, calcular e comunicar o limite exato, o marco recomenda negar (não ajustar automaticamente o limite), e a mensagem é visível para quem pediu, não só log interno."
+
+  - question: "Por que um ambiente protegido nunca é removido automaticamente pelo TTL, mesmo com o prazo esgotado, segundo este marco?"
+    options:
+      - "A proteção explícita existe para prevenir remoção automática de dados importantes, mesmo com o prazo esgotado"
+      - "Porque, tecnicamente, o mecanismo de TTL é incapaz de processar qualquer ambiente marcado como protegido no sistema"
+      - "Este marco recomenda que ambientes protegidos sejam removidos manualmente todos os dias, independente do TTL configurado"
+      - "A proteção só impede remoção automática quando o ambiente também está marcado como efêmero por PR, nunca em outros casos"
+    answer: 0
+    explanation: "A marcação de proteção existe exatamente para que um ambiente com dados importantes não seja apagado automaticamente só porque o prazo expirou — a proteção explícita sempre vence a expiração automática. O mecanismo de TTL processa ambientes protegidos normalmente (só não os remove), o marco não recomenda remoção manual diária, e a proteção vale independente de o ambiente ser efêmero por PR ou não."
+
+  - question: "O que torna um recurso 'zumbi', e por que detectá-lo ativamente é melhor que esperar a fatura revelar o problema, segundo este marco?"
+    options:
+      - "Um recurso que continua existindo e custando sem uso real; detecção ativa evita custo acumulado por acidente"
+      - "Recurso zumbi, segundo este marco, se refere exclusivamente a um ambiente que já passou por remoção duas vezes consecutivas"
+      - "Este marco recomenda nunca detectar recursos zumbis ativamente, confiando apenas na revisão mensal de fatura da equipe financeira"
+      - "Um recurso só é considerado zumbi quando pertence a um ambiente classificado como protegido no catálogo"
+    answer: 0
+    explanation: "Recurso zumbi é algo que continua existindo e custando sem que ninguém mais o use — geralmente por falha silenciosa no processo de remoção ou ausência de TTL; detectar ativamente evita que o custo se acumule por meses até alguém notar a fatura. Não tem relação com número de remoções consecutivas, o marco recomenda detecção ativa (não esperar revisão de fatura), e zumbi não depende de o ambiente estar marcado como protegido — pelo contrário, geralmente é o oposto."
+
+  - question: "Por que dono de ambiente precisa existir no catálogo real, e não ser um nome digitado livremente no pedido, segundo este marco?"
+    options:
+      - "Um nome digitado livremente pode não corresponder a nada real; o catálogo garante um grupo existente e verificável"
+      - "Porque, tecnicamente, o campo de dono no pedido de ambiente só aceita identificadores numéricos, nunca texto livre"
+      - "Este marco recomenda permitir qualquer texto no campo de dono, desde que seja revisado manualmente uma vez por trimestre"
+      - "A exigência de dono vindo do catálogo só se aplica a ambientes de produção, nunca a ambientes de homologação ou teste"
+    answer: 0
+    explanation: "Exigir que o dono exista no catálogo (marco 03) garante que há um grupo real e verificável por trás, em vez de um texto livre que pode não corresponder a nenhuma equipe de fato responsável. Não há essa restrição a identificadores numéricos, o marco recomenda validação no momento do pedido (não revisão trimestral posterior), e a exigência vale para qualquer tipo de ambiente, não só produção."
+
+  - question: "Por que remover um ambiente duas vezes precisa ser idempotente, segundo este marco?"
+    options:
+      - "A segunda remoção não deve produzir erro nem efeito adicional, já que o ambiente já não existe mais depois da primeira"
+      - "Porque, tecnicamente, toda operação de remoção em sistemas distribuídos é automaticamente idempotente sem necessidade de desenho específico"
+      - "Este marco recomenda que a segunda tentativa de remoção sempre recrie o ambiente antes de removê-lo de novo"
+      - "A idempotência da remoção só é exigida quando o ambiente foi criado via Terraform, nunca via manifestos Kubernetes diretos"
+    answer: 0
+    explanation: "Uma segunda chamada de remoção (por exemplo, um retry após falha de rede) sobre um ambiente já removido não deveria gerar erro nem qualquer efeito colateral adicional — a mesma disciplina de idempotência vista em outros marcos, aplicada à remoção. Idempotência não é automática por padrão em sistemas distribuídos (precisa ser desenhada), o marco não recomenda recriar antes de remover de novo, e a exigência vale independente do mecanismo de criação usado."
