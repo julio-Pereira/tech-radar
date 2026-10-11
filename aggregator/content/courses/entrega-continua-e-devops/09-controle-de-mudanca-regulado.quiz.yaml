@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que a segregação de funções (autor ≠ aprovador) é descrita como estrutural, e não uma política de confiança, segundo este marco?"
+    options:
+      - "Porque a auto-aprovação é rejeitada mecanicamente, mesmo com boa intenção, em vez de depender de alguém escolher respeitar a regra"
+      - "Porque, tecnicamente, nenhum sistema de controle de versão permite que a mesma pessoa abra e feche um pull request"
+      - "Este marco trata segregação de funções como uma recomendação opcional, aplicada só quando a equipe concorda em segui-la"
+      - "Porque autor e aprovador, segundo este marco, são sempre identidades diferentes por definição de sistema, tornando a regra automática"
+    answer: 0
+    explanation: "O mecanismo (CODEOWNERS, revisores obrigatórios) rejeita a auto-aprovação de forma verificável, incluindo o caso sutil de uma segunda conta do mesmo autor — não depende de confiança ou boa intenção individual. Sistemas de controle de versão permitem, tecnicamente, abrir e fechar PR da mesma pessoa (por isso a regra precisa ser estrutural), o marco não trata isso como opcional, e autor e aprovador não são automaticamente diferentes sem o mecanismo verificando isso."
+
+  - question: "O que cada um dos seis campos do registro de deploy existe para responder, entre as cinco perguntas que um auditor faz?"
+    options:
+      - "Autor, aprovador, checagens, digest, hora e classe respondem quem mudou, quem aprovou, o testado, o implantado e quando"
+      - "Os seis campos existem apenas para cumprir um requisito de formatação de log, sem relação direta com as perguntas de auditoria"
+      - "Apenas dois dos seis campos (digest e hora) têm relação com as perguntas do auditor; os demais são metadados sem função de auditoria"
+      - "Os seis campos respondem exclusivamente 'quando', já que as outras quatro perguntas não podem ser automatizadas segundo este marco"
+    answer: 0
+    explanation: "Autor e aprovador respondem 'quem mudou' e 'quem aprovou'; checagens respondem 'o que foi testado'; digest e hora respondem 'o que foi implantado' e 'quando'; a classe de mudança contextualiza o processo seguido — juntos, os seis campos cobrem as cinco perguntas do auditor. Os campos têm função direta de auditoria (não é só formatação), todos os seis têm relação com as perguntas (não só dois), e as cinco perguntas são, sim, automatizáveis segundo o marco."
+
+  - question: "Por que um log encadeado por hash torna adulteração detectável, mesmo que não impossível de tentar, segundo este marco?"
+    options:
+      - "Alterar um registro no meio da cadeia quebra a verificação de todos os registros posteriores, expondo a tentativa"
+      - "Porque, tecnicamente, um log encadeado por hash impede fisicamente que qualquer byte do arquivo seja modificado por qualquer processo"
+      - "Este marco afirma que o encadeamento por hash torna a adulteração completamente impossível, não apenas detectável"
+      - "O encadeamento por hash serve apenas para ordenar os registros cronologicamente, sem nenhuma função de detectar alteração"
+    answer: 0
+    explanation: "Cada registro inclui o hash do anterior; alterar um registro no meio muda seu hash, o que quebra a verificação de todos os registros que vêm depois dele na cadeia — a adulteração continua tecnicamente possível de tentar, mas fica exposta pela verificação. Não há impedimento físico de modificação de bytes, o marco descreve detecção (não impossibilidade absoluta), e a função do encadeamento é detecção de integridade, não só ordenação cronológica."
+
+  - question: "Por que o caminho de break-glass exige revisão retroativa com prazo, em vez de dispensar revisão completamente dada a urgência, segundo este marco?"
+    options:
+      - "A urgência justifica adiar a aprovação prévia, mas não dispensa a prestação de contas — por isso a revisão é retroativa, com prazo"
+      - "Porque, tecnicamente, o sistema de break-glass é incapaz de registrar qualquer informação sobre quem executou o deploy de emergência"
+      - "Este marco recomenda dispensar toda revisão em casos de break-glass, desde que o deploy tenha resolvido o incidente com sucesso"
+      - "A revisão com prazo existe apenas como formalidade burocrática, sem consequência real caso o prazo não seja cumprido"
+    answer: 0
+    explanation: "Break-glass permite pular a aprovação normal para ganhar tempo numa emergência real, mas gera uma tarefa de revisão obrigatória com prazo — se a revisão não ocorrer dentro do prazo, o relatório de conformidade reprova, mostrando que há consequência real e que a urgência adia, não dispensa, a prestação de contas. O sistema registra quem executou o deploy de emergência, o marco não recomenda dispensar revisão mesmo com sucesso do incidente, e a reprovação do relatório é uma consequência real, não formalidade vazia."
+
+  - question: "Quais são as cinco perguntas que, segundo este marco, qualquer auditoria de mudança em produção faz?"
+    options:
+      - "Quem mudou, quem aprovou, o que foi testado, o que foi implantado, e quando"
+      - "Qual foi o custo da mudança, quem pagou por ela, qual ferramenta foi usada, qual linguagem de programação, e onde o servidor está hospedado"
+      - "Apenas três perguntas são citadas neste marco: quem mudou, quando, e qual foi o resultado financeiro da mudança"
+      - "Quantas linhas de código foram alteradas, quantos testes passaram, quantos revisores aprovaram, quanto tempo levou, e quanto custou"
+    answer: 0
+    explanation: "O marco lista exatamente essas cinco perguntas, na ordem: quem mudou, quem aprovou, o que foi testado, o que foi implantado, e quando — e os seis campos do registro de deploy existem para responder exatamente a essas cinco. As perguntas sobre custo, ferramenta, linguagem e hospedagem não são as citadas, não há essa redução a três perguntas, e contagens de linhas/testes/revisores/tempo/custo não são as cinco perguntas centrais do marco."
+
+  - question: "Por que uma mudança classificada como 'padrão' pode avançar sem aprovação manual adicional, segundo este marco?"
+    options:
+      - "Porque, ao passar por todos os gates automáticos dos marcos anteriores, o risco já foi mitigado pela própria automação"
+      - "Porque toda mudança classificada como padrão, segundo este marco, é automaticamente isenta de qualquer registro de evidência"
+      - "A classificação 'padrão' é escolhida livremente pelo autor da mudança, sem nenhuma verificação associada a essa escolha"
+      - "Mudanças padrão, segundo este marco, nunca podem ser revertidas, diferente das mudanças normais e emergenciais"
+    answer: 0
+    explanation: "Uma mudança padrão segue um caminho pré-aprovado justamente porque, para chegar até ali, ela já passou por todos os gates automáticos que mitigam o risco — a aprovação manual adicional deixa de ser necessária porque a verificação já ocorreu de outra forma. Mudanças padrão ainda geram registro de evidência completo, a classificação é função pura testada em tabela (não escolha livre do autor), e não há essa restrição de reversibilidade específica por classe."

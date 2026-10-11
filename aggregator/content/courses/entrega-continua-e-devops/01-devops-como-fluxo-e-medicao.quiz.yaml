@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que velocidade e estabilidade são tratadas como indo juntas, e não como um trade-off, segundo a pesquisa DORA?"
+    options:
+      - "Porque equipes de alto desempenho são boas nas duas simultaneamente, entregando mais e falhando menos ao mesmo tempo"
+      - "Porque, segundo este marco, estabilidade nunca pode ser medida de forma confiável, tornando a comparação com velocidade sem sentido prático"
+      - "Na verdade este marco afirma que velocidade e estabilidade são sempre opostas, e qualquer ganho em uma implica perda na outra"
+      - "Porque a pesquisa DORA mede exclusivamente estabilidade, sem nenhuma métrica relacionada a velocidade de entrega"
+    answer: 0
+    explanation: "A descoberta central é contraintuitiva: equipes de alto desempenho entregam com mais frequência e têm menos falha de mudança ao mesmo tempo — não trocam uma pela outra. Estabilidade é, sim, medida de forma confiável (taxa de falha, tempo de recuperação), a pesquisa não trata as duas como sempre opostas (é o erro de modelo mental que o marco corrige), e DORA mede ambas as dimensões, não só estabilidade."
+
+  - question: "O que o tamanho de lote tem a ver com o risco de uma mudança, além da velocidade de entrega?"
+    options:
+      - "Lotes menores têm menos candidatos a causa quando algo falha, tornando o diagnóstico mais rápido"
+      - "O tamanho do lote, segundo este marco, não tem nenhuma relação com risco, apenas com a velocidade de entrega"
+      - "Lotes maiores são sempre mais seguros, porque passam por mais etapas de revisão antes de chegar a produção"
+      - "O risco de uma mudança depende só do número de revisores, independente de quantos arquivos ela altera"
+    answer: 0
+    explanation: "Um lote pequeno muda menos coisas ao mesmo tempo, o que reduz o número de candidatos a causa quando algo dá errado — diagnóstico mais rápido, não só entrega mais rápida. O marco relaciona diretamente tamanho de lote com risco, lotes maiores não são descritos como mais seguros por passarem por mais revisão, e o risco não depende só do número de revisores."
+
+  - question: "O que é eficiência de fluxo, e por que a intuição costuma subestimar quanto do tempo total é espera?"
+    options:
+      - "Trabalho dividido por trabalho mais espera; a intuição não enxerga o tempo parado esperando revisão"
+      - "É o tempo total gasto em testes automatizados dividido pelo tempo total do pipeline, sem relação com espera humana"
+      - "Eficiência de fluxo mede exclusivamente a velocidade de processamento do servidor de CI, não o processo de entrega como um todo"
+      - "A intuição, segundo este marco, geralmente sobrestima o tempo de espera, achando que ele é maior do que realmente é"
+    answer: 0
+    explanation: "Eficiência de fluxo é trabalho / (trabalho + espera); a intuição normalmente não enxerga quanto tempo uma mudança passa parada esperando revisão, aprovação ou uma janela de deploy, por isso subestima a fração de espera no total. A métrica não se limita a tempo de teste automatizado, não é sobre velocidade do servidor de CI, e o erro de intuição citado é subestimar a espera, não sobrestimar."
+
+  - question: "O que a lei de Goodhart prevê sobre uma métrica usada como alvo, e qual defesa este marco propõe?"
+    options:
+      - "A métrica deixa de ser boa medida quando se torna alvo; a defesa é sempre olhar estabilidade ao lado"
+      - "Prevê que toda métrica se torna mais precisa com o tempo, sem necessidade de nenhuma defesa adicional por parte da equipe"
+      - "A lei de Goodhart, segundo este marco, só se aplica a métricas financeiras, não a métricas de engenharia de software"
+      - "A defesa proposta é abandonar completamente o uso de métricas, substituindo-as por avaliação qualitativa da equipe"
+    answer: 0
+    explanation: "A lei de Goodhart prevê que uma medida usada como alvo tende a ser manipulada e deixa de informar o que deveria; a defesa do marco é sempre olhar uma métrica de velocidade ao lado da métrica de estabilidade correspondente, para que o gaming de uma apareça na outra. A lei não prevê maior precisão ao longo do tempo, não se restringe a métricas financeiras, e o marco não recomenda abandonar métricas."

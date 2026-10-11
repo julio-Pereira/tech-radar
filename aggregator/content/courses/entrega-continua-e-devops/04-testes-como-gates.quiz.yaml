@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que cobertura de linhas não mede a mesma coisa que pontuação de mutação, e por que um módulo pode ter 100% da primeira e 0% da segunda?"
+    options:
+      - "Cobertura mede execução da linha; mutação mede se algum teste falha quando a linha é deliberadamente corrompida"
+      - "As duas métricas, segundo este marco, medem exatamente a mesma propriedade, só com nomes e ferramentas diferentes"
+      - "Porque cobertura de linhas só existe em Go e pontuação de mutação só existe em Java, segundo a convenção adotada aqui"
+      - "Porque 100% de cobertura é tecnicamente impossível de alcançar ao mesmo tempo que qualquer pontuação de mutação"
+    answer: 0
+    explanation: "Cobertura diz que a linha foi executada; mutação planta um erro deliberado e verifica se algum teste nota — uma linha pode ser executada sem que nada verifique seu resultado, dando 100% de cobertura com 0% de proteção real contra erro. As duas métricas não medem a mesma coisa, não há essa restrição de linguagem, e as duas métricas podem, sim, coexistir com valores altos e baixos simultaneamente."
+
+  - question: "Por que rodar testes em ordem aleatória expõe dependências ocultas que ordem fixa esconde, segundo este marco?"
+    options:
+      - "Um teste que só passa graças a estado deixado por outro falha quando essa ordem não se repete"
+      - "Porque, tecnicamente, testes em ordem fixa sempre rodam mais rápido, mas nunca detectam nenhum tipo de erro de lógica"
+      - "Ordem aleatória, segundo este marco, serve apenas para distribuir a carga de execução entre múltiplos servidores de CI"
+      - "Este marco recomenda nunca usar ordem aleatória, por tornar os resultados de teste completamente imprevisíveis e inúteis"
+    answer: 0
+    explanation: "Se um teste depende implicitamente de um estado deixado por outro teste executado antes dele, ordem fixa mascara essa dependência indefinidamente; ordem aleatória eventualmente rompe essa sequência específica e expõe a falha. Velocidade de execução não é o ponto da comparação, ordem aleatória não serve para distribuição de carga entre servidores, e o marco recomenda usar ordem aleatória, não evitá-la."
+
+  - question: "Por que um gate de regressão de desempenho usa relação com a linha de base, em vez de um valor absoluto de tempo, segundo este marco?"
+    options:
+      - "Porque o valor absoluto varia por máquina e carga do momento; a relação com a mediana histórica é robusta a esse ruído"
+      - "Porque, tecnicamente, nenhuma ferramenta de CI é capaz de registrar um valor absoluto de tempo de execução com precisão"
+      - "Este marco recomenda o oposto: usar sempre um valor absoluto fixo, nunca uma relação com histórico de execuções"
+      - "Porque medir em relação à linha de base é mais rápido de calcular do que medir um valor absoluto de latência"
+    answer: 0
+    explanation: "Um valor absoluto de tempo é frágil, variando com a máquina e a carga do momento da execução; comparar a mediana atual com a mediana histórica, com uma tolerância declarada, é robusto a esse ruído, porque o que importa é a mudança relativa. Ferramentas de CI registram tempo absoluto sem problema, o marco recomenda relação em vez de absoluto (não o oposto), e a escolha não é sobre velocidade de cálculo."
+
+  - question: "Por que todo gate precisa de um teste que o faça falhar de propósito, segundo este marco?"
+    options:
+      - "Sem esse teste, não há prova de que o gate realmente bloqueia alguma coisa — ele pode estar presente só na forma, sem efeito real"
+      - "Porque, tecnicamente, um gate sem teste de falha proposital é automaticamente desativado pelo sistema de CI após algumas execuções"
+      - "Este marco trata esse teste como opcional, recomendado apenas para gates relacionados a segurança, não para os demais"
+      - "Porque testar a falha proposital do gate é exigido por uma norma regulatória citada neste marco, sem relação com qualidade de engenharia"
+    answer: 0
+    explanation: "Um gate que nunca foi observado bloqueando algo pode estar presente apenas na forma — configurado, mas sem efeito prático real; o teste que o faz falhar de propósito é a prova de que ele de fato bloqueia. Não há desativação automática por sistema de CI, o marco trata esse teste como necessário para todo gate (não só os de segurança), e não há norma regulatória citada como motivo."
+
+  - question: "Qual é a diferença entre teste de contrato em CI e teste de contrato rodado só manualmente antes de um release, segundo o raciocínio deste marco?"
+    options:
+      - "Em CI a quebra é pega antes do merge; rodado manualmente antes do release, o consumidor pode já ter sido afetado"
+      - "Não há diferença prática real entre as duas abordagens, segundo este marco, desde que o teste exista em algum lugar do processo"
+      - "Teste de contrato manual antes do release é sempre mais confiável, porque permite revisão humana cuidadosa de cada mudança de schema"
+      - "Teste de contrato em CI só é possível para schemas JSON, nunca para os formatos binários usados por Kafka ou arquitetura de eventos"
+    answer: 0
+    explanation: "Rodando como gate em CI, a incompatibilidade de schema é detectada antes do merge, nunca chegando perto de produção; um teste rodado só manualmente antes de um release abre uma janela em que o consumidor já pode ter sido exposto à mudança incompatível em algum ambiente anterior. O marco trata a automação em CI como preferível, não equivalente à verificação manual, revisão humana manual não é mais confiável que o gate automático para pegar incompatibilidade cedo, e o teste de contrato se aplica a qualquer formato de schema, não só JSON."
+
+  - question: "Por que a visão da pirâmide de testes dentro da esteira acrescenta a dimensão de custo e feedback, segundo este marco?"
+    options:
+      - "Testes da base dão feedback em segundos e rodam a todo PR; os do topo, mais lentos, rodam antes da promoção"
+      - "Porque, segundo este marco, testes de ponta a ponta sempre devem ser eliminados completamente da esteira, nunca executados"
+      - "A pirâmide de testes, aplicada à esteira, recomenda rodar primeiro os testes de ponta a ponta, por serem mais abrangentes"
+      - "Não há relação entre a pirâmide de testes e o momento em que cada tipo de teste roda dentro da esteira, segundo este marco"
+    answer: 0
+    explanation: "A base da pirâmide (testes unitários) dá feedback quase instantâneo e por isso roda em todo PR; o topo (testes e2e) é mais lento e caro, podendo rodar só antes de uma promoção específica — a dimensão de custo e feedback dentro da esteira é exatamente essa diferença de momento e frequência de execução. O marco recomenda minimizar, não eliminar, testes e2e; recomenda rodar a base primeiro, não o topo; e relaciona diretamente a pirâmide com o momento de execução na esteira."

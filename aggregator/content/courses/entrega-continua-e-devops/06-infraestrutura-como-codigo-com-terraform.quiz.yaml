@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que o estado do Terraform precisa de bloqueio, e o que acontece sem ele?"
+    options:
+      - "Sem bloqueio, duas execuções simultâneas podem corromper o mesmo estado ao ler e escrever juntas"
+      - "O bloqueio existe apenas para impedir que usuários sem permissão de administrador vejam o conteúdo do arquivo de estado"
+      - "Porque, tecnicamente, o Terraform não é capaz de executar nenhum comando sem um mecanismo de bloqueio ativo configurado"
+      - "O bloqueio serve só para garantir que o `plan` seja gerado mais rápido, sem relação com concorrência entre execuções"
+    answer: 0
+    explanation: "O estado registra a correspondência entre configuração e recursos reais; duas execuções simultâneas sem bloqueio podem ler e escrever esse registro ao mesmo tempo, corrompendo-o. O bloqueio não é sobre controle de visualização por permissão, Terraform funciona sem bloqueio configurado (só fica arriscado em equipe), e não tem relação com velocidade de geração do plano."
+
+  - question: "Por que o estado 'frequentemente contém segredos em texto claro', mesmo quando a configuração marca uma variável como sensível, segundo este marco?"
+    options:
+      - "Porque o estado registra os valores reais dos recursos, inclusive os que vieram de uma variável sensível na configuração"
+      - "Porque, tecnicamente, a marcação de variável sensível no Terraform só afeta a exibição no terminal, nunca o armazenamento real"
+      - "Este marco afirma que isso nunca acontece: variáveis sensíveis são sempre automaticamente cifradas dentro do arquivo de estado"
+      - "Porque o estado, segundo este marco, armazena apenas hashes dos valores sensíveis, nunca o valor original em qualquer formato"
+    answer: 0
+    explanation: "O estado precisa registrar os valores reais dos recursos para funcionar (saber o que existe de fato); mesmo uma variável marcada como sensível acaba registrada em texto claro ali, porque a marcação afeta só a exibição em log/terminal, não o armazenamento no estado. A primeira opção já captura corretamente esse mecanismo; a cifragem automática e o armazenamento só de hash não correspondem ao comportamento descrito no marco."
+
+  - question: "Qual é a diferença prática entre count e for_each quando um item é removido do meio de uma lista de recursos?"
+    options:
+      - "Count reindexa por posição, deslocando o endereço dos itens seguintes; for_each usa chave estável"
+      - "Não há diferença prática real entre os dois: ambos reagem de forma idêntica à remoção de um item do meio da lista"
+      - "For_each sempre recria todos os recursos da lista inteira ao detectar qualquer remoção, enquanto count nunca recria nenhum"
+      - "A diferença entre count e for_each só é relevante para o provedor azurerm, sem efeito em provedores locais"
+    answer: 0
+    explanation: "Count indexa por posição numérica; remover um item do meio desloca o índice de todos os itens posteriores, levando Terraform a interpretar isso como mudança e propor destruir/recriar recursos que não mudaram de fato. For_each, por chave estável, não sofre esse deslocamento. Os dois comportamentos são bem diferentes (não idênticos), for_each não recria tudo ao remover um item (é o ponto a favor dele), e a diferença vale para qualquer provedor, não só azurerm."
+
+  - question: "Por que um estado único para todo o sistema aumenta o raio de explosão de um erro de configuração, segundo este marco?"
+    options:
+      - "Um erro em qualquer parte do estado compartilhado pode afetar o plan/apply de tudo o mais nesse estado"
+      - "Porque, tecnicamente, um estado único impede completamente a execução de qualquer comando terraform plan, mesmo sem erro algum"
+      - "Este marco recomenda sempre um único estado para todo o sistema, tratando o raio de explosão como preocupação irrelevante"
+      - "Porque um estado único consome mais espaço em disco, o que é citado neste marco como o principal risco a evitar"
+    answer: 0
+    explanation: "Quando todos os recursos vivem no mesmo estado, um erro de configuração em qualquer parte tem, em princípio, alcance sobre o plan/apply de todo o resto compartilhando aquele estado — por isso separar por fronteira limita esse alcance. Um estado único não impede execução de plan, o marco recomenda considerar separação por fronteira (não um único estado sempre), e o risco citado não é sobre espaço em disco."
+
+  - question: "O que a política sobre o plano, em JSON, permite verificar antes do apply que um revisor humano sozinho poderia deixar passar?"
+    options:
+      - "Regras automáticas e exaustivas (como exigir tag obrigatória), aplicadas sem depender de atenção humana"
+      - "A política sobre o plano, segundo este marco, só é capaz de verificar erros de sintaxe, nunca regras de negócio como tags obrigatórias"
+      - "Esse mecanismo substitui completamente qualquer revisão humana do plano, tornando a revisão manual desnecessária em todos os casos"
+      - "A política só pode ser aplicada depois do apply já ter sido executado, nunca antes, segundo o fluxo descrito neste marco"
+    answer: 0
+    explanation: "Avaliar o plano em JSON contra um motor de política permite aplicar regras automáticas e exaustivas (como exigir uma tag obrigatória em todo recurso) de forma consistente, sem depender de um humano notar manualmente cada violação possível. A política verifica regras de negócio, não só sintaxe (já coberta por validate), não substitui toda revisão humana de forma absoluta, e é aplicada antes do apply, exatamente como o marco descreve."
+
+  - question: "Por que apply deveria rodar só pela pipeline, nunca manualmente de uma máquina de desenvolvedor, segundo este marco?"
+    options:
+      - "Assim o que executa é exatamente o revisado no plano, sob controle de acesso — a mesma promoção sem reconstruir"
+      - "Porque, tecnicamente, o comando terraform apply não está disponível fora de um ambiente de CI, segundo a documentação citada"
+      - "Este marco recomenda o oposto: apply manual é sempre preferível, porque permite intervenção humana imediata em caso de erro"
+      - "Porque executar apply numa máquina de desenvolvedor sempre corrompe o arquivo de estado remoto, independente de qualquer outro fator"
+    answer: 0
+    explanation: "Rodar apply só pela pipeline garante que o que é executado é exatamente o plano revisado, com controle de acesso e evidência — a mesma disciplina de 'promoção sem reconstruir' do marco 05, aplicada à infraestrutura. O comando funciona normalmente fora de CI (não há essa restrição de ferramenta), o marco recomenda pipeline em vez de execução manual (não o oposto), e executar numa máquina de desenvolvedor não corrompe o estado por si só — o risco é de desvio do processo revisado, não de corrupção automática."
