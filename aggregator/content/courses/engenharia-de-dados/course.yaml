@@ -1,0 +1,51 @@
+slug: engenharia-de-dados
+title: "Engenharia de Dados para Fintech: o Receptor Open Finance"
+subtitle: "Do consentimento à tabela confiável: como uma plataforma de dados recebe, guarda, transforma e serve dados de terceiros — idempotente, observável e capaz de esquecer quando o consentimento acaba."
+category: "Dados"
+tags: [engenharia-de-dados, pipeline, open-finance, consentimento, lgpd, qualidade-de-dados, linhagem, lakehouse, orquestracao, dbt, streaming, fintech]
+level: advanced
+lang: pt-BR
+# 13 marcos, 770 min. A regra é ~2x a soma dos estimatedMinutes: 770 x 2 / 60 = 25,7 -> 26.
+estimatedHours: 26
+glossary: GLOSSARIO.md
+sources:
+  - title: "Open Finance Brasil — Especificações"
+    url: https://openfinancebrasil.atlassian.net/wiki/spaces/OF/overview
+  - title: "Banco Central do Brasil — Open Finance"
+    url: https://www.bcb.gov.br/estabilidadefinanceira/openfinance
+  - title: "Lei Geral de Proteção de Dados (Lei nº 13.709/2018)"
+    url: https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm
+  - title: "Apache Parquet — format specification"
+    url: https://parquet.apache.org/docs/
+  - title: "DuckDB — documentation"
+    url: https://duckdb.org/docs/
+  - title: "dbt — documentation"
+    url: https://docs.getdbt.com/
+  - title: "Apache Iceberg — table spec"
+    url: https://iceberg.apache.org/spec/
+  - title: "OpenLineage"
+    url: https://openlineage.io/
+  - title: "The Dataflow Model (Akidau et al.)"
+    url: https://research.google/pubs/the-dataflow-model-a-practical-approach-to-balancing-correctness-latency-and-cost-in-massive-scale-unbounded-out-of-order-data-processing/
+  - title: "Data Contract Specification"
+    url: https://datacontract.com/
+  - title: "Dagster — documentation"
+    url: https://docs.dagster.io/
+milestones:
+  # Bloco A — O problema e o contrato
+  - 01-pipelines-sao-servicos.md
+  - 02-ingerir-de-apis-de-terceiros.md
+  - 03-consentimento-como-dado.md
+  # Bloco B — Guardar e transformar
+  - 04-modelar-para-analise.md
+  - 05-formatos-e-tabelas-de-lakehouse.md
+  - 06-transformacao-como-codigo.md
+  - 07-orquestracao.md
+  # Bloco C — Confiança no dado
+  - 08-qualidade-de-dados.md
+  - 09-linhagem-e-observabilidade-de-dados.md
+  - 10-privacidade-e-governanca-aplicadas.md
+  # Bloco D — Servir e operar
+  - 11-batch-streaming-e-tempo.md
+  - 12-servir-dados.md
+  - 13-operar-a-plataforma-de-dados.md

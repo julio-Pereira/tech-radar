@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que declarar a granularidade de uma tabela de fato antes de modelá-la é importante, segundo este marco?"
+    options:
+      - "Misturar granularidades é o jeito mais confiável de produzir uma soma errada sem ninguém notar"
+      - "Porque ferramentas modernas de modelagem dimensional recusam tecnicamente salvar qualquer schema de tabela que não tenha a granularidade declarada explicitamente num comentário de coluna"
+      - "A granularidade é apenas uma convenção de nomenclatura de tabela, sem nenhum efeito sobre o resultado de consultas analíticas"
+      - "Declarar a granularidade só importa para tabelas com mais de um bilhão de linhas; abaixo disso é opcional"
+    answer: 0
+    explanation: "Se algumas linhas de uma tabela representam transações individuais e outras representam agregados, somar a coluna de valor conta tudo errado, de forma sutil — a soma simplesmente pareceria razoável até o fechamento revelar a divergência. Não há essa limitação de ferramenta citada, a granularidade tem efeito direto sobre o resultado de qualquer agregação (não é só nomenclatura), e o risco existe em qualquer volume, não só acima de um bilhão de linhas."
+
+  - question: "Por que SCD tipo 2 registra uma mudança de dimensão como uma linha nova com vigência, em vez de sobrescrever a linha existente com `UPDATE`?"
+    options:
+      - "Preserva o histórico: permite saber qual versão de uma entidade valia em qualquer instante passado"
+      - "Porque a linguagem SQL não permite tecnicamente executar `UPDATE` em nenhuma tabela classificada como dimensão em qualquer sistema de data warehouse moderno"
+      - "Porque linhas novas sempre ocupam menos espaço em disco do que atualizar uma linha existente, independente do número de colunas da tabela"
+      - "Não há razão real para essa escolha; SCD2 é apenas uma convenção de nome sem efeito prático sobre o comportamento do sistema"
+    answer: 0
+    explanation: "Um `UPDATE` destrói a versão anterior — depois dele, não há mais como saber qual era o endereço ou status de uma conta antes da mudança. Registrar como linha nova, com vigência declarada, preserva essa informação para qualquer consulta histórica. Não existe limitação de SQL impedindo `UPDATE` em dimensões (é tecnicamente trivial), linha nova geralmente ocupa mais espaço, não menos, e a escolha tem efeito prático real e central: preservar histórico."
+
+  - question: "Como este marco recomenda modelar uma transação que aparece pendente num dia e é efetivada, com valor ajustado, alguns dias depois?"
+    options:
+      - "Como dois eventos distintos ligados pela mesma chave de negócio — pendente e efetivada"
+      - "Como um único registro, atualizado via `UPDATE` quando a efetivação acontece, substituindo o valor pendente original pelo valor final sem deixar rastro da mudança"
+      - "A transação pendente deve ser descartada completamente do modelo e só a efetivada deve ser armazenada, já que é a única com valor definitivo e confiável para qualquer análise"
+      - "Pendente e efetivada são conceitos que não existem no Open Finance Brasil, sendo irrelevantes para qualquer modelo de dados desta natureza"
+    answer: 0
+    explanation: "Modelar como dois eventos distintos, ligados pela mesma chave de negócio, permite reconstruir tanto \"o que o cliente via em cada momento\" (incluindo o estado pendente) quanto o valor final correto para fechamento — sem perder nenhuma das duas informações. Sobrescrever via UPDATE perde o estado pendente histórico, descartar a pendente perde a reconstrução da experiência do cliente, e pendente/efetivada são conceitos reais e centrais no domínio de transações financeiras do Open Finance."
+
+  - question: "Por que a resolução de entidade entre instituições (reconhecer que dois registros de fontes diferentes são a mesma pessoa) é tratada como tão arriscada quando errada por falso positivo quanto por falso negativo?"
+    options:
+      - "Um falso positivo mistura histórico financeiro de pessoas distintas, um erro grave em qualquer auditoria"
+      - "Na verdade falso positivo nunca é um risco real em resolução de entidade; apenas falso negativo (não reconhecer a mesma pessoa) tem alguma consequência prática relevante para o negócio"
+      - "Porque toda resolução de entidade, segundo a especificação técnica oficial do Open Finance Brasil, deve obrigatoriamente usar exclusivamente o CPF como único critério permitido, sem qualquer margem de erro tolerável"
+      - "Resolução de entidade é um problema puramente acadêmico sem aplicação prática real em sistemas de produção de instituições financeiras"
+    answer: 0
+    explanation: "Falso positivo (unificar duas pessoas diferentes como se fossem uma) mistura histórico financeiro de identidades distintas — um erro que uma auditoria classificaria como grave, tão sério quanto o falso negativo de tratar a mesma pessoa como duas identidades separadas. Os dois lados do erro têm consequência real, não existe essa exigência de usar exclusivamente CPF sem outros critérios, e o problema é central em sistemas reais de produção, não acadêmico."

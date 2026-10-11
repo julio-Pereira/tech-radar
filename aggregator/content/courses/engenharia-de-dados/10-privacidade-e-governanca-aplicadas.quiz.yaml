@@ -1,0 +1,55 @@
+questions:
+  - question: "Qual é a lista completa de camadas que a propagação de uma revogação de consentimento precisa alcançar, segundo este marco?"
+    options:
+      - "Bruto, prata, ouro, caches e cópias de homologação — não só as camadas óbvias de produção"
+      - "Apenas a camada ouro, já que é a única efetivamente consultada por sistemas de decisão automatizada como o motor de ofertas"
+      - "Apenas o bruto, porque remover o dado na origem automaticamente invalida qualquer cópia derivada em qualquer camada posterior do pipeline"
+      - "A revogação só precisa alcançar sistemas em produção; ambientes de homologação e teste estão fora do escopo de qualquer obrigação de propagação"
+    answer: 0
+    explanation: "O marco é explícito: esquecer o cache ou a cópia de homologação é o erro mais comum e mais caro de uma auditoria encontrar — a lista completa inclui bruto, prata, ouro, caches derivados e cópias de homologação, não só as camadas de produção óbvias. Limitar à camada ouro ignora cópias intermediárias que também precisam esquecer; remover do bruto não invalida automaticamente cópias já derivadas em outras camadas (cada uma precisa ser tratada); e ambientes de homologação estão sim dentro do escopo, exatamente o ponto que o marco destaca como mais frequentemente esquecido."
+
+  - question: "Qual é a principal troca de custo entre apagar por reescrita de partição e apagar por *crypto-shredding*?"
+    options:
+      - "Reescrita custa em bytes reescritos na hora; crypto-shredding move o custo para gestão de chaves"
+      - "As duas estratégias têm exatamente o mesmo custo de execução e de operação em qualquer escala, sendo a escolha entre elas puramente uma questão de preferência de time, sem nenhuma implicação técnica real"
+      - "Crypto-shredding sempre reescreve mais bytes do que a reescrita por partição, tornando essa última estratégia universalmente mais barata em qualquer cenário de uso"
+      - "Reescrita por partição é tecnicamente impossível de implementar em qualquer formato de arquivo imutável como Parquet, restando apenas crypto-shredding como opção viável"
+    answer: 0
+    explanation: "Reescrita por partição tem um custo imediato e mensurável: reescrever os arquivos afetados, proporcional ao tamanho da partição, não ao tamanho do dado apagado. Crypto-shredding evita reescrever qualquer byte — basta destruir a chave — mas move a complexidade para operar uma chave por titular numa escala de milhões, o que não é trivial. Os custos são bem diferentes (não iguais), crypto-shredding não reescreve bytes (é o oposto da reescrita), e reescrita por partição é perfeitamente viável em Parquet — é uma das três estratégias que o marco descreve justamente para esse formato."
+
+  - question: "Por que apagar o dado de origem de um titular não desfaz uma decisão automatizada (como uma oferta) já registrada que o usou como insumo de treino?"
+    options:
+      - "\"Não existe desaprender limpo\" — o registro histórico da decisão já aconteceu e persiste"
+      - "Porque, tecnicamente, apagar o dado de origem sempre reverte automaticamente qualquer modelo de machine learning treinado com ele, retreinando-o do zero sem esse dado em tempo real"
+      - "Na verdade apagar o dado de origem sempre desfaz qualquer decisão associada, de forma completa e imediata, em qualquer sistema bem desenhado segundo este marco"
+      - "Esse problema só existe em sistemas que usam deep learning; modelos estatísticos simples como regressão linear não sofrem desse limite"
+    answer: 0
+    explanation: "O modelo já foi treinado, os pesos já incorporaram a influência daquele dado de alguma forma, e a decisão que ele já tomou com base nisso já aconteceu e está registrada — apagar a fonte original não reverte esse processo retroativamente. Esse é exatamente o limite que \"não existe desaprender limpo\" descreve. Não há reversão automática de modelo nenhuma (é tecnicamente complexo e caro, tratado com mais profundidade em outra trilha), a afirmação de desfazer completamente é o oposto do que o marco ensina, e o limite não é exclusivo de deep learning — vale para qualquer modelo estatístico que usou o dado."
+
+  - question: "O que este marco considera a postura honesta diante de cópias de dado que saíram do controle direto do sistema (como um relatório exportado para uma planilha)?"
+    options:
+      - "Declarar explicitamente esse limite na política, em vez de fingir uma garantia que não existe"
+      - "O sistema deve garantir tecnicamente, através de um mecanismo de rastreamento universal, que toda cópia exportada é automaticamente localizada e apagada em qualquer lugar do mundo onde ela tenha sido enviada"
+      - "Cópias exportadas para fora do sistema são sempre ilegais sob a LGPD, e qualquer exportação deveria ser tecnicamente bloqueada por completo em qualquer circunstância"
+      - "Esse problema não é mencionado por este marco como uma preocupação relevante para engenharia de dados"
+    answer: 0
+    explanation: "O marco reconhece explicitamente que cópias fora do controle direto do sistema (uma planilha exportada, por exemplo) não podem ser garantidamente apagadas por este sistema — a resposta honesta é declarar esse limite na política, não prometer uma garantia tecnicamente inalcançável. Não existe esse mecanismo universal de rastreamento e apagamento global, exportação não é automaticamente ilegal sob a LGPD (depende do contexto e salvaguardas), e bloquear toda exportação por completo não é a recomendação do marco — é sobre honestidade na declaração do limite, não proibição absoluta."
+
+  - question: "Qual é a diferença entre pseudonimizar e tokenizar um CPF, segundo este marco?"
+    options:
+      - "Pseudonimizar preserva capacidade de join; tokenizar guarda o valor real só num cofre separado"
+      - "São exatamente o mesmo processo técnico, apenas com nomes de marketing diferentes usados por fornecedores concorrentes de ferramentas de mascaramento de dados"
+      - "Pseudonimizar é sempre reversível por qualquer pessoa com acesso ao banco de dados, enquanto tokenizar é permanentemente irreversível em qualquer circunstância, mesmo para auditoria legítima"
+      - "Tokenizar só se aplica a números de cartão de crédito; para CPF, apenas pseudonimização é tecnicamente possível"
+    answer: 0
+    explanation: "Pseudonimização substitui o valor real por um identificador que não permite reversão trivial, mas ainda permite juntar registros do mesmo titular por esse identificador — útil para análise que precisa agrupar sem expor o CPF real. Tokenização vai além: o valor real fica isolado num cofre, e o token não carrega informação sobre o original. Não são o mesmo processo, pseudonimização não é livremente reversível por qualquer um com acesso ao banco, e tokenização se aplica a qualquer dado sensível, não só número de cartão."
+
+  - question: "Por que minimização de dados significa não trazer \"tudo que a API da transmissora oferece\", mesmo quando isso seria tecnicamente mais simples?"
+    options:
+      - "Só o que a finalidade do consentimento exige deve ser coletado e retido — trazer mais aumenta exposição sem necessidade"
+      - "Porque trazer mais campos do que o necessário sempre resulta em maior latência de rede na chamada à API da transmissora, tornando a prática tecnicamente inviável em qualquer cenário de produção"
+      - "Minimização é uma prática puramente opcional sugerida como boa prática, sem nenhuma relação real com os princípios da LGPD ou do Open Finance"
+      - "A API do Open Finance Brasil, por especificação técnica, impede tecnicamente que qualquer campo além do estritamente necessário seja retornado em qualquer chamada"
+    answer: 0
+    explanation: "Coletar e reter dado além do que a finalidade autoriza aumenta a superfície de exposição em caso de incidente, e viola o princípio de minimização que a LGPD e o Open Finance esperam — mesmo que tecnicamente seja mais simples \"trazer tudo de uma vez\". Não é primariamente sobre latência de rede, minimização tem relação direta com os princípios legais citados (não é opcional sem fundamento), e a API não impõe essa restrição técnica automaticamente — é uma decisão de design do receptor."
+

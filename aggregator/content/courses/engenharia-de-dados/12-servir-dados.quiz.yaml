@@ -1,0 +1,36 @@
+questions:
+  - question: "Três times calculam \"ticket médio\" de três jeitos diferentes, gerando números que não batem. O que a camada semântica resolve nesse cenário?"
+    options:
+      - "Define cada métrica de negócio uma única vez, servida de forma consistente por qualquer porta de acesso"
+      - "A camada semântica resolve o problema automaticamente detectando qual dos três cálculos é o matematicamente correto e descartando os outros dois sem intervenção humana"
+      - "Ela não resolve o problema de divergência; apenas documenta as três definições diferentes lado a lado para referência futura da equipe"
+      - "A camada semântica elimina a necessidade de qualquer time calcular métricas, substituindo completamente o trabalho analítico humano por geração automática"
+    answer: 0
+    explanation: "Ao definir \"ticket médio\" uma única vez, de forma versionada, e servir essa definição por qualquer porta de acesso (SQL direto, API, extração), a camada semântica garante que qualquer consumidor obtém o mesmo número — eliminando a divergência na raiz, não escolhendo entre definições concorrentes. Não há detecção automática de qual cálculo é \"correto\" (os três podem ser legítimos para contextos diferentes, o problema é a falta de uma definição compartilhada), não é apenas documentação passiva, e não substitui trabalho analítico — centraliza a definição."
+
+  - question: "Por que o contrato de consumo de uma tabela ouro deveria quebrar o CI quando uma mudança incompatível é introduzida, em vez de apenas documentar o schema esperado?"
+    options:
+      - "Pega a mudança incompatível antes do deploy, não depois, quando um consumidor já vê um painel errado"
+      - "Documentação e quebra de CI produzem exatamente o mesmo resultado prático; a escolha entre as duas é puramente uma questão de preferência estilística da equipe de dados, sem efeito real"
+      - "Porque documentação de schema é tecnicamente impossível de manter atualizada em qualquer ferramenta de dados moderna, tornando a quebra de CI a única alternativa viável"
+      - "Quebrar o CI só é necessário quando a tabela é consumida por mais de dez times diferentes simultaneamente; abaixo desse número, documentação já é suficiente"
+    answer: 0
+    explanation: "Documentação sozinha depende de alguém ler e verificar manualmente antes de cada mudança — uma mudança incompatível pode passar despercebida e só ser descoberta quando um consumidor já está vendo um número errado em produção. Quebrar o CI automatiza essa verificação, pegando o problema antes do deploy. As duas abordagens têm efeito prático bem diferente (uma é passiva, a outra é ativa e preventiva), documentação de schema é perfeitamente mantível com as ferramentas certas, e o critério não depende do número de times consumidores."
+
+  - question: "Por que `dado_utilizavel` precisa ser uma restrição tecnicamente imposta pelo controle de acesso, e não apenas uma convenção que a equipe segue por acordo?"
+    options:
+      - "Uma auditoria nunca aceita \"todo mundo segue a regra por acordo\" como garantia suficiente"
+      - "Porque convenções informais são tecnicamente impossíveis de serem violadas por qualquer engenheiro com acesso de leitura ao banco de dados, tornando a imposição técnica redundante na prática"
+      - "Não há diferença real de garantia entre uma convenção seguida pela equipe e uma restrição tecnicamente imposta; ambas produzem exatamente o mesmo nível de conformidade perante um auditor"
+      - "A imposição técnica só é necessária em sistemas com mais de um bilhão de linhas de dado armazenado; abaixo disso, convenção é suficiente segundo este marco"
+    answer: 0
+    explanation: "Uma convenção depende de todo consumidor, em todo momento, escolher segui-la voluntariamente — um único acesso direto ao bruto, por pressa ou desconhecimento, já quebra a garantia de que só dado consentido é consumido. Uma auditoria exige prova técnica de que o acesso é de fato restrito, não uma afirmação de boa conduta. Convenções são sim violáveis na prática (é exatamente o risco), as duas abordagens têm nível de garantia bem diferente, e a necessidade de imposição técnica não depende do volume de dados armazenado."
+
+  - question: "Qual é a diferença central entre API de dados, consulta direta e extração como formas de servir uma tabela ouro?"
+    options:
+      - "Variam em quão estável é a interface exposta e quanto controle de acesso o provedor mantém"
+      - "As três formas são tecnicamente idênticas em termos de garantias oferecidas ao consumidor, diferindo apenas no nome usado por diferentes fornecedores de ferramentas de dados"
+      - "Apenas a extração permite que o consumidor veja dado de consentimento revogado, já que ela opera fora do sistema de controle de acesso principal da plataforma"
+      - "Consulta direta é sempre proibida por qualquer especificação de governança de dados moderna, restando apenas API de dados e extração como opções legítimas"
+    answer: 0
+    explanation: "API de dados esconde a estrutura física por trás de um contrato estável; consulta direta expõe mais flexibilidade mas acopla o consumidor à estrutura física real (uma mudança de schema pode quebrar sem aviso); extração é um snapshot periódico, útil para sistemas que não falam SQL, mas custa sincronização. As três têm garantias bem diferentes (não idênticas), nenhuma delas contorna legitimamente o controle de acesso para dado revogado (isso seria uma falha, não uma característica da extração), e consulta direta não é proibida universalmente — é uma opção válida conforme o caso de uso."

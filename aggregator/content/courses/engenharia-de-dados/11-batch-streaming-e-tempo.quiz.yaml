@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que agregar eventos por tempo de processamento (quando o pipeline os viu), em vez de tempo de evento (quando o fato aconteceu), produz resultado errado sob atraso de chegada?"
+    options:
+      - "O agregado \"das 14h\" passaria a incluir dado atrasado de outra hora e excluir o que ainda não chegou"
+      - "Não há diferença real de resultado entre as duas abordagens; tempo de evento e tempo de processamento sempre coincidem em qualquer pipeline bem implementado, por definição"
+      - "Porque tempo de processamento é sempre mais lento de calcular computacionalmente do que tempo de evento, tornando a agregação tecnicamente inviável em qualquer sistema de produção real"
+      - "O problema só ocorre quando o pipeline usa Kafka como transporte; com outros sistemas de mensageria tempo de processamento é sempre equivalente a tempo de evento"
+    answer: 0
+    explanation: "Se um evento das 14h32 só é processado às 14h40 (atraso de rede) ou dias depois (reemissão), agregar por tempo de processamento colocaria esse evento numa janela diferente da que ele realmente pertence — o agregado \"das 14h\" ficaria incompleto ou contaminado por dado de outra hora. Os dois tempos coincidem só na ausência de qualquer atraso, o que não é realista; não é sobre velocidade de cálculo; e o problema existe independente da tecnologia de transporte usada."
+
+  - question: "O que um *watermark* declara num pipeline de streaming, e o que acontece com um evento que chega depois dele ter passado?"
+    options:
+      - "Declara até quando esperar por eventos atrasados; o que chega depois vira correção auditável"
+      - "Um watermark é um mecanismo de criptografia que marca cada evento com uma assinatura digital, sem nenhuma relação com tempo de chegada ou agregação de janelas"
+      - "O watermark descarta automaticamente, sem registro nenhum, qualquer evento que chegue depois do limite declarado, por ser considerado dado corrompido"
+      - "Watermark é apenas um nome alternativo para timeout de conexão de rede entre o produtor e o consumidor do fluxo de eventos"
+    answer: 0
+    explanation: "O watermark é uma aposta explícita de até quando o pipeline espera por eventos atrasados antes de considerar uma janela \"fechada\". Um evento que chega depois dessa aposta ter passado não é simplesmente descartado — vira uma correção explícita e auditável sobre o agregado já publicado. Não tem relação com criptografia ou assinatura digital, não descarta silenciosamente (é exatamente o oposto do comportamento correto descrito), e não é sinônimo de timeout de conexão de rede."
+
+  - question: "Qual é a crítica prática mais citada à arquitetura Lambda (caminho batch + caminho de velocidade em paralelo)?"
+    options:
+      - "A mesma lógica de negócio implementada duas vezes, em dois sistemas, com risco real de divergir"
+      - "Lambda é tecnicamente impossível de implementar em qualquer ambiente que não use exclusivamente ferramentas de código aberto para ambos os caminhos de processamento, batch e streaming"
+      - "A principal crítica é que Lambda sempre produz resultados menos precisos que uma arquitetura puramente batch, em qualquer cenário de uso real"
+      - "Lambda não tem nenhuma crítica relevante segundo este marco; é apresentada como a escolha recomendada sem ressalvas para qualquer pipeline de dados moderno"
+    answer: 0
+    explanation: "Manter dois caminhos paralelos (batch correto e lento, velocidade rápida e aproximada) significa implementar a mesma regra de negócio duas vezes, em sistemas potencialmente diferentes — e manter as duas implementações sincronizadas ao longo do tempo é um risco real de divergência silenciosa. Não há essa restrição de ferramentas open source exclusivas, Lambda não é inerentemente menos precisa que batch puro (o caminho batch dela é o correto), e o marco apresenta sim uma crítica explícita a ela, não uma recomendação sem ressalvas."
+
+  - question: "Segundo este marco, qual é a pergunta que decide se vale a pena investir em streaming em vez de usar batch diário?"
+    options:
+      - "Se a latência da decisão que consome o dado justifica o custo extra de construir e operar streaming"
+      - "Streaming deve sempre ser a escolha padrão para qualquer novo pipeline de dados, independente do caso de uso, por ser tecnologicamente mais moderno que batch"
+      - "A escolha depende exclusivamente do volume total de dados processado por dia, nunca da latência exigida pela decisão de negócio consumidora"
+      - "Batch diário deve sempre ser preferido sobre streaming, sem exceção, para qualquer pipeline de uma instituição financeira regulada"
+    answer: 0
+    explanation: "O critério central é se a decisão de negócio que consome aquele dado precisa dele em segundos (justificando o investimento em streaming) ou se recebe a mesma utilidade processando uma vez por dia (caso em que batch resolve com menos complexidade e custo). Não é sobre modernidade tecnológica como critério em si, volume de dados sozinho não decide isso (latência exigida é o fator central), e não há uma preferência absoluta e automática por batch em todo cenário regulado — depende do caso concreto."

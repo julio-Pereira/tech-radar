@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que um modelo incremental ingênuo pode perder uma transação que a transmissora reemite 5 dias depois do fato original?"
+    options:
+      - "A lógica \"desde a última execução\" nunca mais revisita dados já considerados processados"
+      - "Porque toda ferramenta de transformação SQL declarativa, por limitação técnica inerente ao próprio paradigma declarativo, é incapaz de processar qualquer dado que chegue fora da ordem cronológica original de criação"
+      - "Porque reemissões de transmissoras são sempre identificadas e tratadas automaticamente por qualquer motor de banco de dados moderno, tornando esse risco puramente teórico"
+      - "Não há risco real nisso: modelos incrementais sempre reprocessam todo o histórico disponível a cada execução, por definição do termo"
+    answer: 0
+    explanation: "Sem uma janela de reprocessamento, o modelo incremental considera processado tudo que já passou pelo corte da última execução, e nunca revisita esse intervalo — uma transação reemitida 5 dias depois simplesmente não é vista. Não há limitação técnica do paradigma declarativo impedindo isso (a correção é uma questão de desenho da janela, não de limitação da ferramenta), motores de banco não detectam reemissões automaticamente, e por definição um modelo incremental processa só o que é novo, não tudo — é exatamente o oposto do modelo completo."
+
+  - question: "O que *slim CI* otimiza numa pipeline de transformação SQL, e como ele decide o que testar?"
+    options:
+      - "Roda só os modelos afetados por uma mudança, calculados a partir do grafo de dependências"
+      - "Slim CI reduz o tamanho físico dos arquivos SQL do repositório, comprimindo o código-fonte antes de cada execução do pipeline de integração contínua, sem nenhuma relação com quais modelos são efetivamente testados"
+      - "Slim CI executa absolutamente todos os modelos e todos os testes do projeto inteiro, mas em paralelo com mais recursos computacionais alocados do que uma execução normal"
+      - "Slim CI é apenas um nome alternativo para rodar os testes com menos verbosidade de log, sem nenhuma mudança real no escopo do que é testado"
+    answer: 0
+    explanation: "Slim CI usa o grafo de dependências entre modelos para identificar quais foram afetados por uma mudança específica, e testa só esses — evitando o custo de rodar a suíte inteira sobre todo o histórico a cada alteração pequena. Não é sobre comprimir arquivos de código-fonte, não roda tudo (é exatamente o oposto: roda menos, de forma direcionada), e não é só uma questão de verbosidade de log — é uma mudança real de escopo de execução."
+
+  - question: "Por que um teste de dados que falha deve quebrar o build de um pipeline de transformação, em vez de apenas gerar um aviso?"
+    options:
+      - "Promover um modelo com teste falho propaga um dado possivelmente errado para as camadas seguintes"
+      - "Porque a especificação formal da linguagem SQL exige, por definição do padrão ANSI, que qualquer teste de integridade referencial falho impeça automaticamente a compilação de qualquer consulta subsequente no mesmo banco de dados"
+      - "Não há diferença prática real entre quebrar o build e apenas gerar um aviso; ambas as abordagens produzem exatamente o mesmo resultado final para os consumidores do dado"
+      - "Porque avisos consomem mais espaço de armazenamento em log do que falhas que interrompem a execução, tornando quebrar o build a opção mais econômica"
+    answer: 0
+    explanation: "Se um teste de unicidade, não-nulo ou integridade referencial falha e o pipeline segue adiante mesmo assim, o dado possivelmente problemático chega à prata ou ao ouro, de onde consumidores (incluindo modelos de ML) o usam como se fosse confiável — quebrar o build é o que impede essa propagação. Não existe essa exigência do padrão ANSI SQL, as duas abordagens produzem resultados bem diferentes (um propaga dado ruim, o outro não), e a questão não é sobre espaço de armazenamento de log."
+
+  - question: "Segundo este marco, quando um passo de código imperativo dentro do pipeline é legítimo, mesmo numa trilha que é SQL-first por padrão?"
+    options:
+      - "Quando a transformação exige estado complexo entre linhas ou parsing de formato não tabular"
+      - "Código imperativo nunca é legítimo em nenhuma circunstância dentro desta trilha; toda transformação deve obrigatoriamente ser expressa exclusivamente em SQL declarativo puro, sem exceção de nenhum tipo"
+      - "Apenas quando a equipe de engenharia de dados não tem nenhum conhecimento prévio de SQL e precisa usar a linguagem de programação com a qual já está familiarizada"
+      - "Apenas para gerar a documentação automática dos modelos, nunca para qualquer transformação real do dado em si"
+    answer: 0
+    explanation: "O marco reconhece explicitamente que SQL declarativo não é dogma: quando a lógica exige estado complexo entre linhas de um jeito que SQL não expressa bem, ou parsing de formato que não é tabular, um passo de código imperativo é uma escolha legítima, não uma rendição. Não é uma proibição absoluta, não é sobre falta de conhecimento de SQL da equipe, e não se limita à geração de documentação — é sobre a transformação real do dado quando SQL não é a ferramenta certa."

@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é a diferença entre \"entrega exatamente uma vez\" e \"efeito exatamente uma vez\", segundo este marco?"
+    options:
+      - "A primeira é cara e rara na prática; a segunda vem de idempotência na escrita, via chave natural"
+      - "Não há diferença real entre os dois conceitos; são apenas dois nomes diferentes para a mesma garantia técnica, usados de forma intercambiável por diferentes fornecedores de ferramentas de mensageria no mercado atual"
+      - "A primeira só existe em sistemas batch; a segunda só existe em sistemas de streaming puro"
+      - "Entrega exatamente uma vez é sempre mais barata de implementar que efeito exatamente uma vez"
+    answer: 0
+    explanation: "Garantir entrega exatamente uma vez de ponta a ponta é extraordinariamente caro e raramente alcançado de verdade — falha de rede força reenvio, que é pelo menos uma vez por natureza. O que se consegue na prática é o efeito exatamente uma vez: a mensagem pode chegar duas vezes, mas a escrita idempotente (MERGE por chave natural) faz a segunda chegada não mudar nada. Os dois termos não são intercambiáveis, a distinção vale tanto para batch quanto streaming, e entrega exatamente uma vez tende a ser mais cara, não mais barata."
+
+  - question: "O que o padrão *write-audit-publish* evita que escrever diretamente no destino final não evita?"
+    options:
+      - "Que dado que ainda não passou pelos testes de qualidade fique visível aos consumidores"
+      - "Write-audit-publish é, na verdade, apenas um nome alternativo de marketing para o padrão ETL tradicional, sem nenhuma diferença técnica real de comportamento entre os dois"
+      - "O padrão elimina completamente a necessidade de qualquer teste de qualidade de dados no pipeline"
+      - "O padrão só se aplica a pipelines batch, nunca a pipelines streaming ou micro-batch"
+    answer: 0
+    explanation: "Escrever direto no destino expõe o dado processado aos consumidores antes de qualquer verificação — se os testes de qualidade rodarem depois e falharem, o dado ruim já foi visto. Write-audit-publish escreve numa área de staging, audita, e só então publica, garantindo que só dado validado fica visível. Não é um sinônimo de ETL tradicional, não elimina a necessidade de testes (pelo contrário, os exige), e o princípio se aplica a qualquer modo de processamento."
+
+  - question: "Por que escrita atômica por partição é preferível a escrita linha a linha no destino final de um pipeline?"
+    options:
+      - "Evita que um leitor veja um estado parcial — metade dados novos, metade antigos — durante a escrita"
+      - "Porque escrever partição inteira é sempre mais rápido em termos de tempo total de execução do pipeline, independente do volume de dados processado em cada execução"
+      - "Porque escrita linha a linha é tecnicamente impossível de implementar em qualquer sistema de armazenamento columnar moderno"
+      - "Não há diferença prática real entre as duas abordagens quando o pipeline roda com sucesso"
+    answer: 0
+    explanation: "Se a escrita for linha a linha, um consumidor lendo durante o processo pode ver uma mistura de dados da versão antiga e da nova — um estado inconsistente. Substituir a partição inteira de uma vez (escrever em área temporária e mover/renomear) garante que o leitor só vê, a qualquer momento, uma versão completa: a antiga ou a nova. Não é sobre velocidade de execução, não há essa impossibilidade técnica em sistemas columnar, e a diferença importa justamente durante a execução concorrente com leitura, não só quando tudo roda bem."
+
+  - question: "Segundo este marco, o que a instituição receptora de Open Finance deveria guardar dos dados que recebe de uma transmissora?"
+    options:
+      - "O que a finalidade do consentimento autoriza, pelo prazo que a política de retenção declara"
+      - "Todos os dados recebidos de qualquer transmissora, indefinidamente, já que podem se tornar úteis para alguma análise futura ainda não imaginada pela equipe de produto"
+      - "Apenas os dados que o modelo de machine learning da instituição já está usando atualmente em produção"
+      - "Nenhum dado deve ser persistido pelo receptor; tudo deve ser consultado em tempo real a cada necessidade"
+    answer: 0
+    explanation: "O marco é explícito: o receptor guarda o que a finalidade do consentimento autoriza, pelo prazo declarado na política de retenção — nada além disso. \"Guardar tudo porque pode ser útil depois\" é tratado como antipadrão de governança (aprofundado no marco 10). Não guardar nada e consultar sempre em tempo real também não é a prática recomendada, e limitar ao que um modelo específico usa agora ignora completamente o critério real, que é a finalidade consentida."
