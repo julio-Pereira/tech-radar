@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que \"eu uso Airflow (ou qualquer orquestrador), então meu pipeline é confiável\" é um raciocínio falho, segundo este marco?"
+    options:
+      - "O orquestrador coordena ordem e disparo; a segurança contra duplicação vem da idempotência da tarefa em si"
+      - "Porque Airflow, Dagster e Prefect são, segundo testes independentes recentes, ferramentas tecnicamente instáveis que falham com frequência em qualquer ambiente de produção real, independente de como as tarefas são escritas"
+      - "Porque orquestradores modernos não suportam nenhum tipo de retry automático de tarefas falhas, tornando qualquer garantia de confiabilidade impossível por definição"
+      - "Na verdade o raciocínio está correto: usar qualquer orquestrador estabelecido garante automaticamente que o pipeline inteiro é confiável e livre de duplicação de dados"
+    answer: 0
+    explanation: "Se a tarefa em si não é idempotente (duplica dado quando reexecutada), o orquestrador reexecutando-a com todo cuidado do mundo só vai duplicar com pontualidade. A confiabilidade vem da propriedade da tarefa, não da presença de um orquestrador — os dois papéis são distintos. Não há essa instabilidade generalizada das ferramentas citadas, orquestradores modernos sim suportam retry automático, e o raciocínio do enunciado é exatamente o antipadrão que o marco identifica, não uma verdade."
+
+  - question: "O que *catchup* sem limite de paralelismo pode causar quando um DAG de ingestão volta a rodar depois de 30 dias pausado?"
+    options:
+      - "30 execuções simultâneas chamando a mesma transmissora, estourando o limite de taxa dela"
+      - "Catchup sem limite de paralelismo é, por definição técnica de qualquer orquestrador moderno, sempre executado de forma estritamente sequencial, uma execução de cada vez, tornando esse risco inexistente na prática"
+      - "O catchup afeta apenas o uso de memória do servidor do orquestrador, sem nenhuma relação com chamadas de rede a sistemas externos como a transmissora"
+      - "Esse risco só existe se o DAG tiver menos de 5 tarefas; DAGs maiores são automaticamente protegidos contra esse problema por serem mais complexos"
+    answer: 0
+    explanation: "Sem um limite de paralelismo configurado explicitamente, o orquestrador pode disparar uma execução para cada um dos 30 dias perdidos ao mesmo tempo — cada uma chamando a API da mesma transmissora, somando para estourar o limite de taxa dela e potencialmente afetar até o tráfego de produção normal. Catchup não é sequencial por definição (é exatamente o oposto do risco descrito), tem relação direta com chamadas de rede externas (não só memória local), e o tamanho do DAG não protege automaticamente contra esse problema."
+
+  - question: "Por que a retomada correta de um DAG com falha parcial (a sétima de dez tarefas falhou) continua a partir da tarefa que falhou, em vez de reiniciar do começo?"
+    options:
+      - "As tarefas anteriores já publicaram seu resultado de forma durável; reprocessá-las seria redundante"
+      - "Porque reiniciar do começo é tecnicamente impossível em qualquer orquestrador moderno depois que uma tarefa de um DAG já foi executada com sucesso ao menos uma vez"
+      - "Porque as primeiras seis tarefas de qualquer DAG, por convenção arquitetural universal, nunca podem falhar em nenhuma circunstância, tornando a questão da retomada delas irrelevante"
+      - "Não há diferença prática real entre as duas abordagens; ambas produzem exatamente o mesmo tempo total de execução e o mesmo resultado"
+    answer: 0
+    explanation: "Se cada tarefa anterior já escreveu seu resultado de forma durável (via write-audit-publish), reprocessá-las do zero seria trabalho redundante e desnecessário — a retomada eficiente e correta foca só na tarefa que de fato falhou. Reiniciar do começo é tecnicamente possível (só ineficiente), não existe essa garantia universal de que as primeiras tarefas nunca falham, e as duas abordagens têm custo de tempo bem diferente, não equivalente."
+
+  - question: "Segundo este marco, quando a decisão de **não** ter um orquestrador dedicado é a correta, em vez de uma lacuna de maturidade?"
+    options:
+      - "Para poucos pipelines simples, com poucas dependências, onde um *runner* resolve com menos partes móveis"
+      - "Nunca: toda plataforma de dados madura, segundo este marco, deve obrigatoriamente adotar um orquestrador dedicado desde o primeiro pipeline criado, independente de sua complexidade"
+      - "Apenas quando a equipe de engenharia não tem conhecimento técnico suficiente para configurar Airflow, Dagster ou Prefect corretamente"
+      - "Somente em ambientes de desenvolvimento local; em produção um orquestrador dedicado é sempre obrigatório, sem exceção, segundo este marco"
+    answer: 0
+    explanation: "O marco reconhece explicitamente que, para poucos pipelines simples e com poucas dependências entre si, o overhead de infraestrutura de um orquestrador dedicado (scheduler, banco de metadados, workers) pode ser desproporcional ao problema — um runner simples com idempotência e retomada bem feitas resolve com menos partes móveis. Não é uma obrigatoriedade universal desde o primeiro pipeline, não é sobre falta de conhecimento técnico da equipe, e a recomendação não se limita a ambientes de desenvolvimento."

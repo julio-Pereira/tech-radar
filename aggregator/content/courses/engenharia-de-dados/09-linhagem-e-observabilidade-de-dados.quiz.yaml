@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que linhagem de coluna responde melhor \"de onde vem esse número?\" do que linhagem de tabela sozinha?"
+    options:
+      - "Ela aponta exatamente de quais colunas de origem e transformações aquela coluna específica veio"
+      - "Linhagem de coluna e linhagem de tabela são, na prática, exatamente a mesma informação representada de duas formas visuais diferentes, sem nenhuma diferença de granularidade real entre elas"
+      - "Porque linhagem de tabela só funciona em bancos relacionais, enquanto linhagem de coluna funciona em qualquer formato de armazenamento, incluindo Parquet"
+      - "Linhagem de coluna é sempre mais cara de calcular e por isso é reservada apenas para as tabelas mais críticas do sistema, nunca aplicada de forma ampla"
+    answer: 0
+    explanation: "Linhagem de tabela diz \"esta tabela veio daquelas outras\", um nível útil para entender o fluxo geral, mas insuficiente quando a pergunta é sobre uma coluna específica — linhagem de coluna rastreia exatamente quais colunas de origem e quais transformações produziram aquele valor específico. Não são a mesma informação em formatos diferentes (são granularidades distintas), a diferença não é sobre tipo de banco de dados, e o custo de cálculo não é o critério central discutido no marco."
+
+  - question: "Por que emitir eventos de linhagem num formato aberto (como OpenLineage) é preferível a um formato próprio criado pelo projeto?"
+    options:
+      - "Qualquer ferramenta compatível consome a linhagem sem exigir integração específica construída e mantida"
+      - "Porque formatos abertos de linhagem são, segundo a legislação de proteção de dados vigente, a única opção legalmente permitida para instituições financeiras reguladas que processam dado de terceiros"
+      - "Um formato próprio é tecnicamente impossível de implementar para qualquer pipeline que use mais de uma ferramenta de orquestração diferente simultaneamente"
+      - "Não há vantagem real prática; a escolha entre formato aberto e formato próprio é puramente uma questão de preferência estética da equipe de engenharia"
+    answer: 0
+    explanation: "Um formato padronizado permite que catálogos, painéis e ferramentas de consulta compatíveis consumam a linhagem sem que o projeto precise construir e manter uma integração específica para cada um — o ganho é de reuso e interoperabilidade. Não existe essa exigência legal citada, formato próprio é tecnicamente viável (só mais trabalhoso de integrar), e a escolha tem consequência prática real de esforço de manutenção, não é só estética."
+
+  - question: "Além do número de freshness declarado, o que um SLO de dados precisa ter para não ser \"o painel está desatualizado\" sem nenhum destinatário?"
+    options:
+      - "Um dono nomeado, responsável por agir quando o SLO é violado"
+      - "Um SLO de dados só é válido, segundo a especificação formal do Open Finance Brasil, se registrado em um contrato jurídico assinado digitalmente entre as duas instituições envolvidas na troca de dados"
+      - "Um SLO de dados não precisa de mais nada além do número; o dono é sempre implicitamente a pessoa que criou a tabela originalmente, sem necessidade de declaração explícita"
+      - "A única exigência adicional é que o SLO seja medido em uma ferramenta paga de observabilidade, nunca em ferramentas de código aberto"
+    answer: 0
+    explanation: "Sem um dono nomeado, um número de SLO (\"freshness de até 4 horas\") não tem quem responda quando ele é violado — vira uma reclamação genérica sem destinatário. O dono é o que transforma o número numa responsabilidade real. Não existe essa exigência de contrato jurídico assinado para SLO interno, o dono não é automaticamente quem criou a tabela (precisa ser declarado explicitamente, pois pode mudar), e não há restrição alguma sobre ferramenta paga versus código aberto."
+
+  - question: "Por que análise de impacto, derivada do grafo de linhagem, é importante antes de mudar a definição de uma coluna ouro?"
+    options:
+      - "Responde \"quem consome isso hoje\", evitando que consumidores descubram a mudança pelo sintoma"
+      - "Análise de impacto é um processo exclusivamente burocrático exigido por auditoria externa, sem nenhuma utilidade técnica real para a equipe de engenharia de dados no dia a dia"
+      - "Ela garante automaticamente que nenhum consumidor jamais será afetado por qualquer mudança futura na coluna, eliminando por completo o risco de qualquer mudança de schema"
+      - "Só é necessária quando a mudança envolve remover uma coluna completamente; renomear ou mudar o tipo de uma coluna nunca exige esse tipo de análise"
+    answer: 0
+    explanation: "Perguntar \"alguém usa essa coluna?\" no chat é informal e incompleto — a análise de impacto, derivada do grafo de linhagem real, dá a lista efetiva de consumidores afetados, permitindo avisar e coordenar antes da mudança, em vez de cada consumidor descobrir via um sintoma diferente ao longo do tempo. Não é um processo só burocrático (tem utilidade técnica direta), não elimina o risco de toda mudança futura (só informa melhor a decisão), e vale tanto para renomear e mudar tipo quanto para remover uma coluna."

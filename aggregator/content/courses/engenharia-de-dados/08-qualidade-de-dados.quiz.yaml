@@ -1,0 +1,55 @@
+questions:
+  - question: "Por que as seis dimensões de qualidade (completude, unicidade, validade, consistência, atualidade, acurácia) são tratadas como ferramenta de diagnóstico, segundo este marco?"
+    options:
+      - "Cada dimensão aponta uma causa e uma correção diferentes quando um consumidor reclama de dado errado"
+      - "Porque são as únicas seis métricas reconhecidas oficialmente pela especificação técnica do Open Finance Brasil para avaliação de qualidade de dados recebidos de transmissoras"
+      - "Porque medir as seis sempre produz o mesmo resultado numérico, tornando-as redundantes entre si, mas úteis apenas para fins de relatório formal"
+      - "As seis dimensões servem exclusivamente para auditoria externa; não têm nenhuma utilidade prática no dia a dia da engenharia de dados"
+    answer: 0
+    explanation: "Quando alguém diz \"o dado está errado\", perguntar em qual das seis dimensões direciona a investigação: falta de completude aponta para campo ausente, falta de atualidade aponta para atraso, falta de acurácia aponta para valor incorreto mesmo bem formado — cada uma com causa e correção próprias. Não existe essa lista oficial do Open Finance citada, as dimensões não produzem o mesmo resultado numérico (medem coisas diferentes), e elas têm uso prático direto no diagnóstico do dia a dia, não só em auditoria formal."
+
+  - question: "Por que testar qualidade só na tabela ouro final, sem testar na entrada, é uma estratégia que descobre problemas tarde demais?"
+    options:
+      - "O problema já se propagou por todas as camadas intermediárias antes de ser detectado"
+      - "Porque testes aplicados à tabela ouro são, por limitação técnica de qualquer ferramenta de teste de dados moderna, sempre executados com um atraso mínimo de 24 horas em relação ao momento da ingestão original do dado bruto"
+      - "Não há diferença prática real entre testar na entrada e testar só na saída; ambas as abordagens detectam exatamente os mesmos problemas no mesmo momento do pipeline"
+      - "Testar na saída é tecnicamente mais rigoroso que testar na entrada, e por isso é sempre a única camada necessária, dispensando testes em qualquer outro ponto do pipeline"
+    answer: 0
+    explanation: "Se o problema só é detectado na tabela ouro final, ele já passou pelo bruto e pela prata sem ser pego — todo o trabalho de transformação já rodou sobre dado potencialmente errado, e qualquer consumidor que leu dessas camadas intermediárias nesse intervalo já viu o problema. Testar na entrada pega o defeito antes que ele contamine qualquer coisa. Não há essa limitação de atraso de 24h, as duas abordagens detectam em momentos bem diferentes (não o mesmo), e testar só na saída não é \"mais rigoroso\" — é mais tardio."
+
+  - question: "O que a quarentena de dados evita que nem descartar silenciosamente nem travar o pipeline inteiro conseguem evitar ao mesmo tempo?"
+    options:
+      - "Mantém o dado suspeito visível e isolado, sem poluir a prata e sem interromper o resto do processamento"
+      - "A quarentena, tecnicamente, produz exatamente o mesmo efeito prático de descartar o dado silenciosamente, sendo apenas um nome mais formal para a mesma operação de exclusão permanente"
+      - "Quarentena serve exclusivamente para dados que violam regras de privacidade (LGPD), nunca para problemas comuns de qualidade como campo ausente ou tipo incorreto"
+      - "A quarentena sempre trava o pipeline inteiro até que um humano revise manualmente cada registro suspeito individualmente, tornando-a equivalente a travar tudo"
+    answer: 0
+    explanation: "Descartar silenciosamente perde o registro sem rastro, dificultando investigação futura; travar o pipeline inteiro por causa de um registro ruim impede o processamento de todo o resto do dado bom. Quarentena resolve os dois problemas ao mesmo tempo: isola o registro suspeito, mantém ele visível para investigação, e deixa o resto do pipeline seguir normalmente. Não é equivalente a descarte (preserva o dado), não se limita a questões de privacidade, e não trava o pipeline inteiro — é exatamente o oposto disso."
+
+  - question: "Por que um teste de qualidade excessivamente rígido (que falha sob variação normal e esperada do dado) é descrito como tão prejudicial quanto a ausência completa de testes?"
+    options:
+      - "A equipe aprende a ignorar alertas, e quando um alerta real aparece, ele se perde no ruído"
+      - "Porque testes excessivamente rígidos sempre consomem mais recursos computacionais do servidor do que a execução normal do pipeline, tornando-os financeiramente inviáveis a longo prazo"
+      - "Não é verdade que sejam igualmente prejudiciais: um teste rígido demais é sempre estritamente melhor do que não ter nenhum teste de qualidade, em qualquer cenário"
+      - "Porque testes rígidos demais só podem ser corrigidos por um processo formal de auditoria externa, nunca pela própria equipe de engenharia de dados responsável pelo pipeline"
+    answer: 0
+    explanation: "Um teste que dispara com frequência sob situações normais ensina a equipe, na prática, a tratar alertas como ruído de fundo — e quando um problema real acontece, o alerta correspondente se perde no meio de falsos positivos que ninguém mais examina com atenção. Isso produz, na prática, o mesmo efeito de não ter teste algum: o problema real passa despercebido. Não é primariamente sobre custo computacional, não é sempre \"estritamente melhor\" que ausência de teste (o marco argumenta o contrário), e a correção é interna à equipe, não depende de auditoria externa."
+
+  - question: "Qual é a diferença entre as classes de divergência \"faltando\" e \"atrasado\" numa reconciliação com a transmissora, e por que misturá-las numa métrica única é um problema?"
+    options:
+      - "São causas diferentes (ausência real × chegada fora da janela); uma métrica única esconde qual precisa de ação"
+      - "Não há diferença real entre as duas classes; \"faltando\" e \"atrasado\" são apenas sinônimos usados por diferentes equipes para descrever exatamente a mesma situação de divergência"
+      - "\"Faltando\" só pode ocorrer em dados de cartão de crédito, enquanto \"atrasado\" só pode ocorrer em dados de conta corrente, segundo a especificação do Open Finance Brasil"
+      - "A distinção entre as duas classes só importa para fins de relatório regulatório; tecnicamente o tratamento de correção é sempre idêntico para ambas"
+    answer: 0
+    explanation: "\"Faltando\" significa que a transmissora registra uma transação que o pipeline nunca processou — pode indicar falha de ingestão real. \"Atrasado\" significa que o dado chegou, só que fora da janela de tempo esperada — um problema de timing, não de perda. As causas prováveis e as correções são diferentes: investigar por que algo nunca chegou é um problema distinto de ajustar a janela de reprocessamento. Misturar as duas numa taxa única de \"X% de divergência\" esconde qual das duas situações está de fato acontecendo. Não são sinônimos, não há essa restrição por tipo de produto financeiro, e o tratamento de correção de fato difere entre as duas classes."
+
+  - question: "O que um data contract formaliza sobre uma fonte externa (uma transmissora), segundo este marco?"
+    options:
+      - "Schema, tipos, semântica de cada campo e SLA de disponibilidade esperados da fonte"
+      - "Um data contract é um documento exclusivamente jurídico, assinado entre advogados das duas instituições, sem nenhuma representação técnica ou executável no pipeline de dados"
+      - "O data contract define unicamente o preço cobrado pela transmissora por cada chamada de API realizada pelo receptor, sem nenhuma relação com qualidade de dados"
+      - "Data contracts só se aplicam a fontes internas da própria organização; fontes de terceiros como transmissoras nunca podem ter um data contract formal associado"
+    answer: 0
+    explanation: "O data contract formaliza, de forma técnica e verificável, o que se espera de uma fonte — schema, tipos, semântica de cada campo, SLA de disponibilidade — permitindo detectar quando a realidade diverge do contrato (schema drift) antes que o dado problemático se espalhe. Não é um documento puramente jurídico sem representação técnica, não trata de precificação, e é exatamente para fontes externas de terceiros — como uma transmissora — que esse conceito é mais crítico, não menos aplicável."
+

@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que um milhão de arquivos Parquet de 40 KB cada custa muito mais para ler do que a mesma quantidade de dado em mil arquivos de 40 MB?"
+    options:
+      - "Cada arquivo cobra um custo fixo de abertura e leitura de metadado, independente do volume que carrega"
+      - "Porque arquivos menores que 1 MB são rejeitados automaticamente pelo formato Parquet, exigindo reprocessamento completo antes de qualquer leitura ser possível"
+      - "Não há diferença real de custo entre as duas situações; o tempo de leitura depende apenas do volume total de dados, não do número de arquivos"
+      - "Porque o sistema operacional sempre lê arquivos pequenos numa ordem aleatória, nunca sequencial, independentemente do sistema de arquivos usado"
+    answer: 0
+    explanation: "Cada arquivo, por menor que seja, exige abrir, ler o rodapé com estatísticas e processar metadado — um custo fixo que se multiplica pelo número de arquivos, não pelo volume total. Com um milhão de arquivos, esse custo fixo domina. Não existe essa rejeição de arquivos pequenos pelo formato Parquet, o número de arquivos sim afeta o custo total (não é só volume), e a ordem de leitura do sistema operacional não é a causa central do problema descrito."
+
+  - question: "O que um formato de tabela (como Iceberg) acrescenta a um conjunto de arquivos Parquet que o Parquet sozinho não oferece?"
+    options:
+      - "Snapshot consistente sob escrita concorrente, time travel real, e evolução de schema sem quebrar leitores"
+      - "Formatos de tabela substituem completamente o Parquet como formato de arquivo, tornando qualquer arquivo Parquet existente tecnicamente incompatível e inválido a partir do momento da adoção"
+      - "Compressão adicional dos dados, reduzindo o tamanho em disco além do que o Parquet já comprime sozinho, usando um algoritmo proprietário exclusivo de cada formato de tabela"
+      - "Não há diferença funcional relevante; formato de tabela é apenas um sinônimo alternativo usado por diferentes fornecedores para descrever o mesmo conjunto de arquivos Parquet"
+    answer: 0
+    explanation: "Um formato de tabela adiciona uma camada de metadado sobre os arquivos: snapshots imutáveis que viabilizam consultar o estado da tabela em qualquer ponto do passado, e mecanismos para evoluir o schema e lidar com escrita concorrente sem corromper o estado. Formatos de tabela tipicamente usam Parquet como formato de arquivo por baixo (não o substituem nem o tornam incompatível), não é sobre compressão adicional, e não é um sinônimo — é uma camada funcional real a mais."
+
+  - question: "Qual é a troca central entre *copy-on-write* e *merge-on-read* (ou vetores de deleção) para apagar um registro num formato de tabela imutável?"
+    options:
+      - "Copy-on-write tem leitura barata e escrita cara; merge-on-read inverte essa troca"
+      - "Copy-on-write é sempre mais rápido tanto para leitura quanto para escrita, em qualquer cenário, tornando merge-on-read uma escolha obsoleta sem nenhum caso de uso real remanescente"
+      - "As duas estratégias produzem exatamente o mesmo custo de leitura e escrita; a escolha entre elas é puramente estética e não afeta desempenho"
+      - "Merge-on-read só funciona em tabelas com menos de mil linhas, tornando-o inviável para qualquer caso de uso real em produção de uma fintech"
+    answer: 0
+    explanation: "Copy-on-write reescreve o arquivo inteiro sem as linhas apagadas — a leitura subsequente é simples e direta (barata), mas a escrita (reescrever tudo) é cara. Merge-on-read marca as linhas como apagadas num registro separado, tornando a escrita barata, mas a leitura precisa combinar os dois (mais cara). Copy-on-write não é sempre mais rápido nos dois lados, as duas estratégias têm custos bem diferentes (não iguais), e merge-on-read funciona em qualquer volume de dados, não só tabelas pequenas."
+
+  - question: "Segundo este marco, quando um warehouse gerenciado (BigQuery, Snowflake, Redshift) é preferível a operar o próprio lakehouse?"
+    options:
+      - "Quando a equipe prefere pagar por operação em vez de administrar compactação e garbage collection de snapshot"
+      - "Um warehouse gerenciado é sempre superior em qualquer cenário, tornando a opção de lakehouse próprio uma escolha tecnicamente inferior e nunca recomendável para qualquer organização"
+      - "Apenas quando o volume de dados é inferior a 1 GB no total, abaixo do qual nenhuma ferramenta de lakehouse consegue operar corretamente"
+      - "Nunca: este marco recomenda exclusivamente operar lakehouse próprio em qualquer cenário de uso real em produção"
+    answer: 0
+    explanation: "A decisão é \"construir ou comprar\": warehouse gerenciado ganha quando a equipe prefere terceirizar a operação da camada de armazenamento (compactação, estatísticas, limpeza de snapshot antigo) em troca de custo operacional; lakehouse próprio ganha quando volume e diversidade de consumidores justificam possuir o formato. Não é uma superioridade absoluta em nenhuma direção, não há esse limite fixo de 1 GB, e o marco não recomenda exclusivamente uma das duas opções — apresenta o critério de escolha."

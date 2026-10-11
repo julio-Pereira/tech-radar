@@ -1,0 +1,37 @@
+questions:
+  - question: "Qual é a diferença de tratamento entre dado \"reconstruível\" e \"não reconstruível\" na estratégia de DR do lake, segundo este marco?"
+    options:
+      - "O bruto pode não ser recuperável se a transmissora não tiver mais o dado ou a janela de consulta já passou"
+      - "Não há diferença real de tratamento; qualquer dado perdido no lake pode sempre ser recalculado a partir de qualquer outra tabela disponível na plataforma, independente da camada"
+      - "Dado reconstruível se refere exclusivamente a dados de clientes pessoa jurídica, enquanto não reconstruível se refere exclusivamente a dados de pessoa física"
+      - "A distinção só importa para tabelas com mais de dez anos de histórico acumulado; tabelas mais recentes são sempre consideradas reconstruíveis por padrão"
+    answer: 0
+    explanation: "Uma tabela ouro recalculável a partir do bruto tem uma rede de segurança que o próprio bruto não tem — se o bruto for perdido, a única forma de recuperá-lo seria reconsultar a transmissora, que pode não ter mais o dado disponível ou cuja janela de consulta já passou. Por isso o bruto merece o tratamento de backup mais rigoroso. Não é verdade que qualquer dado seja sempre recalculável de qualquer outra tabela, a distinção não tem relação com tipo de pessoa do titular, e não depende de um limite arbitrário de dez anos de histórico."
+
+  - question: "Por que \"dado sem consentimento\" (uma linha no bruto sem `consentId` válido) é descrito como o antipadrão mais grave desta trilha?"
+    options:
+      - "Ele viola a premissa fundadora sobre a qual toda a arquitetura de consentimento foi construída"
+      - "Porque, tecnicamente, dado sem `consentId` sempre corrompe o schema físico da tabela, impedindo qualquer consulta subsequente de funcionar corretamente em qualquer camada do pipeline"
+      - "Na verdade todos os antipadrões listados têm exatamente a mesma gravidade segundo este marco, sem nenhuma hierarquia real entre eles estabelecida no texto"
+      - "Porque esse antipadrão específico é o único que gera multa financeira automática e imediata, diferente dos demais antipadrões listados no marco"
+    answer: 0
+    explanation: "Toda a trilha foi construída sobre a premissa de que todo dado tem origem rastreável a um consentimento válido (marco 03) — uma linha sem `consentId` quebra essa garantia na raiz, comprometendo a confiabilidade de tudo que depende dela. Não há corrupção técnica de schema causada por isso (é um problema de governança, não de formato), o marco não trata todos os antipadrões como igualmente graves (este é destacado como o mais sério), e não há essa relação automática com multa financeira mencionada no texto."
+
+  - question: "O que custo por tabela e por consulta tornam possível que intuição sozinha não torna, segundo este marco?"
+    options:
+      - "Decidir racionalmente, com número, o que manter, compactar com mais frequência ou aposentar"
+      - "Custo por tabela elimina completamente a necessidade de qualquer política de retenção configurada, já que o próprio custo decide automaticamente quando apagar um dado"
+      - "Essas métricas servem exclusivamente para fins de relatório executivo trimestral, sem nenhuma aplicação prática na operação do dia a dia da plataforma"
+      - "Custo por consulta só é relevante para plataformas que usam exclusivamente warehouses gerenciados pagos, nunca para lakehouse operado internamente"
+    answer: 0
+    explanation: "Sem visibilidade de quanto cada tabela custa para manter e quanto cada consulta consome, decisões sobre o que vale a pena manter ou aposentar ficam baseadas em intuição ou lembrança vaga — com o número exposto, a decisão é rastreável e justificável. Não substitui a política de retenção (são complementares, não um eliminando o outro), tem aplicação prática direta na operação (não só em relatório trimestral), e a métrica de custo por consulta é tão relevante em lakehouse próprio quanto em warehouse gerenciado."
+
+  - question: "O que o `fin-insight` entrega para a trilha `ml-em-producao`, e o que fica deliberadamente fora do escopo desta trilha?"
+    options:
+      - "Entrega tabelas confiáveis e features candidatas; o feedback loop do modelo fica fora"
+      - "O `fin-insight` entrega o modelo de machine learning já treinado e pronto para servir em produção, deixando apenas o deploy como responsabilidade da outra trilha"
+      - "As duas trilhas são, na prática, completamente independentes entre si, sem nenhuma interface ou contrato de dado compartilhado entre `fin-insight` e `fin-offers`"
+      - "O `fin-insight` entrega exclusivamente a infraestrutura de servidores, sem nenhuma responsabilidade sobre qualidade ou consentimento dos dados servidos"
+    answer: 0
+    explanation: "Esta trilha entrega tabelas ouro confiáveis, com consentimento, qualidade e linhagem — a base sobre a qual `ml-em-producao` constrói features e decisões de oferta. O que acontece quando o modelo começa a moldar os próprios dados que o treinam (o feedback loop) é tratado especificamente naquela trilha, não nesta. Não é esta trilha que treina ou serve modelo algum, as duas trilhas têm sim um contrato de dado explícito entre si (tabelas ouro e features candidatas), e a responsabilidade do `fin-insight` é justamente sobre qualidade e consentimento do dado, não infraestrutura genérica de servidores."
+

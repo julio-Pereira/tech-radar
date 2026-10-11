@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que tratar consentimento como uma flag booleana (\"autorizou\" ou \"não autorizou\") é insuficiente, segundo este marco?"
+    options:
+      - "Perde finalidade, grupos de dados, validade e estado — informação que uma auditoria precisa"
+      - "Porque bancos de dados relacionais modernos são tecnicamente incapazes de armazenar mais de um campo booleano associado a um único registro de cliente, exigindo necessariamente uma estrutura normalizada complexa"
+      - "Não é insuficiente: uma flag booleana é exatamente o que a especificação do Open Finance Brasil exige como formato de armazenamento do consentimento"
+      - "Porque flags booleanas ocupam mais espaço de armazenamento do que registros estruturados com múltiplos campos"
+    answer: 0
+    explanation: "Uma flag só responde \"sim ou não\", sem capturar para qual finalidade, quais grupos de dados, por quanto tempo e em qual estado o consentimento está — exatamente o que uma auditoria pergunta. Não há limitação técnica de banco de dados relacional impedindo múltiplos campos (é trivial), a especificação não exige esse formato simplificado, e o argumento de espaço de armazenamento é irrelevante perto do risco de conformidade."
+
+  - question: "O que a linhagem de consentimento (`consentId` presente em todo registro de dado) permite responder, nos dois sentidos?"
+    options:
+      - "Sob qual consentimento um dado entrou, e quais dados entraram sob um consentimento específico"
+      - "Apenas o valor monetário total movimentado por um titular específico ao longo de todo o histórico de relacionamento com a instituição receptora, sem nenhuma relação com consentimento"
+      - "A linhagem de consentimento permite recuperar a senha original do titular usada para autenticação na transmissora de origem dos dados"
+      - "Apenas quantos registros totais existem no sistema, sem nenhuma relação com consentimentos individuais específicos"
+    answer: 0
+    explanation: "Com `consentId` em cada registro, é possível responder tanto \"este dado específico, sob qual consentimento ele entrou?\" quanto a pergunta inversa, \"quais dados entraram sob este consentimento específico?\" — a segunda é exatamente o que a revogação precisa para apagar ou ocultar corretamente. Não tem relação com valor monetário agregado, não recupera credenciais de autenticação (que nunca deveriam estar nesse sistema), e não é sobre contagem total sem contexto de consentimento."
+
+  - question: "Por que finalidade, validade e retenção são implementadas como arquivos de configuração versionados e testados, em vez de texto registrado numa ADR?"
+    options:
+      - "Mudar a norma vira mudar um parâmetro e rodar a suíte — não reinterpretar um documento cada vez"
+      - "Porque ADRs são documentos que, tecnicamente, não podem ser versionados em nenhum sistema de controle de versão usado atualmente pela indústria de software, ao contrário de arquivos de configuração"
+      - "Porque a legislação brasileira de proteção de dados exige explicitamente, como requisito formal de conformidade, que toda política de consentimento esteja em formato YAML ou JSON"
+      - "Não há diferença prática real entre as duas abordagens; ambas produzem exatamente o mesmo nível de garantia de conformidade"
+    answer: 0
+    explanation: "Política como código torna a mudança de uma regra (um novo prazo de retenção, uma finalidade nova) uma alteração testável e verificável automaticamente, em vez de uma reinterpretação manual de texto a cada vez que alguém precisa aplicar a regra. ADRs são, de fato, versionáveis normalmente em qualquer sistema de controle de versão (não há essa limitação técnica), não existe exigência legal de formato específico YAML/JSON, e as duas abordagens têm garantias bem diferentes — código testado é verificável automaticamente, texto não é."
+
+  - question: "Segundo este marco, o que a trilha decide tecnicamente sobre o que fazer com dado já coletado após a revogação de um consentimento, e o que ela deixa para o jurídico decidir?"
+    options:
+      - "A trilha garante o mecanismo parametrizável entre as opções; qual delas escolher é decisão de política"
+      - "A trilha decide, de forma definitiva e sem possibilidade de revisão posterior, que todo dado deve ser apagado permanentemente em até 24 horas após qualquer revogação de consentimento, sem exceção"
+      - "A interpretação jurídica completa já está decidida neste plano, incluindo qual das três opções deve ser aplicada em produção pela instituição"
+      - "A trilha não implementa nenhum mecanismo de resposta à revogação, deixando essa funcionalidade inteiramente para uma fase futura não especificada"
+    answer: 0
+    explanation: "O marco é explícito: o que fazer com o dado já coletado (parar de coletar, ocultar, apagar) é decisão de política que precisa ir ao jurídico da instituição — a trilha garante que as três opções são implementadas corretamente e testadas, como parâmetro configurável, sem decidir qual delas a organização deve escolher. Não há prazo fixo de 24h decidido pela trilha, a interpretação jurídica específica não é definida pelo plano, e o mecanismo é sim implementado (não deixado para depois) — só a escolha entre as opções é que fica de fora."
+
+  - question: "Por que a validade do consentimento é implementada como parâmetro configurável, e não como uma constante fixa no código, segundo este marco?"
+    options:
+      - "A regulação sobre prazo máximo já mudou uma vez (removeu um teto fixo) e pode mudar de novo"
+      - "Porque constantes fixas no código são tecnicamente impossíveis de implementar em qualquer linguagem de programação usada para sistemas financeiros regulados, por limitação do próprio compilador"
+      - "Porque parâmetros configuráveis sempre executam mais rápido do que valores fixos, melhorando o desempenho geral do pipeline de ingestão de dados"
+      - "Não há razão regulatória real para essa escolha; é apenas uma preferência estética de arquitetura de software sem justificativa prática"
+    answer: 0
+    explanation: "O próprio texto do marco observa que uma resolução conjunta removeu um teto fixo de validade que existia antes, permitindo prazo indeterminado compatível com a finalidade — exatamente o tipo de mudança regulatória que uma constante fixa no código não sobreviveria sem exigir novo deploy. Não há impossibilidade técnica de constantes em nenhuma linguagem, parâmetros configuráveis não têm relação com desempenho de execução, e a razão é explicitamente regulatória, não estética."
+
+  - question: "Qual é a diferença entre o papel que `system-design/10` já ensinou (lado transmissor) e o que este marco ensina (lado receptor), em relação ao ciclo de vida do consentimento?"
+    options:
+      - "Lá a instituição propaga a revogação; aqui ela precisa descobrir e honrar a revogação de outra instituição"
+      - "Não há diferença real entre os dois marcos; ambos ensinam exatamente o mesmo conteúdo técnico sobre consentimento, apenas com nomes de variáveis diferentes no código de exemplo"
+      - "`system-design/10` trata exclusivamente de criptografia de dados em repouso, enquanto este marco trata exclusivamente de criptografia de dados em trânsito"
+      - "O marco de `system-design` cobre apenas clientes pessoa jurídica, enquanto este marco cobre apenas clientes pessoa física"
+    answer: 0
+    explanation: "São papéis espelhados: `system-design/10` ensinou o lado de quem detém o dado e precisa propagar a revogação rapidamente a quem consome (cache de validade, limite de obsolescência); este marco ensina o lado de quem recebe o dado de outra instituição e precisa descobrir que uma revogação aconteceu (por consulta periódica ou outro mecanismo da especificação) e honrá-la. Não são o mesmo conteúdo, nenhum dos dois é sobre criptografia especificamente, e a distinção não tem relação com tipo de pessoa (física ou jurídica) do titular."

@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que a chave de deduplicação de uma transação ingerida precisa incluir a transmissora de origem, não só o id que ela atribui à transação?"
+    options:
+      - "O id é único só dentro da transmissora; duas transmissoras podem usar o mesmo formato por coincidência"
+      - "Porque o padrão internacional de identificadores de transação financeira exige, por definição formal do próprio formato UUID usado pela indústria bancária global, que todo id inclua automaticamente o identificador da instituição de origem embutido nele"
+      - "Porque ids de transmissoras diferentes são sempre strings de tamanhos diferentes, o que já evita qualquer colisão"
+      - "Não há necessidade real disso: ids de transação nunca colidem entre instituições diferentes"
+    answer: 0
+    explanation: "O id de uma transação é garantido único apenas dentro do sistema da transmissora que o gerou — nada impede que duas transmissoras diferentes, por coincidência ou convenção de formato semelhante, produzam o mesmo valor de id para transações distintas. A chave real de deduplicação precisa ser o par (transmissora, id), não o id isolado. Não existe esse padrão internacional de UUID com instituição embutida citado na segunda opção, tamanhos de string não garantem nada sobre colisão, e colisões entre instituições são exatamente o risco real que a chave composta evita."
+
+  - question: "O que a janela de sobreposição aplicada à marca d'água de coleta incremental resolve?"
+    options:
+      - "Evita perder um registro que foi criado antes do corte, mas só ficou visível para consulta depois"
+      - "A janela de sobreposição existe exclusivamente para reduzir o número total de chamadas HTTP feitas à API da transmissora durante o período de coleta, otimizando o uso da cota de requisições disponível"
+      - "Ela garante que nenhum registro seja processado mais de uma vez pelo pipeline, eliminando totalmente a necessidade de desduplicação"
+      - "A janela de sobreposição só é necessária quando a transmissora usa paginação por página numérica, nunca com paginação por cursor"
+    answer: 0
+    explanation: "Um registro pode ter sido criado na transmissora antes do corte da marca d'água anterior, mas só ter ficado disponível para consulta um pouco depois — sem uma margem de sobreposição ao buscar \"a partir de\", esse registro nunca seria coletado. A sobreposição não reduz chamadas (na verdade pode aumentar um pouco, por rebuscar uma margem), não elimina a necessidade de desduplicação (pelo contrário, a sobreposição gera registros repetidos que precisam ser deduplicados), e o problema existe independente do tipo de paginação usado."
+
+  - question: "Por que o `Retry-After` recebido de uma transmissora deve ser respeitado literalmente, em vez de o ingestor usar seu próprio valor de espera?"
+    options:
+      - "O cabeçalho reflete o conhecimento da transmissora sobre sua própria capacidade de recuperação"
+      - "Porque ignorar o `Retry-After` e usar um valor próprio é tecnicamente impossível de implementar em qualquer cliente HTTP moderno, já que a especificação do protocolo bloqueia essa customização no nível do protocolo de rede"
+      - "Porque o valor de `Retry-After` é sempre idêntico entre todas as transmissoras participantes do Open Finance, tornando a distinção irrelevante na prática"
+      - "Não faz diferença real: qualquer valor de espera razoável produz o mesmo resultado para o sistema como um todo"
+    answer: 0
+    explanation: "A transmissora sinaliza, via `Retry-After`, quanto tempo ela própria estima precisar antes de voltar a aceitar requisições — um valor arbitrário do lado do ingestor pode ser curto demais (continuando a sobrecarregar um sistema já sob pressão) ou longo demais (desperdiçando tempo desnecessariamente). Não há impossibilidade técnica de ignorar o cabeçalho (é perfeitamente possível, só é uma má prática), o valor varia entre transmissoras e situações, e a escolha tem efeito real na recuperação do sistema remoto."
+
+  - question: "Por que cada consentimento precisa manter sua própria marca d'água de coleta, em vez de o pipeline usar uma única marca d'água global?"
+    options:
+      - "Consentimentos diferentes podem ter sido autorizados em momentos e com prazos diferentes"
+      - "Porque a especificação técnica do Open Finance Brasil exige, por norma explícita e obrigatória para qualquer participante receptor, que cada consentimento seja processado por uma instância de ingestor completamente isolada fisicamente das demais"
+      - "Uma marca d'água global é sempre tecnicamente inviável de implementar em qualquer sistema com mais de um cliente sendo monitorado simultaneamente"
+      - "Não há diferença prática real entre os dois modelos; ambos produzem exatamente o mesmo resultado de coleta ao final do processo"
+    answer: 0
+    explanation: "Cada consentimento nasce em um momento diferente, com uma finalidade e um prazo próprios — tratar a coleta como um processo global ignora que o ponto de partida correto para buscar \"o que mudou\" é específico de cada consentimento, não do pipeline como um todo. Uma marca d'água global tende a produzir coleta parcial sutil (perder dados de consentimentos mais recentes, ou rebuscar demais de consentimentos antigos). Não existe essa exigência de isolamento físico por instância citada na segunda opção, marca d'água global é tecnicamente viável (só é a escolha errada), e os dois modelos produzem resultados diferentes na prática."
+
+  - question: "Uma transmissora simulada troca, numa atualização, o campo `valor` de centavos inteiros para reais com duas casas decimais, sem aviso prévio. Qual é a resposta correta do ingestor, segundo este marco?"
+    options:
+      - "Detectar a mudança de tipo/unidade e falhar ou colocar o dado em quarentena, nunca seguir adiante"
+      - "Converter automaticamente qualquer valor recebido para a unidade mais provável, usando heurísticas estatísticas sobre a magnitude típica de transações financeiras já processadas anteriormente pelo próprio pipeline"
+      - "Ignorar a mudança e continuar processando normalmente, já que o tipo de dado (numérico) permanece o mesmo"
+      - "Interromper permanentemente toda a coleta de todas as transmissoras até que um humano audite manualmente cada uma delas, uma por uma"
+    answer: 0
+    explanation: "Seguir adiante com um valor que pode estar na unidade errada é exatamente o risco que o marco descreve como triplicar silenciosamente os valores no ouro — a resposta correta é detectar a divergência (um tipo ou formato que não bate com o esperado) e parar ou quarentenar, nunca prosseguir sem confirmação. Uma heurística de conversão automática é arriscada e não confiável para dado financeiro, ignorar a mudança é o erro que o marco quer evitar, e parar todas as transmissoras (não só a que mudou) é uma reação desproporcional e desnecessária."
+
+  - question: "Por que este marco trata autenticação OAuth2/FAPI e mTLS com a transmissora como mecanismo pressuposto, sem reensiná-lo?"
+    options:
+      - "Esse mecanismo já foi ensinado em `seguranca-aplicacao/05` e `/07`; aqui o foco é o que acontece depois de autenticado"
+      - "Porque OAuth2 e FAPI não são de fato necessários para integrar com o Open Finance Brasil, sendo uma camada de segurança opcional e raramente implementada na prática por instituições receptoras reais"
+      - "Porque mTLS é uma tecnologia obsoleta que foi substituída por completo pelo Open Finance Brasil em sua especificação mais recente, tornando qualquer menção a ela irrelevante neste contexto"
+      - "Porque a autenticação é um problema resolvido automaticamente pelo `fake-transmissor` em qualquer cenário de teste, sem nenhuma configuração necessária"
+    answer: 0
+    explanation: "O marco é explícito: o receptor é um cliente OAuth2/FAPI com mTLS e DCR, mecanismo já coberto em profundidade na trilha de segurança de aplicação — repeti-lo aqui seria redundante. O foco deste marco é o que acontece depois da autenticação bem-sucedida: paginação, limite de taxa, mudança de schema. OAuth2/FAPI e mTLS são sim exigidos e amplamente implementados no Open Finance real, e nada disso foi substituído ou é irrelevante — a trilha só opta por não reensinar o que já existe em outro lugar."
