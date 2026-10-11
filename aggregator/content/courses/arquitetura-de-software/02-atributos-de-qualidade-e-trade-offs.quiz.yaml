@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que 'o sistema deve ser escalável' não é um cenário de atributo de qualidade, segundo este marco?"
+    options:
+      - "Porque falta uma medida de resposta verificável; qualquer arquitetura pode alegar ser escalável em algum sentido vago"
+      - "Porque a palavra 'escalável' não consta na lista vigente da ISO/IEC 25010 e por isso não pode ser citada em nenhum cenário"
+      - "Na verdade este marco trata frases como essa como cenários válidos e completos, desde que estejam escritas no documento de requisitos"
+      - "Porque escalabilidade, segundo este marco, só pode ser medida depois que o sistema já estiver em produção por pelo menos um ano"
+    answer: 0
+    explanation: "O problema é a ausência de uma medida de resposta concreta — sem ela, a frase não decide nada, porque toda arquitetura pode alegar ser 'escalável' em algum sentido. A ISO 25010 lista escalabilidade como atributo válido, o marco não trata a frase vaga como cenário completo, e a medição não depende de esperar um ano de produção."
+
+  - question: "Quais são os seis campos de um cenário completo de atributo de qualidade?"
+    options:
+      - "Fonte, estímulo, ambiente, artefato, resposta e medida de resposta"
+      - "Autor, data, prioridade, status, revisor e aprovador — os mesmos campos de um registro de ADR citado em outro marco desta trilha"
+      - "Nome do atributo, categoria ISO 25010, time responsável, prazo, custo estimado e ferramenta usada para medir"
+      - "Apenas três campos bastam segundo este marco: estímulo, resposta e medida — os outros três são opcionais na prática"
+    answer: 0
+    explanation: "O marco lista exatamente seis campos: fonte, estímulo, ambiente, artefato, resposta e medida de resposta — o último sendo o que transforma desejo em decisão verificável. Os campos de ADR citados na alternativa errada pertencem a outro artefato (registro de decisão), não ao cenário de qualidade, não há essa lista reduzida de custo/prazo/ferramenta, e o marco não trata nenhum dos seis campos como opcional."
+
+  - question: "O que distingue um ponto de sensibilidade de um ponto de trade-off?"
+    options:
+      - "Sensibilidade afeta um atributo de forma desproporcional; trade-off afeta mais de um atributo, em direções opostas"
+      - "Não há distinção real: este marco usa os dois termos como sinônimos ao longo de todo o texto, sem diferença prática"
+      - "Ponto de sensibilidade só existe em cenários de segurança; ponto de trade-off só existe em cenários de desempenho"
+      - "A diferença é de escala temporal: sensibilidade é medida em milissegundos e trade-off é medido em dias de desenvolvimento"
+    answer: 0
+    explanation: "Um ponto de sensibilidade é um parâmetro ao qual uma medida de resposta reage de forma desproporcional; um ponto de trade-off é um parâmetro que afeta mais de um atributo, em direções opostas — como publicar um evento ajudando auditabilidade e complicando modificabilidade. Os dois conceitos não são sinônimos, não há essa restrição por tipo de cenário, e a distinção não é de escala temporal de medição."
+
+  - question: "Por que uma avaliação de arquitetura 'de uma semana' costuma falhar em ser adotada regularmente, segundo este marco?"
+    options:
+      - "Porque poucas equipes de fintech vão repetir um ritual tão longo com frequência; a versão enxuta funciona sozinha em horas"
+      - "Porque esse tipo de avaliação, segundo este marco, é tecnicamente incapaz de produzir resultados válidos, independente do tempo disponível"
+      - "Porque a legislação bancária citada neste marco proíbe explicitamente avaliações de arquitetura com duração superior a um dia"
+      - "Na verdade este marco recomenda abandonar completamente qualquer avaliação de arquitetura, substituindo-a só por testes automatizados"
+    answer: 0
+    explanation: "O ponto prático do marco é de custo recorrente: um ritual de uma semana tem valor, mas poucas equipes vão rodá-lo com regularidade — por isso a versão enxuta (cenários + riscos + não-riscos, produzida em horas) é proposta como alternativa que de fato se repete. Não há incapacidade técnica do ritual longo, não há proibição legal citada, e o marco não recomenda abandonar avaliação de arquitetura, só torná-la viável de repetir."
+
+  - question: "Por que a medida de modificabilidade (arquivos tocados por uma mudança típica) é comparada como relação, nunca como número absoluto fixo?"
+    options:
+      - "Porque o número não tem sentido isolado; ele só informa algo comparado entre estilos ou ao longo do tempo no mesmo sistema"
+      - "Porque medir arquivos tocados é, segundo este marco, uma prática totalmente desprovida de valor prático em qualquer contexto"
+      - "Porque esse tipo de medição só é válida em projetos escritos exclusivamente em Java, nunca em projetos escritos em Go"
+      - "Porque o número absoluto de arquivos tocados é sempre igual entre quaisquer dois estilos arquiteturais, tornando a comparação redundante"
+    answer: 0
+    explanation: "O marco trata a contagem como uma medida comparativa — entre estilos arquiteturais diferentes ou entre versões do mesmo sistema ao longo do tempo — nunca como uma nota absoluta isolada. A medição não é desprovida de valor (é central ao marco), não há essa restrição por linguagem, e os estilos tipicamente produzem números diferentes entre si, não iguais."
+
+  - question: "No exemplo da fintech deste marco, por que publicar um evento de domínio a cada mudança de estado é descrito como ponto de trade-off, e não como melhoria sem custo?"
+    options:
+      - "Porque ajuda auditabilidade e ao mesmo tempo aumenta os arquivos tocados por mudança, pressionando modificabilidade"
+      - "Porque publicar eventos de domínio, segundo este marco, nunca traz benefício real de auditabilidade, sendo apenas uma prática decorativa"
+      - "Porque a publicação de eventos é tecnicamente impossível de implementar junto com o padrão hexagonal descrito no marco 01 desta trilha"
+      - "Porque este marco considera que qualquer prática de auditabilidade automaticamente invalida qualquer cenário de modificabilidade do mesmo sistema"
+    answer: 0
+    explanation: "O exemplo mostra exatamente a definição de ponto de trade-off: a tática ajuda um atributo (auditabilidade) e ao mesmo tempo pressiona outro (modificabilidade) na direção contrária, ao aumentar o número de arquivos que uma mudança típica precisa tocar. O evento traz benefício real de auditabilidade, não há incompatibilidade técnica com hexagonal, e uma tática que ajuda um atributo não invalida automaticamente outro cenário do mesmo sistema."

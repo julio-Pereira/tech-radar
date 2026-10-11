@@ -1,0 +1,54 @@
+questions:
+  - question: "Qual é a diferença entre porta de entrada e porta de saída, e por que a direção da dependência de código é a mesma nas duas?"
+    options:
+      - "Entrada é o mundo chamando o núcleo, saída é o núcleo chamando o mundo; nos dois casos o adaptador depende do núcleo"
+      - "A diferença é só de nome; na prática as duas portas são implementadas pelo núcleo e consumidas livremente pelos adaptadores externos"
+      - "Porta de entrada permite que o adaptador importe o núcleo; porta de saída exige que o núcleo importe o adaptador correspondente"
+      - "Não existe essa distinção neste marco: o texto trata toda porta como um conceito único, sem diferenciar direção de chamada"
+    answer: 0
+    explanation: "Porta de entrada é o caminho pelo qual o mundo externo chama o núcleo; porta de saída é o caminho pelo qual o núcleo chama o mundo externo — mas em ambas, a dependência de código aponta do adaptador para o núcleo, nunca o inverso. O núcleo não implementa a porta para o adaptador consumir livremente da forma descrita, a direção nunca se inverte para o núcleo importar o adaptador, e o marco distingue claramente as duas direções de chamada."
+
+  - question: "Por que uma ACL (camada anticorrupção) é descrita neste marco como, estruturalmente, só mais um adaptador?"
+    options:
+      - "Porque implementa uma porta de saída que o núcleo define, contendo tudo que é específico do legado sem vazar para o domínio"
+      - "Porque, tecnicamente, uma ACL não pode conter nenhuma lógica própria, apenas repassar chamadas diretamente ao sistema legado"
+      - "Na verdade este marco trata ACL como um conceito totalmente separado de adaptador, com regras de dependência diferentes e incompatíveis"
+      - "Porque uma ACL só existe em sistemas escritos em Java, nunca em sistemas Go, segundo a convenção adotada neste marco"
+    answer: 0
+    explanation: "A ACL implementa uma porta de saída definida pelo núcleo e contém, isolado ali, tudo que é específico do vocabulário ou formato do sistema legado — exatamente a mesma estrutura de qualquer outro adaptador. Uma ACL de fato contém lógica de tradução (não é um simples repasse), não é tratada como conceito separado de adaptador, e não há restrição de linguagem — o marco trata Java e Go lado a lado."
+
+  - question: "O que muda, na convenção de interfaces, entre Java e Go, segundo este marco?"
+    options:
+      - "Em Go, a interface é definida por quem consome, não por quem implementa — diferente da convenção mais comum em Java"
+      - "Não há diferença real: este marco afirma que as duas linguagens seguem exatamente a mesma convenção de definição de interface"
+      - "Em Go, só adaptadores podem declarar interfaces; em Java, só o núcleo pode declarar interfaces, segundo a regra deste marco"
+      - "A diferença citada é que Go exige herança explícita entre tipos, enquanto Java usa apenas tipagem estrutural implícita"
+    answer: 0
+    explanation: "O marco destaca que em Go a interface é tipicamente definida pelo consumidor (o núcleo declara o que precisa, no seu próprio pacote) e o adaptador a satisfaz estruturalmente, sem necessidade de importar o pacote do núcleo — uma diferença real de convenção em relação ao padrão mais comum em Java. As duas linguagens não seguem a mesma convenção segundo o texto, não há essa restrição de quem pode declarar interface, e é Java que não tem tipagem estrutural, não Go — Go não tem herança, ao contrário do que a alternativa afirma."
+
+  - question: "O que um teste de contrato de porta prova que dois adaptadores 'parecidos' não provam por si só?"
+    options:
+      - "Que o núcleo realmente não percebe diferença entre eles, porque ambos passam na mesma suíte sem adaptação"
+      - "Que um dos dois adaptadores é definitivamente mais rápido que o outro em qualquer cenário de produção real"
+      - "Que o núcleo pode, a partir desse teste, ser reescrito automaticamente em outra linguagem de programação sem esforço manual"
+      - "Que nenhum dos dois adaptadores precisa mais ser mantido ou testado individualmente depois que o teste de contrato existe"
+    answer: 0
+    explanation: "Sem o teste de contrato rodando a mesma suíte contra os dois adaptadores, 'eles são intercambiáveis' é uma afirmação de fé; o teste de contrato transforma isso em fato verificado, mostrando que o núcleo não percebe diferença entre eles. O teste não mede velocidade relativa, não permite reescrita automática em outra linguagem, e não elimina a necessidade de manutenção e teste individual de cada adaptador."
+
+  - question: "Quando o custo de cerimônia do hexagonal não se paga, segundo este marco?"
+    options:
+      - "Num CRUD simples sem lógica de negócio real, ou num protótipo descartável"
+      - "Sempre: este marco afirma que hexagonal nunca compensa o custo de cerimônia em nenhum contexto de fintech"
+      - "Apenas quando o time já tem mais de dez anos de experiência com o padrão, independente da complexidade do domínio"
+      - "Somente quando o projeto é escrito em Go, já que o marco trata hexagonal como exclusivo de projetos Java"
+    answer: 0
+    explanation: "O marco é explícito: para um CRUD simples sem regra de negócio real, ou um protótipo descartável, a indireção extra de portas, adaptadores e DTOs é cerimônia sem retorno proporcional — diferente de um domínio real com regras que mudam e precisam ser protegidas. Não há afirmação de que hexagonal nunca compensa, não depende de tempo de experiência do time, e o marco trata Java e Go lado a lado, sem exclusividade de linguagem."
+
+  - question: "Por que criar uma interface para toda dependência, por reflexo, não é o mesmo que aplicar inversão de dependência de forma útil?"
+    options:
+      - "Sem mais de um adaptador real esperado, ou sem necessidade de isolar para teste, a interface só adiciona indireção"
+      - "Porque, tecnicamente, Java e Go impedem a criação de interfaces com apenas uma implementação, gerando erro de compilação"
+      - "Porque toda interface criada por reflexo automaticamente quebra o teste de contrato de porta descrito neste marco"
+      - "Porque este marco recomenda nunca usar interfaces em nenhuma situação, substituindo-as sempre por chamadas diretas ao adaptador concreto"
+    answer: 0
+    explanation: "O marco distingue a porta que se justifica (mais de um adaptador real esperado, ou necessidade de isolar o núcleo para teste rápido) da interface criada por hábito, que só adiciona indireção sem ganho real de flexibilidade. Nem Java nem Go impedem compilar uma interface com uma única implementação, criar uma interface por reflexo não quebra automaticamente nenhum teste de contrato, e o marco não recomenda abandonar interfaces — recomenda usá-las com propósito."

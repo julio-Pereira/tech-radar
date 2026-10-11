@@ -1,0 +1,36 @@
+questions:
+  - question: "O que a instabilidade I = Ce / (Ca + Ce) mede, e o que significam os valores extremos 0 e 1?"
+    options:
+      - "Mede o quanto um módulo depende de outros versus é dependido; 0 é totalmente estável, 1 é totalmente instável"
+      - "Mede o número absoluto de linhas de código do módulo; 0 significa módulo vazio e 1 significa módulo de tamanho máximo"
+      - "Mede a cobertura de testes do módulo; 0 significa cobertura total e 1 significa nenhuma cobertura de teste"
+      - "Este marco não atribui significado aos valores extremos — eles são tratados como resultados inválidos do cálculo"
+    answer: 0
+    explanation: "A fórmula relaciona acoplamento eferente (Ce, de quantos módulos este depende) com a soma de aferente e eferente; 0 significa que muitos dependem dele e ele quase não depende de nada (estável), 1 significa o oposto (instável). A métrica não mede linhas de código nem cobertura de teste, e os valores extremos têm significado claro e central ao marco, não são inválidos."
+
+  - question: "Quais são as três formas de quebrar um ciclo de dependência citadas neste marco?"
+    options:
+      - "Inversão, extração de interface, e extração via evento"
+      - "Deletar um dos dois módulos envolvidos, reescrever o sistema do zero, ou ignorar o ciclo se os testes passarem"
+      - "Aumentar o número de testes unitários, adicionar comentários explicativos, e renomear as classes envolvidas no ciclo"
+      - "Apenas uma forma é válida segundo este marco: sempre extrair um módulo totalmente novo para quebrar qualquer ciclo"
+    answer: 0
+    explanation: "O marco lista especificamente inversão (um lado passa a depender de uma interface), extração de interface (um terceiro módulo mais estável define o contrato), e extração via evento (troca de chamada síncrona por publicação de evento). Deletar módulo ou reescrever do zero não são as técnicas citadas, testes e comentários não quebram um ciclo estrutural, e não há essa restrição a uma única forma válida."
+
+  - question: "O que o princípio das dependências estáveis proíbe, e por que a violação é detectável automaticamente?"
+    options:
+      - "Proíbe módulo estável de depender de um menos estável; detectável comparando a instabilidade dos dois lados"
+      - "Proíbe qualquer módulo de ter mais de cinco dependências diretas, um limite verificado por contagem simples de imports"
+      - "Proíbe o uso de interfaces em módulos considerados estáveis, verificável apenas por inspeção manual do código-fonte"
+      - "Este princípio, segundo este marco, não é detectável de forma automática, exigindo sempre revisão humana de arquitetura"
+    answer: 0
+    explanation: "O princípio diz que um módulo estável não deveria depender de um módulo menos estável, porque a instabilidade do dependente se propagaria para cima; como a instabilidade de cada módulo já é calculada, comparar os dois lados de toda dependência detecta a violação automaticamente. Não há limite fixo de cinco dependências citado, o princípio não proíbe interfaces em módulos estáveis (pelo contrário, a sequência principal recomenda abstração em módulos estáveis), e o marco trata a violação como detectável por script, não só por revisão humana."
+
+  - question: "Por que um ratchet por módulo é melhor que um limite único para o repositório inteiro, segundo este marco?"
+    options:
+      - "Evita punir um módulo novo e limpo pela dívida acumulada de um módulo antigo que ainda não foi corrigido"
+      - "Porque um limite único para o repositório inteiro é tecnicamente impossível de implementar em qualquer ferramenta de CI"
+      - "Porque o ratchet por módulo elimina completamente a necessidade de qualquer linha de base versionada no repositório"
+      - "Este marco recomenda o oposto: um limite único para o repositório inteiro é sempre superior ao ratchet por módulo"
+    answer: 0
+    explanation: "Um limite único penalizaria um módulo novo pela dívida de acoplamento de um módulo antigo que ainda não foi corrigido; o ratchet por módulo dá a cada um sua própria linha de base, permitindo que código novo nasça com padrão apertado sem herdar a dívida de outro lugar. Não há impossibilidade técnica de implementar limite único em CI, o ratchet por módulo ainda depende de linha de base versionada (só que por módulo), e o marco recomenda exatamente o oposto da alternativa invertida."

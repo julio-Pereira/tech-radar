@@ -1,0 +1,33 @@
+slug: arquitetura-de-software
+title: "Arquitetura de Software: Estrutura, Fronteiras e Qualidade Provadas em Código"
+subtitle: "Estilos, atributos de qualidade, DDD tático, hexagonal e acoplamento — cada decisão estrutural vira uma regra que o CI executa, em Java e Go."
+category: "Arquitetura"
+tags: [arquitetura-de-software, ddd, hexagonal, clean-architecture, acoplamento, fitness-function, archunit, divida-tecnica, c4, adr, java, go, fintech]
+level: advanced
+lang: pt-BR
+estimatedHours: 14
+glossary: GLOSSARIO.md
+sources:
+  - { title: "Software Architecture in Practice (Bass, Clements, Kazman)", url: https://www.sei.cmu.edu/library/software-architecture-in-practice-fourth-edition/ }
+  - { title: "Building Evolutionary Architectures (Ford, Parsons, Kua)", url: https://www.oreilly.com/library/view/building-evolutionary-architectures/9781492097532/ }
+  - { title: "Hexagonal Architecture (Alistair Cockburn)", url: https://alistair.cockburn.us/hexagonal-architecture/ }
+  - { title: "The Clean Architecture (Robert C. Martin)", url: https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html }
+  - { title: "Domain-Driven Design (Eric Evans)", url: https://www.domainlanguage.com/ddd/ }
+  - { title: "Implementing Domain-Driven Design (Vaughn Vernon)", url: https://www.oreilly.com/library/view/implementing-domain-driven-design/9780133039900/ }
+  - { title: "Vertical Slice Architecture (Jimmy Bogard)", url: https://www.jimmybogard.com/vertical-slice-architecture/ }
+  - { title: "ArchUnit — User Guide", url: https://www.archunit.org/userguide/html/000_Index.html }
+  - { title: "ISO/IEC 25010 — Product quality model", url: https://iso25000.com/index.php/en/iso-25000-standards/iso-25010 }
+  - { title: "The C4 model", url: https://c4model.com/ }
+  - { title: "arc42 — template de documentação de arquitetura", url: https://arc42.org/ }
+  - { title: "Working Effectively with Legacy Code (Michael Feathers)", url: https://www.oreilly.com/library/view/working-effectively-with/0131177052/ }
+milestones:
+  # Bloco A — Escolher a estrutura
+  - 01-estilos-arquiteturais-e-o-criterio-de-escolha.md
+  - 02-atributos-de-qualidade-e-trade-offs.md
+  # Bloco B — Construir a estrutura
+  - 03-ddd-tatico-em-codigo.md
+  - 04-hexagonal-e-clean-na-pratica.md
+  # Bloco C — Manter a estrutura
+  - 05-acoplamento-medido-e-ratchet.md
+  - 06-divida-arquitetural-e-refatoracao-em-escala.md
+  - 07-arquitetura-como-codigo-e-capstone.md

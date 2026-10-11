@@ -1,0 +1,36 @@
+questions:
+  - question: "O que distingue dívida técnica de dívida arquitetural, e por que a cura é diferente para cada uma?"
+    options:
+      - "Técnica é local; arquitetural torna toda mudança na região mais cara, exigindo mudar a estrutura"
+      - "Não há distinção real: este marco trata os dois termos como sinônimos completos ao longo de todo o texto"
+      - "Dívida técnica só existe em Java e dívida arquitetural só existe em Go, segundo a convenção adotada nesta trilha"
+      - "Dívida arquitetural é sempre mais barata de corrigir que dívida técnica, porque afeta menos arquivos por definição"
+    answer: 0
+    explanation: "Dívida técnica (nome ruim, método confuso) é local e cara de entender mas barata de isolar; dívida arquitetural (ciclo, regra espalhada) torna toda mudança naquela região mais cara, não só a próxima — por isso a cura exige mudar a estrutura, não só o código dentro dela. Os dois termos não são sinônimos, não há essa distinção por linguagem de programação, e dívida arquitetural tipicamente afeta mais arquivos, não menos."
+
+  - question: "Por que um golden master não julga se o comportamento atual do código está certo, segundo este marco?"
+    options:
+      - "Documenta o que o sistema faz hoje, para servir de régua contra mudanças futuras, não avalia correção"
+      - "Porque, tecnicamente, é impossível para um teste automatizado detectar se uma saída de programa está certa ou errada"
+      - "Porque julgar o comportamento atual exigiria acesso ao código-fonte original, que o golden master nunca consulta"
+      - "Este marco recomenda o oposto: o golden master deve sempre rejeitar qualquer saída que pareça incorreta durante a gravação"
+    answer: 0
+    explanation: "O golden master grava a saída atual para um conjunto de entradas fixas, sem julgar se essa saída é a correta — sua função é documentar o comportamento existente para que refatorações futuras sejam comparadas contra ele. Testes automatizados podem, sim, avaliar corretude quando têm uma especificação para comparar (só não é o caso do golden master), o golden master não precisa consultar a lógica interna do código-fonte, e o marco recomenda exatamente o oposto de rejeitar saídas durante a gravação."
+
+  - question: "O que é uma costura (seam), e como branch by abstraction usa esse conceito para substituir uma implementação sem parar a entrega?"
+    options:
+      - "Ponto onde se altera comportamento sem editar o código ali; a nova implementação é construída atrás da mesma abstração"
+      - "Costura é o nome dado neste marco ao commit que junta duas branches de Git, sem relação com pontos de alteração de comportamento no código"
+      - "Branch by abstraction, segundo este marco, exige interromper toda a entrega de funcionalidades até a nova implementação estar completa"
+      - "Uma costura só existe em código Go, por causa da ausência de herança, e não tem equivalente em código Java segundo este marco"
+    answer: 0
+    explanation: "Uma costura é um ponto onde é possível mudar comportamento sem editar diretamente aquele trecho, geralmente via interface; branch by abstraction usa isso introduzindo uma abstração sobre a implementação antiga, construindo a nova atrás da mesma abstração e alternando gradualmente, sem parar a entrega. Costura não é sobre merge de branches Git, branch by abstraction existe justamente para não parar a entrega (o oposto da alternativa), e o conceito de costura não é exclusivo de uma linguagem."
+
+  - question: "Em que condição a decisão correta é não refatorar um trecho de código, segundo este marco?"
+    options:
+      - "Quando o código vai morrer (sistema a aposentar), porque o investimento nunca chega a se pagar"
+      - "Nunca: este marco trata toda refatoração como obrigatória, independente do destino futuro do código em questão"
+      - "Apenas quando o código já tem cobertura de teste completa, situação em que refatorar seria sempre redundante"
+      - "Somente quando o time não tem nenhuma experiência prévia com o método Mikado descrito neste marco"
+    answer: 0
+    explanation: "Código com data de desligamento conhecida não vai viver o suficiente para o investimento de refatoração se pagar — por isso não refatorar, documentado com motivo e gatilho de reavaliação, é uma decisão válida e deliberada. O marco não trata refatoração como sempre obrigatória, cobertura de teste completa não torna refatoração redundante por si só, e a decisão não depende de experiência prévia da equipe com um método específico."
