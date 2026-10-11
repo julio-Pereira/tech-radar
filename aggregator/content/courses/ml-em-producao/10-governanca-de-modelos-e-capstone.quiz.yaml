@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que não existe uma operação limpa de 'desaprender' um cliente específico de um modelo já treinado?"
+    options:
+      - "Porque o dado daquele cliente já foi absorvido nos pesos do modelo, sem uma forma direta de remover só essa contribuição"
+      - "Na verdade existe sim essa operação: este marco descreve um comando padrão de retreino seletivo que remove exatamente um cliente do modelo"
+      - "Porque, tecnicamente, cada cliente ocupa um nó isolado e identificável na árvore de decisão de um modelo de gradient boosting"
+      - "Apenas porque a legislação brasileira, segundo este marco, proíbe explicitamente qualquer tentativa de remoção parcial de modelo treinado"
+    answer: 0
+    explanation: "Um modelo treinado absorve o dado de treino nos próprios pesos de forma distribuída, sem uma operação direta de remover a contribuição de um cliente específico — por isso as políticas possíveis (retreino, expiração, agregação) são todas trade-offs, não uma remoção limpa. Não existe esse comando de retreino seletivo descrito, não há isolamento por cliente em nós de árvore, e a razão não é uma proibição legal específica."
+
+  - question: "Quais são as três políticas possíveis para tratar revogação em modelo já treinado, e por que a escolha entre elas não é desta trilha?"
+    options:
+      - "Retreino periódico, expiração por fração revogada, e treino com dado agregado; a escolha é decisão de política com o jurídico"
+      - "Apenas uma política é apresentada como válida neste marco — expiração automática — sendo as outras descritas como tecnicamente inviáveis"
+      - "Exclusão manual linha a linha, criptografia reversível dos pesos, e backup paralelo do modelo antigo são as três políticas citadas neste marco"
+      - "A escolha entre as políticas é decidida automaticamente pelo registry com base apenas em métricas de desempenho, sem envolvimento jurídico"
+    answer: 0
+    explanation: "O marco lista explicitamente retreino periódico, expiração do modelo por fração de dados revogados, e treino só com dado agregado/anonimizado como as três políticas possíveis — e deixa claro que a escolha entre elas é uma decisão de política documentada com o jurídico, fora do que a trilha decide. Não há uma única política válida apresentada, as opções citadas na alternativa errada não aparecem no texto, e a decisão não é automatizada só por métrica de desempenho."
+
+  - question: "Qual antipadrão desta trilha corresponde a 'nunca explorar, e por isso nunca aprender fora do próprio passado'?"
+    options:
+      - "Feedback ignorado"
+      - "Notebook em produção, já que esse antipadrão trata especificamente da ausência de qualquer mecanismo de exploração no pipeline de treino"
+      - "Métrica de vaidade, que o marco define como o antipadrão central ligado à ausência completa de exploração no processo de aprendizado do modelo"
+      - "Modelo sem dono, descrito neste marco como equivalente direto a um modelo que nunca explora decisões alternativas"
+    answer: 0
+    explanation: "'Feedback ignorado' é o antipadrão do marco 08 reencontrado aqui: nunca explorar significa nunca aprender nada fora do próprio padrão passado, fechando o laço de reforço sem correção. 'Notebook em produção' é sobre ausência de versionamento e rastreio, 'métrica de vaidade' é sobre otimizar uma métrica fácil e desconectada de valor real, e 'modelo sem dono' é sobre ausência de responsabilidade — nenhum dos três é definido como exploração ausente."
+
+  - question: "Por que LLMs e agentes autônomos ficam deliberadamente fora do escopo desta trilha?"
+    options:
+      - "Porque trazem problemas próprios — alucinação, custo de inferência, avaliação sem rótulo claro — que merecem tratamento dedicado"
+      - "Porque, segundo este marco, LLMs são tecnicamente incompatíveis com qualquer pipeline de treino reprodutível descrito nos marcos anteriores"
+      - "Porque o `sim-clientes` não é capaz de gerar nenhum tipo de dado textual necessário para treinar ou avaliar um modelo de linguagem"
+      - "Porque a trilha `engenharia-de-dados` já cobre integralmente todos os aspectos de LLMs e agentes, tornando repetição aqui redundante"
+    answer: 0
+    explanation: "O marco é explícito: os desafios específicos de LLMs e agentes (alucinação, custo de inferência, avaliação sem rótulo claro) merecem tratamento próprio, e incluí-los aqui seria uma extensão apressada em vez de um tratamento cuidadoso. Não há incompatibilidade técnica genérica declarada com pipelines reprodutíveis, a limitação de dado textual do `sim-clientes` não é o motivo citado, e `engenharia-de-dados` não cobre esse tema de forma redundante com este."

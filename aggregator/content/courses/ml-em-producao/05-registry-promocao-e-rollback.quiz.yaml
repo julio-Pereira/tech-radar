@@ -1,0 +1,36 @@
+questions:
+  - question: "O que o contrato de um modelo declara, e por que uma mudança incompatível precisa ser rejeitada no CI?"
+    options:
+      - "Declara features de entrada e formato de saída; rejeitar no CI evita que a incompatibilidade só seja descoberta em produção"
+      - "O contrato de um modelo se refere exclusivamente ao acordo comercial entre a fintech e o provedor da biblioteca de machine learning usada"
+      - "Declara apenas o nome do arquivo do artefato treinado, sem nenhuma relação com as features que o modelo espera receber"
+      - "O CI, segundo este marco, não tem capacidade técnica de verificar contrato de modelo; essa verificação só pode ser feita manualmente em produção"
+    answer: 0
+    explanation: "O contrato declara quais features o modelo recebe, em que versão, e que formato de saída produz; verificar isso no CI evita que uma lacuna (como uma feature faltante) só seja descoberta quando o serviço já está tentando servir o modelo em produção. Não se trata de um acordo comercial, não se limita ao nome do arquivo, e o marco trata essa verificação como possível e desejável no CI, não só manual em produção."
+
+  - question: "Qual é a diferença entre shadow e canário, e por que a ordem entre eles importa?"
+    options:
+      - "Shadow calcula sem usar a decisão (sem risco); canário usa a decisão numa fração real do tráfego (risco controlado) — shadow vem primeiro"
+      - "Não há diferença real entre os dois; o texto os usa como sinônimos para descrever a mesma técnica de implantação gradual de modelo"
+      - "Canário é sempre executado antes do shadow, já que o canário tem menor risco de impacto no cliente segundo este marco"
+      - "Shadow se refere a testar o modelo apenas com dados sintéticos, enquanto canário se refere a testar exclusivamente com dados de produção reais, sem relação com risco"
+    answer: 0
+    explanation: "Shadow recebe as mesmas entradas que o modelo em produção mas nunca usa sua decisão — mede sem risco; canário aplica a decisão do modelo novo a uma fração real do tráfego — mede com risco controlado. O fluxo correto é shadow primeiro, canário depois, não o contrário. Os dois não são sinônimos, e a distinção não é sobre dado sintético versus real, é sobre se a decisão chega a ser usada."
+
+  - question: "Por que um rollback de modelo precisa restaurar a versão das features junto com o modelo?"
+    options:
+      - "Porque, se as features evoluíram de versão, o modelo antigo recebendo a versão nova pode produzir uma decisão diferente da que produzia antes"
+      - "Porque, tecnicamente, o registry é incapaz de armazenar um modelo sem sua versão de features associada, tornando essa restauração automática e desnecessária de verificar"
+      - "Apenas por uma convenção de nomenclatura de arquivos no registry, sem nenhuma relação real com o resultado da decisão produzida pelo modelo"
+      - "Este marco afirma que restaurar a versão das features é opcional e raramente necessário na prática, bastando reverter apenas o binário do modelo"
+    answer: 0
+    explanation: "Se as features usadas pelo modelo evoluíram de versão enquanto o modelo novo estava em produção, o modelo revertido recebendo a versão nova das features pode não produzir a mesma decisão que produzia antes — por isso o rollback precisa restaurar os dois juntos. Não é uma garantia automática do registry, não é só convenção de nomenclatura, e o marco trata essa restauração conjunta como necessária, não opcional."
+
+  - question: "Por que um artefato de modelo sem proveniência verificável é tratado como risco de segurança, e não só de qualidade?"
+    options:
+      - "Porque, sem saber de onde veio ou se foi alterado depois de treinado, o artefato é um vetor de ataque de cadeia de suprimentos como qualquer binário"
+      - "Porque modelos sem proveniência são, por definição técnica, sempre menos precisos estatisticamente do que modelos com proveniência registrada"
+      - "A questão de proveniência, segundo este marco, é apenas uma formalidade administrativa de auditoria interna, sem relação real com segurança do sistema"
+      - "Porque este marco trata qualquer ausência de metadado, incluindo proveniência, exclusivamente como um problema de performance de treino, não de segurança"
+    answer: 0
+    explanation: "A falta de proveniência verificável (origem, hash, assinatura) expõe o mesmo tipo de risco de cadeia de suprimentos que um binário de software não assinado — por isso a disciplina de `seguranca-aplicacao/12` se aplica diretamente ao artefato de modelo. Não há relação determinística entre ausência de proveniência e precisão estatística, não é apenas formalidade administrativa, e não se trata de um problema de performance de treino."

@@ -1,0 +1,54 @@
+questions:
+  - question: "Quais são as três causas típicas de training/serving skew citadas neste marco?"
+    options:
+      - "Código duplicado em dois caminhos, relógios diferentes entre treino e serviço, e valores-padrão diferentes para dado ausente"
+      - "Uso de linguagens de programação distintas entre as equipes, independente de qualquer diferença real na lógica de cálculo das features"
+      - "Exclusivamente diferenças de hardware entre o ambiente de treino e o ambiente de produção, segundo este marco"
+      - "O texto afirma que esse problema não tem causa identificável e é considerado, por definição, impossível de diagnosticar"
+    answer: 0
+    explanation: "O marco lista especificamente código duplicado (dois caminhos de cálculo), relógios diferentes (janelas definidas de forma distinta) e defaults diferentes para dado ausente como as três causas típicas. A linguagem de programação em si não é apontada como causa, hardware não é mencionado, e o problema é descrito como diagnosticável por teste de paridade, não como impossível de identificar."
+
+  - question: "Por que uma feature vencida (fora do TTL) deve devolver ausente, e não o último valor conhecido?"
+    options:
+      - "Porque devolver o valor velho como se fosse atual é uma mentira que o modelo não tem como distinguir de um dado legítimo"
+      - "Porque, tecnicamente, armazenar um valor vencido sempre corrompe o índice da feature store, impedindo consultas futuras daquela mesma feature"
+      - "Na verdade este marco recomenda o oposto: sempre devolver o último valor conhecido, já que ausente degrada a qualidade do modelo mais do que um valor desatualizado"
+      - "Apenas por exigência regulatória específica da LGPD sobre dados financeiros vencidos, sem relação com a qualidade do modelo em si"
+    answer: 0
+    explanation: "Ausente é uma resposta honesta ('não sei o valor atual'); um valor velho apresentado como atual é aceito pelo modelo sem questionamento, como se fosse legítimo — um erro silencioso. Não há corrupção de índice envolvida, o marco recomenda exatamente o oposto da opção invertida, e a motivação não é uma exigência regulatória específica sobre vencimento."
+
+  - question: "Em que condição, segundo este marco, uma feature store é descrita como peso morto?"
+    options:
+      - "Quando há poucas features e poucos modelos, e a equipe consegue garantir a paridade offline/online com disciplina simples"
+      - "Em qualquer cenário: o marco afirma que feature store nunca compensa o custo de adoção, independente do número de modelos ou features envolvidos"
+      - "Apenas quando a equipe de dados é maior que dez pessoas, segundo um limiar numérico específico definido neste marco"
+      - "Quando o modelo usado é gradient boosting, já que esse tipo de modelo é descrito como incompatível tecnicamente com qualquer feature store"
+    answer: 0
+    explanation: "O marco é explícito: feature store ajuda quando há reúso entre vários modelos ou dificuldade de garantir paridade à mão; é peso morto quando poucas features e poucos modelos já permitem disciplina simples suficiente. Não há uma recomendação universal contra a ferramenta, nenhum limiar de tamanho de equipe é mencionado, e não há incompatibilidade técnica declarada com gradient boosting."
+
+  - question: "Por que uma feature derivada de dado de terceiros precisa desaparecer quando o consentimento de origem é revogado, mesmo que já esteja materializada?"
+    options:
+      - "Porque a regra deste marco é que a feature herda a restrição do dado que a originou, e isso vale também para valores já calculados e armazenados"
+      - "Na verdade este marco afirma que apenas o dado bruto de origem precisa ser removido; a feature derivada e já materializada pode continuar sendo servida normalmente sem restrição"
+      - "Porque, tecnicamente, toda feature materializada expira automaticamente após 24 horas por padrão de sistema, independente de qualquer evento de revogação"
+      - "Apenas quando a feature é usada em mais de um modelo simultaneamente; features usadas por um único modelo não são afetadas por essa regra"
+    answer: 0
+    explanation: "A regra 'a feature some quando o consentimento some' é explícita: vale mesmo para valores já materializados, não só para o dado bruto que os originou. Não há exceção para a feature derivada continuar servível, não existe uma expiração automática genérica de 24 horas desvinculada da revogação, e a regra não depende de quantos modelos consomem aquela feature."
+
+  - question: "O que distingue uma feature tratada como código versionado de uma consulta ad-hoc, segundo este marco?"
+    options:
+      - "A feature como código tem nome, fórmula, janela, dono e finalidade declarados de forma versionada e executável nos dois contextos"
+      - "Não há distinção prática real entre as duas abordagens; o texto as trata como sinônimos ao longo de todo o marco, sem nenhuma diferença de garantia"
+      - "Uma consulta ad-hoc é sempre mais rápida de executar em produção do que qualquer feature versionada, por usar menos camadas de abstração no código"
+      - "Feature como código se refere exclusivamente ao uso da linguagem Python; qualquer feature escrita em SQL é, por definição, uma consulta ad-hoc"
+    answer: 0
+    explanation: "O marco define feature como código como uma definição versionada e executável tanto offline quanto online, com metadados completos — o que permite responder com precisão 'o que mudou entre a versão 3 e a 4'. As duas abordagens não são tratadas como sinônimos, velocidade de execução não é o critério de distinção, e a definição não depende da linguagem usada."
+
+  - question: "Por que toda feature precisa declarar dono, definição e finalidade sob pena de falhar o CI, e não apenas uma revisão manual?"
+    options:
+      - "Porque uma checagem automatizada no registro garante que nenhuma feature sem esses três elementos chegue a ser servida, de forma consistente"
+      - "Porque a revisão manual é proibida por política interna da trilha para qualquer tipo de artefato de dados, incluindo features"
+      - "Porque o CI, neste marco, é a única ferramenta capaz de calcular a fórmula de uma feature; uma revisão manual não teria acesso a esse cálculo"
+      - "Essa exigência só se aplica a features classificadas como sensíveis; features comuns podem ser aprovadas apenas por revisão manual sem checagem automatizada"
+    answer: 0
+    explanation: "Falhar o CI (em vez de depender de revisão manual) garante consistência automática: nenhuma feature sem dono, definição e finalidade declarados chega a ser registrada e servida. Não há proibição geral de revisão manual na trilha, o CI não é descrito como a única ferramenta capaz de calcular uma fórmula, e a exigência vale para toda feature, não só para as sensíveis."

@@ -1,0 +1,36 @@
+slug: ml-em-producao
+title: "Machine Learning em Produção para Fintech: Ofertas com Feedback Loop"
+subtitle: "Da tabela confiável à decisão auditável: como um motor de ofertas treina sem vazar o futuro, serve sem divergir, aprende sem se enviesar e esquece quando o consentimento acaba."
+category: "Dados"
+tags: [ml, mlops, features, vazamento, drift, feedback-loop, experimentacao, explicabilidade, lgpd, open-finance, fintech]
+level: advanced
+lang: pt-BR
+estimatedHours: 20
+glossary: GLOSSARIO.md
+sources:
+  - { title: "Hidden Technical Debt in Machine Learning Systems (Sculley et al.)", url: https://papers.nips.cc/paper_files/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html }
+  - { title: "Rules of Machine Learning (Google)", url: https://developers.google.com/machine-learning/guides/rules-of-ml }
+  - { title: "MLflow — documentation", url: https://mlflow.org/docs/latest/ }
+  - { title: "Feast — feature store", url: https://docs.feast.dev/ }
+  - { title: "scikit-learn — documentation", url: https://scikit-learn.org/stable/ }
+  - { title: "LightGBM — documentation", url: https://lightgbm.readthedocs.io/ }
+  - { title: "ONNX Runtime", url: https://onnxruntime.ai/docs/ }
+  - { title: "Lei Geral de Proteção de Dados (Lei nº 13.709/2018)", url: https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm }
+  - { title: "Trustworthy Online Controlled Experiments (Kohavi et al.)", url: https://experimentguide.com/ }
+  - { title: "Model Cards for Model Reporting (Mitchell et al.)", url: https://arxiv.org/abs/1810.03993 }
+  - { title: "Open Finance Brasil — Especificações", url: https://openfinancebrasil.atlassian.net/wiki/spaces/OF/overview }
+milestones:
+  # Bloco A — Enquadrar e preparar
+  - 01-oferta-como-decisao-sob-incerteza.md
+  - 02-dados-de-treino-corretos.md
+  # Bloco B — Features, treino e promoção
+  - 03-features-offline-e-online.md
+  - 04-treino-reprodutivel-e-avaliacao.md
+  - 05-registry-promocao-e-rollback.md
+  # Bloco C — Servir e vigiar
+  - 06-servir-o-modelo.md
+  - 07-monitoramento-e-drift.md
+  # Bloco D — Feedback loop e responsabilidade
+  - 08-feedback-loop-e-experimentacao.md
+  - 09-explicabilidade-justica-e-decisao-automatizada.md
+  - 10-governanca-de-modelos-e-capstone.md
