@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que classificar uma capacidade como core, suporte ou commodity é o primeiro passo antes de perguntar 'comprar ou construir', segundo este marco?"
+    options:
+      - "Porque a resposta certa depende de onde a capacidade se encaixa: construir vale para core, comprar costuma valer para commodity"
+      - "Porque, tecnicamente, não é possível comprar uma solução para uma capacidade classificada como core, segundo este marco"
+      - "Este marco afirma que a classificação é apenas um exercício teórico, sem influência real na decisão final de comprar ou construir"
+      - "A classificação só importa quando a empresa já decidiu construir, servindo apenas para justificar a decisão a posteriori"
+    answer: 0
+    explanation: "A classificação orienta diretamente a decisão: core vale a pena construir e manter (diferenciação real), commodity quase sempre vale comprar (sem vantagem em reinventar) — sem saber onde a capacidade se encaixa, a pergunta não tem base para resposta sólida. Comprar uma solução para algo core não é tecnicamente impedido, a classificação tem influência real (não é só teórica), e ela orienta a decisão antes, não justifica depois."
+
+  - question: "O que o TCO inclui além da licença, segundo este marco, e qual item é o mais frequentemente esquecido?"
+    options:
+      - "Implantação, integração, operação contínua e treinamento; o custo de saída é o mais esquecido"
+      - "O TCO, segundo este marco, inclui apenas o preço da licença e o custo de hardware necessário para rodar a solução"
+      - "O item mais esquecido, segundo este marco, é o custo de marketing da solução escolhida, não o custo de saída"
+      - "TCO e custo de licença são tratados como sinônimos neste marco, sem nenhum item adicional relevante"
+    answer: 0
+    explanation: "O marco lista implantação, integração, operação contínua e treinamento como parte do TCO, destacando o custo de sair depois como o item mais frequentemente esquecido na comparação. TCO não se limita a licença e hardware, custo de marketing não é citado como o item esquecido, e TCO é explicitamente mais amplo que custo de licença, não sinônimo dele."
+
+  - question: "Qual é o vício clássico de uma matriz de pontuação ponderada, segundo este marco?"
+    options:
+      - "O peso é escolhido depois de já saber qual opção é a favorita, ajustado até bater com a conclusão esperada"
+      - "A matriz de pontuação ponderada, segundo este marco, nunca produz resultados reprodutíveis entre duas execuções diferentes"
+      - "Este marco afirma que pontuação ponderada é sempre superior a qualquer outro método de decisão, sem vício relevante a corrigir"
+      - "O vício citado é que a matriz exige necessariamente mais de dez critérios, tornando-a impraticável na maioria dos contextos"
+    answer: 0
+    explanation: "O vício é escolher ou ajustar os pesos depois de já ter uma opção favorita, fazendo a 'análise objetiva' convergir para a conclusão que já estava decidida — a defesa é definir pesos antes de pontuar as opções. A matriz pode, sim, ser reproduzível (é um ponto de verificação do marco, não uma limitação), o marco não trata o método como sempre superior sem ressalva, e não há exigência de mais de dez critérios."
+
+  - question: "Por que um critério de sucesso de PoC definido depois do resultado é o oposto do que uma PoC deveria produzir, segundo este marco?"
+    options:
+      - "Porque o critério definido depois tende a se adaptar ao resultado obtido, tornando o sucesso garantido por definição retroativa"
+      - "Porque, tecnicamente, nenhuma prova de conceito pode ser avaliada sem um critério formal registrado em sistema de gestão de projetos"
+      - "Este marco recomenda sempre definir o critério de sucesso depois do resultado, para ajustar expectativas à realidade observada"
+      - "A ordem entre critério e resultado não tem relevância real, segundo este marco, desde que ambos sejam documentados eventualmente"
+    answer: 0
+    explanation: "Se o critério é escrito depois do resultado, ele tende a ser moldado para combinar com o que já aconteceu, tornando o 'sucesso' garantido por definição — o oposto de uma avaliação honesta. Não há exigência de ferramenta formal de gestão citada, o marco recomenda escrever o critério antes (não depois), e a ordem entre os dois é central ao argumento, não irrelevante."
+
+  - question: "O que uma análise de sensibilidade mostra que um número único de decisão não mostra, segundo este marco?"
+    options:
+      - "Quais parâmetros, variados numa faixa razoável, fariam a decisão inverter — mostrando onde a conclusão é frágil ou robusta"
+      - "A análise de sensibilidade, segundo este marco, mostra apenas o custo total da opção vencedora, sem informação adicional"
+      - "Este marco trata análise de sensibilidade como redundante em relação a um número único, sem benefício real adicional"
+      - "A análise de sensibilidade serve só para justificar a decisão perante auditoria externa, sem uso na tomada de decisão em si"
+    answer: 0
+    explanation: "Em vez de um número único e aparentemente definitivo, a análise de sensibilidade lista os parâmetros que, variados numa faixa razoável, fariam a conclusão inverter — informação mais honesta sobre onde a decisão é robusta e onde é frágil. Não se limita a mostrar o custo da opção vencedora, o marco trata a análise como mais informativa que o número único (não redundante), e seu uso é na tomada de decisão em si, não só em auditoria."
+
+  - question: "Por que uma ADR de comprar/construir precisa de gatilho de reversão, mesmo quando a decisão parece clara no momento, segundo este marco?"
+    options:
+      - "Sem o gatilho, a decisão vira permanente por inércia, em vez de continuamente reavaliada conforme o contexto muda"
+      - "Porque, tecnicamente, uma ADR sem gatilho de reversão é automaticamente invalidada pelo sistema de controle de versão"
+      - "Este marco recomenda incluir o gatilho apenas em decisões de comprar, nunca em decisões de construir internamente"
+      - "O gatilho de reversão serve apenas como formalidade burocrática exigida por auditoria, sem relação com a qualidade da decisão"
+    answer: 0
+    explanation: "Sem um gatilho explícito, a decisão tende a permanecer válida só porque ninguém a reconsiderou, não porque ainda é a melhor escolha — o gatilho força uma reavaliação quando a condição concreta aparecer. Não há invalidação automática por sistema de controle de versão, o marco recomenda gatilho de reversão tanto para comprar quanto para construir, e sua função é de qualidade da decisão, não apenas formalidade."

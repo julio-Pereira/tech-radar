@@ -1,0 +1,54 @@
+questions:
+  - question: "Quais características típicas de um core bancário antigo exigem tratamento explícito na ACL, segundo este marco?"
+    options:
+      - "Arquivo posicional, fechamento em lote, janelas de manutenção, API lenta e decimal/arredondamento verificados explicitamente"
+      - "Apenas o uso de linguagem COBOL é citado neste marco como característica relevante de um core bancário antigo"
+      - "Este marco afirma que cores bancários modernos e antigos têm exatamente as mesmas características, sem necessidade de tratamento especial"
+      - "A única característica citada é a lentidão de rede, sem relação com formato de arquivo ou fechamento em lote"
+    answer: 0
+    explanation: "O marco lista especificamente arquivo posicional, fechamento em lote, janelas de manutenção, API lenta ou inexistente, codificações antigas e decimal/arredondamento como características que precisam de tratamento explícito na ACL. A linguagem de implementação (COBOL ou outra) não é o ponto citado, o marco trata cores antigos como estruturalmente diferentes dos modernos (não iguais), e lentidão de rede não é a única característica relevante."
+
+  - question: "Qual é a diferença entre encapsular e substituir um sistema legado, segundo este marco?"
+    options:
+      - "Encapsular põe API moderna na frente sem tocar o interior; substituir troca o sistema, resolvendo limitações de verdade"
+      - "Encapsular e substituir, segundo este marco, são termos equivalentes para a mesma estratégia de migração de sistema legado"
+      - "Substituir é sempre mais rápido e de menor risco que encapsular, segundo a comparação feita neste marco"
+      - "Encapsular exige necessariamente trocar o core por um sistema novo, enquanto substituir mantém o core original intacto"
+    answer: 0
+    explanation: "Encapsular coloca uma API moderna na frente do sistema antigo sem mudar o que está por dentro — mais rápido, mas preserva as limitações internas; substituir troca o sistema gradualmente, resolvendo as limitações de fato, ao custo de um projeto muito maior. Os dois termos não são equivalentes, o marco descreve substituir como mais arriscado e demorado (não o oposto), e as definições de cada termo estão invertidas na última alternativa."
+
+  - question: "Por que leitura degradada marcada como defasada é preferível a um erro opaco quando o core está indisponível, segundo este marco?"
+    options:
+      - "O usuário sabe exatamente o que está vendo, em vez de só receber uma mensagem de erro sem explicação sobre o que aconteceu"
+      - "Porque, tecnicamente, é impossível para qualquer sistema retornar um erro claro quando uma dependência externa está fora do ar"
+      - "Este marco recomenda sempre mostrar erro opaco, tratando leitura degradada como prática desnecessária e arriscada"
+      - "A leitura degradada só é preferível quando o cliente está usando o aplicativo em um fuso horário diferente do core"
+    answer: 0
+    explanation: "Mostrar o último dado disponível, explicitamente marcado como defasado, dá ao usuário uma informação honesta e utilizável; um erro opaco só diz 'algo deu errado', sem contexto nenhum. Sistemas conseguem, sim, retornar erros claros (a recomendação aqui é diferente: usar dado defasado em vez de erro), o marco recomenda leitura degradada (não o oposto), e a preferência não depende de fuso horário do cliente."
+
+  - question: "Por que executar em paralelo antes do corte reduz o risco de uma falha descoberta tarde demais, segundo este marco?"
+    options:
+      - "Comparar os dois sistemas rodando juntos revela discrepâncias antes do corte, quando ainda há volta fácil"
+      - "Porque, tecnicamente, rodar dois sistemas em paralelo sempre dobra automaticamente a capacidade de processamento disponível"
+      - "Este marco recomenda pular a execução em paralelo sempre que o cronograma do projeto estiver atrasado, para economizar tempo"
+      - "A execução em paralelo serve apenas para fins de comparação de custo entre o sistema antigo e o novo, sem relação com risco técnico"
+    answer: 0
+    explanation: "Rodar o sistema antigo e o novo em paralelo, comparando resultados, expõe discrepâncias enquanto ainda existe caminho de volta fácil para o sistema antigo — depois do corte completo, uma falha descoberta é muito mais cara de corrigir. Não há duplicação automática de capacidade de processamento envolvida, o marco recomenda executar em paralelo mesmo sob pressão de cronograma (não pular), e o propósito central é reduzir risco técnico, não comparar custo."
+
+  - question: "O que a tolerância a campo desconhecido, na camada anticorrupção, evita, segundo este marco?"
+    options:
+      - "Que um arquivo legado com um campo novo, ainda não usado por ninguém, quebre a integração inteira ao ser recebido"
+      - "A tolerância a campo desconhecido, segundo este marco, serve para permitir que qualquer tipo do legado vaze livremente para o domínio moderno"
+      - "Este marco recomenda rejeitar qualquer arquivo com campo desconhecido, tratando isso como falha de integridade de dados"
+      - "A tolerância a campo desconhecido só é relevante quando o core bancário usa formato JSON, nunca em arquivo posicional"
+    answer: 0
+    explanation: "Se o legado ganhar um campo novo que a ACL não esperava, a resposta correta é ignorar esse campo (com alerta), não falhar a integração inteira por algo que ninguém está usando ainda. A tolerância não permite vazamento de tipos do legado (que continuam isolados na ACL), o marco recomenda tolerar, não rejeitar, e o conceito se aplica tipicamente a formatos como arquivo posicional, não é exclusivo de JSON."
+
+  - question: "Por que a reconciliação entre core e plataforma precisa classificar cada diferença encontrada, segundo este marco?"
+    options:
+      - "Porque uma diferença pode ser atraso normal de sincronização, estorno ou erro real, e cada caso exige uma ação diferente"
+      - "Porque, tecnicamente, nenhum sistema de reconciliação é capaz de detectar mais de um tipo de diferença por execução"
+      - "Este marco recomenda ignorar toda diferença encontrada na reconciliação, desde que o valor seja pequeno em termos absolutos"
+      - "A classificação serve apenas para fins de relatório mensal, sem nenhuma ação associada a cada categoria de diferença"
+    answer: 0
+    explanation: "Uma diferença entre os totais pode ter causas muito diferentes — atraso normal, estorno, ou erro real — e cada uma exige uma resposta distinta; classificar é o que permite agir corretamente em vez de tratar tudo igual. Sistemas de reconciliação detectam múltiplos tipos de diferença numa mesma execução normalmente, o marco recomenda classificar e agir (nunca ignorar por valor pequeno), e a classificação tem ação associada, não é só relatório."

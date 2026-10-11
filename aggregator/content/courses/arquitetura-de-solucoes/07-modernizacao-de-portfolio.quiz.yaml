@@ -1,0 +1,36 @@
+questions:
+  - question: "Por que a pontuação de portfólio combina valor, risco, custo da mudança e custo de adiar, em vez de priorizar só por idade do sistema, segundo este marco?"
+    options:
+      - "Idade isolada não captura o que se ganha, o risco, o esforço de agir agora, e o custo de continuar esperando"
+      - "Porque, tecnicamente, a idade de um sistema não pode ser medida de forma confiável em nenhum ambiente de produção real"
+      - "Este marco recomenda priorizar exclusivamente por idade, tratando os outros quatro fatores como irrelevantes na prática"
+      - "A combinação de fatores serve apenas para fins de relatório executivo, sem influência real na ordem de execução escolhida"
+    answer: 0
+    explanation: "Os quatro fatores juntos capturam dimensões que idade isolada não mostra: o que se ganha modernizando, o risco envolvido, o esforço necessário agora, e o custo de simplesmente não agir — uma priorização mais completa e defensável. Idade de sistema é, sim, mensurável normalmente, o marco recomenda a combinação de fatores (não só idade), e essa pontuação tem influência real na ordem de execução, não é só para relatório."
+
+  - question: "O que a ordem topológica garante que uma ordem escolhida por intuição não garante, segundo este marco?"
+    options:
+      - "Que nenhum sistema seja movido antes do que ele consome, nem antes do que o consome"
+      - "A ordem topológica, segundo este marco, garante que a modernização sempre custa menos do que o planejado inicialmente"
+      - "Este marco trata ordem topológica e ordem por intuição como equivalentes, sem diferença real de garantia entre as duas"
+      - "A ordem topológica garante apenas que o projeto termine dentro do prazo originalmente estimado pela equipe"
+    answer: 0
+    explanation: "Derivada do grafo de dependências real (não de suposição), a ordem topológica garante que a sequência de modernização respeita quem consome e quem é consumido — uma garantia estrutural que a intuição, sem checar sistematicamente as dependências, pode facilmente violar. Não há garantia de custo menor ou de prazo, e as duas ordens não são equivalentes em garantia."
+
+  - question: "Por que 'tráfego zero por N dias' é um critério melhor que 'acho que ninguém usa mais isso' para decidir aposentar um sistema, segundo este marco?"
+    options:
+      - "Porque é medido e verificável, enquanto a impressão subjetiva pode estar errada sem que ninguém tenha checado de fato"
+      - "Porque, tecnicamente, é impossível medir tráfego de um sistema sem instalar uma ferramenta comercial específica de monitoramento"
+      - "Este marco recomenda confiar na impressão da equipe sobre uso do sistema, tratando medição de tráfego como excesso de rigor"
+      - "A diferença entre os dois critérios é apenas de formalidade documental, sem impacto real na segurança da decisão de aposentar"
+    answer: 0
+    explanation: "Um critério medido e verificável (tráfego zero por um período declarado) substitui uma impressão subjetiva que pode simplesmente estar errada, porque ninguém de fato checou — a medição é o que torna a decisão de aposentar defensável. Medir tráfego não exige ferramenta comercial específica, o marco recomenda medição em vez de impressão subjetiva, e a diferença tem impacto real na segurança da decisão, não é só formalidade."
+
+  - question: "Por que o custo de manter dois sistemas em paralelo durante uma migração precisa ser contabilizado explicitamente, segundo este marco?"
+    options:
+      - "É um custo contínuo real — infraestrutura, atenção operacional, confusão sobre a fonte da verdade"
+      - "Porque, tecnicamente, manter dois sistemas em paralelo é sempre mais barato do que manter apenas um sistema isolado"
+      - "Este marco recomenda nunca manter dois sistemas em paralelo, preferindo sempre um corte único e imediato sem transição"
+      - "O custo de manter dois sistemas só é relevante quando ambos rodam no mesmo provedor de nuvem, segundo este marco"
+    answer: 0
+    explanation: "O período de dois sistemas coexistindo tem custo real e contínuo, incluindo a confusão sobre qual é a fonte da verdade naquele momento — tratar isso como temporário e irrelevante subestima o impacto real do plano de modernização. Dois sistemas em paralelo custam mais, não menos, que um isolado; o marco não recomenda corte único sem transição (defende o contrário, com system-design/14); e o custo é relevante independente do provedor de nuvem envolvido."

@@ -1,0 +1,36 @@
+questions:
+  - question: "O que uma zona de pouso estabelece antes de qualquer serviço rodar, e por que isso precisa vir primeiro, segundo este marco?"
+    options:
+      - "Hierarquia de contas, identidade, rede e política; vir primeiro evita recursos organizados retroativamente"
+      - "A zona de pouso, segundo este marco, só precisa ser definida depois que o primeiro serviço já está rodando em produção"
+      - "Zona de pouso se refere exclusivamente ao nome de domínio DNS usado pela aplicação, sem relação com conta ou identidade"
+      - "Este marco trata zona de pouso como um conceito opcional, recomendado apenas para empresas com mais de mil funcionários"
+    answer: 0
+    explanation: "A zona de pouso é a fundação organizacional — hierarquia de contas, identidade e acesso, rede, registro central, política — que precisa existir antes de criar recursos, para que a arquitetura seja deliberada em vez de um amontoado organizado depois do fato. O marco recomenda definir isso antes, não depois, não é sobre nome de domínio DNS, e não há essa restrição de tamanho de empresa."
+
+  - question: "Por que a postura padrão de política de nuvem deveria ser negar por padrão, não permitir e auditar depois, segundo este marco?"
+    options:
+      - "Negar por padrão impede o recurso não conforme de existir, em vez de descobrir a violação só depois"
+      - "Porque, tecnicamente, nenhum motor de política de nuvem é capaz de operar no modo permitir e auditar depois"
+      - "Este marco recomenda permitir por padrão e auditar depois, tratando negar por padrão como uma prática ultrapassada"
+      - "A escolha entre negar e permitir por padrão, segundo este marco, não tem relação real com segurança ou conformidade"
+    answer: 0
+    explanation: "Negar por padrão impede que um recurso não conforme chegue a existir; permitir e auditar depois significa que a violação já aconteceu antes de ser notada, exigindo correção reativa em vez de prevenção. Motores de política conseguem operar nos dois modos tecnicamente, o marco recomenda negar por padrão (não o oposto), e a escolha tem relação direta com segurança e conformidade."
+
+  - question: "O que etiquetas obrigatórias de dono e custo tornam possível depois, segundo este marco?"
+    options:
+      - "Atribuir custo por dono de forma confiável; sem elas, custo sem responsável é difícil de corrigir depois"
+      - "Etiquetas obrigatórias, segundo este marco, servem apenas para fins estéticos de organização visual do painel de recursos"
+      - "Este marco afirma que etiquetas de dono e custo não têm nenhuma relação real com a atribuição de custo por responsável"
+      - "A única função das etiquetas citada neste marco é cumprir uma exigência contratual do provedor de nuvem, sem uso interno real"
+    answer: 0
+    explanation: "Com etiquetas obrigatórias de dono e custo em todo recurso, atribuir custo por responsável se torna possível de forma sistemática; sem elas, custo acumulado sem dono identificável é a situação mais comum, e a mais difícil de corrigir retroativamente, porque ninguém sabe a quem perguntar. Não é uma questão estética, o marco afirma relação direta (não ausência de relação), e a função vai além de exigência contratual — tem uso interno real de FinOps."
+
+  - question: "Por que multinuvem 'por segurança genérica' é descrito como romantismo sem número, em vez de decisão de arquitetura, segundo este marco?"
+    options:
+      - "Abstrair tudo para rodar em qualquer lugar geralmente significa não usar plenamente nenhum dos dois ambientes"
+      - "Porque, tecnicamente, é impossível para qualquer empresa operar em mais de um provedor de nuvem simultaneamente"
+      - "Este marco recomenda multinuvem sempre, independente de haver uma razão concreta e medida para adotá-la"
+      - "A crítica do marco se aplica apenas a empresas pequenas; para fintechs de grande porte, multinuvem é sempre recomendada sem ressalva"
+    answer: 0
+    explanation: "Multinuvem genérica, sem razão concreta, tem custo real: abstrair tudo para portabilidade universal normalmente significa perder os recursos específicos que tornariam cada ambiente mais eficiente — por isso o marco recomenda multinuvem só com razão concreta e medida, não como seguro genérico. Operar em múltiplos provedores é tecnicamente possível (é o que o marco discute), o marco não recomenda sempre adotar multinuvem, e não há essa distinção por tamanho de empresa no texto."
