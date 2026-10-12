@@ -4,8 +4,37 @@
 > 360/768/1280px screenshot set, no JSON size budget. It documents only what was actually
 > measured while shipping the pt-BR/a11y quick wins and the Playwright+axe-core harness
 > (plan items 2, 3, 4, 6), via `web/tests/` against a locally-built `web/data/`. Scope was
-> chosen with the user; item 1 (split `app.js` into modules) and item 7 (marco-as-own-page,
-> contested — see below) are still open.
+> chosen with the user; item 1 (split `app.js` into modules) is still open.
+>
+> **Item 7 resolved:** the user decided trilha-as-page (today's `#/learn/<slug>`) over
+> marco-as-own-page — see "Fase 2" below for what that unlocked instead.
+
+## Fase 2 — reading-experience improvements (trilha-as-page, no routing/aggregator changes)
+
+Plan items 8, 9, and 11, adapted to stay inside the existing single-page-per-trilha
+architecture instead of requiring a per-marco route (which would need the Go aggregator
+to emit per-milestone JSON — out of scope for a client-only change):
+
+- **"Continuar de onde parou"** (item 11): `localStorage` tracks the last course visited
+  (`tr:lastcourse`, written whenever a course page renders) and the last milestone expanded
+  per course (`tr:lastvisited:<slug>`, written on expand only). The tracks index
+  (`#/learn`) shows a banner to the last course visited; the course page itself shows a
+  "Continuar: Marco N — Title" button only once a milestone has actually been opened.
+- **Anterior/Próximo marco** (item 8, adapted — in-page, not a route change): quick-nav
+  buttons inside each expanded milestone jump to the previous/next sibling, expanding and
+  scrolling to it. Absent at the first/last milestone boundaries.
+- **Copy button on code blocks** (item 9): a "Copiar" button overlaid on every `<pre>`,
+  copying the code text via `navigator.clipboard.writeText()` (works on GitHub Pages
+  `https://` and on `localhost`/`127.0.0.1` for local dev — both secure contexts).
+
+Covered by `web/tests/reading.spec.js` (8 tests): continue-btn/banner gating (visiting vs.
+expanding), prev/next nav boundaries, and clipboard content (asserting the button's own
+label text never leaks into the copied string). Full suite: 32/32 passing, 0 axe violations
+of `serious`/`critical` impact (unchanged from Fase 1 — no new interactive roles needing a
+fresh axe pass, but worth re-running whenever markup changes).
+
+Still deferred: **item 10** (hands-on as structured collapsible sections — needs Go
+aggregator markdown-structure parsing, a bigger change) and **item 1** (split `app.js`).
 
 ## Method
 
@@ -34,16 +63,15 @@ views (radar, learn index, course).
 ## Not touched in this pass (still open from the plan)
 
 - **Item 1** (split `app.js` into ES modules) — mechanical but large; deferred so this PR stays reviewable.
-- **Item 7** (marco-as-own-page) — the user flagged a real open question here: whether the
-  right granularity is a page per *marco* (as the plan proposes) or whether a page per
-  *trilha* (which already exists today as `#/learn/<slug>`) is sufficient. Needs a decision
-  before any aggregator contract change, not a default to pick silently.
+- **Item 10** (hands-on as structured collapsible sections) — needs the Go aggregator to
+  parse markdown structure at build time, a bigger backend change than the client-only
+  work in Fase 2.
 - Lighthouse scores, JSON size budget, 360/768/1280 screenshot set (plan's full Fase 0) — not run.
 - Remaining axe findings below `serious`/`critical` (moderate/minor) — not triaged; the test
   suite only asserts zero `serious`/`critical`, per the plan's own acceptance bar.
 
 ## Regression gate going forward
 
-`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 24/24
+`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 32/32
 passing, 0 axe violations of `serious`/`critical` impact on the three routes tested. The
 plan's ratchet rule applies: these numbers should only improve from here.

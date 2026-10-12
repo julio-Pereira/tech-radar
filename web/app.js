@@ -437,6 +437,44 @@ function clearProgress(slug) {
   }
 }
 
+// "Continue where you left off": separate from progress on purpose — a
+// milestone can be opened and read without ever being marked complete, and
+// that still counts as "where the reader was".
+const LAST_VISITED_PREFIX = 'tr:lastvisited:';
+const LAST_COURSE_KEY = 'tr:lastcourse';
+
+function getLastVisited(slug) {
+  try {
+    return localStorage.getItem(LAST_VISITED_PREFIX + slug) || null;
+  } catch {
+    return null;
+  }
+}
+
+function setLastVisited(slug, milestoneId) {
+  try {
+    localStorage.setItem(LAST_VISITED_PREFIX + slug, milestoneId);
+  } catch {
+    // Storage full or unavailable — "continue" just won't be offered.
+  }
+}
+
+function getLastCourse() {
+  try {
+    return localStorage.getItem(LAST_COURSE_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+function setLastCourse(slug) {
+  try {
+    localStorage.setItem(LAST_COURSE_KEY, slug);
+  } catch {
+    // ignore
+  }
+}
+
 function percent(done, total) {
   return total === 0 ? 0 : Math.round((done / total) * 100);
 }
@@ -501,12 +539,42 @@ async function renderCoursesIndex() {
     return;
   }
 
+  const lastCourse = courses.find((c) => c.slug === getLastCourse());
+  if (lastCourse) {
+    view.appendChild(buildContinueBanner(lastCourse));
+  }
+
   const grid = document.createElement('div');
   grid.className = 'course-grid';
   for (const entry of courses) {
     grid.appendChild(buildCourseCard(entry));
   }
   view.appendChild(grid);
+}
+
+/**
+ * "Continue where you left off", shown above the grid when the reader has
+ * opened a course before. Deliberately light: just the course, from
+ * `index.json` already in hand — the milestone-level "Continuar: Marco N"
+ * button lives on the course page itself, where the full course JSON (with
+ * milestone titles) is already loaded, so this never costs an extra fetch.
+ */
+function buildContinueBanner(entry) {
+  const banner = document.createElement('a');
+  banner.className = 'continue-banner';
+  banner.href = `#/learn/${entry.slug}`;
+
+  const eyebrow = document.createElement('span');
+  eyebrow.className = 'continue-banner-eyebrow';
+  eyebrow.textContent = 'Continuar de onde parou';
+
+  const title = document.createElement('span');
+  title.className = 'continue-banner-title';
+  title.textContent = entry.title;
+
+  banner.appendChild(eyebrow);
+  banner.appendChild(title);
+  return banner;
 }
 
 /** @param {IndexEntry} entry */
@@ -595,6 +663,8 @@ function buildCourseNotFound() {
 
 /** @param {Course} course */
 function buildCourseView(course) {
+  setLastCourse(course.slug);
+
   const root = document.createElement('div');
   root.className = 'course-view';
 
@@ -649,11 +719,26 @@ function buildCourseView(course) {
   progressBlock.appendChild(progressLabel);
   progressBlock.appendChild(resetBtn);
   header.appendChild(progressBlock);
-  root.appendChild(header);
 
   // Timeline -------------------------------------------------------------------
   const timeline = document.createElement('ol');
   timeline.className = 'timeline';
+
+  // "Continuar" — only once the timeline exists, since clicking it needs to
+  // find the target node inside `timeline`.
+  const lastVisitedMilestone = course.milestones.find((m) => m.id === getLastVisited(course.slug));
+  if (lastVisitedMilestone) {
+    const continueBtn = document.createElement('button');
+    continueBtn.type = 'button';
+    continueBtn.className = 'continue-btn';
+    continueBtn.textContent = `Continuar: Marco ${lastVisitedMilestone.order} — ${lastVisitedMilestone.title}`;
+    continueBtn.addEventListener('click', () => {
+      scrollToMilestone(timeline, lastVisitedMilestone.id, { expand: true });
+    });
+    header.appendChild(continueBtn);
+  }
+
+  root.appendChild(header);
 
   /** Recomputes progress bar, label, dots, and aria-current after any toggle. */
   const refresh = () => {
@@ -677,9 +762,11 @@ function buildCourseView(course) {
     });
   };
 
-  for (const milestone of course.milestones) {
-    timeline.appendChild(buildTimelineNode(course.slug, milestone, completed, refresh));
-  }
+  course.milestones.forEach((milestone, idx) => {
+    const prev = course.milestones[idx - 1] || null;
+    const next = course.milestones[idx + 1] || null;
+    timeline.appendChild(buildTimelineNode(course.slug, milestone, completed, refresh, prev, next, timeline));
+  });
   root.appendChild(timeline);
 
   // Glossary appendix (not a milestone: no id, no progress) --------------------
@@ -700,13 +787,26 @@ function buildCourseView(course) {
   });
 
   refresh();
-  // Defer until appended to the DOM so scrollIntoView has layout.
-  requestAnimationFrame(() => scrollToFirstPending(timeline, getProgress(course.slug), course.milestones));
+  // Defer until appended to the DOM so scrollIntoView has layout. Prefers
+  // where the reader last opened a milestone over the first pending one —
+  // "continue reading" beats "continue completing" when the two differ.
+  requestAnimationFrame(() => {
+    const set = getProgress(course.slug);
+    const target = lastVisitedMilestone || course.milestones.find((m) => !set.has(m.id));
+    if (target) scrollToMilestone(timeline, target.id);
+  });
   return root;
 }
 
-/** @param {Milestone} milestone */
-function buildTimelineNode(slug, milestone, completed, onToggle) {
+/**
+ * @param {Milestone} milestone
+ * @param {Milestone | null} prevMilestone
+ * @param {Milestone | null} nextMilestone
+ * @param {HTMLElement} timeline used by the prev/next buttons to find and
+ *   jump to a sibling node — always fully populated by the time a reader
+ *   can click, even though earlier nodes are built before later ones exist.
+ */
+function buildTimelineNode(slug, milestone, completed, onToggle, prevMilestone, nextMilestone, timeline) {
   const node = document.createElement('li');
   node.className = 'timeline-node';
   node.setAttribute('data-id', milestone.id);
@@ -761,6 +861,7 @@ function buildTimelineNode(slug, milestone, completed, onToggle) {
   const article = document.createElement('div');
   article.className = 'milestone-body';
   article.innerHTML = milestone.html; // pre-sanitized at build time (bluemonday)
+  addCopyButtons(article);
   body.appendChild(article);
 
   // Complete control — built before the quiz so `completion: quiz` can unlock it.
@@ -801,13 +902,46 @@ function buildTimelineNode(slug, milestone, completed, onToggle) {
   completeWrap.appendChild(label);
   body.appendChild(completeWrap);
 
+  // Prev/next — in-page navigation between milestones. No new route: it
+  // just expands and scrolls to a sibling <li> already in the same timeline.
+  if (prevMilestone || nextMilestone) {
+    const nav = document.createElement('div');
+    nav.className = 'node-nav';
+
+    if (prevMilestone) {
+      const prevBtn = document.createElement('button');
+      prevBtn.type = 'button';
+      prevBtn.className = 'node-nav-btn node-nav-prev';
+      prevBtn.textContent = `← Marco ${prevMilestone.order}: ${prevMilestone.title}`;
+      prevBtn.addEventListener('click', () => {
+        scrollToMilestone(timeline, prevMilestone.id, { expand: true });
+      });
+      nav.appendChild(prevBtn);
+    }
+
+    if (nextMilestone) {
+      const nextBtn = document.createElement('button');
+      nextBtn.type = 'button';
+      nextBtn.className = 'node-nav-btn node-nav-next';
+      nextBtn.textContent = `Marco ${nextMilestone.order}: ${nextMilestone.title} →`;
+      nextBtn.addEventListener('click', () => {
+        scrollToMilestone(timeline, nextMilestone.id, { expand: true });
+      });
+      nav.appendChild(nextBtn);
+    }
+
+    body.appendChild(nav);
+  }
+
   content.appendChild(body);
   node.appendChild(content);
 
   toggle.addEventListener('click', () => {
     const expanded = toggle.getAttribute('aria-expanded') === 'true';
-    toggle.setAttribute('aria-expanded', String(!expanded));
+    const willExpand = !expanded;
+    toggle.setAttribute('aria-expanded', String(willExpand));
     body.classList.toggle('hidden', expanded);
+    if (willExpand) setLastVisited(slug, milestone.id);
   });
 
   checkbox.addEventListener('change', () => {
@@ -952,6 +1086,7 @@ function buildGlossaryBlock(html) {
   const body = document.createElement('div');
   body.className = 'milestone-body';
   body.innerHTML = html; // pre-sanitized at build time (bluemonday)
+  addCopyButtons(body);
   details.appendChild(body);
 
   return details;
@@ -1007,12 +1142,18 @@ function countDone(set, milestones) {
   return n;
 }
 
-/** Scrolls to the first uncompleted milestone, respecting reduced-motion. */
-function scrollToFirstPending(timeline, set, milestones) {
-  const pending = milestones.find(m => !set.has(m.id));
-  if (!pending) return;
-  const node = timeline.querySelector(`.timeline-node[data-id="${cssEscape(pending.id)}"]`);
+/**
+ * Scrolls to a milestone by id, respecting reduced-motion. `expand: true`
+ * opens it first (used by explicit jumps — the Continuar button, prev/next
+ * nav); the initial on-load scroll leaves it collapsed, same as before.
+ */
+function scrollToMilestone(timeline, id, { expand = false } = {}) {
+  const node = timeline.querySelector(`.timeline-node[data-id="${cssEscape(id)}"]`);
   if (!node) return;
+  if (expand) {
+    const toggle = node.querySelector('.node-toggle');
+    if (toggle && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
+  }
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   node.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
 }
@@ -1031,6 +1172,44 @@ const LEVEL_LABELS = {
 
 function levelLabel(level) {
   return LEVEL_LABELS[level] || level;
+}
+
+/**
+ * Adds a "Copiar" button to every <pre> inside `container`. Reads from the
+ * <code> element (falling back to the <pre> itself) so the button's own
+ * label never ends up copied alongside the snippet.
+ */
+function addCopyButtons(container) {
+  container.querySelectorAll('pre').forEach((pre) => {
+    // Captured before the button is appended: if a fenced block were ever
+    // missing a <code> wrapper, reading pre.textContent at click time would
+    // pick up the button's own label too.
+    const codeText = (pre.querySelector('code') || pre).textContent || '';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'code-copy-btn';
+    btn.textContent = 'Copiar';
+    btn.setAttribute('aria-label', 'Copiar código');
+
+    let resetTimer = null;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(codeText);
+        btn.textContent = 'Copiado!';
+        btn.classList.add('copied');
+      } catch {
+        btn.textContent = 'Erro ao copiar';
+      }
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
+        btn.textContent = 'Copiar';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+
+    pre.appendChild(btn);
+  });
 }
 
 function buildBadge(text, className) {
