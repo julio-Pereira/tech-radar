@@ -15,6 +15,9 @@ const BLOCK_LABELS = {
   invariantes: 'Invariantes testáveis',
   complemento: 'Complemento',
   checagem: 'Checagem',
+  // Overridden in buildHandsonBlock's summary text — kept here only as the
+  // fallback used elsewhere (none today) that might read BLOCK_LABELS directly.
+  gabarito: 'Gabarito',
 };
 
 /**
@@ -75,40 +78,45 @@ function buildHandsonSection(slug, milestoneId, section) {
 
 /**
  * The very first time a milestone's hands-on blocks are rendered, the
- * default (Tutorial open, else the first block, everything else closed) is
- * written into `open` and the milestone is flagged `seen` — so a later
- * toggle of one block never makes an untouched sibling "snap back" to the
- * default, and so closing the default-open block doesn't make this run
- * again on the next visit (see storage.js for why `seen` can't just be
- * inferred from whether anything of this milestone is in `open`).
+ * default (Tutorial open, else the first non-Gabarito block, everything
+ * else closed) is written into `open` and the milestone is flagged `seen`
+ * — so a later toggle of one block never makes an untouched sibling "snap
+ * back" to the default, and so closing the default-open block doesn't make
+ * this run again on the next visit (see storage.js for why `seen` can't
+ * just be inferred from whether anything of this milestone is in `open`).
+ * Gabarito is never the default-open block — it always starts closed,
+ * handled separately in buildHandsonBlock.
  */
 function applyFirstVisitDefault(slug, milestoneId, blocks) {
   const state = getHandsonState(slug);
   if (state.seen.includes(milestoneId) || blocks.length === 0) return state;
 
   state.seen.push(milestoneId);
-  const defaultBlock = blocks.find((b) => b.kind === 'tutorial') || blocks[0];
-  state.open.push(`${milestoneId}:${defaultBlock.key}`);
+  const defaultBlock = blocks.find((b) => b.kind === 'tutorial') || blocks.find((b) => b.kind !== 'gabarito');
+  if (defaultBlock) state.open.push(`${milestoneId}:${defaultBlock.key}`);
   saveHandsonState(slug, state);
   return state;
 }
 
 function buildHandsonBlock(slug, milestoneId, block, state) {
   const id = `${milestoneId}:${block.key}`;
+  const isGabarito = block.kind === 'gabarito';
 
   const wrap = document.createElement('div');
   wrap.className = 'handson-block';
 
   const details = document.createElement('details');
   details.className = 'handson-details';
-  details.open = state.open.includes(id);
+  // Gabarito always starts closed and never reads persisted state — "tente
+  // antes" only works if opening it is a conscious choice every single time.
+  details.open = !isGabarito && state.open.includes(id);
 
   const summary = document.createElement('summary');
   summary.className = 'handson-summary';
 
   const label = document.createElement('span');
   label.className = 'handson-label';
-  label.textContent = BLOCK_LABELS[block.kind] || block.kind;
+  label.textContent = isGabarito ? 'Mostrar gabarito (tente antes)' : BLOCK_LABELS[block.kind] || block.kind;
   summary.appendChild(label);
 
   if (block.title) {
@@ -120,15 +128,18 @@ function buildHandsonBlock(slug, milestoneId, block, state) {
 
   details.appendChild(summary);
 
-  // Listening only after the initial `.open` is set above — assigning it
-  // fires a "toggle" event too, and there is nothing useful to persist yet.
-  details.addEventListener('toggle', () => {
-    const current = getHandsonState(slug);
-    const idx = current.open.indexOf(id);
-    if (details.open && idx === -1) current.open.push(id);
-    else if (!details.open && idx !== -1) current.open.splice(idx, 1);
-    saveHandsonState(slug, current);
-  });
+  if (!isGabarito) {
+    // Listening only after the initial `.open` is set above — assigning it
+    // fires a "toggle" event too, and there is nothing useful to persist yet.
+    // Gabarito skips this entirely: its open/closed state never persists.
+    details.addEventListener('toggle', () => {
+      const current = getHandsonState(slug);
+      const idx = current.open.indexOf(id);
+      if (details.open && idx === -1) current.open.push(id);
+      else if (!details.open && idx !== -1) current.open.splice(idx, 1);
+      saveHandsonState(slug, current);
+    });
+  }
 
   const body = document.createElement('div');
   body.className = 'section-prose';
@@ -136,6 +147,15 @@ function buildHandsonBlock(slug, milestoneId, block, state) {
   details.appendChild(body);
 
   wrap.appendChild(details);
+
+  // Gabarito has no "done" mark — it's a rubric to read, not a task to
+  // complete — so it's also exempt from the nested-interactive concern
+  // below (there's simply no button to place). The class lets the CSS drop
+  // the summary's reserved right-padding for the button that isn't there.
+  if (isGabarito) {
+    wrap.classList.add('no-done-btn');
+    return wrap;
+  }
 
   // A sibling of <details>, not a child of <summary>: a <button> nested
   // inside <summary> is invalid "nested interactive content" (axe's

@@ -520,6 +520,10 @@
   list-style-position: inside;
 }
 
+/* Gabarito has no done button (see sections.js) — no need to reserve space
+   for one. */
+.handson-block.no-done-btn .handson-summary { padding-right: 1rem; }
+
 .handson-details[open] .handson-summary { border-bottom: 1px solid var(--border); }
 
 /* Plain inline flow, not flexbox: label and title wrap together as normal

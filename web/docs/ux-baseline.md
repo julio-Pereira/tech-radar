@@ -137,6 +137,28 @@ views (radar, learn index, course).
 | R4 | Relative time in English, doesn't handle future dates | **Confirmed, fixed** | Rewrote `formatRelative` on `Intl.RelativeTimeFormat('pt-BR')`, which handles sign (past/future) natively — no more possible `-3m ago`. |
 | T2 | No front-end tests at all | **Confirmed, fixed** | `web/tests/` (Playwright + `@axe-core/playwright`, `web/package.json`, dev-only, outside the Go build), new `.github/workflows/web-tests.yml` running on every PR and on push to `main`. |
 
+## Melhoria 8 — Bloco "Gabarito" (`TASK-plat-melhorias-lideranca.md` §8)
+
+First of the eight `lideranca-tecnica` platform improvements (confirmed order:
+8 → 3 → 6 → 1 → 4 → 2 → 5 → 7). Extends the `sections` divider from item 10 with a
+sixth closed-vocabulary label, `**Gabarito**` (plain or `**Gabarito — título**`),
+`kind: "gabarito"` in `HandsOnBlock` — same matching rules as the other five (top-level
+paragraph only, unrecognized bold text never opens a block). No real milestone uses the
+label yet, so the golden-coverage test (`TestSplitSectionsGoldenCoverage`) staying green
+with its existing numbers is itself the proof that no existing marco's output changed.
+
+Front end: a Gabarito block renders **closed by default** (the opposite of Tutorial),
+has **no done-mark button**, and its open/closed state is **never persisted** —
+`buildHandsonBlock` skips both the `state.open` read and the `toggle` listener for it,
+and `applyFirstVisitDefault` excludes `kind: "gabarito"` from ever being picked as the
+default-open block even when it's first in a section with no Tutorial. Summary text
+reads "Mostrar gabarito (tente antes)" instead of the label, so the intent ("try first")
+is explicit rather than implied by the closed state alone. Tested via route interception
+(`web/tests/gabarito.spec.js`) since no real content has the label to test against
+directly — 6 new tests: closed by default, no done button, open-by-click/keyboard and
+does *not* survive a reload, never steals the default-open slot from a real Tutorial or
+from the fallback-first-block rule, and an axe pass with it expanded. Full suite: 46/46.
+
 ## Not touched in this pass (still open from the plan)
 
 - Lighthouse scores, JSON size budget, full 360/768/1280 screenshot set (plan's full
@@ -148,7 +170,7 @@ views (radar, learn index, course).
 
 ## Regression gate going forward
 
-`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 40/40
+`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 46/46
 passing, 0 axe violations of `serious`/`critical` impact on the three routes tested (plus
-an expanded-hands-on-blocks pass). The plan's ratchet rule applies: these numbers should
-only improve from here.
+expanded-hands-on-blocks and expanded-Gabarito passes). The plan's ratchet rule applies:
+these numbers should only improve from here.

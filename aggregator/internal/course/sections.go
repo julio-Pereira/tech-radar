@@ -21,7 +21,7 @@ import (
 // Portuguese pluralizes "-vel" as "-veis" (l -> is), not by appending an s,
 // so the singular "testável" shares no suffix with "testáveis" that a
 // trailing "s?" could straddle.
-var blockLabelRe = regexp.MustCompile(`^(Tutorial|Desafio|Invariante[s]? testáve(?:l|is)|Complemento|Checagem)\b(?:\s*[—–-]\s*(.+?))?[.:]?$`)
+var blockLabelRe = regexp.MustCompile(`^(Tutorial|Desafio|Invariante[s]? testáve(?:l|is)|Complemento|Checagem|Gabarito)\b(?:\s*[—–-]\s*(.+?))?[.:]?$`)
 
 var spaceRunRe = regexp.MustCompile(`\s+`)
 
@@ -42,6 +42,8 @@ func blockKindFromLabel(label string) string {
 		return "complemento"
 	case "checagem":
 		return "checagem"
+	case "gabarito":
+		return "gabarito"
 	}
 	if strings.HasPrefix(strings.ToLower(fields[0]), "invariante") {
 		return "invariantes"

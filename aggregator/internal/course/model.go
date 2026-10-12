@@ -77,8 +77,8 @@ type CompiledMilestone struct {
 
 // Section is one H2-delimited chunk of a milestone body. A "Hands-on" /
 // "Mão na massa" heading whose body contains at least one recognized bold
-// label (Tutorial, Desafio, Invariantes testáveis, Complemento, Checagem)
-// becomes Kind "handson" with Blocks instead of a flat HTML string; every
+// label (Tutorial, Desafio, Invariantes testáveis, Complemento, Checagem,
+// Gabarito) becomes Kind "handson" with Blocks instead of a flat HTML string; every
 // other heading — including a hands-on section with no recognized label —
 // stays Kind "prose", same as the milestone body always rendered before.
 type Section struct {
@@ -99,7 +99,7 @@ type HandsOnBlock struct {
 	// Key is stable and unique within the section: Kind, then "kind-2",
 	// "kind-3"... for repeated labels (a milestone can have two "Desafio"s).
 	Key   string `json:"key"`
-	Kind  string `json:"kind"` // tutorial | desafio | invariantes | complemento | checagem
+	Kind  string `json:"kind"` // tutorial | desafio | invariantes | complemento | checagem | gabarito
 	Title string `json:"title,omitempty"`
 	HTML  string `json:"html"`
 }
