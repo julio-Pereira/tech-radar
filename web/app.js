@@ -23,6 +23,13 @@ let debounceTimer = null;
 // Hash routing keeps the app immune to the GitHub Pages /tech-radar/ prefix and
 // needs no 404.html. Routes: #/ (radar), #/learn (index), #/learn/<slug> (course).
 
+// Whether any route has already been entered. Decided synchronously inside
+// route(), never by timing of the async work a route kicks off — a course
+// route's announceRoute() fires only after its fetch resolves, well after
+// route() itself returned, so the flag must be captured up front and
+// threaded through, not read later from a module-level variable.
+let hasNavigatedOnce = false;
+
 function init() {
   window.addEventListener('hashchange', route);
   route();
@@ -38,14 +45,42 @@ function parseRoute() {
   return { name: 'radar' };
 }
 
+/**
+ * Sets document.title and announces the change to screen readers via the
+ * aria-live region. Called once a route's content has actually rendered, so
+ * the announcement matches what is on screen. Moves focus to <main> too,
+ * unless this is the very first navigation of the session — on a fresh
+ * load, leaving focus alone keeps the skip link reachable as the first Tab
+ * stop, same as it would be on any other page.
+ */
+function announceRoute(label, isFirstNavigation) {
+  document.title = label ? `${label} · Tech Radar` : 'Tech Radar';
+  const announcer = document.getElementById('route-announcer');
+  // "Página carregada: X" — fixed phrasing sidesteps pt-BR gender/number
+  // agreement, since "página" (feminine) never varies with the label.
+  if (announcer) announcer.textContent = `Página carregada: ${label}`;
+  if (isFirstNavigation) return;
+  const main = document.getElementById('main-content');
+  if (main) main.focus();
+}
+
 function route() {
+  const isFirstNavigation = !hasNavigatedOnce;
+  hasNavigatedOnce = true;
+
   const r = parseRoute();
   showView(r.name === 'radar' ? 'radar' : 'learn');
   setNavActive(r.name === 'radar' ? 'radar' : 'learn');
 
-  if (r.name === 'radar') renderRadar();
-  else if (r.name === 'learn') renderCoursesIndex();
-  else if (r.name === 'course' && r.slug) renderCourse(r.slug);
+  if (r.name === 'radar') {
+    announceRoute('Radar', isFirstNavigation);
+    renderRadar();
+  } else if (r.name === 'learn') {
+    announceRoute('Trilhas', isFirstNavigation);
+    renderCoursesIndex();
+  } else if (r.name === 'course' && r.slug) {
+    renderCourse(r.slug, isFirstNavigation); // announces its own title once loaded (or not-found)
+  }
 }
 
 function showView(which) {
@@ -86,7 +121,7 @@ async function renderRadar() {
   } catch (err) {
     document.getElementById('loading').classList.add('hidden');
     const errEl = document.getElementById('error');
-    errEl.textContent = `Failed to load feed: ${err.message}`;
+    errEl.textContent = `Falha ao carregar o feed: ${err.message}`;
     errEl.classList.remove('hidden');
   }
 }
@@ -139,7 +174,7 @@ function buildDailyCard(item, theme) {
   if (!item) {
     const empty = document.createElement('p');
     empty.className = 'daily-empty';
-    empty.textContent = 'No articles available for this topic yet.';
+    empty.textContent = 'Ainda não há artigos disponíveis para este tema.';
     wrapper.appendChild(empty);
     return wrapper;
   }
@@ -154,7 +189,7 @@ function buildDailyCard(item, theme) {
   const meta = document.createElement('p');
   meta.className = 'daily-card-meta';
   meta.textContent = item.kind === 'series'
-    ? `${item.sourceName} · Series guide`
+    ? `${item.sourceName} · Guia da série`
     : `${item.sourceName} · ${formatRelative(new Date(item.publishedAt))}`;
 
   const summary = document.createElement('p');
@@ -194,8 +229,8 @@ function localDateISO() {
 function renderMeta() {
   const el = document.getElementById('generated-at');
   const date = new Date(feedData.generatedAt);
-  el.textContent = `Updated ${formatRelative(date)}`;
-  el.title = date.toLocaleString();
+  el.textContent = `Atualizado ${formatRelative(date)}`;
+  el.title = date.toLocaleString('pt-BR');
 }
 
 function renderFilters() {
@@ -225,7 +260,10 @@ function renderFilters() {
     activeFilters.sources.clear();
     activeFilters.search = '';
     document.getElementById('search').value = '';
-    document.querySelectorAll('.chip.active').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.chip.active').forEach((c) => {
+      c.classList.remove('active');
+      c.setAttribute('aria-pressed', 'false');
+    });
     renderArticles();
   });
 }
@@ -235,11 +273,15 @@ function renderChips(containerId, labels, activeSet, onClick) {
   container.innerHTML = '';
   for (const label of labels) {
     const chip = document.createElement('button');
+    chip.type = 'button';
     chip.className = 'chip';
     chip.textContent = label;
+    chip.setAttribute('aria-pressed', 'false');
     chip.addEventListener('click', () => {
       onClick(label);
-      chip.classList.toggle('active', activeSet.has(label));
+      const isActive = activeSet.has(label);
+      chip.classList.toggle('active', isActive);
+      chip.setAttribute('aria-pressed', String(isActive));
     });
     container.appendChild(chip);
   }
@@ -256,7 +298,7 @@ function renderArticles() {
   const filtered = applyFilters(feedData.items);
 
   const summary = document.getElementById('summary');
-  summary.textContent = `Showing ${filtered.length} of ${feedData.items.length} articles`;
+  summary.textContent = `Exibindo ${filtered.length} de ${feedData.items.length} artigos`;
 
   const container = document.getElementById('articles');
   container.innerHTML = '';
@@ -264,7 +306,7 @@ function renderArticles() {
   if (filtered.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'empty';
-    empty.textContent = 'No articles match your filters.';
+    empty.textContent = 'Nenhum artigo corresponde aos filtros.';
     container.appendChild(empty);
     return;
   }
@@ -309,7 +351,7 @@ function buildCard(item) {
   const dateSpan = document.createElement('span');
   dateSpan.className = 'date';
   if (item.kind === 'series') {
-    dateSpan.textContent = 'Series guide';
+    dateSpan.textContent = 'Guia da série';
     dateSpan.classList.add('series-tag');
   } else {
     const published = new Date(item.publishedAt);
@@ -337,7 +379,7 @@ function buildCard(item) {
   if (item.author) {
     const authorEl = document.createElement('p');
     authorEl.className = 'card-author';
-    authorEl.textContent = `By ${item.author}`;
+    authorEl.textContent = `Por ${item.author}`;
     header.appendChild(authorEl);
   }
 
@@ -399,14 +441,20 @@ function percent(done, total) {
   return total === 0 ? 0 : Math.round((done / total) * 100);
 }
 
-/** Builds a progress bar; returns { wrapper, bar } so callers can update width. */
-function buildProgressBar(pct) {
+/**
+ * Builds a progress bar; returns { wrapper, bar } so callers can update
+ * width. `label` names the bar for assistive tech (e.g. "Trilha X: 40%
+ * concluído") — axe-core's aria-progressbar-name rule requires every
+ * progressbar to have one.
+ */
+function buildProgressBar(pct, label) {
   const wrapper = document.createElement('div');
   wrapper.className = 'progress';
   wrapper.setAttribute('role', 'progressbar');
   wrapper.setAttribute('aria-valuemin', '0');
   wrapper.setAttribute('aria-valuemax', '100');
   wrapper.setAttribute('aria-valuenow', String(pct));
+  wrapper.setAttribute('aria-label', label || `${pct}% concluído`);
 
   const bar = document.createElement('div');
   bar.className = 'progress-bar';
@@ -420,7 +468,7 @@ function buildProgressBar(pct) {
 async function renderCoursesIndex() {
   const view = document.getElementById('view-learn');
   view.innerHTML = '';
-  view.appendChild(buildLoading('Loading tracks…'));
+  view.appendChild(buildLoading('Carregando trilhas…'));
 
   let index;
   try {
@@ -429,7 +477,7 @@ async function renderCoursesIndex() {
     index = await resp.json();
   } catch (err) {
     view.innerHTML = '';
-    view.appendChild(buildError(`Failed to load tracks: ${err.message}`));
+    view.appendChild(buildError(`Falha ao carregar as trilhas: ${err.message}`));
     return;
   }
 
@@ -470,7 +518,7 @@ function buildCourseCard(entry) {
   const badges = document.createElement('div');
   badges.className = 'course-card-badges';
   badges.appendChild(buildBadge(entry.category, 'category-badge'));
-  if (entry.level) badges.appendChild(buildBadge(entry.level, 'level-badge'));
+  if (entry.level) badges.appendChild(buildBadge(levelLabel(entry.level), 'level-badge'));
   card.appendChild(badges);
 
   const title = document.createElement('h3');
@@ -495,7 +543,7 @@ function buildCourseCard(entry) {
 
   const done = Math.min(getProgress(entry.slug).size, entry.milestoneCount);
   const pct = percent(done, entry.milestoneCount);
-  const { wrapper } = buildProgressBar(pct);
+  const { wrapper } = buildProgressBar(pct, `${entry.title}: ${pct}% concluído`);
   card.appendChild(wrapper);
 
   const label = document.createElement('span');
@@ -508,10 +556,10 @@ function buildCourseCard(entry) {
 
 // ── Learning tracks: course timeline (#/learn/<slug>) ───────────────────────────
 
-async function renderCourse(slug) {
+async function renderCourse(slug, isFirstNavigation) {
   const view = document.getElementById('view-learn');
   view.innerHTML = '';
-  view.appendChild(buildLoading('Loading track…'));
+  view.appendChild(buildLoading('Carregando trilha…'));
 
   let course;
   try {
@@ -521,11 +569,13 @@ async function renderCourse(slug) {
   } catch {
     view.innerHTML = '';
     view.appendChild(buildCourseNotFound());
+    announceRoute('Trilha não encontrada', isFirstNavigation);
     return;
   }
 
   view.innerHTML = '';
   view.appendChild(buildCourseView(course));
+  announceRoute(course.title, isFirstNavigation);
 }
 
 function buildCourseNotFound() {
@@ -564,7 +614,7 @@ function buildCourseView(course) {
   const badges = document.createElement('div');
   badges.className = 'course-card-badges';
   badges.appendChild(buildBadge(course.category, 'category-badge'));
-  if (course.level) badges.appendChild(buildBadge(course.level, 'level-badge'));
+  if (course.level) badges.appendChild(buildBadge(levelLabel(course.level), 'level-badge'));
   header.appendChild(badges);
 
   const title = document.createElement('h2');
@@ -583,7 +633,10 @@ function buildCourseView(course) {
   const doneCount = countDone(completed, course.milestones);
   const progressBlock = document.createElement('div');
   progressBlock.className = 'course-progress';
-  const { wrapper, bar } = buildProgressBar(percent(doneCount, total));
+  const { wrapper, bar } = buildProgressBar(
+    percent(doneCount, total),
+    `Progresso em ${course.title}: ${percent(doneCount, total)}% concluído`,
+  );
   const progressLabel = document.createElement('span');
   progressLabel.className = 'progress-label';
 
@@ -609,6 +662,7 @@ function buildCourseView(course) {
     const pct = percent(done, total);
     bar.style.width = `${pct}%`;
     wrapper.setAttribute('aria-valuenow', String(pct));
+    wrapper.setAttribute('aria-label', `Progresso em ${course.title}: ${pct}% concluído`);
     progressLabel.textContent = `${pct}% • ${done} de ${total} marcos`;
 
     const firstPending = course.milestones.find(m => !set.has(m.id));
@@ -965,6 +1019,20 @@ function scrollToFirstPending(timeline, set, milestones) {
 
 // ── Shared UI helpers ──────────────────────────────────────────────────────────
 
+// course.yaml's `level` is free text written in English by convention
+// (iota-style: beginner/intermediate/advanced). Only the label shown to
+// readers is translated here — the underlying value, used for filtering/
+// grouping, stays untouched.
+const LEVEL_LABELS = {
+  beginner: 'Iniciante',
+  intermediate: 'Intermediário',
+  advanced: 'Avançado',
+};
+
+function levelLabel(level) {
+  return LEVEL_LABELS[level] || level;
+}
+
 function buildBadge(text, className) {
   const span = document.createElement('span');
   span.className = className;
@@ -998,17 +1066,24 @@ function cssEscape(value) {
   return window.CSS && CSS.escape ? CSS.escape(value) : value.replace(/[^\w-]/g, '\\$&');
 }
 
-function formatRelative(date) {
-  const now = Date.now();
-  const diff = now - date.getTime();
-  const minutes = Math.floor(diff / 60_000);
-  const hours = Math.floor(diff / 3_600_000);
-  const days = Math.floor(diff / 86_400_000);
+const relativeFormatter = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
 
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 30) return `${days}d ago`;
-  return date.toLocaleDateString();
+/**
+ * pt-BR relative time ("há 3 min", "em 2 h"). Handles future dates correctly
+ * (Intl.RelativeTimeFormat takes the sign itself, so there is no "-3m ago").
+ */
+function formatRelative(date) {
+  const diffSeconds = Math.round((date.getTime() - Date.now()) / 1000);
+  const abs = Math.abs(diffSeconds);
+
+  if (abs < 60) return relativeFormatter.format(diffSeconds, 'second');
+  const minutes = Math.round(diffSeconds / 60);
+  if (abs < 3_600) return relativeFormatter.format(minutes, 'minute');
+  const hours = Math.round(diffSeconds / 3_600);
+  if (abs < 86_400) return relativeFormatter.format(hours, 'hour');
+  const days = Math.round(diffSeconds / 86_400);
+  if (abs < 2_592_000) return relativeFormatter.format(days, 'day');
+  return date.toLocaleDateString('pt-BR');
 }
 
 init();
