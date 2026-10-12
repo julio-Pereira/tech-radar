@@ -80,3 +80,40 @@ export function setLastCourse(slug) {
     // ignore
   }
 }
+
+// Hands-on blocks (UX item 10): one state object per course. `open`/`done`
+// are keyed by "<milestoneId>:<blockKey>"; `seen` is keyed by milestoneId
+// alone. A milestone's default open state (Tutorial, else its first block)
+// is materialized into `open` the first time it's ever rendered, and `seen`
+// records that this happened — independently of what `open` contains
+// afterwards, since the reader may well end up closing that very block.
+// Without a separate `seen` flag, inferring "already defaulted" from
+// `open`'s contents would re-apply the default (reopening a block the
+// reader deliberately closed) the next time nothing of that milestone's is
+// in `open`. `done` is a purely cosmetic per-block mark, independent of
+// progress.
+const HANDSON_PREFIX = 'tr:handson:';
+
+/** @returns {{ open: string[], done: string[], seen: string[] }} */
+export function getHandsonState(slug) {
+  try {
+    const raw = localStorage.getItem(HANDSON_PREFIX + slug);
+    if (!raw) return { open: [], done: [], seen: [] };
+    const parsed = JSON.parse(raw);
+    return {
+      open: Array.isArray(parsed.open) ? parsed.open : [],
+      done: Array.isArray(parsed.done) ? parsed.done : [],
+      seen: Array.isArray(parsed.seen) ? parsed.seen : [],
+    };
+  } catch {
+    return { open: [], done: [], seen: [] };
+  }
+}
+
+export function saveHandsonState(slug, state) {
+  try {
+    localStorage.setItem(HANDSON_PREFIX + slug, JSON.stringify(state));
+  } catch {
+    // Storage full or unavailable — open/done state just won't persist.
+  }
+}

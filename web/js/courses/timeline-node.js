@@ -1,7 +1,8 @@
 // @ts-check
 import { toggleMilestone, setLastVisited } from '../storage.js';
 import { buildQuiz } from './quiz.js';
-import { buildReferences, addCopyButtons } from './content-blocks.js';
+import { buildReferences } from './content-blocks.js';
+import { buildMilestoneBody } from './sections.js';
 import { scrollToMilestone } from './scroll.js';
 
 /** @typedef {import('../types.js').Milestone} Milestone */
@@ -66,10 +67,7 @@ export function buildTimelineNode(slug, milestone, completed, onToggle, prevMile
   body.className = 'node-body hidden';
   body.id = bodyId;
 
-  const article = document.createElement('div');
-  article.className = 'milestone-body';
-  article.innerHTML = milestone.html; // pre-sanitized at build time (bluemonday)
-  addCopyButtons(article);
+  const article = buildMilestoneBody(slug, milestone);
   body.appendChild(article);
 
   // Complete control — built before the quiz so `completion: quiz` can unlock it.
