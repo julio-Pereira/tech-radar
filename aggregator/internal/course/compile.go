@@ -93,7 +93,7 @@ func compileCourse(dir string) (CompiledCourse, error) {
 	seenIDs := make(map[string]struct{}, len(manifest.Milestones))
 
 	for i, file := range manifest.Milestones {
-		fm, html, err := ParseMilestone(filepath.Join(dir, file))
+		fm, html, sections, err := ParseMilestone(filepath.Join(dir, file))
 		if err != nil {
 			return CompiledCourse{}, err
 		}
@@ -136,6 +136,7 @@ func compileCourse(dir string) (CompiledCourse, error) {
 			Summary:          fm.Summary,
 			EstimatedMinutes: fm.EstimatedMinutes,
 			HTML:             html,
+			Sections:         sections,
 			References:       fm.References,
 			Quiz:             quiz,
 			Completion:       fm.Completion,
