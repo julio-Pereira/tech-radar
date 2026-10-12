@@ -16,6 +16,36 @@
   margin-top: 0.3rem;
 }
 
+/* ── "Continue where you left off" banner (#/learn) ──────────────────────── */
+.continue-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.3rem;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.continue-banner:hover { border-color: var(--accent); }
+
+.continue-banner-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-hover);
+}
+
+.continue-banner-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
 .course-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -149,6 +179,26 @@
 }
 
 .reset-btn:hover { border-color: var(--accent); color: var(--text); }
+
+.continue-btn {
+  width: 100%;
+  margin-top: 0.8rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.continue-btn:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
 
 /* ── Timeline ────────────────────────────────────────────────────────────── */
 .timeline {
@@ -317,6 +367,7 @@
 }
 
 .milestone-body pre {
+  position: relative;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -331,6 +382,24 @@
   font-size: 0.82rem;
   line-height: 1.55;
 }
+
+.code-copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.code-copy-btn:hover { border-color: var(--accent); color: var(--text); }
+.code-copy-btn.copied { border-color: var(--accent); color: var(--accent-hover); }
 
 .milestone-body table {
   width: 100%;
@@ -403,6 +472,108 @@
   font-weight: 600;
   color: var(--text);
   cursor: pointer;
+}
+
+/* Prev/next milestone nav */
+.node-nav {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.node-nav-btn {
+  flex: 1 1 200px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.node-nav-next { text-align: right; }
+
+.node-nav-btn:hover { border-color: var(--accent); color: var(--text); }
+
+/* Hands-on blocks (UX item 10): one <details> per labeled block. The done
+   button is a sibling of <details>, not nested inside <summary> (a button
+   inside <summary> is invalid nested-interactive content for a11y), laid
+   over the summary row by this wrapper's relative/absolute positioning. */
+.handson-section { margin: 0.4rem 0; }
+
+.handson-block {
+  position: relative;
+  margin: 0.7rem 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.handson-summary {
+  min-height: 44px;
+  padding: 0.7rem 7.5rem 0.7rem 1rem; /* right padding clears the done button */
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.handson-details[open] .handson-summary { border-bottom: 1px solid var(--border); }
+
+/* Plain inline flow, not flexbox: label and title wrap together as normal
+   text would. A flex row here fights the done button's reserved padding —
+   its items refuse to drop to their own line and get squeezed into an
+   unreadably narrow column (or break mid-word) instead of just wrapping. */
+.handson-label {
+  display: inline-block;
+  margin-right: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-hover);
+}
+
+.handson-block-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.handson-done-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 32px;
+}
+
+.handson-done-btn:hover { border-color: var(--accent); color: var(--text); }
+.handson-done-btn.done { border-color: var(--accent); color: var(--accent-hover); }
+
+.handson-details .section-prose { padding: 0.9rem 1rem; }
+
+@media (max-width: 480px) {
+  /* A reserved-padding + absolutely-positioned button stops working once a
+     single unbreakable word (e.g. "COMPLEMENTO") no longer fits the
+     remaining width — below this breakpoint the button just drops to its
+     own line in normal flow instead, which is cheap and never overlaps. */
+  .handson-summary { padding-right: 1rem; }
+  .handson-done-btn {
+    position: static;
+    display: block;
+    margin: 0 1rem 0.7rem;
+  }
 }
 
 /* Sources block */
@@ -565,7 +736,13 @@
 .quiz-retry-btn:focus-visible,
 .quiz-option input:focus-visible,
 .course-glossary-summary:focus-visible,
-.node-complete input:focus-visible {
+.node-complete input:focus-visible,
+.continue-banner:focus-visible,
+.continue-btn:focus-visible,
+.node-nav-btn:focus-visible,
+.code-copy-btn:focus-visible,
+.handson-summary:focus-visible,
+.handson-done-btn:focus-visible {
   outline: 2px solid var(--accent-hover);
   outline-offset: 2px;
 }
