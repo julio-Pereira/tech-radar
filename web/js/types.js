@@ -8,7 +8,9 @@
 /** @typedef {{ title: string, url: string }} Ref */
 /** @typedef {{ slug: string, title: string, subtitle: string, category: string, level: string, tags: string[], estimatedHours: number, milestoneCount: number }} IndexEntry */
 /** @typedef {{ question: string, options: string[], answer: number, explanation?: string }} QuizQuestion */
-/** @typedef {{ id: string, order: number, title: string, summary: string, estimatedMinutes: number, html: string, references?: Ref[], quiz?: QuizQuestion[], completion?: string }} Milestone */
+/** @typedef {{ key: string, kind: string, title?: string, html: string }} HandsOnBlock */
+/** @typedef {{ id: string, title: string, kind: 'prose' | 'handson', html?: string, intro?: string, blocks?: HandsOnBlock[] }} Section */
+/** @typedef {{ id: string, order: number, title: string, summary: string, estimatedMinutes: number, html: string, sections?: Section[], references?: Ref[], quiz?: QuizQuestion[], completion?: string }} Milestone */
 /** @typedef {{ slug: string, title: string, subtitle: string, category: string, tags: string[], level: string, lang: string, estimatedHours: number, sources?: Ref[], milestones: Milestone[] }} Course */
 
 export {};

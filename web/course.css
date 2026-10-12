@@ -499,6 +499,83 @@
 
 .node-nav-btn:hover { border-color: var(--accent); color: var(--text); }
 
+/* Hands-on blocks (UX item 10): one <details> per labeled block. The done
+   button is a sibling of <details>, not nested inside <summary> (a button
+   inside <summary> is invalid nested-interactive content for a11y), laid
+   over the summary row by this wrapper's relative/absolute positioning. */
+.handson-section { margin: 0.4rem 0; }
+
+.handson-block {
+  position: relative;
+  margin: 0.7rem 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.handson-summary {
+  min-height: 44px;
+  padding: 0.7rem 7.5rem 0.7rem 1rem; /* right padding clears the done button */
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.handson-details[open] .handson-summary { border-bottom: 1px solid var(--border); }
+
+/* Plain inline flow, not flexbox: label and title wrap together as normal
+   text would. A flex row here fights the done button's reserved padding —
+   its items refuse to drop to their own line and get squeezed into an
+   unreadably narrow column (or break mid-word) instead of just wrapping. */
+.handson-label {
+  display: inline-block;
+  margin-right: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-hover);
+}
+
+.handson-block-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.handson-done-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 32px;
+}
+
+.handson-done-btn:hover { border-color: var(--accent); color: var(--text); }
+.handson-done-btn.done { border-color: var(--accent); color: var(--accent-hover); }
+
+.handson-details .section-prose { padding: 0.9rem 1rem; }
+
+@media (max-width: 480px) {
+  /* A reserved-padding + absolutely-positioned button stops working once a
+     single unbreakable word (e.g. "COMPLEMENTO") no longer fits the
+     remaining width — below this breakpoint the button just drops to its
+     own line in normal flow instead, which is cheap and never overlaps. */
+  .handson-summary { padding-right: 1rem; }
+  .handson-done-btn {
+    position: static;
+    display: block;
+    margin: 0 1rem 0.7rem;
+  }
+}
+
 /* Sources block */
 .course-sources {
   margin-top: 2rem;
@@ -663,7 +740,9 @@
 .continue-banner:focus-visible,
 .continue-btn:focus-visible,
 .node-nav-btn:focus-visible,
-.code-copy-btn:focus-visible {
+.code-copy-btn:focus-visible,
+.handson-summary:focus-visible,
+.handson-done-btn:focus-visible {
   outline: 2px solid var(--accent-hover);
   outline-offset: 2px;
 }
