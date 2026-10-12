@@ -59,15 +59,49 @@ type MilestoneFrontmatter struct {
 
 // CompiledMilestone is one timeline node with body HTML already sanitized.
 type CompiledMilestone struct {
-	ID               string         `json:"id"`
-	Order            int            `json:"order"`
-	Title            string         `json:"title"`
-	Summary          string         `json:"summary"`
-	EstimatedMinutes int            `json:"estimatedMinutes"`
-	HTML             string         `json:"html"`
-	References       []Ref          `json:"references,omitempty"`
-	Quiz             []QuizQuestion `json:"quiz,omitempty"`
-	Completion       string         `json:"completion,omitempty"`
+	ID               string `json:"id"`
+	Order            int    `json:"order"`
+	Title            string `json:"title"`
+	Summary          string `json:"summary"`
+	EstimatedMinutes int    `json:"estimatedMinutes"`
+	// HTML is the full rendered body. Deprecated: kept as a fallback for front
+	// ends that don't understand Sections yet, and as a conservation-of-content
+	// baseline in tests. Scheduled for removal once milestones ship one JSON
+	// file each (UX item 7) instead of one per course.
+	HTML       string         `json:"html"`
+	Sections   []Section      `json:"sections,omitempty"`
+	References []Ref          `json:"references,omitempty"`
+	Quiz       []QuizQuestion `json:"quiz,omitempty"`
+	Completion string         `json:"completion,omitempty"`
+}
+
+// Section is one H2-delimited chunk of a milestone body. A "Hands-on" /
+// "Mão na massa" heading whose body contains at least one recognized bold
+// label (Tutorial, Desafio, Invariantes testáveis, Complemento, Checagem)
+// becomes Kind "handson" with Blocks instead of a flat HTML string; every
+// other heading — including a hands-on section with no recognized label —
+// stays Kind "prose", same as the milestone body always rendered before.
+type Section struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+	Kind  string `json:"kind"` // "prose" | "handson"
+	// HTML is set for "prose" sections only.
+	HTML string `json:"html,omitempty"`
+	// Intro and Blocks are set for "handson" sections only. Intro is the
+	// (optional) text before the first recognized label.
+	Intro  string         `json:"intro,omitempty"`
+	Blocks []HandsOnBlock `json:"blocks,omitempty"`
+}
+
+// HandsOnBlock is one labeled chunk inside a "handson" Section — e.g. the
+// "Tutorial" or "Desafio" paragraph(s) and everything until the next label.
+type HandsOnBlock struct {
+	// Key is stable and unique within the section: Kind, then "kind-2",
+	// "kind-3"... for repeated labels (a milestone can have two "Desafio"s).
+	Key   string `json:"key"`
+	Kind  string `json:"kind"` // tutorial | desafio | invariantes | complemento | checagem
+	Title string `json:"title,omitempty"`
+	HTML  string `json:"html"`
 }
 
 // CompiledCourse is the full track written to web/data/courses/<slug>.json.

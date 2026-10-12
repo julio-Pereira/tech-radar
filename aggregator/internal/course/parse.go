@@ -51,28 +51,37 @@ func ParseManifest(path string) (Manifest, error) {
 }
 
 // ParseMilestone reads a milestone markdown file, splits its YAML frontmatter
-// from the body, renders the body to HTML, and returns sanitized HTML.
-func ParseMilestone(path string) (MilestoneFrontmatter, string, error) {
+// from the body, renders the body to HTML, and returns sanitized HTML along
+// with the same body split into Sections (UX item 10). Both are rendered
+// from the same parsed body on purpose: html stays the exact fallback it
+// always was, not a re-render that could drift from sections.
+func ParseMilestone(path string) (MilestoneFrontmatter, string, []Section, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return MilestoneFrontmatter{}, "", fmt.Errorf("read milestone %s: %w", path, err)
+		return MilestoneFrontmatter{}, "", nil, fmt.Errorf("read milestone %s: %w", path, err)
 	}
 
 	match := frontmatterRe.FindSubmatch(data)
 	if match == nil {
-		return MilestoneFrontmatter{}, "", fmt.Errorf("milestone %s: missing YAML frontmatter", path)
+		return MilestoneFrontmatter{}, "", nil, fmt.Errorf("milestone %s: missing YAML frontmatter", path)
 	}
 
 	var fm MilestoneFrontmatter
 	if err := yaml.Unmarshal(match[1], &fm); err != nil {
-		return MilestoneFrontmatter{}, "", fmt.Errorf("parse frontmatter %s: %w", path, err)
+		return MilestoneFrontmatter{}, "", nil, fmt.Errorf("parse frontmatter %s: %w", path, err)
 	}
 
 	html, err := renderMarkdown(match[2])
 	if err != nil {
-		return MilestoneFrontmatter{}, "", fmt.Errorf("render markdown %s: %w", path, err)
+		return MilestoneFrontmatter{}, "", nil, fmt.Errorf("render markdown %s: %w", path, err)
 	}
-	return fm, html, nil
+
+	sections, err := splitSections(match[2])
+	if err != nil {
+		return MilestoneFrontmatter{}, "", nil, fmt.Errorf("split sections %s: %w", path, err)
+	}
+
+	return fm, html, sections, nil
 }
 
 // renderMarkdown converts a markdown body to sanitized HTML.
