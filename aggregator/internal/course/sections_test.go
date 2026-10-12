@@ -172,6 +172,30 @@ func TestSplitSectionsBoundaries(t *testing.T) {
 				requireBlock(t, sec, "tutorial")
 			},
 		},
+		{
+			name: "Gabarito alone opens a block like the other labels",
+			body: "## Hands-on\n\n**Desafio.** Escolha build ou buy.\n\n**Gabarito**\n\nConsidere custo total e prazo.\n",
+			check: func(t *testing.T, sec Section) {
+				requireHandson(t, sec)
+				b := requireBlock(t, sec, "gabarito")
+				if strings.Contains(b.HTML, "Gabarito") {
+					t.Errorf("label-only paragraph should be discarded, got: %s", b.HTML)
+				}
+				if !strings.Contains(b.HTML, "custo total") {
+					t.Errorf("gabarito body missing, got: %s", b.HTML)
+				}
+			},
+		},
+		{
+			name: "Gabarito with a title after an em dash",
+			body: "## Hands-on\n\n**Gabarito — critérios da rubrica.** Veja os pontos esperados.\n",
+			check: func(t *testing.T, sec Section) {
+				b := requireBlock(t, sec, "gabarito")
+				if b.Title != "critérios da rubrica" {
+					t.Errorf("title = %q, want %q", b.Title, "critérios da rubrica")
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -253,7 +277,7 @@ func visibleWords(rendered string) []string {
 // original text — fixed regardless of singular/plural spelling, since that's
 // the one property the regex in blockLabelRe guarantees.
 var labelWordCount = map[string]int{
-	"tutorial": 1, "desafio": 1, "complemento": 1, "checagem": 1, "invariantes": 2,
+	"tutorial": 1, "desafio": 1, "complemento": 1, "checagem": 1, "invariantes": 2, "gabarito": 1,
 }
 
 // TestSplitSectionsConservesContent is the test the task calls the most
