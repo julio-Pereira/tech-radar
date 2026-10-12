@@ -4,10 +4,23 @@
 > 360/768/1280px screenshot set, no JSON size budget. It documents only what was actually
 > measured while shipping the pt-BR/a11y quick wins and the Playwright+axe-core harness
 > (plan items 2, 3, 4, 6), via `web/tests/` against a locally-built `web/data/`. Scope was
-> chosen with the user; item 1 (split `app.js` into modules) is still open.
+> chosen with the user.
 >
 > **Item 7 resolved:** the user decided trilha-as-page (today's `#/learn/<slug>`) over
 > marco-as-own-page — see "Fase 2" below for what that unlocked instead.
+>
+> **Item 1 done:** `app.js` (1268 lines, one file) is now `web/js/` — 13 ES modules
+> (`main.js` as the sole entry with a top-level side effect; everything else just
+> exports). Boundaries follow the `// ──` section comments the monolith already had:
+> `router.js`/`announce.js` (routing + a11y announcements, split apart so course-view.js
+> doesn't import router.js back), `radar.js` (feed/filters/daily reading — all
+> radar-view-only state), `storage.js` (every localStorage access), `dom-helpers.js`
+> (generic DOM builders + pt-BR formatting), and `courses/` (`index-view.js`,
+> `course-view.js`, `timeline-node.js`, `quiz.js`, `content-blocks.js`, `scroll.js` —
+> the last one its own file only to avoid a course-view.js ⇄ timeline-node.js cycle).
+> `index.html` now loads `js/main.js`; no build step added — plain `<script
+> type="module">` + relative imports, which GitHub Pages serves as-is. Full suite
+> (32/32) green against the new structure, no behavior changes.
 
 ## Fase 2 — reading-experience improvements (trilha-as-page, no routing/aggregator changes)
 
@@ -62,8 +75,7 @@ views (radar, learn index, course).
 
 ## Not touched in this pass (still open from the plan)
 
-- **Item 1** (split `app.js` into ES modules) — mechanical but large; deferred so this PR stays reviewable.
-- **Item 10** (hands-on as structured collapsible sections) — needs the Go aggregator to
+- **Item 10** (hands-on as structured collapsible sections, tracked in issue #26) — needs the Go aggregator to
   parse markdown structure at build time, a bigger backend change than the client-only
   work in Fase 2.
 - Lighthouse scores, JSON size budget, 360/768/1280 screenshot set (plan's full Fase 0) — not run.
