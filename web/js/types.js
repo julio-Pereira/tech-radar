@@ -1,0 +1,14 @@
+// @ts-check
+// Shared JSDoc typedefs only — no runtime code. Other modules reference these
+// via `@typedef {import('./types.js').Course} Course`.
+
+/** @typedef {{ id: string, name: string, category: string }} Source */
+/** @typedef {{ id: string, title: string, url: string, sourceId: string, sourceName: string, category: string, publishedAt: string, summary: string, author?: string, kind?: string }} Item */
+/** @typedef {{ id: string, label: string, sourceId?: string, category?: string, kind?: string }} Theme */
+/** @typedef {{ title: string, url: string }} Ref */
+/** @typedef {{ slug: string, title: string, subtitle: string, category: string, level: string, tags: string[], estimatedHours: number, milestoneCount: number }} IndexEntry */
+/** @typedef {{ question: string, options: string[], answer: number, explanation?: string }} QuizQuestion */
+/** @typedef {{ id: string, order: number, title: string, summary: string, estimatedMinutes: number, html: string, references?: Ref[], quiz?: QuizQuestion[], completion?: string }} Milestone */
+/** @typedef {{ slug: string, title: string, subtitle: string, category: string, tags: string[], level: string, lang: string, estimatedHours: number, sources?: Ref[], milestones: Milestone[] }} Course */
+
+export {};
