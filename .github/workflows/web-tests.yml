@@ -1,0 +1,63 @@
+name: Web UI tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: aggregator/go.sum
+
+      - name: Download Go dependencies
+        working-directory: aggregator
+        run: go mod download
+
+      # Same build the site ships: without it, web/data/ doesn't exist and
+      # every test that fetches a course or the feed fails on a 404.
+      - name: Generate web/data/
+        working-directory: aggregator
+        env:
+          OUTPUT_FILE: ../web/data/feed.json
+        run: go run .
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install test dependencies
+        working-directory: web
+        run: npm ci
+
+      # Chromium only — Playwright's own cache key already covers the browser
+      # directory, so a Firefox/WebKit download never happens.
+      - name: Install Playwright's Chromium
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright + axe-core
+        working-directory: web
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          retention-days: 14

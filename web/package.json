@@ -1,0 +1,13 @@
+{
+  "name": "tech-radar-web-tests",
+  "private": true,
+  "description": "Playwright + axe-core test harness for web/. Never shipped to the browser — dev-only tooling, outside the Go build.",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@axe-core/playwright": "^4.10.0"
+  }
+}

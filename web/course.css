@@ -203,8 +203,8 @@
 }
 
 .timeline-node.done .node-dot {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--accent-contrast);
+  border-color: var(--accent-contrast);
   color: #fff;
 }
 
@@ -241,7 +241,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 
 .node-title {

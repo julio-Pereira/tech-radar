@@ -3,3 +3,9 @@ web/data/courses/
 aggregator/tech-radar
 # cache/ is intentionally NOT ignored — committed to repo so CI can use it
 
+# web/tests/ dev tooling (Playwright + axe-core) — never shipped to the browser
+web/node_modules/
+web/test-results/
+web/playwright-report/
+web/.cache/
+
