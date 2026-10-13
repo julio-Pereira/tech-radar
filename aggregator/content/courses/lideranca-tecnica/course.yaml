@@ -1,0 +1,34 @@
+slug: lideranca-tecnica
+title: "Liderança Técnica e de Pessoas: Estratégia, Execução, Times, Operação Regulada e Carreira"
+subtitle: "Do Tech Lead ao Staff em fintech: estratégia escrita, previsão com dados, decisões calibradas, mentoria, liderança de incidentes e de risco regulado — cada prática com artefato verificável."
+category: "Liderança e carreira"
+tags: [lideranca-tecnica, tech-lead, staff-engineer, gestao-tecnica, estrategia, previsao, decisao, mentoria, desempenho, incidentes, regulacao, carreira, fintech]
+level: advanced
+lang: pt-BR
+# STUB: 13 marcos planejados, Σ 810 min (regra ~2x -> 27h). Conteúdo completo
+# em PR futura dedicada à trilha; ver PLANO-trilha-lideranca-tecnica.md.
+estimatedHours: 27
+prerequisites: [arquitetura-de-solucoes, system-design]
+sources:
+  - { title: "StaffEng — Staff archetypes (Will Larson)", url: https://staffeng.com/guides/staff-archetypes/ }
+  - { title: "Will Larson — Irrational Exuberance", url: https://lethain.com/ }
+  - { title: "DORA — Research and metrics", url: https://dora.dev/ }
+  - { title: "The SPACE of Developer Productivity (ACM Queue)", url: "https://queue.acm.org/detail.cfm?id=3454124" }
+  - { title: "Team Topologies", url: https://teamtopologies.com/ }
+  - { title: "Google SRE Book — Managing Incidents", url: https://sre.google/sre-book/managing-incidents/ }
+  - { title: "Amy Edmondson — Psychological safety", url: https://amycedmondson.com/psychological-safety/ }
+  - { title: "Google re:Work — Guides (contratação, gestão)", url: https://rework.withgoogle.com/ }
+milestones:
+  - 01-papel-escopo-e-arquetipos.md
+  - 02-diagnostico-da-organizacao-tecnica.md
+  - 03-estrategia-tecnica.md
+  - 04-planejar-e-prever-com-dados.md
+  - 05-programas-riscos-e-dependencias.md
+  - 06-decidir-bem-sob-incerteza.md
+  - 07-mentoria-delegacao-e-feedback.md
+  - 08-escrita-rituais-e-reunioes.md
+  - 09-contratar-avaliar-e-desenvolver-pessoas.md
+  - 10-liderar-incidentes-e-operacao.md
+  - 11-liderar-em-ambiente-regulado.md
+  - 12-tecnologia-e-negocio.md
+  - 13-carreira-impacto-e-capstone.md

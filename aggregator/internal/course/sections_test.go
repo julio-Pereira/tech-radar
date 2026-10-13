@@ -422,7 +422,25 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	wantNoSection := []string{"go-fintech/java-vs-go"}
+	wantNoSection := []string{
+		"go-fintech/java-vs-go",
+		// lideranca-tecnica is a stub trilha (13 marcos, placeholder bodies —
+		// see PLANO-trilha-lideranca-tecnica.md for the real content, written
+		// in a future PR): none of them have a real Hands-on section yet.
+		"lideranca-tecnica/carreira-impacto-e-capstone",
+		"lideranca-tecnica/contratar-avaliar-e-desenvolver-pessoas",
+		"lideranca-tecnica/decidir-bem-sob-incerteza",
+		"lideranca-tecnica/diagnostico-da-organizacao-tecnica",
+		"lideranca-tecnica/escrita-rituais-e-reunioes",
+		"lideranca-tecnica/estrategia-tecnica",
+		"lideranca-tecnica/liderar-em-ambiente-regulado",
+		"lideranca-tecnica/liderar-incidentes-e-operacao",
+		"lideranca-tecnica/mentoria-delegacao-e-feedback",
+		"lideranca-tecnica/papel-escopo-e-arquetipos",
+		"lideranca-tecnica/planejar-e-prever-com-dados",
+		"lideranca-tecnica/programas-riscos-e-dependencias",
+		"lideranca-tecnica/tecnologia-e-negocio",
+	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}
