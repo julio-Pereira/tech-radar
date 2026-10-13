@@ -224,3 +224,52 @@ type PathCatalog struct {
 	Paths       []CompiledPath   `json:"paths"`
 	Index       []PathIndexEntry `json:"index"`
 }
+
+// GlossaryEntry is one `### Termo` block from a course's glossary file
+// (UX platform melhoria 4 / UX items 15-16). The same term can legitimately
+// appear once per course that defines it — on purpose, never merged: each
+// trilha's own phrasing stays attributed to that trilha on the term page.
+type GlossaryEntry struct {
+	Term    string `json:"term"`
+	Anchor  string `json:"anchor"` // slugify(Term), unique within one course's glossary
+	Slug    string `json:"slug"`   // course slug this definition belongs to
+	Track   string `json:"track"`  // course title, for display
+	Summary string `json:"summary"`
+	// Marco is the raw "NN" parsed out of "Onde na prática: marco NN...";
+	// empty when that field's prose doesn't start with a parseable number.
+	Marco string `json:"marco,omitempty"`
+	// MarcoID is Marco resolved against the bridge index to a real milestone
+	// id, when resolvable — lets the term page deep-link straight to it.
+	MarcoID string `json:"marcoId,omitempty"`
+}
+
+// GlossaryCatalog is the full cross-trilha set written to
+// web/data/glossary.json.
+type GlossaryCatalog struct {
+	GeneratedAt string          `json:"generatedAt"`
+	Entries     []GlossaryEntry `json:"entries"`
+}
+
+// SearchDoc is one entry in web/data/search-index.json (UX item 15): a
+// course, a milestone, or a glossary term, flattened into one shape so the
+// front end can search all three with a single pass. Fields are omitted
+// when not applicable to keep the index small (it ships to every visitor
+// that opens the search box).
+type SearchDoc struct {
+	Kind    string   `json:"kind"` // "course" | "milestone" | "glossary"
+	Title   string   `json:"title"`
+	Summary string   `json:"summary,omitempty"`
+	Slug    string   `json:"slug"`              // course slug
+	MarcoID string   `json:"marcoId,omitempty"` // milestone/glossary docs only
+	Track   string   `json:"track,omitempty"`   // course title, for display on non-course docs
+	Tags    []string `json:"tags,omitempty"`
+	// Headings lists a milestone's section titles, so a search for a
+	// heading-only term (not in the title/summary) still finds it.
+	Headings []string `json:"headings,omitempty"`
+}
+
+// SearchIndex is the full set written to web/data/search-index.json.
+type SearchIndex struct {
+	GeneratedAt string      `json:"generatedAt"`
+	Docs        []SearchDoc `json:"docs"`
+}
