@@ -106,7 +106,7 @@ esperado de pedidos de revisão.
 > `observabilidade/17`.** A revisão de decisão automatizada aplica a mesma disciplina de dado como
 > primeira classe de `engenharia-de-dados/10`, aqui para decisão em vez de dado bruto. A detecção de
 > *proxy* e o controle de acesso ao atributo protegido reusam autorização de `seguranca-aplicacao/08`, e o
-> ponto sensível de oferta de crédito dialoga com fraude e abuso de `/14`. E a trilha de auditoria completa
+> ponto sensível de oferta de crédito dialoga com fraude e abuso de `seguranca-aplicacao/14`. E a trilha de auditoria completa
 > do *reason code* usa a mesma disciplina de telemetria com PII controlada de `observabilidade/17`.
 
 ## Principais aprendizados

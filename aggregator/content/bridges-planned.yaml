@@ -1,0 +1,14 @@
+# Pontes (`slug/NN` references inside a marco's body) that cite a trilha not
+# yet published in this repo. TestBridgesResolve fails the build for any
+# unresolved bridge NOT listed here — this file is the explicit, reviewed
+# exception list, so a genuinely broken bridge can never hide silently.
+#
+# Each entry:
+#   ref:    the exact reference text as written in the markdown (e.g. "design-de-codigo/09")
+#   motivo: why it's cited before the trilha exists
+#   ate:    a date to revisit — once the trilha ships, remove the entry and
+#           let TestBridgesResolve confirm the real link resolves instead.
+#
+# Currently empty: every bridge in the real content as of this file's
+# creation already points to a trilha that exists in the repo.
+[]

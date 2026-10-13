@@ -94,7 +94,7 @@ correspondia a um problema real).
 > a regra de alerta testada com `promtool` é a mesma disciplina de `observabilidade/13`, e as métricas em
 > si (Prometheus) usam o ferramental de `observabilidade/07`. A distinção entre problema de qualidade de
 > entrada e drift real retoma a suíte de qualidade de dados que `engenharia-de-dados/08` ensina, e a
-> observabilidade de linhagem para achar a causa de um drift é o mesmo raciocínio de `/09`.
+> observabilidade de linhagem para achar a causa de um drift é o mesmo raciocínio de `engenharia-de-dados/09`.
 
 ## Principais aprendizados
 

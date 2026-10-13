@@ -33,7 +33,7 @@ abaixo); **`Mutex`** quando a seção crítica é curta e vários acessos concor
 objeto em memória são inevitáveis; e **o banco**, com transação e ordem de aquisição, quando a
 invariante precisa valer **entre processos** — nenhum channel nem nenhum `Mutex` de uma goroutine
 protege um dado que outro processo também escreve. `dados-distribuidos/04` ensina as anomalias
-que acontecem quando essa última fronteira é ignorada, e `/10` cobre lock distribuído e fencing
+que acontecem quando essa última fronteira é ignorada, e `dados-distribuidos/10` cobre lock distribuído e fencing
 token para quando um lock em memória não basta nem dentro do mesmo processo.
 
 ## Exemplo numa fintech: batch de 100k transações

@@ -59,7 +59,7 @@ transações grandes). Cada faixa tem dono, e a matriz é testada faixa a faixa,
 
 > **Reencontro — `go-fintech/03` e `/05`; `seguranca-aplicacao/14`; `observabilidade/08`.** O
 > `ledger-core` e o antifraude compartilham a necessidade de decisão sob concorrência alta —
-> `go-fintech/03` já tratou isso para o débito, aqui é para a decisão de risco. `/05` cobre gRPC,
+> `go-fintech/03` já tratou isso para o débito, aqui é para a decisão de risco. `go-fintech/05` cobre gRPC,
 > frequentemente o protocolo entre o serviço de decisão e os enriquecimentos internos.
 > `seguranca-aplicacao/14` trata fraude e abuso em profundidade — aqui é a arquitetura da decisão
 > em tempo real, lá é a disciplina de detecção e resposta. `observabilidade/08` cobre métrica de

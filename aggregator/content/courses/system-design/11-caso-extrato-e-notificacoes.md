@@ -59,7 +59,7 @@ mesma disciplina de idempotência do marco 05, agora do lado de quem recebe, nã
 > **Reencontro — `arquitetura-eventos/06`; `dados-distribuidos/06` e `/09`; `kafka/06`.** CQRS e
 > projeção são daquele marco; a escolha de store para a projeção (coluna larga? documento?
 > relacional com índice coberto?) usa o critério de `dados-distribuidos/06`, e cache do saldo
-> exibido usa o de `/09`. A ordem por conta preservada na entrega de webhook é o mesmo particionamento
+> exibido usa o de `dados-distribuidos/09`. A ordem por conta preservada na entrega de webhook é o mesmo particionamento
 > por chave que `kafka/06` ensina para ordem dentro de uma partição.
 
 ## Exemplo numa fintech

@@ -65,8 +65,15 @@ func isHandsOnTitle(title string) bool {
 // first one — collapses to a single Section with id "intro", same as the
 // whole body rendered today; that is the "never an error" fallback the task
 // requires, not a special case callers need to know about.
-func splitSections(source []byte) ([]Section, error) {
+//
+// Bridges are linkified on the whole parsed document before any splitting
+// happens, so every section/block that renders a chunk of it picks up the
+// resolved links for free — the walk in linkifyBridges isn't limited to
+// section.go's own top-level H2 groups, since bridges live inside prose
+// (including inside blockquotes), not just at the top of a section.
+func splitSections(source []byte, index bridgeIndex, planned map[string]bool) ([]Section, []string, error) {
 	doc := markdown.Parser().Parse(text.NewReader(source))
+	broken := linkifyBridges(doc, source, index, planned)
 
 	var sections []Section
 	used := map[string]int{}
@@ -101,7 +108,7 @@ func splitSections(source []byte) ([]Section, error) {
 		next := child.NextSibling()
 		if h, ok := child.(*ast.Heading); ok && h.Level == 2 {
 			if err := flush(); err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			title = normalizeInlineText(inlinePlainText(h, source))
 			kind = "prose"
@@ -116,9 +123,9 @@ func splitSections(source []byte) ([]Section, error) {
 		child = next
 	}
 	if err := flush(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return sections, nil
+	return sections, broken, nil
 }
 
 // buildSection renders one H2 group. A "handson" group with zero recognized
