@@ -1,6 +1,8 @@
 web/data/feed.json
 web/data/courses/
 web/data/paths.json
+web/data/glossary.json
+web/data/search-index.json
 aggregator/tech-radar
 # cache/ is intentionally NOT ignored — committed to repo so CI can use it
 

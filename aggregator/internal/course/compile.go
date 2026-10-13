@@ -96,6 +96,20 @@ func Compile(contentDir, outDir string) (Index, error) {
 		log.Printf("WARN compiling paths: %v", err)
 	}
 
+	// Glossary and search index (UX platform melhoria 4 / UX items 15-16),
+	// same best-effort policy: never fatal to the main build.
+	glossary, err := compileGlossary(contentDir, compiledCourses, bridgeIdx)
+	if err != nil {
+		log.Printf("WARN compiling glossary: %v", err)
+		glossary = nil
+	}
+	if err := writeGlossary(glossary, dataDir); err != nil {
+		log.Printf("WARN writing glossary.json: %v", err)
+	}
+	if err := writeSearchIndex(buildSearchIndex(compiledCourses, glossary), dataDir); err != nil {
+		log.Printf("WARN writing search-index.json: %v", err)
+	}
+
 	return index, nil
 }
 
