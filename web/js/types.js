@@ -16,5 +16,7 @@
 /** @typedef {{ slug: string, title: string, subtitle: string, steps: PathStep[], estimatedHours: number }} Path */
 /** @typedef {{ term: string, anchor: string, slug: string, track: string, summary: string, marco?: string, marcoId?: string }} GlossaryEntry */
 /** @typedef {{ kind: 'course' | 'milestone' | 'glossary', title: string, summary?: string, slug: string, marcoId?: string, track?: string, tags?: string[], headings?: string[] }} SearchDoc */
+/** @typedef {{ slug: string, marcoId: string, title: string, estimatedMinutes: number }} SkillMilestoneRef */
+/** @typedef {{ id: string, label: string, group: string, totalMinutes: number, milestones: SkillMilestoneRef[] }} Skill */
 
 export {};

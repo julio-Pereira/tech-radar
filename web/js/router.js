@@ -5,14 +5,15 @@
 // bridge links; not a separate page/fetch, trilha-as-page stays trilha-as-page),
 // #/paths (role-based paths list), #/paths/<slug> (one path's steps — UX
 // platform melhoria 1, always a guide, never a gate), #/glossario (every
-// term across every trilha) and #/glossario/<anchor> (one term's
-// definitions, UX item 16).
+// term across every trilha), #/glossario/<anchor> (one term's definitions,
+// UX item 16), and #/skills (competencies by marco, melhoria 2).
 import { announceRoute } from './announce.js';
 import { renderRadar } from './radar.js';
 import { renderCoursesIndex } from './courses/index-view.js';
 import { renderCourse } from './courses/course-view.js';
 import { renderPathsIndex, renderPath } from './courses/paths-view.js';
 import { renderGlossarioIndex, renderGlossarioTerm } from './courses/glossario-view.js';
+import { renderSkills } from './courses/skills-view.js';
 
 // Whether any route has already been entered. Decided synchronously inside
 // route(), never by timing of the async work a route kicks off — a course
@@ -26,7 +27,7 @@ export function init() {
   route();
 }
 
-/** @returns {{ name: 'radar' | 'learn' | 'course' | 'paths' | 'path' | 'glossario' | 'glossario-term', slug?: string, marcoId?: string }} */
+/** @returns {{ name: 'radar' | 'learn' | 'course' | 'paths' | 'path' | 'glossario' | 'glossario-term' | 'skills', slug?: string, marcoId?: string }} */
 function parseRoute() {
   const hash = location.hash.replace(/^#/, '');
   const parts = hash.split('/').filter(Boolean); // "#/learn/x/y" → ["learn","x","y"]
@@ -38,6 +39,9 @@ function parseRoute() {
   }
   if (parts[0] === 'glossario') {
     return parts[1] ? { name: 'glossario-term', slug: parts[1] } : { name: 'glossario' };
+  }
+  if (parts[0] === 'skills') {
+    return { name: 'skills' };
   }
   return { name: 'radar' };
 }
@@ -51,6 +55,7 @@ function route() {
   const navKey = r.name === 'radar' ? 'radar'
     : r.name === 'paths' || r.name === 'path' ? 'paths'
     : r.name === 'glossario' || r.name === 'glossario-term' ? 'glossario'
+    : r.name === 'skills' ? 'skills'
     : 'learn';
   setNavActive(navKey);
 
@@ -72,6 +77,8 @@ function route() {
     renderGlossarioIndex();
   } else if (r.name === 'glossario-term' && r.slug) {
     renderGlossarioTerm(r.slug, isFirstNavigation); // announces its own title once loaded (or not-found)
+  } else if (r.name === 'skills') {
+    renderSkills(); // announces its own title once loaded
   }
 }
 

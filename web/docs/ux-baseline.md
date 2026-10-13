@@ -278,6 +278,31 @@ native `hidden` *property*, which did nothing because `.glossario-term-row { dis
 `web/tests/glossario.spec.js` (5 tests) and `web/tests/search.spec.js` (7 tests), all
 against the real compiled data. Full suite: 78/78.
 
+## Melhoria 2 — competências por marco (`TASK-plat-melhorias-lideranca.md` §4)
+
+New `#/skills`, over the `skills.json` compiled in the previous PR. Pure SVG horizontal
+bars (`web/js/courses/skills-view.js`, one `<svg>` per group — Liderança/Transversal,
+derived dynamically from the data, not hardcoded) — explicitly not a radar/spider chart,
+per the plan ("o radar pesa mal em leitura por leitor de tela"). Each `<svg>` is
+`aria-hidden="true"`: a single combined `<table>` right below carries the identical
+numbers (competência, grupo, minutos concluídos, minutos totais, %) in accessible markup,
+so the chart never needs a per-bar ARIA progressbar role duplicating what the table
+already says.
+
+Value is `minutos concluídos ÷ minutos totais`, computed entirely client-side from
+`skills.json` + the existing per-course `tr:progress:<slug>` — no new storage, nothing
+sent to a server. An untagged competency (real example: `arquitetura`, `performance`,
+`plataforma`, `seguranca` — none of the transversais are tagged yet) shows "sem marcos
+marcados" instead of a misleading "0%", since 0% implies work exists but none is done, not
+"nothing has been marked at all". The page also surfaces "cobertura da marcação" (N% dos
+marcos) up top, so it never implies more completeness than the content actually has — only
+`lideranca-tecnica`'s 13 stub milestones are tagged so far (6% of all 209 real milestones).
+
+`web/tests/skills.spec.js` (5 tests) against real compiled data: coverage + group headings,
+the untagged-competency display, completing a real milestone (`lideranca-tecnica/01`,
+tagged `[estrategia, execucao]`) moving both competencies' numbers, a reset dropping them
+back to zero, axe clean. Full suite: 83/83.
+
 ## Not touched in this pass (still open from the plan)
 
 - Lighthouse scores, JSON size budget, full 360/768/1280 screenshot set (plan's full
@@ -289,6 +314,6 @@ against the real compiled data. Full suite: 78/78.
 
 ## Regression gate going forward
 
-`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 78/78
+`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 83/83
 passing, 0 axe violations of `serious`/`critical` impact across every route tested. The
 plan's ratchet rule applies: these numbers should only improve from here.

@@ -919,6 +919,65 @@
 
 .glossario-definition-link:hover { text-decoration: underline; }
 
+/* ── Competências (#/skills — UX platform melhoria 2) ─────────────────────── */
+.skills-coverage {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.skills-group-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-hover);
+  margin: 1.4rem 0 0.6rem;
+}
+
+.skills-chart { width: 100%; height: auto; margin-bottom: 0.5rem; }
+
+.skills-chart-label {
+  fill: var(--text);
+  font-size: 11px;
+  font-family: inherit;
+  dominant-baseline: middle;
+}
+
+.skills-chart-track { fill: var(--surface2); }
+.skills-chart-fill { fill: var(--accent-contrast); }
+
+.skills-chart-pct {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.skills-table {
+  width: 100%;
+  margin-top: 1.6rem;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.skills-table th,
+.skills-table td {
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.skills-table th[scope="col"] {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.skills-table th[scope="row"] { font-weight: 600; }
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .timeline-node {
