@@ -4,12 +4,15 @@
 // #/learn/<slug>/<marco-id> (course, scrolled to that marco — UX item 14's
 // bridge links; not a separate page/fetch, trilha-as-page stays trilha-as-page),
 // #/paths (role-based paths list), #/paths/<slug> (one path's steps — UX
-// platform melhoria 1, always a guide, never a gate).
+// platform melhoria 1, always a guide, never a gate), #/glossario (every
+// term across every trilha) and #/glossario/<anchor> (one term's
+// definitions, UX item 16).
 import { announceRoute } from './announce.js';
 import { renderRadar } from './radar.js';
 import { renderCoursesIndex } from './courses/index-view.js';
 import { renderCourse } from './courses/course-view.js';
 import { renderPathsIndex, renderPath } from './courses/paths-view.js';
+import { renderGlossarioIndex, renderGlossarioTerm } from './courses/glossario-view.js';
 
 // Whether any route has already been entered. Decided synchronously inside
 // route(), never by timing of the async work a route kicks off — a course
@@ -23,7 +26,7 @@ export function init() {
   route();
 }
 
-/** @returns {{ name: 'radar' | 'learn' | 'course' | 'paths' | 'path', slug?: string, marcoId?: string }} */
+/** @returns {{ name: 'radar' | 'learn' | 'course' | 'paths' | 'path' | 'glossario' | 'glossario-term', slug?: string, marcoId?: string }} */
 function parseRoute() {
   const hash = location.hash.replace(/^#/, '');
   const parts = hash.split('/').filter(Boolean); // "#/learn/x/y" → ["learn","x","y"]
@@ -32,6 +35,9 @@ function parseRoute() {
   }
   if (parts[0] === 'paths') {
     return parts[1] ? { name: 'path', slug: parts[1] } : { name: 'paths' };
+  }
+  if (parts[0] === 'glossario') {
+    return parts[1] ? { name: 'glossario-term', slug: parts[1] } : { name: 'glossario' };
   }
   return { name: 'radar' };
 }
@@ -42,7 +48,11 @@ function route() {
 
   const r = parseRoute();
   showView(r.name === 'radar' ? 'radar' : 'learn');
-  setNavActive(r.name === 'radar' ? 'radar' : r.name === 'paths' || r.name === 'path' ? 'paths' : 'learn');
+  const navKey = r.name === 'radar' ? 'radar'
+    : r.name === 'paths' || r.name === 'path' ? 'paths'
+    : r.name === 'glossario' || r.name === 'glossario-term' ? 'glossario'
+    : 'learn';
+  setNavActive(navKey);
 
   if (r.name === 'radar') {
     announceRoute('Radar', isFirstNavigation);
@@ -57,6 +67,11 @@ function route() {
     renderPathsIndex();
   } else if (r.name === 'path' && r.slug) {
     renderPath(r.slug, isFirstNavigation); // announces its own title once loaded (or not-found)
+  } else if (r.name === 'glossario') {
+    announceRoute('Glossário', isFirstNavigation);
+    renderGlossarioIndex();
+  } else if (r.name === 'glossario-term' && r.slug) {
+    renderGlossarioTerm(r.slug, isFirstNavigation); // announces its own title once loaded (or not-found)
   }
 }
 

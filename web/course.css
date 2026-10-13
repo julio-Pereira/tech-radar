@@ -834,6 +834,91 @@
   line-height: 1.5;
 }
 
+/* ── Glossário (#/glossario, #/glossario/<anchor> — UX item 16) ──────────── */
+.glossario-filter { margin-bottom: 1.2rem; }
+
+.glossario-filter input {
+  width: 100%;
+  max-width: 420px;
+  padding: 0.55rem 0.9rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.glossario-letter {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-hover);
+  margin: 1.3rem 0 0.5rem;
+}
+
+.glossario-list { display: flex; flex-direction: column; }
+
+.glossario-term-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.2rem;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.glossario-term-row:hover .glossario-term-label { color: var(--accent-hover); }
+
+.glossario-term-label { font-size: 0.9rem; font-weight: 600; }
+
+.glossario-term-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.glossario-definitions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 1.3rem;
+}
+
+.glossario-definition {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+}
+
+.glossario-definition-track {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-hover);
+  margin-bottom: 0.3rem;
+}
+
+.glossario-definition-summary {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin-bottom: 0.5rem;
+}
+
+.glossario-definition-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-hover);
+  text-decoration: none;
+}
+
+.glossario-definition-link:hover { text-decoration: underline; }
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .timeline-node {
