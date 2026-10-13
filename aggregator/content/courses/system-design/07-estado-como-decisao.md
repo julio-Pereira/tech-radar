@@ -53,7 +53,7 @@ ponto de cruzamento, não é uma zona cinzenta de opinião.
 
 > **Reencontro — `dados-distribuidos/03` e `dados-distribuidos/06`.** O mecanismo de
 > particionamento e os dois problemas difíceis são daquele marco; aqui é só o **quando**, guiado
-> por número. `/06` já tratou "qual store serve a forma da query" — aqui o critério extra é a
+> por número. `dados-distribuidos/06` já tratou "qual store serve a forma da query" — aqui o critério extra é a
 > consistência que a operação exige, a mesma régua de `arquitetura-eventos/06` para CQRS.
 
 ## Exemplo numa fintech

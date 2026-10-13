@@ -200,7 +200,7 @@ func TestSplitSectionsBoundaries(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sections, err := splitSections([]byte(tt.body))
+			sections, _, err := splitSections([]byte(tt.body), nil, nil)
 			if err != nil {
 				t.Fatalf("splitSections: %v", err)
 			}
@@ -213,7 +213,7 @@ func TestSplitSectionsBoundaries(t *testing.T) {
 }
 
 func TestSplitSectionsMilestoneWithNoHeadingAtAll(t *testing.T) {
-	sections, err := splitSections([]byte("Só um parágrafo solto, sem cabeçalho.\n"))
+	sections, _, err := splitSections([]byte("Só um parágrafo solto, sem cabeçalho.\n"), nil, nil)
 	if err != nil {
 		t.Fatalf("splitSections: %v", err)
 	}
@@ -231,7 +231,7 @@ func TestSplitSectionsMilestoneWithNoHeadingAtAll(t *testing.T) {
 
 func TestSplitSectionsDuplicateTitlesGetSuffixedIDs(t *testing.T) {
 	body := "## Contexto\n\nA.\n\n## Contexto\n\nB.\n"
-	sections, err := splitSections([]byte(body))
+	sections, _, err := splitSections([]byte(body), nil, nil)
 	if err != nil {
 		t.Fatalf("splitSections: %v", err)
 	}
@@ -308,7 +308,7 @@ func TestSplitSectionsConservesContent(t *testing.T) {
 		}
 		for _, m := range manifest.Milestones {
 			path := filepath.Join(contentDir, d.Name(), m)
-			_, html, sections, err := ParseMilestone(path)
+			_, html, sections, _, err := ParseMilestone(path, bridgeIndex{}, nil)
 			if err != nil {
 				t.Fatalf("%s: %v", path, err)
 			}
@@ -371,7 +371,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		}
 		for _, m := range manifest.Milestones {
 			path := filepath.Join(contentDir, d.Name(), m)
-			fm, _, sections, err := ParseMilestone(path)
+			fm, _, sections, _, err := ParseMilestone(path, bridgeIndex{}, nil)
 			if err != nil {
 				t.Fatalf("%s: %v", path, err)
 			}
@@ -448,7 +448,7 @@ func equalStrings(a, b []string) bool {
 // deprecated whole-body html.
 func TestSplitSectionsSanitizesBlocks(t *testing.T) {
 	body := "## Hands-on\n\n**Tutorial.** <script>alert(1)</script> depois do script.\n"
-	sections, err := splitSections([]byte(body))
+	sections, _, err := splitSections([]byte(body), nil, nil)
 	if err != nil {
 		t.Fatalf("splitSections: %v", err)
 	}

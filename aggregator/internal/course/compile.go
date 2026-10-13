@@ -26,6 +26,15 @@ func Compile(contentDir, outDir string) (Index, error) {
 		return Index{}, fmt.Errorf("create output dir %s: %w", outDir, err)
 	}
 
+	bridgeIdx, err := buildBridgeIndex(contentDir)
+	if err != nil {
+		return Index{}, fmt.Errorf("build bridge index: %w", err)
+	}
+	planned, err := loadPlannedBridges(filepath.Join(filepath.Dir(contentDir), "bridges-planned.yaml"))
+	if err != nil {
+		return Index{}, fmt.Errorf("load planned bridges: %w", err)
+	}
+
 	index := Index{GeneratedAt: time.Now().UTC().Format(time.RFC3339)}
 	seenSlugs := make(map[string]string) // slug -> source dir, for duplicate detection
 
@@ -35,7 +44,7 @@ func Compile(contentDir, outDir string) (Index, error) {
 		}
 		courseDir := filepath.Join(contentDir, entry.Name())
 
-		compiled, cerr := compileCourse(courseDir)
+		compiled, broken, cerr := compileCourse(courseDir, bridgeIdx, planned)
 		if cerr != nil {
 			log.Printf("WARN skipping course %s: %v", entry.Name(), cerr)
 			continue
@@ -45,6 +54,9 @@ func Compile(contentDir, outDir string) (Index, error) {
 			continue
 		}
 		seenSlugs[compiled.Slug] = courseDir
+		for _, ref := range broken {
+			log.Printf("WARN %s: unresolved bridge %s (not in bridges-planned.yaml)", entry.Name(), ref)
+		}
 
 		if err := writeJSON(filepath.Join(outDir, compiled.Slug+".json"), compiled); err != nil {
 			log.Printf("WARN could not write course %s: %v", compiled.Slug, err)
@@ -76,32 +88,37 @@ func Compile(contentDir, outDir string) (Index, error) {
 }
 
 // compileCourse parses one course directory into a CompiledCourse, validating
-// the manifest and every milestone.
-func compileCourse(dir string) (CompiledCourse, error) {
+// the manifest and every milestone. Returns the bridge references that this
+// course's milestones cited but couldn't resolve (and weren't in `planned`)
+// — never fatal, same as every other best-effort degradation in this file;
+// TestBridgesResolve is what turns an entry here into a hard failure.
+func compileCourse(dir string, index bridgeIndex, planned map[string]bool) (CompiledCourse, []string, error) {
 	manifest, err := ParseManifest(filepath.Join(dir, manifestName))
 	if err != nil {
-		return CompiledCourse{}, err
+		return CompiledCourse{}, nil, err
 	}
 	if manifest.Slug == "" {
-		return CompiledCourse{}, fmt.Errorf("manifest is missing slug")
+		return CompiledCourse{}, nil, fmt.Errorf("manifest is missing slug")
 	}
 	if len(manifest.Milestones) == 0 {
-		return CompiledCourse{}, fmt.Errorf("course %q has no milestones", manifest.Slug)
+		return CompiledCourse{}, nil, fmt.Errorf("course %q has no milestones", manifest.Slug)
 	}
 
 	milestones := make([]CompiledMilestone, 0, len(manifest.Milestones))
 	seenIDs := make(map[string]struct{}, len(manifest.Milestones))
+	var allBroken []string
 
 	for i, file := range manifest.Milestones {
-		fm, html, sections, err := ParseMilestone(filepath.Join(dir, file))
+		fm, html, sections, broken, err := ParseMilestone(filepath.Join(dir, file), index, planned)
 		if err != nil {
-			return CompiledCourse{}, err
+			return CompiledCourse{}, nil, err
 		}
+		allBroken = append(allBroken, broken...)
 		if fm.ID == "" {
-			return CompiledCourse{}, fmt.Errorf("milestone %s is missing id", file)
+			return CompiledCourse{}, nil, fmt.Errorf("milestone %s is missing id", file)
 		}
 		if _, dup := seenIDs[fm.ID]; dup {
-			return CompiledCourse{}, fmt.Errorf("duplicate milestone id %q in %s", fm.ID, file)
+			return CompiledCourse{}, nil, fmt.Errorf("duplicate milestone id %q in %s", fm.ID, file)
 		}
 		seenIDs[fm.ID] = struct{}{}
 
@@ -111,7 +128,7 @@ func compileCourse(dir string) (CompiledCourse, error) {
 		if _, statErr := os.Stat(quizPath); statErr == nil {
 			quiz, err = ParseQuiz(quizPath)
 			if err != nil {
-				return CompiledCourse{}, err
+				return CompiledCourse{}, nil, err
 			}
 			// Positional bias dies here, not in review: the source index is
 			// irrelevant once the options are reordered deterministically.
@@ -123,10 +140,10 @@ func compileCourse(dir string) (CompiledCourse, error) {
 		switch fm.Completion {
 		case "", "quiz":
 		default:
-			return CompiledCourse{}, fmt.Errorf("milestone %s has unknown completion %q (want \"quiz\" or nothing)", file, fm.Completion)
+			return CompiledCourse{}, nil, fmt.Errorf("milestone %s has unknown completion %q (want \"quiz\" or nothing)", file, fm.Completion)
 		}
 		if fm.Completion == "quiz" && len(quiz) == 0 {
-			return CompiledCourse{}, fmt.Errorf("milestone %s declares completion: quiz but has no quiz file", file)
+			return CompiledCourse{}, nil, fmt.Errorf("milestone %s declares completion: quiz but has no quiz file", file)
 		}
 
 		milestones = append(milestones, CompiledMilestone{
@@ -147,7 +164,7 @@ func compileCourse(dir string) (CompiledCourse, error) {
 	if manifest.Glossary != "" {
 		glossary, err = ParseGlossary(filepath.Join(dir, manifest.Glossary))
 		if err != nil {
-			return CompiledCourse{}, err
+			return CompiledCourse{}, nil, err
 		}
 	}
 
@@ -163,7 +180,7 @@ func compileCourse(dir string) (CompiledCourse, error) {
 		Sources:        manifest.Sources,
 		Milestones:     milestones,
 		Glossary:       glossary,
-	}, nil
+	}, allBroken, nil
 }
 
 func writeJSON(path string, v any) error {

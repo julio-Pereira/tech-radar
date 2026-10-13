@@ -88,7 +88,7 @@ não foram verificados.
 
 > **Reencontro — `system-design/02`, `/12`; `concorrencia-e-recursos/05`, `/07`; `spring-boot/08`;
 > `arquitetura-eventos/08`.** O orçamento de latência e o fallback retomam diretamente o vocabulário de
-> `system-design/02` e o caso de antifraude síncrono de `/12`. Pools e concorrência sob carga são a mesma
+> `system-design/02` e o caso de antifraude síncrono de `system-design/12`. Pools e concorrência sob carga são a mesma
 > disciplina de `concorrencia-e-recursos/05` e `/07`. A resiliência do serviço (circuito, timeout) usa o
 > mesmo vocabulário de `spring-boot/08`. E o `decisionId` único no log de decisão é a mesma garantia de
 > idempotência que `arquitetura-eventos/08` ensina para eventos.

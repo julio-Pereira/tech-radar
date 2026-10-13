@@ -24,8 +24,8 @@ camada existia para cobrir. É por isso que "funcionou no teste manual" nunca fo
 suficiente em concorrência.
 
 > **Reencontro — `spring-boot/07`, `/08` e `go-fintech/03`.** O lado Java deste caminho completo
-> é o `pix-gateway`: virtual threads e pinning (`/07`), o pool isolado por dependência do bulkhead
-> (`/08`). O lado Go é o `ledger-core`: sharding por conta e `context`/`errgroup` (`go-fintech/03`).
+> é o `pix-gateway`: virtual threads e pinning (`spring-boot/07`), o pool isolado por dependência do bulkhead
+> (`spring-boot/08`). O lado Go é o `ledger-core`: sharding por conta e `context`/`errgroup` (`go-fintech/03`).
 > O que esta trilha acrescentou a cada um foi o número — quanto, não só como.
 
 ## A matriz: qual mecanismo para qual contenção

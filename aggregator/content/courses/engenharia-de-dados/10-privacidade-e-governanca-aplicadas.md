@@ -67,7 +67,7 @@ operar).
 > **Reencontro — `dados-distribuidos/13`; `seguranca-aplicacao/09` e `/10`.** Classificação de PII,
 > as três camadas de criptografia e tokenização já foram ensinadas ali — este marco aplica o mesmo
 > vocabulário à fronteira específica de dado de terceiro sob consentimento revogável, que o
-> `dados-distribuidos/13` não cobre (ele trata do seu próprio dado operacional). `/09` e `/10`
+> `dados-distribuidos/13` não cobre (ele trata do seu próprio dado operacional). `seguranca-aplicacao/09` e `/10`
 > cobrem gestão de chave e segredo em profundidade — aqui ela aparece aplicada especificamente ao
 > crypto-shredding por consentimento.
 

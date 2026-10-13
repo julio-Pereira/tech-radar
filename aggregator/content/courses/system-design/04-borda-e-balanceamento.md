@@ -74,7 +74,7 @@ rápido em vez de tentar de novo, e o sistema degrada graciosamente em vez de am
 
 > **Reencontro — `spring-boot/08`.** Retry só no idempotente, timeout primeiro — a hierarquia de
 > resiliência daquele marco é o lado do **cliente**; aqui é o lado da **borda**, decidindo para
-> onde a chamada (com ou sem retry) vai. `kubernetes/04` cobre o Gateway API e `/11` o service
+> onde a chamada (com ou sem retry) vai. `kubernetes/04` cobre o Gateway API e `kubernetes/11` o service
 > mesh — os dois mecanismos que implementam o que este marco decide.
 
 ## Exemplo numa fintech
