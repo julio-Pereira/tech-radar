@@ -1,0 +1,91 @@
+# Caminho por papel (UX platform melhoria 1): sequência de marcos já
+# existentes que, somada à trilha lideranca-tecnica, leva de Tech Lead a
+# Staff/IC ou gestão técnica em fintech. Insumo direto de
+# PLANO-trilha-lideranca-tecnica.md §13 — ver também
+# content/courses/lideranca-tecnica/PROJETO.md.
+slug: tech-lead-para-staff
+title: "Tech Lead → Staff/IC ou gestão técnica em fintech"
+subtitle: "Seis etapas por trilhas já existentes, fechando em lideranca-tecnica: desenho, arquitetura, operação, plataforma, segurança e liderança."
+steps:
+  - ref: system-design/01
+    group: "Fundação de desenho"
+    why: "Linguagem comum de requisitos funcionais e não-funcionais antes de qualquer decisão de arquitetura."
+  - ref: system-design/02
+    group: "Fundação de desenho"
+    why: "Números e estimativas de capacidade sustentam toda decisão de trade-off que vem depois."
+  - ref: system-design/15
+    group: "Fundação de desenho"
+    why: "Trade-offs explícitos são o vocabulário que um Staff usa para justificar qualquer escolha técnica."
+  - ref: arquitetura-de-software/01
+    group: "Fundação de desenho"
+    why: "Visão geral de arquitetura de software, para falar a mesma língua da trilha de soluções a seguir."
+  - ref: arquitetura-de-software/02
+    group: "Fundação de desenho"
+    why: "Estilos arquiteturais dão o vocabulário para comparar alternativas de forma justa."
+  - ref: arquitetura-de-software/07
+    group: "Fundação de desenho"
+    why: "Escrever uma ADR é a prática que registra e sustenta decisões — base de tudo que a trilha de liderança cobra depois."
+  - ref: arquitetura-de-solucoes/01
+    group: "Arquitetura de sistemas"
+    why: "Mapear capacidades de negócio é o primeiro passo de qualquer estratégia técnica de plataforma."
+  - ref: arquitetura-de-solucoes/03
+    group: "Arquitetura de sistemas"
+    why: "Lidar com sistemas legados é parte inevitável de liderar arquitetura em fintech madura."
+  - ref: arquitetura-de-solucoes/04
+    group: "Arquitetura de sistemas"
+    why: "Build versus buy é uma decisão recorrente que um Staff precisa saber estruturar e defender."
+  - ref: arquitetura-de-solucoes/06
+    group: "Arquitetura de sistemas"
+    why: "Governança arquitetural é o mecanismo que escala decisão técnica além de uma pessoa."
+  - ref: arquitetura-de-solucoes/07
+    group: "Arquitetura de sistemas"
+    why: "Portfólio de iniciativas conecta arquitetura a prioridade de negócio, não só a elegância técnica."
+  - ref: arquitetura-de-solucoes/08
+    group: "Arquitetura de sistemas"
+    why: "Influência sem autoridade formal é exatamente o que um papel Staff exige no dia a dia."
+  - ref: arquitetura-de-solucoes/09
+    group: "Arquitetura de sistemas"
+    why: "Revisão arquitetural é o fórum onde a estratégia técnica do fin-platform é de fato escrutinada."
+  - ref: observabilidade/02
+    group: "Operação e confiabilidade"
+    why: "SLOs são o contrato que torna uma decisão de confiabilidade mensurável, não uma opinião."
+  - ref: observabilidade/12
+    group: "Operação e confiabilidade"
+    why: "Saber operar plantão é pré-requisito de qualquer liderança de incidente mais adiante."
+  - ref: observabilidade/13
+    group: "Operação e confiabilidade"
+    why: "Conduzir um incidente de ponta a ponta é a prática que a trilha de liderança assume já dominada."
+  - ref: observabilidade/15
+    group: "Operação e confiabilidade"
+    why: "Métricas DORA dão o vocabulário quantitativo que a trilha de liderança usa para medir fluxo."
+  - ref: entrega-continua-e-devops/01
+    group: "Operação e confiabilidade"
+    why: "Fundamentos de entrega contínua sustentam qualquer conversa sobre throughput de time."
+  - ref: entrega-continua-e-devops/07
+    group: "Operação e confiabilidade"
+    why: "DORA aplicado à esteira conecta prática de entrega a métrica de liderança técnica."
+  - ref: entrega-continua-e-devops/09
+    group: "Operação e confiabilidade"
+    why: "Mudança em ambiente regulado é o cenário que a trilha de liderança cobra na prática em fintech."
+  - ref: entrega-continua-e-devops/10
+    group: "Operação e confiabilidade"
+    why: "Esteira madura é o que separa heroísmo individual de operação liderada por processo."
+  - ref: engenharia-de-plataforma/08
+    group: "Plataforma"
+    why: "Adoção de plataforma interna é um problema de produto, não só de engenharia — relevante para Staff."
+  - ref: engenharia-de-plataforma/09
+    group: "Plataforma"
+    why: "FinOps e métricas de valor conectam decisão de plataforma a custo e resultado de negócio."
+  - ref: seguranca-aplicacao/01
+    group: "Segurança e risco"
+    why: "Modelagem de ameaça é pré-requisito para qualquer liderança em ambiente regulado de fintech."
+  - ref: seguranca-aplicacao/13
+    group: "Segurança e risco"
+    why: "SDLC seguro é o processo que a trilha de liderança assume já instalado no time."
+  - ref: seguranca-aplicacao/16
+    group: "Segurança e risco"
+    why: "Programa de segurança dá a visão de portfólio de risco que complementa a de arquitetura."
+  - ref: lideranca-tecnica
+    whole: true
+    group: "Liderança (esta trilha)"
+    why: "Estratégia, execução, pessoas, operação, regulação, negócio e carreira — fecha o caminho de Tech Lead a Staff."

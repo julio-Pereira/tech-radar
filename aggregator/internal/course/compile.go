@@ -37,6 +37,7 @@ func Compile(contentDir, outDir string) (Index, error) {
 
 	index := Index{GeneratedAt: time.Now().UTC().Format(time.RFC3339)}
 	seenSlugs := make(map[string]string) // slug -> source dir, for duplicate detection
+	compiledCourses := make(map[string]CompiledCourse)
 
 	for _, entry := range entries {
 		if !entry.IsDir() {
@@ -62,6 +63,7 @@ func Compile(contentDir, outDir string) (Index, error) {
 			log.Printf("WARN could not write course %s: %v", compiled.Slug, err)
 			continue
 		}
+		compiledCourses[compiled.Slug] = compiled
 
 		index.Courses = append(index.Courses, IndexEntry{
 			Slug:           compiled.Slug,
@@ -84,6 +86,16 @@ func Compile(contentDir, outDir string) (Index, error) {
 		return Index{}, fmt.Errorf("write index: %w", err)
 	}
 	log.Printf("INFO compiled %d course(s) to %s", len(index.Courses), outDir)
+
+	// Role-based paths (UX platform melhoria 1) are a reading guide over the
+	// courses just compiled above — never fatal to the main build, same
+	// best-effort policy as everything else in this function.
+	pathsDir := filepath.Join(filepath.Dir(contentDir), "paths")
+	dataDir := filepath.Dir(outDir)
+	if err := compilePaths(pathsDir, compiledCourses, bridgeIdx, dataDir); err != nil {
+		log.Printf("WARN compiling paths: %v", err)
+	}
+
 	return index, nil
 }
 
@@ -187,6 +199,7 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool) (Comp
 		Sources:        manifest.Sources,
 		Milestones:     milestones,
 		Glossary:       glossary,
+		Prerequisites:  manifest.Prerequisites,
 	}, allBroken, nil
 }
 
