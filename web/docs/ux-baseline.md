@@ -242,6 +242,42 @@ and the index card), "never blocking" (every step stays a plain link with no pro
 all), not-found handling, and axe on the detail page. Full suite: 65/65 (one pre-existing
 unrelated flake in `reading.spec.js`, confirmed passing in isolation, not a regression).
 
+## Melhoria 4 — glossário entre trilhas e busca global (UX itens 15-16)
+
+Two new routes over the `glossary.json`/`search-index.json` compiled in the previous PR:
+`#/glossario` (every distinct term across every trilha, grouped alphabetically, with a
+local filter — "busca dentro do glossário") and `#/glossario/<anchor>` (every trilha's own
+definition of that term, side by side, never merged — real content already exercises this:
+"Reconciliação" has 3 independent definitions). A header search box (`#search-input`,
+`/` shortcut, `web/js/search.js`) is lazy — `search-index.json` is only fetched on first
+focus/keystroke, never on page load — and matches accent-insensitively across
+title/summary/tags/headings/track, capped at 8 results, no ranking model ("busca simples",
+per the plan).
+
+A glossary search result's link is reconstructed client-side (`slugifyTerm` in
+`dom-helpers.js`, mirroring the aggregator's own `slugify` exactly) rather than carrying a
+precomputed `anchor` field in `search-index.json` — one fewer field in a file that ships to
+every visitor, and both sides fold the same closed set of Latin diacritics so they can
+never disagree in practice.
+
+**Simplification disclosed in the PR:** UX item 16 also asks for in-body prose terms to
+auto-link to their glossary entry at build time. That's deferred — doing it safely without
+false-positive prose matches needs its own explicit-syntax convention (the way bridges use
+backtick `slug/NN`), and isn't covered by melhoria 4's own stated acceptance bar (search
+finds a term + its marco). The two new routes already deliver "find and open a verbete."
+
+Two real bugs caught by the new specs before they shipped: (1) `aria-expanded`/`aria-controls`
+on a plain `<input type="search">` is an axe `critical` violation — a combobox role is
+required for `aria-expanded` to be valid at all, so both were dropped rather than bolting
+on a full combobox pattern for "busca simples"; (2) the glossary filter's hide/show used the
+native `hidden` *property*, which did nothing because `.glossario-term-row { display: flex }`
+(author CSS) unconditionally overrides the browser's default `[hidden] { display: none }`
+(UA stylesheet) — fixed by toggling the project's existing `.hidden { display: none
+!important }` utility class instead, the same convention `showView()` already uses.
+
+`web/tests/glossario.spec.js` (5 tests) and `web/tests/search.spec.js` (7 tests), all
+against the real compiled data. Full suite: 78/78.
+
 ## Not touched in this pass (still open from the plan)
 
 - Lighthouse scores, JSON size budget, full 360/768/1280 screenshot set (plan's full
@@ -253,7 +289,6 @@ unrelated flake in `reading.spec.js`, confirmed passing in isolation, not a regr
 
 ## Regression gate going forward
 
-`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 56/56
-passing, 0 axe violations of `serious`/`critical` impact on the three routes tested (plus
-expanded-hands-on-blocks, expanded-Gabarito, bridge-deep-link, and content-freshness
-passes). The plan's ratchet rule applies: these numbers should only improve from here.
+`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 78/78
+passing, 0 axe violations of `serious`/`critical` impact across every route tested. The
+plan's ratchet rule applies: these numbers should only improve from here.

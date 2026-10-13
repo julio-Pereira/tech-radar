@@ -111,6 +111,39 @@ const MONTH_ABBR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set
  * that in a negative-UTC-offset timezone can roll the displayed month back
  * by one. String splitting sidesteps that entirely.
  */
+/**
+ * Accent-insensitive, case-insensitive normalization for search/filter
+ * matching (UX item 15: "normalização sem acento"). NFD decomposition pulls
+ * every accent off as a separate combining mark, which the regex then
+ * drops — works for any Latin diacritic, not just the Portuguese ones.
+ */
+export function normalizeForSearch(s) {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+/**
+ * Mirrors the aggregator's own `slugify` (Go, internal/course/sections.go)
+ * exactly — same accent-fold-then-ASCII-collapse algorithm — so a glossary
+ * term's anchor can be reconstructed client-side from its title alone (the
+ * search index stores title/slug but not the precomputed anchor, to avoid
+ * one more field just for this one case).
+ */
+export function slugifyTerm(s) {
+  const folded = normalizeForSearch(s);
+  let out = '';
+  let prevDash = true;
+  for (const ch of folded) {
+    if (ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9') {
+      out += ch;
+      prevDash = false;
+    } else if (!prevDash) {
+      out += '-';
+      prevDash = true;
+    }
+  }
+  return out.replace(/-+$/, '');
+}
+
 export function freshnessLabel(milestone) {
   if (!milestone.reviewedAt) return null;
   if (milestone.reviewDue && new Date(milestone.reviewDue) < new Date()) {

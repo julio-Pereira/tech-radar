@@ -88,6 +88,80 @@ h1 {
   background: var(--accent-contrast);
 }
 
+/* Header search (UX item 15) */
+.header-search {
+  position: relative;
+  margin-left: auto;
+}
+
+#search-input {
+  width: 220px;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+#search-input::placeholder { color: var(--text-muted); }
+
+#search-input:focus {
+  outline: 2px solid var(--accent-hover);
+  outline-offset: 1px;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  width: 320px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  z-index: 20;
+}
+
+.search-result-list { list-style: none; }
+
+.search-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.6rem 0.9rem;
+  text-decoration: none;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.search-result:last-child { border-bottom: none; }
+.search-result:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+.search-result-kind {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-hover);
+}
+
+.search-result-title { font-size: 0.88rem; font-weight: 600; }
+.search-result-track { font-size: 0.74rem; color: var(--text-muted); }
+
+.search-empty {
+  padding: 0.9rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  #search-input { width: 140px; }
+  .search-results { width: 260px; }
+}
+
 /* Layout */
 main {
   max-width: 1280px;

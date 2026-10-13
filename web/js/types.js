@@ -14,5 +14,7 @@
 /** @typedef {{ slug: string, title: string, subtitle: string, category: string, tags: string[], level: string, lang: string, estimatedHours: number, sources?: Ref[], milestones: Milestone[] }} Course */
 /** @typedef {{ ref: string, why: string, optional?: boolean, whole?: boolean, courseSlug: string, courseTitle: string, milestoneId?: string, milestoneTitle?: string, estimatedMinutes?: number, estimatedHours?: number, group?: string }} PathStep */
 /** @typedef {{ slug: string, title: string, subtitle: string, steps: PathStep[], estimatedHours: number }} Path */
+/** @typedef {{ term: string, anchor: string, slug: string, track: string, summary: string, marco?: string, marcoId?: string }} GlossaryEntry */
+/** @typedef {{ kind: 'course' | 'milestone' | 'glossary', title: string, summary?: string, slug: string, marcoId?: string, track?: string, tags?: string[], headings?: string[] }} SearchDoc */
 
 export {};
