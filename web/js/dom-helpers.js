@@ -94,3 +94,28 @@ export function formatRelative(date) {
   if (abs < 2_592_000) return relativeFormatter.format(days, 'day');
   return date.toLocaleDateString('pt-BR');
 }
+
+const MONTH_ABBR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+/**
+ * UX platform melhoria 6 (content freshness): a milestone that opted in
+ * (`reviewedAt` set) shows when it was last checked; one that's also past
+ * its `reviewDue` shows a plain-text warning instead — "texto, não só cor",
+ * so the signal survives even without the accompanying color. Compared
+ * against the caller's own clock (`new Date()`), not a server date, which
+ * is also what a mocked browser clock in tests controls.
+ *
+ * Dates are parsed by splitting the "YYYY-MM-DD" string, not via `new
+ * Date(...)`, for the displayed month/year specifically — parsing a
+ * date-only string gives UTC midnight, and reading .getMonth() back out of
+ * that in a negative-UTC-offset timezone can roll the displayed month back
+ * by one. String splitting sidesteps that entirely.
+ */
+export function freshnessLabel(milestone) {
+  if (!milestone.reviewedAt) return null;
+  if (milestone.reviewDue && new Date(milestone.reviewDue) < new Date()) {
+    return 'Pode estar desatualizado';
+  }
+  const [year, month] = milestone.reviewedAt.split('-');
+  return `Revisado em ${MONTH_ABBR[Number(month) - 1]}/${year}`;
+}

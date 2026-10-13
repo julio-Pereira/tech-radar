@@ -314,6 +314,19 @@
 
 .node-time:not(:empty)::before { content: "⏱ "; }
 
+/* Content freshness (UX platform melhoria 6). The color is reinforcement,
+   never the only signal — the text itself already says "Revisado em X" or
+   "Pode estar desatualizado", so this still reads correctly in any
+   high-contrast or forced-colors mode that drops the tint. #f0a830 is
+   ~8.3:1 against --surface, comfortably past the 4.5:1 floor. */
+.node-freshness {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.node-freshness.stale { color: #f0a830; }
+
 /* Expanded body */
 .node-body {
   padding: 0 1.1rem 1.1rem;

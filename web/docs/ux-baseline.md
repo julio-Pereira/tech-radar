@@ -186,6 +186,35 @@ default; and the last-visited side effect round-trips through the Continuar butt
 suite: 51/51. No CSS changes needed — a bridge is a plain `<a>` inside `.milestone-body`/
 `.section-prose`, already styled by the existing rule for reference links.
 
+## Melhoria 6 — frescor do conteúdo (`TASK-plat-melhorias-lideranca.md` §6)
+
+Front-end half of the third platform improvement (the Go half — `reviewedAt`/`reviewEvery`
+frontmatter, deterministic `reviewDue`, `-check-freshness` CLI mode, the weekly
+`content-freshness.yml` workflow — shipped separately, PR #34). `freshnessLabel`
+(`dom-helpers.js`) compares a milestone's `reviewDue` against the reader's own clock
+(`new Date()`, not a server date) and returns one of three things: nothing (no
+`reviewedAt` — the overwhelming majority of milestones, since tracking is opt-in),
+"Revisado em out/2026" (reviewed, not yet due or no cadence declared), or "Pode estar
+desatualizado" (past due) — rendered in `timeline-node.js` next to the existing `⏱ 20 min`
+time estimate. The warning gets a color (`#f0a830`, ~8.3:1 against `--surface`) *in
+addition to* different wording, never color alone, matching the plan's own "texto, não só
+cor" requirement.
+
+One formatting subtlety worth recording: the displayed month/year is read by splitting
+the `"YYYY-MM-DD"` string, not by constructing a `Date` and calling `.getMonth()` —
+date-only strings parse as UTC midnight, and reading the month back out of that in a
+negative-UTC-offset timezone can roll the displayed month back by one. String-splitting
+sidesteps the whole class of bug.
+
+No real milestone has opted in yet (tracking is per-marco and voluntary, same as the
+Go side) — `web/tests/freshness.spec.js` (5 new tests) injects `reviewedAt`/`reviewDue`
+via route interception and controls the browser's own clock with Playwright's
+`page.clock` API, covering: no label when opted out, the reviewed-date label within the
+window, the warning once past due, `reviewedAt` alone (no cadence, so it can never warn),
+and a clock that crosses `reviewDue` between two renders of the same page flipping the
+label on the second one. Full suite: 56/56. Manually screenshotted both variants side by
+side to confirm the color/wording pairing reads correctly.
+
 ## Not touched in this pass (still open from the plan)
 
 - Lighthouse scores, JSON size budget, full 360/768/1280 screenshot set (plan's full
@@ -197,7 +226,7 @@ suite: 51/51. No CSS changes needed — a bridge is a plain `<a>` inside `.miles
 
 ## Regression gate going forward
 
-`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 51/51
+`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 56/56
 passing, 0 axe violations of `serious`/`critical` impact on the three routes tested (plus
-expanded-hands-on-blocks, expanded-Gabarito, and bridge-deep-link passes). The plan's
-ratchet rule applies: these numbers should only improve from here.
+expanded-hands-on-blocks, expanded-Gabarito, bridge-deep-link, and content-freshness
+passes). The plan's ratchet rule applies: these numbers should only improve from here.
