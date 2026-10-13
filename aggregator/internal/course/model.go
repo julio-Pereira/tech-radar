@@ -27,6 +27,11 @@ type Manifest struct {
 	// rendered as an appendix. It is not a milestone: it carries no id and does
 	// not count towards progress.
 	Glossary string `yaml:"glossary"`
+	// Prerequisites lists trilha slugs this course assumes the reader already
+	// knows. Informational only here — role-based paths (UX platform melhoria
+	// 1, paths.go) are what actually enforces that a path never orders a
+	// trilha ahead of its own prerequisites.
+	Prerequisites []string `yaml:"prerequisites"`
 }
 
 // QuizQuestion is one multiple-choice question. Answer is the 0-based index of
@@ -131,6 +136,9 @@ type CompiledCourse struct {
 	Milestones     []CompiledMilestone `json:"milestones"`
 	// Glossary is sanitized HTML rendered from the manifest's glossary file.
 	Glossary string `json:"glossary,omitempty"`
+	// Prerequisites is copied straight from the manifest — paths.go reads it
+	// to validate that a path never orders a trilha ahead of what it assumes.
+	Prerequisites []string `json:"prerequisites,omitempty"`
 }
 
 // IndexEntry is the lightweight catalog row for the courses index.
@@ -149,4 +157,70 @@ type IndexEntry struct {
 type Index struct {
 	GeneratedAt string       `json:"generatedAt"`
 	Courses     []IndexEntry `json:"courses"`
+}
+
+// PathStep is one entry in a role-based path (content/paths/<slug>.yaml):
+// either a single milestone ("system-design/01") or, with Whole, an entire
+// trilha ("lideranca-tecnica"). A path is a reading guide, never a gate — it
+// only ever points at milestones/trilhas that already exist standalone.
+type PathStep struct {
+	Ref      string `yaml:"ref"`
+	Why      string `yaml:"why"`
+	Optional bool   `yaml:"optional"`
+	Whole    bool   `yaml:"whole"`
+	// Group is a purely cosmetic label ("Fundação de desenho") the front end
+	// uses as a sub-heading above consecutive steps that share it. Carried
+	// through unvalidated — grouping is display only, never gating.
+	Group string `yaml:"group"`
+}
+
+// PathManifest maps a content/paths/<slug>.yaml file.
+type PathManifest struct {
+	Slug     string     `yaml:"slug"`
+	Title    string     `yaml:"title"`
+	Subtitle string     `yaml:"subtitle"`
+	Steps    []PathStep `yaml:"steps"`
+}
+
+// CompiledPathStep is a PathStep resolved against real course content, so the
+// front end never needs a second fetch to show a title or time estimate.
+type CompiledPathStep struct {
+	Ref              string `json:"ref"`
+	Why              string `json:"why"`
+	Optional         bool   `json:"optional,omitempty"`
+	Whole            bool   `json:"whole,omitempty"`
+	CourseSlug       string `json:"courseSlug"`
+	CourseTitle      string `json:"courseTitle"`
+	MilestoneID      string `json:"milestoneId,omitempty"`
+	MilestoneTitle   string `json:"milestoneTitle,omitempty"`
+	EstimatedMinutes int    `json:"estimatedMinutes,omitempty"` // milestone steps only
+	EstimatedHours   int    `json:"estimatedHours,omitempty"`   // whole-trilha steps only
+	Group            string `json:"group,omitempty"`
+}
+
+// CompiledPath is one track written into web/data/paths.json's Paths slice.
+type CompiledPath struct {
+	Slug           string             `json:"slug"`
+	Title          string             `json:"title"`
+	Subtitle       string             `json:"subtitle"`
+	Steps          []CompiledPathStep `json:"steps"`
+	EstimatedHours int                `json:"estimatedHours"`
+}
+
+// PathIndexEntry is the lightweight row for the paths list page.
+type PathIndexEntry struct {
+	Slug           string `json:"slug"`
+	Title          string `json:"title"`
+	Subtitle       string `json:"subtitle"`
+	StepCount      int    `json:"stepCount"`
+	EstimatedHours int    `json:"estimatedHours"`
+}
+
+// PathCatalog is the full set written to web/data/paths.json. Unlike courses
+// (one file per slug), paths are few and small enough to ship as one file —
+// the list page and a path's detail page both need the full Steps anyway.
+type PathCatalog struct {
+	GeneratedAt string           `json:"generatedAt"`
+	Paths       []CompiledPath   `json:"paths"`
+	Index       []PathIndexEntry `json:"index"`
 }
