@@ -55,6 +55,12 @@ type MilestoneFrontmatter struct {
 	// like) or "quiz", which gates the box on getting the quiz right. Any other
 	// value is a compile error, so a typo cannot silently disable the gate.
 	Completion string `yaml:"completion"`
+	// ReviewedAt ("2026-10-12") and ReviewEvery ("3m"|"6m"|"12m"|"24m") are both
+	// optional — content-freshness tracking (UX platform melhoria 6) is opt-in
+	// per marco. ReviewEvery without ReviewedAt is a compile error, same reason
+	// as Completion: a typo here must not silently turn the feature off.
+	ReviewedAt  string `yaml:"reviewedAt"`
+	ReviewEvery string `yaml:"reviewEvery"`
 }
 
 // CompiledMilestone is one timeline node with body HTML already sanitized.
@@ -73,6 +79,13 @@ type CompiledMilestone struct {
 	References []Ref          `json:"references,omitempty"`
 	Quiz       []QuizQuestion `json:"quiz,omitempty"`
 	Completion string         `json:"completion,omitempty"`
+	// ReviewedAt is copied straight from the frontmatter. ReviewDue is
+	// computed from it ("2006-01-02") and ReviewEvery — never from the build
+	// clock, so the same content always compiles to the same ReviewDue
+	// (deterministic output, clean diffs). Both empty when freshness tracking
+	// isn't opted into for this marco.
+	ReviewedAt string `json:"reviewedAt,omitempty"`
+	ReviewDue  string `json:"reviewDue,omitempty"`
 }
 
 // Section is one H2-delimited chunk of a milestone body. A "Hands-on" /

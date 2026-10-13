@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,9 +20,42 @@ import (
 )
 
 func main() {
+	checkFreshness := flag.Bool("check-freshness", false,
+		"list milestones whose content review is overdue, then exit 0 — used by the weekly freshness job, never by PR CI")
+	flag.Parse()
+
+	if *checkFreshness {
+		if err := runCheckFreshness(); err != nil {
+			log.Fatalf("aggregator: %v", err)
+		}
+		return
+	}
+
 	if err := run(); err != nil {
 		log.Fatalf("aggregator: %v", err)
 	}
+}
+
+// runCheckFreshness reports overdue milestones and always exits 0 on its
+// own account — finding overdue content is the expected, non-error outcome
+// of this mode. Only a genuine I/O failure reading the content tree returns
+// an error here, matching "o CI de PR nunca falha por vencimento": this
+// mode isn't even wired into PR CI, only the separate scheduled job is.
+func runCheckFreshness() error {
+	contentDir := envOrDefault("COURSES_CONTENT_DIR", filepath.Join("content", "courses"))
+	overdue, err := course.CheckFreshness(contentDir, time.Now())
+	if err != nil {
+		return err
+	}
+	if len(overdue) == 0 {
+		fmt.Println("Nenhum marco com revisão vencida.")
+		return nil
+	}
+	fmt.Printf("%d marco(s) com revisão vencida:\n\n", len(overdue))
+	for _, m := range overdue {
+		fmt.Printf("- `%s/%s` — %s (vencido em %s)\n", m.Slug, m.MarcoID, m.Title, m.ReviewDue)
+	}
+	return nil
 }
 
 func run() error {

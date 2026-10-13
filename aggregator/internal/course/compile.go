@@ -146,6 +146,11 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool) (Comp
 			return CompiledCourse{}, nil, fmt.Errorf("milestone %s declares completion: quiz but has no quiz file", file)
 		}
 
+		reviewDue, err := computeReviewDue(fm.ReviewedAt, fm.ReviewEvery)
+		if err != nil {
+			return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %w", file, err)
+		}
+
 		milestones = append(milestones, CompiledMilestone{
 			ID:               fm.ID,
 			Order:            i + 1,
@@ -157,6 +162,8 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool) (Comp
 			References:       fm.References,
 			Quiz:             quiz,
 			Completion:       fm.Completion,
+			ReviewedAt:       fm.ReviewedAt,
+			ReviewDue:        reviewDue,
 		})
 	}
 
