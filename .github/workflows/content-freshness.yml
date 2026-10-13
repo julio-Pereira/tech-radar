@@ -1,0 +1,53 @@
+name: Content freshness
+
+# Weekly, separate from PR CI on purpose — UX platform melhoria 6 ("o CI de
+# PR nunca falha por vencimento", so every PR doesn't risk breaking on a day
+# unrelated to its own change). Opens or updates one tracking issue; never
+# fails the run itself just because content has aged.
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Monday 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: aggregator/go.sum
+
+      - name: Download Go dependencies
+        working-directory: aggregator
+        run: go mod download
+
+      - name: Check freshness
+        working-directory: aggregator
+        run: go run . -check-freshness | tee /tmp/freshness-report.txt
+
+      - name: Open, update, or close the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          TITLE="Conteúdo com revisão vencida"
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --search "\"$TITLE\" in:title" --state open --json number --jq '.[0].number // empty')
+
+          if grep -q '^- ' /tmp/freshness-report.txt; then
+            if [ -n "$EXISTING" ]; then
+              gh issue edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file /tmp/freshness-report.txt
+            else
+              gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file /tmp/freshness-report.txt
+            fi
+          elif [ -n "$EXISTING" ]; then
+            gh issue close "$EXISTING" --repo "$GITHUB_REPOSITORY" --comment "Nenhum marco com revisão vencida nesta checagem."
+          fi
