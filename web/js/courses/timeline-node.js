@@ -4,6 +4,7 @@ import { buildQuiz } from './quiz.js';
 import { buildReferences } from './content-blocks.js';
 import { buildMilestoneBody } from './sections.js';
 import { scrollToMilestone } from './scroll.js';
+import { freshnessLabel } from '../dom-helpers.js';
 
 /** @typedef {import('../types.js').Milestone} Milestone */
 
@@ -60,6 +61,18 @@ export function buildTimelineNode(slug, milestone, completed, onToggle, prevMile
   if (milestone.estimatedMinutes) nodeTime.textContent = `${milestone.estimatedMinutes} min`;
 
   toggle.append(orderLabel, nodeTitle, nodeSummary, nodeTime);
+
+  // Content freshness (UX platform melhoria 6) — opt-in per marco, absent
+  // for the vast majority of milestones that haven't declared reviewedAt.
+  const freshness = freshnessLabel(milestone);
+  if (freshness) {
+    const nodeFreshness = document.createElement('span');
+    nodeFreshness.className = 'node-freshness';
+    if (freshness === 'Pode estar desatualizado') nodeFreshness.classList.add('stale');
+    nodeFreshness.textContent = freshness;
+    toggle.appendChild(nodeFreshness);
+  }
+
   content.appendChild(toggle);
 
   // Body (collapsed by default) ------------------------------------------------
