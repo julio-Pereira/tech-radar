@@ -9,7 +9,16 @@ import { scrollToMilestone } from './scroll.js';
 /** @typedef {import('../types.js').Course} Course */
 /** @typedef {import('../types.js').Milestone} Milestone */
 
-export async function renderCourse(slug, isFirstNavigation) {
+/**
+ * @param {string} slug
+ * @param {boolean} isFirstNavigation
+ * @param {string} [marcoId] from a bridge-style deep link
+ *   (#/learn/<slug>/<marco-id>, UX item 14) — scrolls to and expands that
+ *   milestone instead of the usual "continue reading" target. Trilha-as-page
+ *   stays trilha-as-page: this is an anchor into the one course fetch, not a
+ *   second route or a second request.
+ */
+export async function renderCourse(slug, isFirstNavigation, marcoId) {
   const view = document.getElementById('view-learn');
   view.innerHTML = '';
   view.appendChild(buildLoading('Carregando trilha…'));
@@ -27,7 +36,7 @@ export async function renderCourse(slug, isFirstNavigation) {
   }
 
   view.innerHTML = '';
-  view.appendChild(buildCourseView(course));
+  view.appendChild(buildCourseView(course, marcoId));
   announceRoute(course.title, isFirstNavigation);
 }
 
@@ -46,8 +55,11 @@ function buildCourseNotFound() {
   return wrap;
 }
 
-/** @param {Course} course */
-function buildCourseView(course) {
+/**
+ * @param {Course} course
+ * @param {string} [marcoId] see renderCourse
+ */
+function buildCourseView(course, marcoId) {
   setLastCourse(course.slug);
 
   const root = document.createElement('div');
@@ -172,10 +184,17 @@ function buildCourseView(course) {
   });
 
   refresh();
-  // Defer until appended to the DOM so scrollIntoView has layout. Prefers
-  // where the reader last opened a milestone over the first pending one —
-  // "continue reading" beats "continue completing" when the two differ.
+  // Defer until appended to the DOM so scrollIntoView has layout. A bridge
+  // deep link wins over "continue reading" — someone followed a link to a
+  // specific marco, not back to wherever they left off — but only when it
+  // actually names a real milestone; a stale/bad link just falls through to
+  // the usual default instead of landing on an empty page.
+  const deepLinkMilestone = marcoId && course.milestones.find((m) => m.id === marcoId);
   requestAnimationFrame(() => {
+    if (deepLinkMilestone) {
+      scrollToMilestone(timeline, deepLinkMilestone.id, { expand: true });
+      return;
+    }
     const set = getProgress(course.slug);
     const target = lastVisitedMilestone || course.milestones.find((m) => !set.has(m.id));
     if (target) scrollToMilestone(timeline, target.id);

@@ -159,6 +159,33 @@ directly — 6 new tests: closed by default, no done button, open-by-click/keybo
 does *not* survive a reload, never steals the default-open slot from a real Tutorial or
 from the fallback-first-block rule, and an axe pass with it expanded. Full suite: 46/46.
 
+## Melhoria 3 — pontes viram links (UX item 14, `TASK-plat-melhorias-lideranca.md` §2)
+
+Front-end half of the second platform improvement (the Go half — bridge resolution,
+`bridges-planned.yaml`, `TestBridgesResolve`, 10 real content fixes — shipped separately).
+Design question resolved with the user first: item 14's own link target
+(`#/learn/<slug>/<marco-id>`) is literally the per-marco-page URL from item 7, already
+rejected in favor of trilha-as-page. Resolved as an anchor, not a route: the hash router
+now accepts an optional 3rd segment and treats it as a scroll-to/expand target on the
+*same* single-fetch course page — `renderCourse`/`buildCourseView` thread an optional
+`marcoId` through to `scrollToMilestone(timeline, id, { expand: true })`, the exact helper
+already built for the Continuar button and prev/next nav. A stale or unmatched marco id
+falls through to the ordinary default (scroll to last-visited/first-pending, unexpanded) —
+never a crash, never a blank page.
+
+Clicking a bridge also marks the target marco as last-visited (free: `scrollToMilestone`'s
+`expand: true` calls the real toggle's `.click()`, which already sets `tr:lastvisited` —
+no new code needed for that part).
+
+`web/tests/bridges.spec.js` (5 new tests, against real compiled bridge links — no mocking
+needed since the Go side now really resolves them): clicking a full-reference bridge lands
+on and expands the right marco; a same-trilha shorthand bridge (`` `/08` ``) resolves to
+its own marco, not the one stated right before it; visiting a deep link directly (not via
+click) works the same as clicking one; a stale/invalid marco id degrades to the normal
+default; and the last-visited side effect round-trips through the Continuar button. Full
+suite: 51/51. No CSS changes needed — a bridge is a plain `<a>` inside `.milestone-body`/
+`.section-prose`, already styled by the existing rule for reference links.
+
 ## Not touched in this pass (still open from the plan)
 
 - Lighthouse scores, JSON size budget, full 360/768/1280 screenshot set (plan's full
@@ -170,7 +197,7 @@ from the fallback-first-block rule, and an axe pass with it expanded. Full suite
 
 ## Regression gate going forward
 
-`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 46/46
+`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 51/51
 passing, 0 axe violations of `serious`/`critical` impact on the three routes tested (plus
-expanded-hands-on-blocks and expanded-Gabarito passes). The plan's ratchet rule applies:
-these numbers should only improve from here.
+expanded-hands-on-blocks, expanded-Gabarito, and bridge-deep-link passes). The plan's
+ratchet rule applies: these numbers should only improve from here.

@@ -1,6 +1,8 @@
 // @ts-check
 // Hash routing keeps the app immune to the GitHub Pages /tech-radar/ prefix and
-// needs no 404.html. Routes: #/ (radar), #/learn (index), #/learn/<slug> (course).
+// needs no 404.html. Routes: #/ (radar), #/learn (index), #/learn/<slug> (course),
+// #/learn/<slug>/<marco-id> (course, scrolled to that marco — UX item 14's
+// bridge links; not a separate page/fetch, trilha-as-page stays trilha-as-page).
 import { announceRoute } from './announce.js';
 import { renderRadar } from './radar.js';
 import { renderCoursesIndex } from './courses/index-view.js';
@@ -18,12 +20,12 @@ export function init() {
   route();
 }
 
-/** @returns {{ name: 'radar' | 'learn' | 'course', slug?: string }} */
+/** @returns {{ name: 'radar' | 'learn' | 'course', slug?: string, marcoId?: string }} */
 function parseRoute() {
   const hash = location.hash.replace(/^#/, '');
-  const parts = hash.split('/').filter(Boolean); // "#/learn/x" → ["learn","x"]
+  const parts = hash.split('/').filter(Boolean); // "#/learn/x/y" → ["learn","x","y"]
   if (parts[0] === 'learn') {
-    return parts[1] ? { name: 'course', slug: parts[1] } : { name: 'learn' };
+    return parts[1] ? { name: 'course', slug: parts[1], marcoId: parts[2] } : { name: 'learn' };
   }
   return { name: 'radar' };
 }
@@ -43,7 +45,7 @@ function route() {
     announceRoute('Trilhas', isFirstNavigation);
     renderCoursesIndex();
   } else if (r.name === 'course' && r.slug) {
-    renderCourse(r.slug, isFirstNavigation); // announces its own title once loaded (or not-found)
+    renderCourse(r.slug, isFirstNavigation, r.marcoId); // announces its own title once loaded (or not-found)
   }
 }
 
