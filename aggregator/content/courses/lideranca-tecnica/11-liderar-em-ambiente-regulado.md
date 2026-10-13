@@ -3,6 +3,7 @@ id: liderar-em-ambiente-regulado
 title: "Liderar em ambiente regulado"
 summary: "Operar sob regulação: risco aceito, exceções com prazo, evidência e auditoria como parte do trabalho, não como obstáculo."
 estimatedMinutes: 65
+competencies: [regulacao]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha

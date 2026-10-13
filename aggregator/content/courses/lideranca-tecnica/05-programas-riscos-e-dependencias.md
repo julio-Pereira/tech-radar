@@ -3,6 +3,7 @@ id: programas-riscos-e-dependencias
 title: "Programas, riscos, dependências e fronteiras de times"
 summary: "Em iniciativas entre equipes, o caminho crítico é feito de gente e de dependências — e quem o nomeia cedo ganha as semanas que os outros perdem."
 estimatedMinutes: 65
+competencies: [execucao, decisao]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha

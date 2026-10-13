@@ -3,6 +3,7 @@ id: tecnologia-e-negocio
 title: "Tecnologia e negócio"
 summary: "A ponte entre tecnologia e negócio: como traduzir decisões técnicas em termos que o negócio usa, e vice-versa."
 estimatedMinutes: 55
+competencies: [negocio]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha

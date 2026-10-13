@@ -158,6 +158,10 @@ func TestGlossaryEntriesValid(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load bridges-planned.yaml: %v", err)
 	}
+	vocab, err := loadCompetencyVocabulary("../../content/competencies.yaml")
+	if err != nil {
+		t.Fatalf("load competency vocabulary: %v", err)
+	}
 
 	dirs, err := os.ReadDir(contentDir)
 	if err != nil {
@@ -168,7 +172,7 @@ func TestGlossaryEntriesValid(t *testing.T) {
 		if !d.IsDir() {
 			continue
 		}
-		compiled, _, err := compileCourse(filepath.Join(contentDir, d.Name()), bridgeIdx, planned)
+		compiled, _, err := compileCourse(filepath.Join(contentDir, d.Name()), bridgeIdx, planned, vocab)
 		if err != nil {
 			t.Fatalf("compile %s: %v", d.Name(), err)
 		}

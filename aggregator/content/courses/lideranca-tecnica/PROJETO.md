@@ -126,3 +126,27 @@ formam o caminho.
 
 **Degradação enquanto a melhoria "caminhos por papel" não existir:** esta tabela já é a lista de
 marcos recomendados, lida diretamente aqui.
+
+## Competências por marco
+
+Insumo direto da melhoria de plataforma "competências por marco" (`#/skills`): cada marco já
+está marcado com 1-2 ids do vocabulário fechado (`aggregator/content/competencies.yaml`).
+
+| Marco | Competências |
+| --- | --- |
+| 01 — Papel, escopo e arquétipos | `estrategia`, `execucao` |
+| 02 — Diagnóstico da organização técnica | `estrategia`, `dados` |
+| 03 — Estratégia técnica | `estrategia` |
+| 04 — Planejar e prever com dados | `execucao`, `dados` |
+| 05 — Programas, riscos e dependências | `execucao`, `decisao` |
+| 06 — Decidir bem sob incerteza | `decisao` |
+| 07 — Mentoria, delegação e feedback | `pessoas` |
+| 08 — Escrita, rituais e reuniões | `execucao` |
+| 09 — Contratar, avaliar e desenvolver pessoas | `pessoas` |
+| 10 — Liderar incidentes e operação | `operacao`, `confiabilidade` |
+| 11 — Liderar em ambiente regulado | `regulacao` |
+| 12 — Tecnologia e negócio | `negocio` |
+| 13 — Carreira, impacto e capstone | `carreira` |
+
+**Degradação enquanto `#/skills` não existir:** esta tabela já responde "o que este marco
+desenvolve", lida diretamente aqui.

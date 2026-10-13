@@ -34,6 +34,10 @@ func Compile(contentDir, outDir string) (Index, error) {
 	if err != nil {
 		return Index{}, fmt.Errorf("load planned bridges: %w", err)
 	}
+	vocab, err := loadCompetencyVocabulary(filepath.Join(filepath.Dir(contentDir), "competencies.yaml"))
+	if err != nil {
+		return Index{}, fmt.Errorf("load competency vocabulary: %w", err)
+	}
 
 	index := Index{GeneratedAt: time.Now().UTC().Format(time.RFC3339)}
 	seenSlugs := make(map[string]string) // slug -> source dir, for duplicate detection
@@ -45,7 +49,7 @@ func Compile(contentDir, outDir string) (Index, error) {
 		}
 		courseDir := filepath.Join(contentDir, entry.Name())
 
-		compiled, broken, cerr := compileCourse(courseDir, bridgeIdx, planned)
+		compiled, broken, cerr := compileCourse(courseDir, bridgeIdx, planned, vocab)
 		if cerr != nil {
 			log.Printf("WARN skipping course %s: %v", entry.Name(), cerr)
 			continue
@@ -110,6 +114,11 @@ func Compile(contentDir, outDir string) (Index, error) {
 		log.Printf("WARN writing search-index.json: %v", err)
 	}
 
+	// Skills (UX platform melhoria 2), same best-effort policy.
+	if err := compileSkills(compiledCourses, vocab, dataDir); err != nil {
+		log.Printf("WARN writing skills.json: %v", err)
+	}
+
 	return index, nil
 }
 
@@ -118,7 +127,7 @@ func Compile(contentDir, outDir string) (Index, error) {
 // course's milestones cited but couldn't resolve (and weren't in `planned`)
 // — never fatal, same as every other best-effort degradation in this file;
 // TestBridgesResolve is what turns an entry here into a hard failure.
-func compileCourse(dir string, index bridgeIndex, planned map[string]bool) (CompiledCourse, []string, error) {
+func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab map[string]CompetencyDef) (CompiledCourse, []string, error) {
 	manifest, err := ParseManifest(filepath.Join(dir, manifestName))
 	if err != nil {
 		return CompiledCourse{}, nil, err
@@ -177,6 +186,10 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool) (Comp
 			return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %w", file, err)
 		}
 
+		if err := validateCompetencies(fm.Competencies, vocab); err != nil {
+			return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %w", file, err)
+		}
+
 		milestones = append(milestones, CompiledMilestone{
 			ID:               fm.ID,
 			Order:            i + 1,
@@ -190,6 +203,7 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool) (Comp
 			Completion:       fm.Completion,
 			ReviewedAt:       fm.ReviewedAt,
 			ReviewDue:        reviewDue,
+			Competencies:     fm.Competencies,
 		})
 	}
 

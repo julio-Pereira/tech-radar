@@ -3,6 +3,7 @@ id: escrita-rituais-e-reunioes
 title: "Escrita, rituais e reuniões"
 summary: "Comunicação escrita, rituais de time e reuniões como ferramentas de liderança — o que documentar, como conduzir e quando uma reunião é a ferramenta errada."
 estimatedMinutes: 50
+competencies: [execucao]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha

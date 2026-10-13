@@ -3,6 +3,7 @@ id: planejar-e-prever-com-dados
 title: "Planejar e prever com dados"
 summary: "Uma data não é uma opinião: é a distribuição do que seu time já entregou, lida com honestidade sobre o que mudou."
 estimatedMinutes: 60
+competencies: [execucao, dados]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha
