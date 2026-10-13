@@ -3,6 +3,7 @@ id: papel-escopo-e-arquetipos
 title: "Papel, escopo e arquétipos"
 summary: "\"Staff\" não é um tamanho de código, é um tamanho de problema — e o papel só funciona quando está escrito o que você faz, o que não faz e quem decide."
 estimatedMinutes: 60
+competencies: [estrategia, execucao]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha

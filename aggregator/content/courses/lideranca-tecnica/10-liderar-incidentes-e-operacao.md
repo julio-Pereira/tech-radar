@@ -3,6 +3,7 @@ id: liderar-incidentes-e-operacao
 title: "Liderar incidentes e operação"
 summary: "O papel de quem lidera durante um incidente: quem comanda, quem escreve, quem fala com o negócio, e o acompanhamento das ações depois."
 estimatedMinutes: 65
+competencies: [operacao, confiabilidade]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha

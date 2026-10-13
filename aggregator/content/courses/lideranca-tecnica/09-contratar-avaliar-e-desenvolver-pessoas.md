@@ -3,6 +3,7 @@ id: contratar-avaliar-e-desenvolver-pessoas
 title: "Contratar, avaliar e desenvolver pessoas"
 summary: "Contratação, avaliação de desempenho baseada em evidência, plano de melhoria e desenvolvimento de outros — como processo e conceito, nunca como vigilância."
 estimatedMinutes: 70
+competencies: [pessoas]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha

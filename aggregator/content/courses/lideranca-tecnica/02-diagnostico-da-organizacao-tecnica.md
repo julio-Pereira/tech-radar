@@ -3,6 +3,7 @@ id: diagnostico-da-organizacao-tecnica
 title: "Diagnóstico da organização técnica"
 summary: "Antes de propor qualquer coisa, meça onde o trabalho espera — porque a causa do atraso quase nunca é onde o time acha."
 estimatedMinutes: 55
+competencies: [estrategia, dados]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha

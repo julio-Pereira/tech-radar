@@ -66,6 +66,13 @@ type MilestoneFrontmatter struct {
 	// as Completion: a typo here must not silently turn the feature off.
 	ReviewedAt  string `yaml:"reviewedAt"`
 	ReviewEvery string `yaml:"reviewEvery"`
+	// Competencies is optional — a marco that omits it (the overwhelming
+	// majority, until retroactively tagged) simply doesn't count towards
+	// #/skills (UX platform melhoria 2). When present it must have 1-3
+	// entries, each a known id from content/competencies.yaml's closed
+	// vocabulary and never repeated — a typo must fail the build, not
+	// silently under-count a skill.
+	Competencies []string `yaml:"competencies"`
 }
 
 // CompiledMilestone is one timeline node with body HTML already sanitized.
@@ -91,6 +98,9 @@ type CompiledMilestone struct {
 	// isn't opted into for this marco.
 	ReviewedAt string `json:"reviewedAt,omitempty"`
 	ReviewDue  string `json:"reviewDue,omitempty"`
+	// Competencies is copied straight from the frontmatter — empty when this
+	// marco hasn't been retroactively tagged yet.
+	Competencies []string `json:"competencies,omitempty"`
 }
 
 // Section is one H2-delimited chunk of a milestone body. A "Hands-on" /
@@ -272,4 +282,46 @@ type SearchDoc struct {
 type SearchIndex struct {
 	GeneratedAt string      `json:"generatedAt"`
 	Docs        []SearchDoc `json:"docs"`
+}
+
+// CompetencyDef is one entry in content/competencies.yaml's closed
+// vocabulary (UX platform melhoria 2).
+type CompetencyDef struct {
+	ID    string `yaml:"id"`
+	Label string `yaml:"label"`
+	Group string `yaml:"group"`
+}
+
+// SkillMilestoneRef is one milestone that contributes minutes towards a
+// Skill, with just enough to check it against localStorage client-side
+// (course slug + milestone id) without a second fetch.
+type SkillMilestoneRef struct {
+	Slug             string `json:"slug"`
+	MarcoID          string `json:"marcoId"`
+	Title            string `json:"title"`
+	EstimatedMinutes int    `json:"estimatedMinutes"`
+}
+
+// Skill is one competency with every milestone tagged for it, compiled into
+// web/data/skills.json. TotalMinutes is the sum of every listed milestone's
+// EstimatedMinutes — the denominator of "minutos concluídos ÷ minutos
+// totais" that #/skills renders entirely from localStorage, never a server
+// round-trip.
+type Skill struct {
+	ID           string              `json:"id"`
+	Label        string              `json:"label"`
+	Group        string              `json:"group"`
+	TotalMinutes int                 `json:"totalMinutes"`
+	Milestones   []SkillMilestoneRef `json:"milestones"`
+}
+
+// SkillsCatalog is the full set written to web/data/skills.json. Coverage
+// is "cobertura da marcação" (the plan's own phrase): how many of all real
+// milestones have been retroactively tagged at all, shown so the page never
+// implies more completeness than the content actually has.
+type SkillsCatalog struct {
+	GeneratedAt      string  `json:"generatedAt"`
+	Skills           []Skill `json:"skills"`
+	TaggedMilestones int     `json:"taggedMilestones"`
+	TotalMilestones  int     `json:"totalMilestones"`
 }

@@ -1,0 +1,19 @@
+# Vocabulário fechado de competências (UX platform melhoria 2, "o que eu já
+# consigo fazer?"). Um marco opcionalmente declara `competencies: [id, ...]`
+# (1 a 3) no seu frontmatter — qualquer id fora desta lista é erro de build,
+# mesmo espírito do `completion`: um typo não pode desligar o cálculo em
+# silêncio. Grupo é só para exibição (agrupa as barras em #/skills).
+- { id: estrategia, label: "Estratégia", group: "Liderança" }
+- { id: decisao, label: "Decisão sob incerteza", group: "Liderança" }
+- { id: execucao, label: "Execução", group: "Liderança" }
+- { id: pessoas, label: "Pessoas", group: "Liderança" }
+- { id: operacao, label: "Operação", group: "Liderança" }
+- { id: regulacao, label: "Regulação", group: "Liderança" }
+- { id: negocio, label: "Negócio", group: "Liderança" }
+- { id: carreira, label: "Carreira", group: "Liderança" }
+- { id: arquitetura, label: "Arquitetura", group: "Transversal" }
+- { id: dados, label: "Dados", group: "Transversal" }
+- { id: seguranca, label: "Segurança", group: "Transversal" }
+- { id: confiabilidade, label: "Confiabilidade", group: "Transversal" }
+- { id: plataforma, label: "Plataforma", group: "Transversal" }
+- { id: performance, label: "Performance", group: "Transversal" }

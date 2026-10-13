@@ -3,6 +3,7 @@ id: decidir-bem-sob-incerteza
 title: "Decidir bem sob incerteza"
 summary: "Boas decisões se distinguem de bons resultados — e só dá para aprender com as decisões que foram registradas antes de o resultado chegar."
 estimatedMinutes: 60
+competencies: [decisao]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha

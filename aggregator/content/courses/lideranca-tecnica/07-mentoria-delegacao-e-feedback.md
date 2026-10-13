@@ -3,6 +3,7 @@ id: mentoria-delegacao-e-feedback
 title: "Mentoria, delegação e feedback"
 summary: "Você é medido pelo que o time consegue sem você — e isso se constrói delegando bem, ensinando de propósito e dando feedback que muda comportamento."
 estimatedMinutes: 65
+competencies: [pessoas]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha

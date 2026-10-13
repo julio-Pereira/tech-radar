@@ -3,6 +3,7 @@ id: carreira-impacto-e-capstone
 title: "Carreira, impacto e capstone"
 summary: "Carreira como trajetória de impacto: a escolha entre Staff/IC e gestão técnica, e o capstone que consolida o fin-leadkit."
 estimatedMinutes: 70
+competencies: [carreira]
 ---
 
 > **Stub.** Este marco ainda não tem conteúdo completo. Faz parte da trilha
