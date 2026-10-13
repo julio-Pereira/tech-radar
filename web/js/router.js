@@ -2,11 +2,14 @@
 // Hash routing keeps the app immune to the GitHub Pages /tech-radar/ prefix and
 // needs no 404.html. Routes: #/ (radar), #/learn (index), #/learn/<slug> (course),
 // #/learn/<slug>/<marco-id> (course, scrolled to that marco — UX item 14's
-// bridge links; not a separate page/fetch, trilha-as-page stays trilha-as-page).
+// bridge links; not a separate page/fetch, trilha-as-page stays trilha-as-page),
+// #/paths (role-based paths list), #/paths/<slug> (one path's steps — UX
+// platform melhoria 1, always a guide, never a gate).
 import { announceRoute } from './announce.js';
 import { renderRadar } from './radar.js';
 import { renderCoursesIndex } from './courses/index-view.js';
 import { renderCourse } from './courses/course-view.js';
+import { renderPathsIndex, renderPath } from './courses/paths-view.js';
 
 // Whether any route has already been entered. Decided synchronously inside
 // route(), never by timing of the async work a route kicks off — a course
@@ -20,12 +23,15 @@ export function init() {
   route();
 }
 
-/** @returns {{ name: 'radar' | 'learn' | 'course', slug?: string, marcoId?: string }} */
+/** @returns {{ name: 'radar' | 'learn' | 'course' | 'paths' | 'path', slug?: string, marcoId?: string }} */
 function parseRoute() {
   const hash = location.hash.replace(/^#/, '');
   const parts = hash.split('/').filter(Boolean); // "#/learn/x/y" → ["learn","x","y"]
   if (parts[0] === 'learn') {
     return parts[1] ? { name: 'course', slug: parts[1], marcoId: parts[2] } : { name: 'learn' };
+  }
+  if (parts[0] === 'paths') {
+    return parts[1] ? { name: 'path', slug: parts[1] } : { name: 'paths' };
   }
   return { name: 'radar' };
 }
@@ -36,7 +42,7 @@ function route() {
 
   const r = parseRoute();
   showView(r.name === 'radar' ? 'radar' : 'learn');
-  setNavActive(r.name === 'radar' ? 'radar' : 'learn');
+  setNavActive(r.name === 'radar' ? 'radar' : r.name === 'paths' || r.name === 'path' ? 'paths' : 'learn');
 
   if (r.name === 'radar') {
     announceRoute('Radar', isFirstNavigation);
@@ -46,6 +52,11 @@ function route() {
     renderCoursesIndex();
   } else if (r.name === 'course' && r.slug) {
     renderCourse(r.slug, isFirstNavigation, r.marcoId); // announces its own title once loaded (or not-found)
+  } else if (r.name === 'paths') {
+    announceRoute('Caminhos', isFirstNavigation);
+    renderPathsIndex();
+  } else if (r.name === 'path' && r.slug) {
+    renderPath(r.slug, isFirstNavigation); // announces its own title once loaded (or not-found)
   }
 }
 

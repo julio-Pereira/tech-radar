@@ -215,6 +215,33 @@ and a clock that crosses `reviewDue` between two renders of the same page flippi
 label on the second one. Full suite: 56/56. Manually screenshotted both variants side by
 side to confirm the color/wording pairing reads correctly.
 
+## Role-based paths (`#/paths`, `#/paths/<slug>` — UX platform melhoria 1)
+
+New `web/js/courses/paths-view.js` adds a list page (`#/paths`, a `.course-card` grid
+reusing the Trilhas index styling) and a detail page (`#/paths/<slug>`, steps grouped
+under cosmetic `group` headings from the compiled path). A path is a guide, never a
+gate: every step is a plain `<a>` inside a keyboard-navigable `<ol>`, always clickable
+regardless of progress — milestone steps deep-link straight to `#/learn/<slug>/<marco-id>`
+(melhoria 3's anchor, reused as-is), whole-trilha steps link to `#/learn/<slug>`.
+
+"Done" is read straight from the same `tr:progress:<slug>` every course page already
+writes — no separate progress store. A milestone step is done when its id is in that
+course's progress set; a whole-trilha step is done only when every milestone in that
+course is (needs `courses/index.json`'s `milestoneCount`, fetched once alongside
+`paths.json`). Hours-remaining sums only the steps not yet done (milestone minutes
+rounded up to the hour, whole-trilha steps added as their own `estimatedHours`).
+
+Added a "Caminhos" link to the main nav alongside Radar/Trilhas — discoverable, not
+buried behind a URL only linked from elsewhere.
+
+`web/tests/paths.spec.js` (9 new tests, against the real compiled `tech-lead-para-staff`
+path, no mocking) covers: index listing with hours/step-count, grouped step rendering,
+correct hrefs (milestone deep-link vs whole-trilha), click-through navigation, progress
+reflecting after completing a milestone on its course page (both on the path detail page
+and the index card), "never blocking" (every step stays a plain link with no progress at
+all), not-found handling, and axe on the detail page. Full suite: 65/65 (one pre-existing
+unrelated flake in `reading.spec.js`, confirmed passing in isolation, not a regression).
+
 ## Not touched in this pass (still open from the plan)
 
 - Lighthouse scores, JSON size budget, full 360/768/1280 screenshot set (plan's full

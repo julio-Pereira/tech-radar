@@ -764,6 +764,76 @@
   outline-offset: 2px;
 }
 
+/* ── Role-based paths (#/paths, #/paths/<slug> — UX platform melhoria 1) ──── */
+.path-remaining {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.path-note {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 1.3rem;
+}
+
+.path-group-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-hover);
+  margin: 1.6rem 0 0.6rem;
+}
+
+.path-step-list {
+  list-style: none;
+  margin: 0 0 0.3rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.path-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1.1rem;
+}
+
+.path-step.done { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+
+.path-step-link {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.path-step-link:hover .path-step-title { color: var(--accent-hover); }
+
+.path-step-title { font-size: 0.94rem; font-weight: 700; }
+
+.path-step-meta {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.path-step.done .path-step-meta { color: var(--accent-hover); }
+
+.path-step-why {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+  line-height: 1.5;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .timeline-node {
