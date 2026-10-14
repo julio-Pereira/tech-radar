@@ -16,6 +16,38 @@
   margin-top: 0.3rem;
 }
 
+/* ── Export/import progress (#/learn — UX item 17) ────────────────────────── */
+.progress-io {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.3rem;
+}
+
+.progress-io-btn {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.progress-io-btn:hover { border-color: var(--accent); color: var(--text); }
+.progress-io-import-label { display: inline-block; }
+.progress-io-import-label:focus-within {
+  outline: 2px solid var(--accent-hover);
+  outline-offset: 2px;
+}
+
+.progress-io-status {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 /* ── "Continue where you left off" banner (#/learn) ──────────────────────── */
 .continue-banner {
   display: flex;
@@ -636,6 +668,12 @@
   color: var(--text-muted);
 }
 
+.milestone-quiz-best {
+  margin: -0.5rem 0 0.9rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 .quiz-question {
   margin: 0 0 1.1rem;
   padding: 0;
@@ -700,7 +738,8 @@
 }
 
 .quiz-check-btn,
-.quiz-retry-btn {
+.quiz-retry-btn,
+.quiz-retry-wrong-btn {
   padding: 0.35rem 0.9rem;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -712,7 +751,8 @@
 }
 
 .quiz-check-btn:hover,
-.quiz-retry-btn:hover { border-color: var(--accent); color: var(--text); }
+.quiz-retry-btn:hover,
+.quiz-retry-wrong-btn:hover { border-color: var(--accent); color: var(--text); }
 
 .quiz-score {
   font-size: 0.82rem;
@@ -748,9 +788,11 @@
 .nav-link:focus-visible,
 .back-link:focus-visible,
 .reset-btn:focus-visible,
+.progress-io-btn:focus-visible,
 .course-card:focus-visible,
 .quiz-check-btn:focus-visible,
 .quiz-retry-btn:focus-visible,
+.quiz-retry-wrong-btn:focus-visible,
 .quiz-option input:focus-visible,
 .course-glossary-summary:focus-visible,
 .node-complete input:focus-visible,

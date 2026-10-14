@@ -1,6 +1,7 @@
 // @ts-check
 import { buildBadge, buildLoading, buildError, buildEmpty, levelLabel, percent, buildProgressBar } from '../dom-helpers.js';
 import { getProgress, getLastCourse } from '../storage.js';
+import { downloadExport, parseImport, importProgress } from '../progress-io.js';
 
 /** @typedef {import('../types.js').IndexEntry} IndexEntry */
 
@@ -33,6 +34,7 @@ export async function renderCoursesIndex() {
   heading.appendChild(h2);
   heading.appendChild(sub);
   view.appendChild(heading);
+  view.appendChild(buildProgressIO());
 
   const courses = (index.courses || []);
   if (courses.length === 0) {
@@ -51,6 +53,56 @@ export async function renderCoursesIndex() {
     grid.appendChild(buildCourseCard(entry));
   }
   view.appendChild(grid);
+}
+
+/**
+ * UX item 17: export/import every tr:* key as one JSON file. Lives here
+ * (not per-course) because it's global — all trilhas' progress, hands-on
+ * state, and quiz history at once, not just one.
+ */
+function buildProgressIO() {
+  const wrap = document.createElement('div');
+  wrap.className = 'progress-io';
+
+  const exportBtn = document.createElement('button');
+  exportBtn.type = 'button';
+  exportBtn.className = 'progress-io-btn';
+  exportBtn.textContent = 'Exportar progresso';
+
+  const importLabel = document.createElement('label');
+  importLabel.className = 'progress-io-btn progress-io-import-label';
+  importLabel.textContent = 'Importar progresso';
+  const importInput = document.createElement('input');
+  importInput.type = 'file';
+  importInput.accept = 'application/json';
+  importInput.className = 'sr-only';
+  importLabel.appendChild(importInput);
+
+  const status = document.createElement('span');
+  status.className = 'progress-io-status';
+  status.setAttribute('role', 'status');
+  status.setAttribute('aria-live', 'polite');
+
+  wrap.append(exportBtn, importLabel, status);
+
+  exportBtn.addEventListener('click', downloadExport);
+
+  importInput.addEventListener('change', async () => {
+    const file = importInput.files && importInput.files[0];
+    importInput.value = ''; // allow re-selecting the same file next time
+    if (!file) return;
+
+    const text = await file.text();
+    const result = parseImport(text);
+    if (!result.ok) {
+      status.textContent = result.error;
+      return;
+    }
+    const merged = importProgress(result.data);
+    status.textContent = `Progresso importado: ${merged} chave${merged === 1 ? '' : 's'} atualizada${merged === 1 ? '' : 's'}.`;
+  });
+
+  return wrap;
 }
 
 /**
