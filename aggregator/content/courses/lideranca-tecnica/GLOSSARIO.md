@@ -248,3 +248,206 @@ mudar sem reescrever o roadmap inteiro.
 **Erro comum:** tratar mudança de tática como falha de planejamento — num roadmap por resultados,
 isso é esperado.
 **Onde na prática:** marco 03.
+
+## Entrega
+
+### Falácia do planejamento
+**Em uma frase:** o viés sistemático de estimar a tarefa atual de forma otimista, mesmo sabendo que
+tarefas parecidas no passado levaram mais tempo.
+**No fin-platform:** a equipe do Time Pix estima "duas semanas" para a conciliação pela quarta vez
+seguida, apesar do histórico mostrar consistentemente mais.
+**Erro comum:** achar que "estimar com mais cuidado" resolve a falácia — ela persiste mesmo quando a
+pessoa conhece o histórico.
+**Onde na prática:** marco 04.
+
+### Monte Carlo (previsão)
+**Em uma frase:** simulação que amostra milhares de futuros possíveis a partir do *throughput*
+histórico, produzindo uma distribuição de datas de conclusão.
+**No fin-platform:** gera o percentil 85 de conclusão do backlog de conciliação com semente fixa e
+reprodutível.
+**Erro comum:** interpretar a saída como uma data única, em vez de uma distribuição de
+probabilidades.
+**Onde na prática:** marco 04.
+
+### Percentil (previsão)
+**Em uma frase:** o ponto da distribuição simulada abaixo do qual uma dada porcentagem dos futuros
+possíveis se encontra — P85 significa 85% de chance de terminar até aquela data.
+**No fin-platform:** "P50 em 20 de novembro, P85 em 12 de dezembro" comunica duas datas com
+confiança diferente, não uma data única.
+**Erro comum:** tratar P50 como "a" previsão e ignorar P85, escondendo metade da incerteza real.
+**Onde na prática:** marco 04.
+
+### Faixa de confiança
+**Em uma frase:** um intervalo (não um número único) acompanhado da premissa explícita que o
+sustenta.
+**No fin-platform:** "entre 2 e 5 semanas, assumindo que a integração com risco não muda" é uma
+faixa de confiança; "3 semanas" não é.
+**Erro comum:** dar uma faixa sem declarar a premissa — a faixa sozinha, sem premissa, ainda esconde
+informação relevante.
+**Onde na prática:** marco 04, origem em `arquitetura-de-solucoes/08`.
+
+### Caminho crítico
+**Em uma frase:** a sequência de tarefas que, somadas, determina a duração mínima de um programa.
+**No fin-platform:** no programa de conciliação, o caminho crítico passa pela adequação de
+certificado mTLS da equipe de segurança.
+**Erro comum:** tratar toda tarefa atrasada como igualmente urgente, ignorando que tarefas fora do
+caminho crítico têm folga.
+**Onde na prática:** marco 05.
+
+### Folga
+**Em uma frase:** quanto uma tarefa fora do caminho crítico pode atrasar sem afetar a data final do
+programa.
+**No fin-platform:** uma tarefa de documentação com folga de duas semanas não precisa da mesma
+urgência que uma tarefa no caminho crítico.
+**Erro comum:** tratar folga como "não importa", quando na verdade ela é informação ativa sobre onde
+NÃO concentrar atenção de risco.
+**Onde na prática:** marco 05.
+
+### RACI / DACI
+**Em uma frase:** modelos de direitos de decisão que nomeiam papéis (Responsável/Aprovador/
+Consultado/Informado, ou Direcionador/Aprovador/Contribuidor/Informado) por decisão.
+**No fin-platform:** o RACI do programa de conciliação declara um único "A" por decisão técnica.
+**Erro comum:** ter mais de um "A" (ou "D") na mesma linha — reproduz a ambiguidade que o modelo
+deveria eliminar.
+**Onde na prática:** marco 05.
+
+### Registro de riscos
+**Em uma frase:** lista estruturada de riscos, cada um com probabilidade, impacto, dono, mitigação
+e gatilho.
+**No fin-platform:** o risco "atraso na certificação mTLS" tem dono (equipe de segurança), gatilho
+("certificado não emitido até 15 dias antes do prazo") e mitigação declarados.
+**Erro comum:** registrar um risco sem dono — na prática, ninguém cuida dele até virar problema.
+**Onde na prática:** marco 05.
+
+### Gatilho (de risco ou decisão)
+**Em uma frase:** o sinal observável e específico de que um risco está se materializando, ou de que
+uma decisão precisa ser revisada.
+**No fin-platform:** "se a previsão P85 ultrapassar a data comprometida" é um gatilho; "se as coisas
+piorarem" não é.
+**Erro comum:** declarar um gatilho vago demais para ser observado objetivamente.
+**Onde na prática:** marcos 05 e 06.
+
+### Status (relatório de programa)
+**Em uma frase:** a cor (verde/amarelo/vermelho) de um programa, válida apenas quando acompanhada de
+um critério objetivo definido com antecedência.
+**No fin-platform:** "vermelho = P85 ultrapassou a data comprometida" é um critério objetivo; "a
+equipe está confiante" não é.
+**Erro comum:** reportar verde por sentimento, quando o critério objetivo já indicaria vermelho.
+**Onde na prática:** marco 05.
+
+### Go/no-go
+**Em uma frase:** critério de decisão de lançamento definido com antecedência, não inventado sob
+pressão no dia.
+**No fin-platform:** o critério de go/no-go do lançamento Pix inclui SLO de disponibilidade e
+ausência de incidente crítico aberto.
+**Erro comum:** definir o critério de go/no-go na própria reunião de decisão, sob pressão.
+**Onde na prática:** marco 05.
+
+## Times
+
+### Conway reverso
+**Em uma frase:** desenhar deliberadamente a estrutura de equipes para produzir a arquitetura
+desejada, invertendo a observação original da Lei de Conway.
+**No fin-platform:** separar o time de conciliação do time de ledger antes de separar o código,
+esperando que a arquitetura siga a nova fronteira.
+**Erro comum:** esperar que a arquitetura mude sozinha sem mudar a estrutura de comunicação que a
+sustenta.
+**Onde na prática:** marco 05.
+
+### Topologia de equipe
+**Em uma frase:** um dos quatro padrões de equipe de Team Topologies — alinhada ao fluxo,
+plataforma, habilitadora, subsistema complicado.
+**No fin-platform:** a equipe de plataforma de dados serve outras equipes; a equipe do Time Pix é
+alinhada ao fluxo (entrega de ponta a ponta).
+**Erro comum:** confundir os quatro tipos, tratando uma equipe de plataforma como se fosse alinhada
+ao fluxo (ou vice-versa).
+**Onde na prática:** marco 05.
+
+### Carga cognitiva (de equipe)
+**Em uma frase:** o quanto de domínio, complexidade técnica e operacional uma equipe consegue
+sustentar sem degradar decisão e qualidade.
+**No fin-platform:** o Time Pix, ao assumir conciliação além do seu escopo original, ultrapassa a
+carga cognitiva sustentável.
+**Erro comum:** medir tamanho de equipe só por número de pessoas, ignorando a complexidade que cada
+uma precisa sustentar.
+**Onde na prática:** marco 05.
+
+### Fronteira de propriedade
+**Em uma frase:** a declaração explícita de qual sistema, decisão ou interface pertence a qual
+equipe.
+**No fin-platform:** a proposta de divisão do Time Pix declara qual equipe é dona do serviço de
+iniciação e qual é dona da conciliação.
+**Erro comum:** dividir um time sem declarar fronteiras — a divisão aumenta dependências cruzadas em
+vez de reduzi-las.
+**Onde na prática:** marco 05.
+
+### Reorganização
+**Em uma frase:** mudança de estrutura de equipes, com custos reais e frequentemente subestimados
+(contexto perdido, relações desfeitas, produtividade reduzida por meses).
+**No fin-platform:** dividir o Time Pix em dois reduz carga cognitiva, mas custa meses de
+produtividade até as novas equipes se estabilizarem.
+**Erro comum:** tratar reorganização como mudança "de graça" que só traz benefício, sem custo.
+**Onde na prática:** marco 05.
+
+## Decisão
+
+### Porta de ida e volta
+**Em uma frase:** decisão reversível a baixo custo — merece velocidade, não processo pesado.
+**No fin-platform:** escolher a biblioteca de *logging* interna é, geralmente, uma porta de ida e
+volta.
+**Erro comum:** aplicar o mesmo processo de aprovação de uma porta sem volta a uma decisão
+facilmente reversível.
+**Onde na prática:** marco 06.
+
+### Porta sem volta
+**Em uma frase:** decisão irreversível ou muito cara de reverter — merece mais deliberação e
+cautela.
+**No fin-platform:** migrar o schema do ledger para um novo modelo de dados é, tipicamente, uma
+porta sem volta.
+**Erro comum:** decidir uma porta sem volta com a mesma rapidez informal de uma porta de ida e
+volta.
+**Onde na prática:** marco 06.
+
+### Calibração (de previsão)
+**Em uma frase:** a prática de dar probabilidades explícitas a previsões e medir, ao longo do
+tempo, se elas batem com a realidade.
+**No fin-platform:** registrar "70% de confiança" numa previsão de decisão e, meses depois, checar
+se decisões com 70% de confiança se confirmaram em torno de 70% das vezes.
+**Erro comum:** nunca registrar a probabilidade explícita — sem isso, não há como medir calibração
+depois.
+**Onde na prática:** marco 06.
+
+### Brier score
+**Em uma frase:** métrica que quantifica a qualidade da calibração de um conjunto de previsões —
+quanto mais perto de zero, melhor.
+**No fin-platform:** o Brier score das 40 decisões registradas do Time Pix revela se a equipe tende
+a ser excessivamente confiante ou insegura.
+**Erro comum:** interpretar um Brier score de 0,25 (sempre prever 50%) como bom, quando na verdade
+sinaliza previsão pouco informativa.
+**Onde na prática:** marco 06.
+
+### Gatilho de reversão
+**Em uma frase:** o sinal específico registrado numa decisão que, se aparecer, significa "reveja
+esta decisão agora".
+**No fin-platform:** "se o custo de operação passar de X, revertemos para a solução de mercado" é um
+gatilho de reversão.
+**Erro comum:** registrar uma decisão sem gatilho — sem ele, a decisão nunca é formalmente
+reavaliada.
+**Onde na prática:** marco 06, origem em `arquitetura-de-software/07`.
+
+### *Disagree and commit*
+**Em uma frase:** comprometer-se totalmente com a execução de uma decisão mesmo discordando dela,
+depois de ter sido genuinamente ouvido.
+**No fin-platform:** a pessoa que defendia comprar a solução de mercado se compromete com a decisão
+de construir, depois de sua objeção ter sido considerada.
+**Erro comum:** usar "disagree and commit" para calar discordância que nunca foi de fato ouvida.
+**Onde na prática:** marco 06.
+
+### Custo afundado
+**Em uma frase:** viés de continuar investindo numa decisão ruim porque já se investiu nela, em vez
+de avaliar só o que falta.
+**No fin-platform:** continuar construindo a solução interna de conciliação só porque "já gastamos
+três meses nisso", ignorando que comprar agora seria mais barato daqui para frente.
+**Erro comum:** confundir "já investimos muito" com "vale a pena continuar investindo" — são
+perguntas diferentes.
+**Onde na prática:** marco 06.
