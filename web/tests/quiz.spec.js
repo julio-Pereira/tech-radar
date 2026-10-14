@@ -88,3 +88,87 @@ test.describe('Quiz', () => {
     await expect(node.locator('.quiz-score')).toHaveText('');
   });
 });
+
+// UX item 18: persist best score/date, and "refazer só as erradas" only
+// re-opens the questions that were actually wrong.
+test.describe('Quiz persistence (UX item 18)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(`/#/learn/${SLUG}`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+  });
+
+  test('no best-score line on a first visit, then it appears and persists across reloads', async ({ page }) => {
+    const milestone = await loadQuiz(page, UNGATED_ID);
+    const node = page.locator(`.timeline-node[data-id="${UNGATED_ID}"]`);
+    await node.locator('.node-toggle').click();
+    await expect(node.locator('.milestone-quiz-best')).toHaveCount(0);
+
+    await answerAllCorrectly(node, milestone);
+    await expect(node.locator('.quiz-score')).toContainText(`${milestone.quiz.length} de ${milestone.quiz.length}`);
+
+    await page.reload();
+    await node.locator('.node-toggle').click();
+    await expect(node.locator('.milestone-quiz-best')).toContainText(`${milestone.quiz.length} de ${milestone.quiz.length}`);
+  });
+
+  test('a later worse attempt does not overwrite the best score', async ({ page }) => {
+    const milestone = await loadQuiz(page, UNGATED_ID);
+    const node = page.locator(`.timeline-node[data-id="${UNGATED_ID}"]`);
+    await node.locator('.node-toggle').click();
+    await answerAllCorrectly(node, milestone);
+
+    await node.locator('.quiz-retry-btn').click();
+    // Answer everything wrong this time.
+    const fieldsets = node.locator('.quiz-question');
+    for (let qi = 0; qi < milestone.quiz.length; qi++) {
+      const wrongIdx = (milestone.quiz[qi].answer + 1) % milestone.quiz[qi].options.length;
+      await fieldsets.nth(qi).locator('.quiz-option input[type="radio"]').nth(wrongIdx).check();
+    }
+    await node.locator('.quiz-check-btn').click();
+
+    await page.reload();
+    await node.locator('.node-toggle').click();
+    await expect(node.locator('.milestone-quiz-best')).toContainText(`${milestone.quiz.length} de ${milestone.quiz.length}`);
+  });
+
+  test('"refazer só as erradas" only re-opens the wrong questions, leaving correct ones locked', async ({ page }) => {
+    const milestone = await loadQuiz(page, UNGATED_ID);
+    const node = page.locator(`.timeline-node[data-id="${UNGATED_ID}"]`);
+    await node.locator('.node-toggle').click();
+
+    const fieldsets = node.locator('.quiz-question');
+    // Get the first question wrong, the rest right.
+    for (let qi = 0; qi < milestone.quiz.length; qi++) {
+      const idx = qi === 0
+        ? (milestone.quiz[qi].answer + 1) % milestone.quiz[qi].options.length
+        : milestone.quiz[qi].answer;
+      await fieldsets.nth(qi).locator('.quiz-option input[type="radio"]').nth(idx).check();
+    }
+    await node.locator('.quiz-check-btn').click();
+
+    const retryWrongBtn = node.locator('.quiz-retry-wrong-btn');
+    await expect(retryWrongBtn).toBeVisible();
+    await retryWrongBtn.click();
+
+    // Question 0's inputs are re-enabled; the rest stay disabled (still correct).
+    await expect(fieldsets.nth(0).locator('.quiz-option input').first()).toBeEnabled();
+    if (milestone.quiz.length > 1) {
+      await expect(fieldsets.nth(1).locator('.quiz-option input').first()).toBeDisabled();
+      await expect(fieldsets.nth(1).locator('.quiz-option.correct')).toHaveCount(1);
+    }
+
+    // Answering question 0 correctly now should reach a perfect score.
+    await fieldsets.nth(0).locator('.quiz-option input[type="radio"]').nth(milestone.quiz[0].answer).check();
+    await node.locator('.quiz-check-btn').click();
+    await expect(node.locator('.quiz-score')).toContainText(`${milestone.quiz.length} de ${milestone.quiz.length}`);
+  });
+
+  test('"refazer só as erradas" is hidden on a perfect score', async ({ page }) => {
+    const milestone = await loadQuiz(page, UNGATED_ID);
+    const node = page.locator(`.timeline-node[data-id="${UNGATED_ID}"]`);
+    await node.locator('.node-toggle').click();
+    await answerAllCorrectly(node, milestone);
+    await expect(node.locator('.quiz-retry-wrong-btn')).toBeHidden();
+  });
+});

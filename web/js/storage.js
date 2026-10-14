@@ -117,3 +117,38 @@ export function saveHandsonState(slug, state) {
     // Storage full or unavailable — open/done state just won't persist.
   }
 }
+
+// Quiz history (UX item 18): per course, per milestone — the best score ever
+// reached and when it was last attempted. Independent of tr:progress: a
+// milestone can be completed without ever attempting its quiz (unless
+// `completion: quiz` gates it), and the reader may reattempt after already
+// completing it. Answers themselves are still never persisted (quiz.js's
+// own comment) — only the outcome.
+const QUIZ_PREFIX = 'tr:quiz:';
+
+/** @returns {Record<string, { bestScore: number, total: number, lastAttemptAt: string }>} */
+export function getQuizHistory(slug) {
+  try {
+    const raw = localStorage.getItem(QUIZ_PREFIX + slug);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveQuizAttempt(slug, milestoneId, correct, total) {
+  try {
+    const history = getQuizHistory(slug);
+    const prevBest = history[milestoneId] ? history[milestoneId].bestScore : -1;
+    history[milestoneId] = {
+      bestScore: Math.max(prevBest, correct),
+      total,
+      lastAttemptAt: new Date().toISOString(),
+    };
+    localStorage.setItem(QUIZ_PREFIX + slug, JSON.stringify(history));
+  } catch {
+    // Storage full or unavailable — the attempt still works, just won't persist.
+  }
+}

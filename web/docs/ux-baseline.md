@@ -303,6 +303,43 @@ the untagged-competency display, completing a real milestone (`lideranca-tecnica
 tagged `[estrategia, execucao]`) moving both competencies' numbers, a reset dropping them
 back to zero, axe clean. Full suite: 83/83.
 
+## UX items 17-18 — export/import progress, quiz persistence
+
+Prerequisite for platform melhoria 5 (revisão espaçada), which explicitly depends on both
+("o estado de revisão tem de entrar no export", "persistir quiz"). Built ahead of melhoria 5
+per Julio's call when the dependency surfaced mid-sequence.
+
+**Item 17 (`web/js/progress-io.js`).** Export walks every `tr:*` localStorage key (not a
+hardcoded list) into one versioned JSON file — any future feature that adds a new `tr:*` key
+(melhoria 5's `tr:review:v1` included) is captured automatically, no edit to this file
+required. Import validates the whole file's shape *before* writing anything (a corrupted or
+malformed file never touches existing state), then merges key by key: array-shaped values
+(progress ids, hands-on open/done/seen lists) union together; anything else keeps the local
+value when both sides have one, so import can only ever add. UI lives on `#/learn` (export
+button, import file input, inline status) since it's global, not per-course.
+
+**Disclosed simplification:** the merge for nested-object values (quiz history's per-milestone
+`{bestScore, total, lastAttemptAt}`) keeps the *local* entry wholesale on conflict rather than
+taking the higher score across the two — a real but minor quality gap (importing a better
+score recorded on another device won't win), not required by the acceptance bar (round-trip
+identical; corrupted file doesn't wipe state; union merge), which the array-shaped case (the
+primary motivating one: progress ids) satisfies exactly.
+
+**Item 18 (`storage.js` + `quiz.js`).** `tr:quiz:<slug>` stores, per milestone, the best score
+ever reached and when — shown as "Sua melhor nota: X de Y (data)" above the quiz, persisting
+across reloads, never decreasing on a worse reattempt. "Refazer só as erradas" is a new button
+alongside the existing full "Refazer tudo": it only re-enables the questions that were
+actually wrong, leaving correct ones locked and still marked correct — re-checking re-scores
+the whole set since the locked radios are still `checked`, no separate scoring path needed.
+Answers themselves are still never persisted, only the outcome.
+
+`web/tests/progress-io.spec.js` (5 tests): export shape, round-trip identical, union merge
+(importing a different milestone than the one just completed locally leaves both done),
+corrupted file rejected without touching storage, wrong-shape file rejected. `web/tests/quiz.spec.js`
+gained 4 more (best score appears/persists, a worse attempt doesn't overwrite it, "refazer só
+as erradas" re-opens only the wrong question and a perfect retry then passes, the button hides
+on a perfect first score). Full suite: 92/92.
+
 ## Not touched in this pass (still open from the plan)
 
 - Lighthouse scores, JSON size budget, full 360/768/1280 screenshot set (plan's full
@@ -314,6 +351,6 @@ back to zero, axe clean. Full suite: 83/83.
 
 ## Regression gate going forward
 
-`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 83/83
+`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 92/92
 passing, 0 axe violations of `serious`/`critical` impact across every route tested. The
 plan's ratchet rule applies: these numbers should only improve from here.
