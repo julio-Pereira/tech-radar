@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 142, "desafio": 183, "invariantes": 173, "complemento": 164, "checagem": 182,
+		"tutorial": 145, "desafio": 186, "invariantes": 176, "complemento": 167, "checagem": 185,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -425,17 +425,15 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	wantNoSection := []string{
 		"go-fintech/java-vs-go",
 		// lideranca-tecnica is being written block by block (PLANO-trilha-
-		// lideranca-tecnica.md §4/§10) — Bloco A (01-03) shipped with real
-		// content; these are still placeholder bodies awaiting their PR.
+		// lideranca-tecnica.md §4/§10) — Blocos A (01-03) and B (04-06)
+		// shipped with real content; these are still placeholder bodies
+		// awaiting their PR.
 		"lideranca-tecnica/carreira-impacto-e-capstone",
 		"lideranca-tecnica/contratar-avaliar-e-desenvolver-pessoas",
-		"lideranca-tecnica/decidir-bem-sob-incerteza",
 		"lideranca-tecnica/escrita-rituais-e-reunioes",
 		"lideranca-tecnica/liderar-em-ambiente-regulado",
 		"lideranca-tecnica/liderar-incidentes-e-operacao",
 		"lideranca-tecnica/mentoria-delegacao-e-feedback",
-		"lideranca-tecnica/planejar-e-prever-com-dados",
-		"lideranca-tecnica/programas-riscos-e-dependencias",
 		"lideranca-tecnica/tecnologia-e-negocio",
 	}
 	if !equalStrings(noSection, wantNoSection) {

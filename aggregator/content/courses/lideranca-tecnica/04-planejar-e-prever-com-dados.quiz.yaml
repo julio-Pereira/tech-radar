@@ -1,0 +1,33 @@
+questions:
+  - question: "Um gerente pede para a equipe 'estimar com mais cuidado' depois de perceber que estimativas anteriores foram otimistas demais. Segundo este marco, por que isso provavelmente não resolve o problema?"
+    options:
+      - "A falácia do planejamento persiste mesmo quando a pessoa sabe que tarefas parecidas levaram mais tempo no passado — a saída é usar distribuição histórica, não pedir mais cuidado"
+      - "Pedir mais cuidado sempre resolve o problema, desde que a pessoa dedique tempo suficiente à estimativa"
+      - "O problema é exclusivo de equipes inexperientes; equipes seniores não sofrem da falácia do planejamento"
+      - "A falácia do planejamento só afeta estimativas de prazo superiores a seis meses"
+    answer: 0
+    explanation: "O marco é direto: mesmo sabendo do histórico, as pessoas continuam estimando a tarefa atual como exceção — por isso a solução não é 'mais cuidado', é trocar estimativa individual por previsão baseada na distribuição histórica de entregas. A falácia não é exclusiva de iniciantes nem limitada a prazos longos, e 'mais cuidado' não a neutraliza, segundo o marco."
+  - question: "Ao prever a data de entrega de um backlog, reduzir o número de itens (cortar escopo) nunca deveria atrasar a data prevista pela simulação de Monte Carlo. Segundo este marco, por que essa propriedade é esperada?"
+    options:
+      - "Porque com menos trabalho para fazer, qualquer simulação válida produz uma data igual ou mais cedo do que com o escopo original, para a mesma amostra de throughput"
+      - "Porque a simulação de Monte Carlo ignora completamente o tamanho do backlog ao calcular a previsão"
+      - "A propriedade não é garantida — reduzir escopo pode atrasar a previsão dependendo da semente usada"
+      - "Essa propriedade só vale quando a capacidade do time também é reduzida simultaneamente"
+    answer: 0
+    explanation: "O marco lista essa invariante explicitamente: reduzir escopo nunca atrasa a data prevista, para qualquer semente — é uma propriedade estrutural do modelo (menos trabalho, mesma ou melhor data), não algo condicional à semente ou a mudanças simultâneas de capacidade. Dizer que a simulação ignora o backlog contradiz o próprio mecanismo da previsão, que depende do volume de itens."
+  - question: "Uma funcionalidade tem prazo regulatório fixo em seis semanas, mas a previsão com 85% de confiança aponta oito semanas. Segundo este marco, qual é a conversa correta a se ter?"
+    options:
+      - "Sobre o que cabe em termos de escopo até a data fixa, com qualidade — não sobre pressionar o time a entregar mais rápido"
+      - "Sobre demitir ou substituir membros do time que não conseguem cumprir o prazo regulatório"
+      - "Sobre ignorar o prazo regulatório, já que previsões internas sempre têm prioridade sobre obrigações externas"
+      - "Sobre pedir que o time trabalhe horas extras até a previsão de 85% coincidir com o prazo de seis semanas"
+    answer: 0
+    explanation: "O marco é explícito: quando a data é de fato fixa, a variável que resta é o escopo — a conversa muda para 'o que cabe até a data, com qualidade', não para pressão sobre o time. Não há menção a demissão, horas extras como solução, ou a ideia de que previsões internas possam simplesmente substituir uma obrigação regulatória real (que, aliás, o marco pede para 'conferir' antes de tratar como inegociável)."
+  - question: "Um relatório de previsão apresenta os percentis P50 e P85 de uma data de entrega, mas não menciona o período do histórico usado nem a capacidade assumida do time. Segundo este marco, como esse relatório deveria ser tratado?"
+    options:
+      - "Como incompleto — toda previsão deve vir acompanhada da premissa explícita que a sustenta"
+      - "Como válido e suficiente, já que os percentis numéricos já comunicam toda a informação necessária"
+      - "Como inválido apenas se os percentis forem calculados incorretamente, independentemente da premissa"
+      - "A premissa é opcional e só precisa ser incluída quando o destinatário do relatório é executivo"
+    answer: 0
+    explanation: "O marco trata a premissa (período do histórico, capacidade assumida) como parte obrigatória de uma previsão honesta — um relatório sem ela é incompleto, mesmo que os percentis estejam matematicamente corretos. A premissa não é opcional nem condicionada ao público do relatório; sua ausência é, por si só, o problema apontado."
