@@ -1,0 +1,33 @@
+questions:
+  - question: "Um time acredita que o gargalo é 'falta de gente', mas o mapa de fluxo de valor mostra que 70% do tempo de ciclo é gasto esperando revisão e aprovação. Segundo este marco, o que contratar mais pessoas para escrever código faria?"
+    options:
+      - "Provavelmente pioraria o gargalo, porque geraria mais código competindo pela mesma fila escassa de revisão"
+      - "Resolveria o problema, porque mais pessoas sempre aumentam a velocidade de entrega do time"
+      - "Não teria nenhum efeito, positivo ou negativo, sobre o tempo de ciclo do time"
+      - "Resolveria o problema apenas se as novas pessoas fossem alocadas exclusivamente para revisão de código"
+    answer: 0
+    explanation: "O marco é explícito: contratar para acelerar a etapa que não é o gargalo tende a piorar as coisas, porque gera mais trabalho competindo pela mesma fila escassa (revisão). Mais pessoas não aceleram automaticamente um sistema cujo limite está em outra etapa; o efeito não é neutro, é provavelmente negativo; e a única forma de 'resolver' contratando seria mudar o alvo da contratação para a etapa certa — mas a opção correta já descreve esse raciocínio de forma mais precisa ao apontar o efeito provável de piorar."
+  - question: "Um gestor propõe medir produtividade individual por número de commits por semana. Segundo o efeito Goodhart discutido neste marco, o que tende a acontecer?"
+    options:
+      - "O número de commits sobe sem que a produtividade real mude, porque as pessoas passam a fatiar o trabalho de forma diferente"
+      - "A produtividade real do time aumenta proporcionalmente ao aumento no número de commits"
+      - "O efeito Goodhart só se aplica a métricas de negócio, nunca a métricas técnicas de engenharia"
+      - "Nada muda, porque commits são uma métrica objetiva e não pode ser manipulada pelo comportamento das pessoas"
+    answer: 0
+    explanation: "O efeito Goodhart, como descrito no marco, é exatamente isso: ao virar meta, uma medida deixa de medir bem a coisa original — as pessoas fatiam commits de forma diferente, inflando o número sem mudança real de produtividade. O número subir não significa produtividade subir na mesma proporção; o efeito se aplica a qualquer métrica usada como meta, não só de negócio; e commits são tão manipuláveis quanto qualquer outra métrica de atividade."
+  - question: "Durante uma ronda de escuta, as entrevistas apontam 'falta de clareza de requisitos' como maior atraso, mas o mapa de fluxo mostra que o maior tempo de espera está na etapa de aprovação de mudança. Segundo este marco, o que essa discordância representa?"
+    options:
+      - "Informação valiosa por si só — sinal de que o dado pode estar medindo a coisa errada, ou de que o problema percebido não é o gargalo real"
+      - "Um erro de medição que deve ser descartado, já que a percepção das pessoas é sempre mais confiável que os números"
+      - "Prova de que a ronda de escuta não serve para nada e deveria ser abandonada em favor de métricas puramente quantitativas"
+      - "Uma situação normal e sem importância, que não exige nenhuma investigação adicional"
+    answer: 0
+    explanation: "O marco trata explicitamente a discordância entre percepção e dado como sinal útil a ser investigado — não como erro a descartar automaticamente, nem como motivo para abandonar um dos dois métodos. O diagnóstico completo cruza (triangula) os dois exatamente para capturar esse tipo de divergência, e ignorá-la seria perder a oportunidade de descobrir que a métrica ou a percepção inicial estavam erradas."
+  - question: "Segundo este marco, por que a Lei de Conway sugere que diagnosticar uma organização técnica deveria começar olhando o organograma, e não só a arquitetura do sistema?"
+    options:
+      - "Porque a estrutura de comunicação da organização tende a se refletir na arquitetura — o organograma funciona como hipótese sobre onde as fronteiras de código vão estar"
+      - "Porque o organograma é sempre mais fácil de obter do que diagramas de arquitetura atualizados"
+      - "Porque a Lei de Conway afirma que a arquitetura de software nunca deveria ser influenciada pela estrutura organizacional"
+      - "Porque este marco recomenda ignorar completamente a arquitetura técnica em favor da estrutura de pessoas"
+    answer: 0
+    explanation: "A Lei de Conway, como apresentada no marco, é sobre o espelhamento entre estrutura de comunicação e arquitetura — por isso o organograma serve como hipótese de arquitetura, não porque seja mais conveniente de obter. A lei não prescreve que a arquitetura deva ignorar a estrutura organizacional (é uma observação, não uma recomendação normativa nesse sentido), e o marco não sugere ignorar a arquitetura técnica — sugere usar as duas fontes juntas."

@@ -5,9 +5,11 @@ category: "Liderança e carreira"
 tags: [lideranca-tecnica, tech-lead, staff-engineer, gestao-tecnica, estrategia, previsao, decisao, mentoria, desempenho, incidentes, regulacao, carreira, fintech]
 level: advanced
 lang: pt-BR
-# STUB: 13 marcos planejados, Σ 810 min (regra ~2x -> 27h). Conteúdo completo
-# em PR futura dedicada à trilha; ver PLANO-trilha-lideranca-tecnica.md.
+# 13 marcos, Σ 810 min (regra ~2x -> 27h). Escrita por bloco — ver
+# PLANO-trilha-lideranca-tecnica.md §4/§10 — Bloco A (01-03) já tem
+# conteúdo completo; os demais marcos chegam em PRs subsequentes.
 estimatedHours: 27
+glossary: GLOSSARIO.md
 prerequisites: [arquitetura-de-solucoes, system-design]
 sources:
   - { title: "StaffEng — Staff archetypes (Will Larson)", url: https://staffeng.com/guides/staff-archetypes/ }
@@ -15,7 +17,9 @@ sources:
   - { title: "DORA — Research and metrics", url: https://dora.dev/ }
   - { title: "The SPACE of Developer Productivity (ACM Queue)", url: "https://queue.acm.org/detail.cfm?id=3454124" }
   - { title: "Team Topologies", url: https://teamtopologies.com/ }
+  - { title: "Martin Fowler — Conway's Law", url: https://martinfowler.com/bliki/ConwaysLaw.html }
   - { title: "Google SRE Book — Managing Incidents", url: https://sre.google/sre-book/managing-incidents/ }
+  - { title: "Google SRE Workbook — Incident Response", url: https://sre.google/workbook/incident-response/ }
   - { title: "Amy Edmondson — Psychological safety", url: https://amycedmondson.com/psychological-safety/ }
   - { title: "Google re:Work — Guides (contratação, gestão)", url: https://rework.withgoogle.com/ }
 milestones:

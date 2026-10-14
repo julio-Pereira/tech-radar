@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 139, "desafio": 180, "invariantes": 170, "complemento": 161, "checagem": 179,
+		"tutorial": 142, "desafio": 183, "invariantes": 173, "complemento": 164, "checagem": 182,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -424,19 +424,16 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 
 	wantNoSection := []string{
 		"go-fintech/java-vs-go",
-		// lideranca-tecnica is a stub trilha (13 marcos, placeholder bodies —
-		// see PLANO-trilha-lideranca-tecnica.md for the real content, written
-		// in a future PR): none of them have a real Hands-on section yet.
+		// lideranca-tecnica is being written block by block (PLANO-trilha-
+		// lideranca-tecnica.md §4/§10) — Bloco A (01-03) shipped with real
+		// content; these are still placeholder bodies awaiting their PR.
 		"lideranca-tecnica/carreira-impacto-e-capstone",
 		"lideranca-tecnica/contratar-avaliar-e-desenvolver-pessoas",
 		"lideranca-tecnica/decidir-bem-sob-incerteza",
-		"lideranca-tecnica/diagnostico-da-organizacao-tecnica",
 		"lideranca-tecnica/escrita-rituais-e-reunioes",
-		"lideranca-tecnica/estrategia-tecnica",
 		"lideranca-tecnica/liderar-em-ambiente-regulado",
 		"lideranca-tecnica/liderar-incidentes-e-operacao",
 		"lideranca-tecnica/mentoria-delegacao-e-feedback",
-		"lideranca-tecnica/papel-escopo-e-arquetipos",
 		"lideranca-tecnica/planejar-e-prever-com-dados",
 		"lideranca-tecnica/programas-riscos-e-dependencias",
 		"lideranca-tecnica/tecnologia-e-negocio",
