@@ -144,6 +144,12 @@ export function slugifyTerm(s) {
   return out.replace(/-+$/, '');
 }
 
+/** Returns "YYYY-MM-DD" in the user's local timezone. */
+export function localDateISO(date = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export function freshnessLabel(milestone) {
   if (!milestone.reviewedAt) return null;
   if (milestone.reviewDue && new Date(milestone.reviewDue) < new Date()) {

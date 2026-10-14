@@ -793,6 +793,9 @@
 .quiz-check-btn:focus-visible,
 .quiz-retry-btn:focus-visible,
 .quiz-retry-wrong-btn:focus-visible,
+.review-reveal-btn:focus-visible,
+.review-remembered-btn:focus-visible,
+.review-forgot-btn:focus-visible,
 .quiz-option input:focus-visible,
 .course-glossary-summary:focus-visible,
 .node-complete input:focus-visible,
@@ -1019,6 +1022,82 @@
 }
 
 .skills-table th[scope="row"] { font-weight: 600; }
+
+/* ── Revisão espaçada (#/revisar — UX platform melhoria 5) ────────────────── */
+.review-limit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.review-limit input {
+  width: 4.5rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.review-status {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 1.2rem;
+}
+
+.review-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.3rem;
+  max-width: 560px;
+}
+
+.review-card-track {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-hover);
+  margin-bottom: 0.6rem;
+}
+
+.review-glossary-term {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+}
+
+.review-glossary-summary {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  margin-bottom: 1rem;
+}
+
+.review-reveal-btn,
+.review-remembered-btn,
+.review-forgot-btn {
+  padding: 0.45rem 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-right: 0.6rem;
+}
+
+.review-reveal-btn:hover,
+.review-remembered-btn:hover,
+.review-forgot-btn:hover { border-color: var(--accent); color: var(--text); }
+
+.review-remembered-btn { border-color: var(--accent); color: var(--text); }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
