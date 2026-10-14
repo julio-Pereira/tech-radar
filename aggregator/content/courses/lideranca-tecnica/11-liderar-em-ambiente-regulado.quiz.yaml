@@ -1,0 +1,49 @@
+questions:
+  - question: "Um time identifica um risco de segurança, decide não corrigi-lo imediatamente por restrição de prazo, e simplesmente segue em frente sem documentar nada formalmente. Segundo este marco, por que isso é diferente de 'risco aceito'?"
+    options:
+      - "Risco aceito é uma decisão formal, documentada, com dono e prazo de revisão — a situação descrita é risco ignorado, não risco aceito"
+      - "Não há diferença real entre as duas situações; 'risco aceito' é só um nome mais formal para o mesmo comportamento"
+      - "A diferença só existe se o risco identificado for de natureza regulatória, não de segurança técnica"
+      - "Risco aceito exige aprovação do conselho de administração, enquanto a situação descrita não precisa disso"
+    answer: 0
+    explanation: "O marco é explícito: a diferença entre risco aceito e risco ignorado é inteiramente a documentação formal — dono, prazo, justificativa, controle compensatório. Sem isso, seguir em frente sem registrar é simplesmente ignorar o risco, não aceitá-lo. A distinção não depende do tipo de risco (segurança ou regulatório), e o marco não menciona aprovação de conselho como requisito universal."
+  - question: "Uma exceção de segurança é registrada com dono, justificativa e controle compensatório, mas sem data de expiração — a ideia é que ela 'continue valendo enquanto for necessária'. Segundo este marco, qual é o problema com essa exceção?"
+    options:
+      - "Sem prazo de validade, não é de fato uma exceção — é uma mudança de política não declarada, que nunca é formalmente revisada"
+      - "Não há problema, desde que os outros três campos (dono, justificativa, controle compensatório) estejam presentes e corretos"
+      - "O problema é que exceções nunca deveriam ter controle compensatório, apenas prazo e dono"
+      - "O problema só existiria se a exceção fosse descoberta por um auditor externo"
+    answer: 0
+    explanation: "O marco trata o prazo de validade como um dos quatro campos obrigatórios, e é explícito sobre o motivo: sem data de expiração, a exceção vira uma mudança de política permanente disfarçada de temporária, nunca revisada. Os outros três campos presentes não compensam essa ausência; controle compensatório é, sim, exigido; e o problema existe independentemente de ser descoberto por auditoria externa ou não."
+  - question: "Uma equipe trata toda pergunta de auditoria como uma ameaça a ser respondida com o mínimo de informação possível. Segundo este marco, por que essa postura tende a produzir pior resultado do que tratar a pergunta como checagem legítima?"
+    options:
+      - "Porque a pergunta do auditor geralmente busca verificar se um controle que deveria estar funcionando de fato está — tratá-la como adversarial não muda essa realidade, só piora a relação"
+      - "Porque auditores, segundo este marco, nunca fazem perguntas relevantes sobre controles reais"
+      - "A postura defensiva é, na verdade, a recomendada por este marco para proteger a equipe de responsabilização"
+      - "Não há diferença de resultado entre as duas posturas — a resposta técnica é sempre a mesma"
+    answer: 0
+    explanation: "O marco argumenta que a pergunta do auditor é tipicamente uma checagem legítima sobre se o controle funciona de verdade — uma postura colaborativa tende a produzir melhor resultado do que tratar a interação como adversarial. O marco não recomenda postura defensiva, não afirma que perguntas de auditoria sejam irrelevantes, e a postura adotada pode influenciar a qualidade da interação, mesmo que a resposta técnica de fundo seja a mesma."
+  - question: "Uma funcionalidade tem prazo regulatório fixo em 6 semanas, mas a previsão interna do time (com 85% de confiança) aponta 8 semanas para entregar tudo o que foi planejado. Segundo este marco, qual é a resposta recomendada?"
+    options:
+      - "Propor corte de escopo para entregar o mínimo que cumpre a obrigação na data, deixando o restante para uma fase seguinte"
+      - "Prometer que o prazo de 6 semanas será cumprido integralmente, mesmo sabendo que a previsão aponta 8"
+      - "Ignorar a previsão interna e confiar que a pressão do prazo fará o time trabalhar mais rápido"
+      - "Recusar-se a trabalhar no projeto até que o prazo regulatório seja oficialmente estendido"
+    answer: 0
+    explanation: "O marco aplica a mesma lógica dos marcos 04 e 05: quando o prazo é genuinamente fixo, a variável que resta é o escopo — entregar o mínimo que cumpre a obrigação, não prometer o impossível nem simplesmente ignorar a previsão. Recusar-se a trabalhar não é a resposta proposta, e prometer o que a previsão não sustenta é exatamente o tipo de falsa certeza que os marcos anteriores já desaconselham."
+  - question: "Um produto financeiro usa um padrão de interface que torna a opção de cancelamento de um serviço deliberadamente difícil de encontrar, embora isso esteja tecnicamente dentro dos limites da regulação vigente. Segundo este marco, como essa prática deveria ser tratada?"
+    options:
+      - "Como inaceitável — este marco trata interfaces que escondem a consequência de uma escolha como uma linha a não cruzar, independente de estar dentro da letra da regulação"
+      - "Como aceitável, já que cumprir a letra da regulação vigente é o único critério relevante segundo este marco"
+      - "Como uma questão puramente de design visual, sem relação com ética de produto financeiro"
+      - "Como aceitável desde que a empresa documente formalmente a decisão de dificultar o cancelamento"
+    answer: 0
+    explanation: "O marco é direto sobre essa linha: padrões de interface que enganam são inaceitáveis independentemente de estarem tecnicamente dentro da regulação — a conformidade legal não é tratada como critério ético suficiente. Não é uma questão puramente visual (tem relação direta com ética de produto), e documentar formalmente a prática não a torna aceitável segundo o marco."
+  - question: "Uma exceção de segurança é renovada pela quinta vez consecutiva, sempre com a mesma justificativa original. Segundo este marco, o que esse padrão de renovação repetida sinaliza?"
+    options:
+      - "Risco crônico — um sinal de que a exceção virou, na prática, uma política permanente não declarada, em vez de uma situação temporária genuína"
+      - "Que o processo de exceções está funcionando exatamente como deveria, já que a renovação formal está sendo seguida"
+      - "Nada de relevante — renovações múltiplas são esperadas e não merecem atenção adicional"
+      - "Que o controle compensatório original deveria ser removido, já que a exceção já durou tempo suficiente"
+    answer: 0
+    explanation: "O marco trata exceções renovadas repetidamente como sinal de 'risco crônico' — a formalidade da renovação não compensa o fato de que a exceção deixou de ser temporária na prática. Isso não é o processo 'funcionando bem' (é um sinal de alerta precisamente porque a renovação continua acontecendo), não é irrelevante, e a resposta recomendada não é remover o controle compensatório, mas reavaliar por que a exceção nunca se resolve."

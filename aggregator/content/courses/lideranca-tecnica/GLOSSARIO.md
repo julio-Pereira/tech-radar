@@ -580,3 +580,131 @@ apenas pronta para ele em teoria.
 impacto no escopo do próximo nível.
 **Erro comum:** apresentar evidência só do nível atual, sem demonstrar escopo do nível seguinte.
 **Onde na prática:** marco 09, retomado no 13.
+
+## Operar
+
+### Comandante de incidente
+**Em uma frase:** quem coordena a resposta a um incidente, decidindo prioridade e mantendo visão
+geral — não necessariamente quem conserta.
+**No fin-platform:** durante a queda do Pix, o comandante é a pessoa de plantão, não
+automaticamente a mais sênior disponível.
+**Erro comum:** a pessoa mais sênior assumir o comando por hierarquia, mesmo quando outra pessoa
+está mais bem posicionada para coordenar aquele incidente específico.
+**Onde na prática:** marco 10.
+
+### Escriba (de incidente)
+**Em uma frase:** quem mantém a linha do tempo do incidente em tempo real, não reconstruída de
+memória depois.
+**No fin-platform:** o escriba registra cada ação e decisão com timestamp durante o incidente do
+Pix, não no dia seguinte.
+**Erro comum:** reconstruir a linha do tempo de memória após o incidente — detalhes e ordem se
+perdem.
+**Onde na prática:** marco 10.
+
+### *Post-mortem* sem culpa
+**Em uma frase:** documento de análise de incidente com linha do tempo, fatores contribuintes
+(plural) e ações verificáveis, sem atribuir culpa individual.
+**No fin-platform:** o *post-mortem* da queda do Pix lista múltiplos fatores contribuintes, nunca
+uma única "causa raiz" atribuída a uma pessoa.
+**Erro comum:** usar linguagem de culpa ("falha humana", nome próprio como causa) em vez de
+fatores sistêmicos.
+**Onde na prática:** marco 10.
+
+### Fator contribuinte
+**Em uma frase:** uma das múltiplas causas que se combinaram para produzir um incidente — nunca
+tratado como "a" causa raiz única.
+**No fin-platform:** a queda do Pix teve três fatores contribuintes: configuração de timeout,
+ausência de *circuit breaker* e pico de tráfego não previsto.
+**Erro comum:** simplificar um incidente complexo para uma única causa raiz, perdendo os outros
+fatores que também precisam de ação.
+**Onde na prática:** marco 10.
+
+### Ação verificada (de *post-mortem*)
+**Em uma frase:** ação de *post-mortem* com dono, prazo e critério de verificação — sem os três,
+não é uma ação real, é uma intenção.
+**No fin-platform:** "configurar alarme de timeout" vira ação verificada quando tem dono, prazo e o
+alarme de fato existe e dispara no teste.
+**Erro comum:** registrar uma ação sem critério de verificação — fica impossível saber depois se
+ela foi de fato concluída.
+**Onde na prática:** marco 10.
+
+### Orçamento de erro
+**Em uma frase:** o quanto de indisponibilidade um sistema pode ter, dentro do SLO, antes que a
+prioridade mude de lançar para estabilizar.
+**No fin-platform:** quando o orçamento de erro do trimestre cai abaixo de 20%, lançamentos não
+críticos são congelados, por política acordada previamente.
+**Erro comum:** negociar a resposta ao consumo do orçamento de erro no momento da crise, em vez de
+ter a política definida com antecedência.
+**Onde na prática:** marco 10, origem em `observabilidade/12`.
+
+### Equidade de plantão
+**Em uma frase:** distribuição justa da carga de plantão entre as pessoas do time, medida
+formalmente (por exemplo, por índice de Gini).
+**No fin-platform:** o índice de Gini do plantão do Time Pix revela desigualdade que a percepção
+subjetiva da equipe não capturava.
+**Erro comum:** confiar na percepção subjetiva ("todo mundo reclama igual") em vez de medir a
+distribuição real.
+**Onde na prática:** marco 10.
+
+### Prontidão de produção
+**Em uma frase:** checklist verificado antes de um lançamento importante — SLO definido, *runbook*
+escrito, alarme configurado, plano de rollback testado.
+**No fin-platform:** o lançamento da nova funcionalidade do Pix não acontece até o checklist de
+prontidão de produção estar completo.
+**Erro comum:** tratar prontidão de produção como burocracia opcional, pulada sob pressão de prazo.
+**Onde na prática:** marco 10.
+
+## Regulado
+
+### Modelo de três linhas
+**Em uma frase:** estrutura que separa operação/negócio (primeira linha), riscos e compliance
+(segunda linha) e auditoria interna (terceira linha).
+**No fin-platform:** o time técnico do Time Pix vive majoritariamente na primeira linha, mas
+interage regularmente com a segunda e a terceira.
+**Erro comum:** tratar a segunda e a terceira linha como obstáculo, em vez de parte do sistema de
+controle que também protege o time.
+**Onde na prática:** marco 11.
+
+### Risco aceito
+**Em uma frase:** decisão formal e documentada de conviver com um risco identificado, com dono e
+prazo de revisão — diferente de simplesmente ignorá-lo.
+**No fin-platform:** o risco de latência na validação de terceiros é aceito formalmente, com
+controle compensatório e revisão em 30 dias.
+**Erro comum:** tratar "não corrigir agora" como risco aceito, sem a documentação formal que faz a
+diferença entre aceitar e ignorar.
+**Onde na prática:** marco 11.
+
+### Controle compensatório
+**Em uma frase:** medida que mitiga um risco enquanto uma exceção ou risco aceito está ativo, sem
+eliminar a causa original.
+**No fin-platform:** enquanto a exceção de criptografia legada está ativa, o controle compensatório
+é monitoramento reforçado do tráfego afetado.
+**Erro comum:** declarar um controle compensatório vago demais para de fato mitigar algo
+("monitoramento atento") — passa na estrutura, falha na prática.
+**Onde na prática:** marco 11.
+
+### Exceção (registro de)
+**Em uma frase:** desvio formal de uma política ou controle, com dono, prazo de validade,
+justificativa e controle compensatório.
+**No fin-platform:** a exceção de uso de uma biblioteca desatualizada no `fin-platform` tem prazo de
+60 dias e controle compensatório declarado.
+**Erro comum:** registrar uma exceção sem prazo de validade — sem data, não é exceção, é mudança de
+política não declarada.
+**Onde na prática:** marco 11.
+
+### Alçada
+**Em uma frase:** o nível de aprovador exigido para um risco ou exceção, proporcional ao impacto
+declarado.
+**No fin-platform:** uma exceção de alto impacto no `fin-platform` exige aprovador de nível sênior,
+**conferir** a tabela real da instituição.
+**Erro comum:** aprovar um risco de alto impacto no mesmo nível que se aprovaria um risco trivial.
+**Onde na prática:** marco 11.
+
+### Terceiro (risco de)
+**Em uma frase:** exposição de risco gerada por um fornecedor, provedor de nuvem ou qualquer
+dependência externa.
+**No fin-platform:** um incidente no provedor de certificado mTLS do `fin-platform` pode gerar a
+mesma obrigação de notificação que um incidente interno.
+**Erro comum:** assumir que "o fornecedor cuida disso", sem avaliação própria de risco nem plano de
+saída contratual.
+**Onde na prática:** marco 11.
