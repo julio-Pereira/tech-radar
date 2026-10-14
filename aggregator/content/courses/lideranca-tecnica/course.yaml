@@ -5,9 +5,9 @@ category: "Liderança e carreira"
 tags: [lideranca-tecnica, tech-lead, staff-engineer, gestao-tecnica, estrategia, previsao, decisao, mentoria, desempenho, incidentes, regulacao, carreira, fintech]
 level: advanced
 lang: pt-BR
-# 13 marcos, Σ 810 min (regra ~2x -> 27h). Escrita por bloco — ver
-# PLANO-trilha-lideranca-tecnica.md §4/§10 — Bloco A (01-03) já tem
-# conteúdo completo; os demais marcos chegam em PRs subsequentes.
+# 13 marcos, Σ 810 min (regra ~2x -> 27h). Escrita por bloco, por
+# PLANO-trilha-lideranca-tecnica.md §4/§10 — todos os 13 marcos (Blocos
+# A-E) têm conteúdo completo.
 estimatedHours: 27
 glossary: GLOSSARIO.md
 prerequisites: [arquitetura-de-solucoes, system-design]

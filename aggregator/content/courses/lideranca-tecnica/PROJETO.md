@@ -1,10 +1,10 @@
 # `fin-leadkit` — projeto guia da trilha `lideranca-tecnica`
 
-> **Stub.** Esta trilha ainda está em `course.yaml` + 13 marcos placeholder — ver o aviso em
-> cada marco. Este `PROJETO.md` reproduz a especificação já fechada em
-> `PLANO-trilha-lideranca-tecnica.md` §7; a implementação real do `fin-leadkit` (CLI, modelos,
-> *fixtures* do Time Pix, casos) chega na mesma PR futura que escreve o conteúdo completo dos
-> marcos.
+> Os 13 marcos desta trilha têm conteúdo completo. Este `PROJETO.md` é a especificação do
+> `fin-leadkit` (fechada em `PLANO-trilha-lideranca-tecnica.md` §7) — como em toda trilha do
+> `fin-platform`, a implementação real (CLI, modelos, *fixtures* do Time Pix, casos) é o projeto
+> que **você** constrói no seu próprio repositório enquanto lê a trilha, não código que existe
+> neste.
 
 Componente do `fin-platform`. Não é um marco: é a especificação do projeto pessoal que você
 constrói enquanto lê a trilha. O `fin-leadkit` é o **kit de liderança** do `fin-platform`: uma

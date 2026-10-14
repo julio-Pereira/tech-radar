@@ -1,16 +1,18 @@
-# Mapa de capstones do fin-platform (UX platform melhoria 7, fase 1 — mapa
-# e dado, sem verificador; a CLI fin-check fica para uma fase 2 futura).
+# Mapa de capstones do fin-platform (UX platform melhoria 7). Fase 1 (mapa
+# e dado) and fase 2 (the tools/fin-check CLI, which reads the compiled
+# capstones.json) are both in place now.
 # component names and depends_on edges are drawn from each trilha's own
 # PROJETO.md "Contratos com os vizinhos" table (the "consome" rows) — only
 # specific, named dependencies are listed here, not the generic "todas as
 # trilhas" rows (ADRs/radar), which aren't a single actionable edge for a
-# component map. lideranca-tecnica is not included yet: it's still a stub
-# trilha (PR #36) with no "## Capstone" section in real content.
+# component map.
 #
 # Artifacts intentionally list only each component's own root path for now
-# — a richer per-component artifact list (specific files/commands a real
-# `fin-check` could run) is phase-2 scope, not fabricated here ahead of
-# that CLI existing to run against them.
+# — a richer per-component artifact list (specific files fin-check could
+# actually check per command) is left for whenever a component needs more
+# than existence verified. Every `check` value here must stay inside
+# tools/fin-check's allowlist ("exists", "make <target>", "go test ./...")
+# — compileCapstones() rejects the build otherwise.
 
 - track: spring-boot
   component: pix-gateway
@@ -107,3 +109,9 @@
   depends_on: [fin-pipeline, fin-landscape, fin-platform]
   artifacts:
     - { path: "fin-devplatform/", check: exists }
+
+- track: lideranca-tecnica
+  component: fin-leadkit
+  depends_on: [fin-pipeline, fin-watch, fin-landscape]
+  artifacts:
+    - { path: "fin-leadkit/", check: exists }
