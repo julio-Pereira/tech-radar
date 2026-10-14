@@ -1,0 +1,33 @@
+questions:
+  - question: "Uma narrativa de impacto para pacote de promoção descreve um projeto como 'tive um impacto muito grande na confiabilidade do sistema'. Segundo este marco, por que essa narrativa é insuficiente para um comitê de promoção, mesmo que o projeto tenha sido real e importante?"
+    options:
+      - "Falta resultado mensurável com fonte — 'impacto muito grande' é um adjetivo, não evidência que o comitê consiga avaliar sem confiar apenas na palavra de quem escreveu"
+      - "A narrativa é insuficiente porque não menciona o nome da tecnologia usada no projeto"
+      - "Não há problema real, já que comitês de promoção avaliam principalmente a dedicação demonstrada, não números"
+      - "O problema é que a narrativa deveria ter sido escrita por outra pessoa do time, nunca pela própria pessoa"
+    answer: 0
+    explanation: "O marco é explícito sobre as quatro partes de uma narrativa de impacto, e resultado mensurável com fonte é uma delas — sem número e sem fonte, 'impacto muito grande' é afirmação, não evidência. O comitê não avalia principalmente por dedicação, a tecnologia específica não é o ponto, e a narrativa pode (e geralmente deve) ser escrita pela própria pessoa, desde que apoiada em evidência."
+  - question: "Uma pessoa divulga amplamente seu próprio trabalho em fóruns internos, mas a narrativa nunca menciona o time nem o efeito sobre outras pessoas — só o que ela, individualmente, fez. Segundo este marco, o que esse padrão sugere sobre a linha entre visibilidade legítima e autopromoção?"
+    options:
+      - "Que vale reexaminar: a linha geralmente está em quem mais se beneficia da narrativa, e quando só a própria pessoa aparece, é um sinal de autopromoção, não de visibilidade legítima"
+      - "Que não há problema algum, porque qualquer divulgação do próprio trabalho é sempre visibilidade legítima"
+      - "Que a pessoa deveria parar de divulgar qualquer trabalho publicamente, segundo este marco"
+      - "Que o problema só existiria se a divulgação fosse feita fora do horário de trabalho"
+    answer: 0
+    explanation: "O marco propõe esse critério específico: a linha entre visibilidade legítima e autopromoção está, frequentemente, em quem mais se beneficia da narrativa — se o time também aparece, é visibilidade; se só a pessoa aparece, vale reexaminar. O marco não condena toda divulgação, nem recomenda parar de divulgar; o horário não é um critério mencionado."
+  - question: "Uma pessoa trabalha como gestora técnica por dois anos, depois decide voltar a ser individual contributor (IC) em nível Staff. Segundo este marco, como esse movimento deveria ser interpretado?"
+    options:
+      - "Como um movimento válido do pêndulo entre IC e gestão — não como um recuo ou fracasso na carreira"
+      - "Como um sinal claro de que a pessoa fracassou na gestão técnica"
+      - "Como algo que só é aceitável se a pessoa nunca mais tentar gestão novamente"
+      - "Como uma escolha que não existe na prática, já que a carreira é descrita como uma escada única com gestão no topo"
+    answer: 0
+    explanation: "O marco descreve a escolha entre IC, gestão técnica e híbrido como um pêndulo revisitável, não uma escada única com gestão no topo — muitas pessoas transitam entre os dois mais de uma vez, e cada movimento é uma decisão válida, não um recuo. O marco não trata a volta ao IC como fracasso, nem exige que a pessoa nunca mais considere gestão."
+  - question: "Durante o capstone desta trilha, o diretório `dossie/` aparece acidentalmente no índice do Git de um repositório. Segundo este marco, o que deveria acontecer e por quê?"
+    options:
+      - "`make check-privacidade` deveria falhar — o dossiê pessoal precisa ficar fora do controle de versão porque pode conter reflexões privadas e, potencialmente, dados que não deveriam ser compartilhados"
+      - "Nada deveria acontecer, já que o dossiê é só um resumo de artefatos já públicos no repositório"
+      - "O sistema deveria apenas registrar um aviso informativo, nunca falhar a verificação"
+      - "O problema só seria relevante se o dossiê contivesse código-fonte, não reflexões de carreira"
+    answer: 0
+    explanation: "O marco é direto: `make check-privacidade` falha especificamente se o diretório `dossie/` aparecer no índice do Git, porque esse diretório é pessoal e privado por design — não um resumo público. A verificação é uma falha ativa, não um aviso informativo, e o conteúdo relevante não se limita a código-fonte."
