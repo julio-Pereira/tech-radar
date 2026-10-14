@@ -451,3 +451,132 @@ três meses nisso", ignorando que comprar agora seria mais barato daqui para fre
 **Erro comum:** confundir "já investimos muito" com "vale a pena continuar investindo" — são
 perguntas diferentes.
 **Onde na prática:** marco 06.
+
+## Pessoas
+
+### Mentoria
+**Em uma frase:** compartilhar a própria experiência e conhecimento com outra pessoa.
+**No fin-platform:** "quando passei por uma migração parecida, o que funcionou foi..." é mentoria.
+**Erro comum:** confundir mentoria com patrocínio — mentoria ajuda a crescer, patrocínio cria a
+oportunidade de ser visto.
+**Onde na prática:** marco 07.
+
+### *Coaching*
+**Em uma frase:** ajudar a outra pessoa a encontrar a própria resposta, por meio de perguntas, sem
+impor a resposta de quem ajuda.
+**No fin-platform:** perguntar "o que você já tentou?" em vez de dizer diretamente o que fazer.
+**Erro comum:** fazer *coaching* quando a pessoa precisa, de fato, de uma resposta direta (mentoria)
+— os dois modos servem a momentos diferentes.
+**Onde na prática:** marco 07.
+
+### Patrocínio (*sponsorship*)
+**Em uma frase:** usar a própria posição e credibilidade para abrir oportunidade concreta para
+alguém que não está na sala.
+**No fin-platform:** indicar uma pessoa do time para liderar um projeto visível numa reunião em que
+ela não está presente.
+**Erro comum:** confundir patrocínio com simplesmente elogiar alguém publicamente — patrocínio cria
+oportunidade concreta, não só reconhecimento.
+**Onde na prática:** marco 07.
+
+### Nível de delegação
+**Em uma frase:** um dos sete pontos de uma escala (contar, vender, consultar, concordar,
+aconselhar, perguntar, delegar) que define o grau de autonomia numa tarefa delegada.
+**No fin-platform:** a mesma pessoa pode estar em "delegar" para testes automatizados e em
+"consultar" para decisão de schema do ledger.
+**Erro comum:** delegar sem declarar o nível — a pessoa delegada fica sem saber se tinha autonomia
+total ou deveria ter consultado antes.
+**Onde na prática:** marco 07.
+
+### SBI (Situação-Comportamento-Impacto)
+**Em uma frase:** modelo de feedback que descreve a situação, o comportamento observável e o
+impacto causado, sem julgar caráter.
+**No fin-platform:** "na reunião de ontem, quando você interrompeu três vezes, as pessoas pararam
+de propor ideias" é SBI; "você é arrogante" não é.
+**Erro comum:** descrever intenção ou caráter ("você não se importa") em vez de comportamento
+observável.
+**Onde na prática:** marcos 07 e 09.
+
+### Segurança psicológica
+**Em uma frase:** a crença compartilhada de que o time é seguro para risco interpessoal — admitir
+erro, discordar, fazer pergunta "óbvia".
+**No fin-platform:** um engenheiro júnior admite não entender o fluxo de conciliação sem medo de
+julgamento, e a dúvida vira uma melhoria de documentação.
+**Erro comum:** achar que segurança psicológica significa ausência de desacordo ou de padrão alto —
+os times mais eficazes combinam as duas coisas.
+**Onde na prática:** marco 07, retomado no 10.
+
+### 1:1
+**Em uma frase:** conversa recorrente entre líder e liderado, com pauta majoritariamente definida
+por quem é liderado.
+**No fin-platform:** o 1:1 semanal do Time Pix sempre retoma os compromissos datados da conversa
+anterior antes de abrir novos temas.
+**Erro comum:** o líder dominar a pauta com atualizações de projeto, virando um status update de
+mão única.
+**Onde na prática:** marco 07.
+
+### Fator-ônibus
+**Em uma frase:** medida de concentração de risco — quantas pessoas precisariam sair para que uma
+área do conhecimento ficasse sem ninguém que a entenda.
+**No fin-platform:** calculado por área do código do `fin-platform`, nunca por pessoa nomeada.
+**Erro comum:** calcular ou interpretar fator-ônibus por pessoa — a métrica existe para encontrar
+risco sistêmico, nunca para vigiar indivíduos.
+**Onde na prática:** marco 07.
+
+### Entrevista estruturada
+**Em uma frase:** processo de entrevista com critérios definidos por nível, perguntas comparáveis e
+rubrica com âncoras, aplicado de forma consistente entre candidatos.
+**No fin-platform:** a rubrica de entrevista sênior do Time Pix tem descrições concretas para cada
+nota, não só um número.
+**Erro comum:** deixar cada entrevistador seguir roteiro próprio sem rubrica compartilhada.
+**Onde na prática:** marco 09.
+
+### Âncora (de rubrica)
+**Em uma frase:** descrição concreta do que uma nota específica significa numa rubrica de avaliação.
+**No fin-platform:** a nota 3 de uma rubrica de entrevista tem uma descrição concreta do
+comportamento esperado, não só o número "3".
+**Erro comum:** usar rubrica sem âncoras — cada avaliador interpreta a escala numérica de um jeito
+diferente.
+**Onde na prática:** marco 09.
+
+### Kappa (concordância)
+**Em uma frase:** coeficiente que mede a concordância entre avaliadores aplicando a mesma rubrica.
+**No fin-platform:** o kappa calculado sobre notas sintéticas de múltiplos entrevistadores revela se
+a rubrica está sendo aplicada de forma consistente.
+**Erro comum:** assumir que uma rubrica compartilhada garante consistência sem medir a concordância
+real entre quem a aplica.
+**Onde na prática:** marco 09.
+
+### Viés de recência
+**Em uma frase:** tendência de as últimas semanas de um período pesarem desproporcionalmente mais
+na avaliação do que o resto do período.
+**No fin-platform:** uma avaliação de meio de ano que reflete majoritariamente as últimas três
+semanas, não os seis meses inteiros.
+**Erro comum:** confiar na memória para reconstruir uma avaliação, em vez de manter registro
+contínuo de evidência distribuída no tempo.
+**Onde na prática:** marco 09.
+
+### Viés de halo
+**Em uma frase:** uma impressão forte numa dimensão contamina o julgamento de todas as outras
+dimensões avaliadas.
+**No fin-platform:** uma pessoa muito articulada em reuniões é avaliada como tecnicamente mais forte
+do que a evidência de entregas sustenta.
+**Erro comum:** confundir viés de halo com viés de recência — são mecanismos diferentes de
+distorção.
+**Onde na prática:** marco 09.
+
+### Plano de melhoria
+**Em uma frase:** documento formal com comportamento observável, critério de sucesso, apoio
+concreto do líder, checkpoints datados e consequência declarada.
+**No fin-platform:** o plano de melhoria de um caso fictício do Time Pix declara a consequência
+("revisão em 60 dias") desde o início, não como surpresa no final.
+**Erro comum:** escrever um plano de melhoria sem apoio concreto do líder — vira só uma lista de
+cobranças.
+**Onde na prática:** marco 09.
+
+### Pacote de promoção
+**Em uma frase:** conjunto de evidências de que uma pessoa já opera no escopo do nível seguinte, não
+apenas pronta para ele em teoria.
+**No fin-platform:** o pacote de promoção de um Staff fictício reúne projetos com evidência de
+impacto no escopo do próximo nível.
+**Erro comum:** apresentar evidência só do nível atual, sem demonstrar escopo do nível seguinte.
+**Onde na prática:** marco 09, retomado no 13.

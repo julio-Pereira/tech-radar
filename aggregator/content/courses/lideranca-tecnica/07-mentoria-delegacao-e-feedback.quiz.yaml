@@ -1,0 +1,49 @@
+questions:
+  - question: "Um líder técnico indica o nome de uma engenheira sênior para liderar um projeto visível numa reunião em que ela não está presente, sem antes ensinar nada a ela sobre o assunto. Segundo este marco, que ferramenta é essa?"
+    options:
+      - "Patrocínio — usar posição e credibilidade para abrir uma oportunidade concreta quando a pessoa não está na sala, diferente de mentoria"
+      - "Mentoria — compartilhar experiência própria para ajudar a pessoa a crescer tecnicamente"
+      - "Coaching — ajudar a pessoa a encontrar a própria resposta através de perguntas"
+      - "Delegação de nível 'contar' — decidir e apenas informar a pessoa depois"
+    answer: 0
+    explanation: "O marco distingue patrocínio justamente por essa característica: usar credibilidade para criar oportunidade quando a pessoa não está presente para se autopromover. Não é mentoria (não há compartilhamento de experiência aqui), não é coaching (não há pergunta nem resposta sendo elaborada), e não é delegação (não há uma tarefa sendo atribuída com decisão a ser tomada)."
+  - question: "Um gestor delega uma tarefa dizendo apenas 'cuide disso', sem especificar resultado esperado, restrições ou quando ele vai querer saber do andamento. Segundo este marco, qual é o problema central dessa delegação?"
+    options:
+      - "A ausência de um nível declarado (da escala de sete pontos) deixa a pessoa sem saber se tinha autonomia total ou se deveria ter consultado antes de agir"
+      - "O problema é que a tarefa foi delegada, quando deveria ter sido feita pelo próprio gestor"
+      - "Não há problema — delegação eficaz é justamente dar liberdade total, sem nenhuma estrutura"
+      - "O problema é usar linguagem informal ('cuide disso') em vez de um memorando formal por escrito"
+    answer: 0
+    explanation: "O marco explica que delegação funciona quando declara resultado, restrições, checkpoints e nível explícito — a ambiguidade do nível é o que deixa a pessoa delegada numa posição incerta sobre o grau de autonomia esperado. O problema não é delegar em si (delegação bem feita é recomendada), não é sobre liberdade total sem estrutura (isso também é ambíguo), e não é sobre formalidade da linguagem usada."
+  - question: "Um gestor diz a um membro do time: 'você é desorganizado e isso está atrapalhando o projeto'. Segundo o modelo SBI discutido neste marco, o que está faltando nesse feedback?"
+    options:
+      - "Falta a situação específica e o comportamento observável — 'desorganizado' é um julgamento de caráter, não uma descrição de comportamento"
+      - "Nada está faltando — esse feedback já segue perfeitamente o modelo situação-comportamento-impacto"
+      - "Falta apenas adicionar uma data específica ao final da frase para o feedback ficar completo"
+      - "O feedback está correto, mas deveria ter sido dado em uma avaliação formal trimestral, não no momento"
+    answer: 0
+    explanation: "O marco contrasta exatamente esse tipo de frase ('você é descuidado') com um exemplo SBI real — o problema é que 'desorganizado' julga o caráter da pessoa em vez de descrever um comportamento específico observável numa situação determinada, seguido do impacto real causado. Adicionar só uma data não resolve a ausência de situação e comportamento; e o marco recomenda feedback rápido e específico, não acumulado para avaliações formais."
+  - question: "Ao calcular o fator-ônibus de um repositório, o modelo do fin-leadkit agrega a concentração de conhecimento por área do código, nunca por pessoa nomeada. Segundo este marco, por que essa escolha de design é inegociável?"
+    options:
+      - "Porque métricas por pessoa viram vigilância individual e o objetivo é identificar risco sistêmico, não ranquear quem sabe mais"
+      - "Porque é tecnicamente impossível calcular fator-ônibus por pessoa a partir de um histórico de commits"
+      - "Porque a métrica por área é mais fácil de calcular do ponto de vista puramente computacional"
+      - "A escolha não é inegociável — é apenas uma preferência de implementação que poderia ser revertida sem problema"
+    answer: 0
+    explanation: "O marco é claro: o cálculo por área, nunca por pessoa, existe para evitar que a métrica vire vigilância individual — o objetivo é encontrar onde o conhecimento está concentrado como risco sistêmico, não apontar indivíduos. Não é uma questão de viabilidade técnica (seria perfeitamente calculável por pessoa) nem de facilidade de implementação, e a salvaguarda ética da trilha trata essa escolha como não negociável, não como preferência reversível."
+  - question: "Depois de ler sobre segurança psicológica, um líder conclui que o time deveria evitar qualquer forma de desacordo ou crítica para manter o ambiente 'seguro'. Segundo este marco, o que essa conclusão ignora?"
+    options:
+      - "A pesquisa mostra que os times mais eficazes combinam segurança psicológica com padrão de excelência alto — sem o padrão alto, o resultado é conforto sem entrega"
+      - "Segurança psicológica, segundo este marco, não tem nenhuma relação com desempenho de equipe"
+      - "A conclusão está correta — evitar todo desacordo é exatamente o que a pesquisa sobre segurança psicológica recomenda"
+      - "O marco afirma que segurança psicológica só é relevante para times muito grandes, acima de 20 pessoas"
+    answer: 0
+    explanation: "O marco é explícito sobre o que a pesquisa NÃO diz: segurança psicológica não significa ausência de desacordo ou de padrão alto — os times mais eficazes combinam as duas coisas, e uma sem a outra produz conforto sem resultado (ou medo sem aprendizado, no caso oposto). A pesquisa tem relação direta com desempenho (é um dos achados mais robustos sobre times de alto desempenho), e não há menção a tamanho mínimo de time para a relevância do conceito."
+  - question: "Um 1:1 semanal entre um líder e um membro do time segue sempre a mesma pauta: o líder passa 25 minutos dando atualizações de projeto, sem perguntar nada sobre o que a outra pessoa quer discutir. Segundo este marco, qual é o problema com esse formato?"
+    options:
+      - "A pauta deveria ser majoritariamente definida pela pessoa liderada; do contrário, o 1:1 vira apenas um status update de mão única"
+      - "Não há problema — 1:1s deveriam ser conduzidos inteiramente pelo líder, que tem mais contexto estratégico"
+      - "O único problema é a duração de 25 minutos, que deveria ser estendida para uma hora completa"
+      - "O formato está correto, desde que o líder lembre de perguntar 'alguma dúvida?' ao final da conversa"
+    answer: 0
+    explanation: "O marco afirma que um 1:1 eficaz segue pauta majoritariamente definida pela pessoa liderada — quando o líder domina a conversa com atualizações, o instrumento perde sua função e vira comunicação de mão única. A duração não é o problema central apontado, e perguntar genericamente 'alguma dúvida?' ao final não substitui a pessoa liderada definir a pauta desde o início."
