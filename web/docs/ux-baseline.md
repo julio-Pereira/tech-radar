@@ -390,6 +390,36 @@ a plain message, axe clean on an open quiz card. Full suite: 101/101 (Playwright
 to box 0 regardless of starting box, due date is never in the past across leap-year/month/year
 boundaries, determinism, `isDue` boundary cases).
 
+## Melhoria 7 — mapa de capstones do fin-platform, fase 1 (`TASK-plat-melhorias-lideranca.md` §7)
+
+Map and data only — the `fin-check` verifier CLI is explicitly phase 2, not scheduled yet
+(your call: map now, verifier later).
+
+`#/fin-platform` (`capstone-view.js`) over the `capstones.json` compiled in the previous PR:
+a pure-SVG component map (no library), boxes laid out by topological depth (leaves — no
+dependencies — in row 0, everything else one row below its deepest dependency) and computed
+with plain BFS-style memoized recursion, not a layout library. Edges are drawn first, boxes
+after, so each line's far end disappears cleanly under the box it touches instead of needing
+pixel-perfect clipping; the arrowhead itself *is* precisely clipped to the target box's edge
+(simple rectangle-intersection along the line's direction) so it stays visible rather than
+hiding under the box too. The map `<svg>` is `aria-hidden="true"` — an equivalent `<table>`
+right below carries the identical component/dependency data in accessible markup, same
+"chart + table" pattern melhoria 2's `#/skills` already established. An "Artefatos por
+trilha" list follows, explicit that nothing on it is executed automatically yet.
+
+16 of 17 real trilhas are mapped — component names and the dependency graph are pulled
+directly from each trilha's own `PROJETO.md` "Contratos com os vizinhos" table, not invented.
+`lideranca-tecnica` isn't included (still a stub, no real `## Capstone` section).
+
+`web/tests/capstone.spec.js` (4 tests) against the real compiled data: a box per component
+(16) and a matching table row count, a specific leaf (`pix-gateway`, no dependencies) and a
+specific multi-dependency component (`fin-blueprint`) both verified against the table, the
+map's `aria-hidden` attribute, the artifacts list's "nothing executed yet" disclaimer, axe
+clean. Full suite: 105/105.
+
+This closes out all 8 platform melhorias from `TASK-plat-melhorias-lideranca.md` (order
+8→3→6→1→4→2→5→7, as confirmed) plus their two UX-plan prerequisites (items 17-18).
+
 ## Not touched in this pass (still open from the plan)
 
 - Lighthouse scores, JSON size budget, full 360/768/1280 screenshot set (plan's full
@@ -402,6 +432,6 @@ boundaries, determinism, `isDue` boundary cases).
 ## Regression gate going forward
 
 `web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently:
-101/101 Playwright + 7/7 `node --test` passing, 0 axe violations of `serious`/`critical`
-impact across every route tested. The
-plan's ratchet rule applies: these numbers should only improve from here.
+105/105 Playwright + 7/7 `node --test` passing, 0 axe violations of `serious`/`critical`
+impact across every route tested. The plan's ratchet rule applies: these numbers should
+only improve from here.

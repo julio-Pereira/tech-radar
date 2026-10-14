@@ -1099,6 +1099,57 @@
 
 .review-remembered-btn { border-color: var(--accent); color: var(--text); }
 
+/* ── Mapa do fin-platform (#/fin-platform — UX platform melhoria 7) ──────── */
+.capstone-map { width: 100%; height: auto; margin-bottom: 1.5rem; }
+
+.capstone-box { fill: var(--surface2); stroke: var(--border); stroke-width: 1.5; }
+
+.capstone-box-label {
+  fill: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  text-anchor: middle;
+}
+
+.capstone-box-track {
+  fill: var(--text-muted);
+  font-size: 9px;
+  font-family: inherit;
+  text-anchor: middle;
+}
+
+.capstone-edge { stroke: var(--text-muted); stroke-width: 1.5; }
+.capstone-arrowhead { fill: var(--text-muted); }
+
+.capstone-table {
+  width: 100%;
+  margin-bottom: 1.8rem;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.capstone-table th,
+.capstone-table td {
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.capstone-table th[scope="col"] {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.capstone-table th[scope="row"] { font-weight: 600; }
+
+.capstone-artifacts-list { font-size: 0.85rem; }
+.capstone-artifacts-list dt { font-weight: 600; margin-top: 0.7rem; }
+.capstone-artifacts-list dd { color: var(--text-muted); margin-left: 0; }
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .timeline-node {

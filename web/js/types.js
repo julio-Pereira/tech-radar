@@ -19,5 +19,7 @@
 /** @typedef {{ slug: string, marcoId: string, title: string, estimatedMinutes: number }} SkillMilestoneRef */
 /** @typedef {{ id: string, label: string, group: string, totalMinutes: number, milestones: SkillMilestoneRef[] }} Skill */
 /** @typedef {{ slug: string, marcoId: string, milestoneTitle: string, question: string, options: string[], answer: number, explanation?: string }} QuizBankItem */
+/** @typedef {{ path: string, check: string }} CapstoneArtifact */
+/** @typedef {{ track: string, trackTitle: string, component: string, dependsOn: string[], artifacts: CapstoneArtifact[] }} CapstoneComponent */
 
 export {};
