@@ -5,6 +5,7 @@ web/data/glossary.json
 web/data/search-index.json
 web/data/skills.json
 web/data/quiz-bank.json
+web/data/capstones.json
 aggregator/tech-radar
 # cache/ is intentionally NOT ignored — committed to repo so CI can use it
 
