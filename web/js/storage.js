@@ -2,6 +2,7 @@
 // Learning tracks: all localStorage access, in one place. Every read/write is
 // guarded so corrupt/unavailable storage degrades gracefully (0% progress,
 // no "continue" offered) instead of throwing.
+import { localDateISO } from './dom-helpers.js';
 
 // Storage is per-course: tr:progress:<slug> → JSON array of completed
 // milestone ids.
@@ -151,4 +152,62 @@ export function saveQuizAttempt(slug, milestoneId, correct, total) {
   } catch {
     // Storage full or unavailable — the attempt still works, just won't persist.
   }
+}
+
+// Spaced review (UX platform melhoria 5): one global key, not per-course —
+// a review session mixes cards from every trilha. `cards` maps a stable
+// cyrb53 id (hash.js) to its Leitner box + next due date (review-scheduler.js
+// computes both, never this file). `todayCount` is how many cards have been
+// reviewed since `todayDate`; a new day resets the count but never touches
+// `cards` — the scheduler decides what's due, this module just persists it.
+// Empty/corrupt state means "recompute from scratch" by design, never a
+// hard failure.
+const REVIEW_KEY = 'tr:review:v1';
+export const DEFAULT_DAILY_LIMIT = 10;
+
+/** @returns {{ cards: Record<string, { box: number, dueAt: string }>, dailyLimit: number, todayDate: string, todayCount: number }} */
+export function getReviewState() {
+  const today = localDateISO();
+  const fresh = { cards: {}, dailyLimit: DEFAULT_DAILY_LIMIT, todayDate: today, todayCount: 0 };
+  try {
+    const raw = localStorage.getItem(REVIEW_KEY);
+    if (!raw) return fresh;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return fresh;
+
+    const cards = parsed.cards && typeof parsed.cards === 'object' && !Array.isArray(parsed.cards) ? parsed.cards : {};
+    const dailyLimit = typeof parsed.dailyLimit === 'number' && parsed.dailyLimit > 0 ? parsed.dailyLimit : DEFAULT_DAILY_LIMIT;
+    const sameDay = parsed.todayDate === today;
+    return {
+      cards,
+      dailyLimit,
+      todayDate: today,
+      todayCount: sameDay && typeof parsed.todayCount === 'number' ? parsed.todayCount : 0,
+    };
+  } catch {
+    return fresh;
+  }
+}
+
+export function saveReviewState(state) {
+  try {
+    localStorage.setItem(REVIEW_KEY, JSON.stringify(state));
+  } catch {
+    // Storage full or unavailable — review progress just won't persist.
+  }
+}
+
+export function setDailyLimit(limit) {
+  const state = getReviewState();
+  state.dailyLimit = limit;
+  saveReviewState(state);
+}
+
+/** Records one card's outcome and bumps today's count. Returns the updated state. */
+export function recordReview(cardId, box, dueAt) {
+  const state = getReviewState();
+  state.cards[cardId] = { box, dueAt };
+  state.todayCount += 1;
+  saveReviewState(state);
+  return state;
 }

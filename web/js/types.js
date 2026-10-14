@@ -18,5 +18,6 @@
 /** @typedef {{ kind: 'course' | 'milestone' | 'glossary', title: string, summary?: string, slug: string, marcoId?: string, track?: string, tags?: string[], headings?: string[] }} SearchDoc */
 /** @typedef {{ slug: string, marcoId: string, title: string, estimatedMinutes: number }} SkillMilestoneRef */
 /** @typedef {{ id: string, label: string, group: string, totalMinutes: number, milestones: SkillMilestoneRef[] }} Skill */
+/** @typedef {{ slug: string, marcoId: string, milestoneTitle: string, question: string, options: string[], answer: number, explanation?: string }} QuizBankItem */
 
 export {};

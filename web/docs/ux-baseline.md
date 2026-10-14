@@ -340,6 +340,56 @@ gained 4 more (best score appears/persists, a worse attempt doesn't overwrite it
 as erradas" re-opens only the wrong question and a perfect retry then passes, the button hides
 on a perfect first score). Full suite: 92/92.
 
+## Melhoria 5 — revisão espaçada (`TASK-plat-melhorias-lideranca.md` §5)
+
+Depended on UX items 17-18 (built in the previous PR) — "o estado de revisão tem de entrar
+no export" and "persistir quiz" were both explicit prerequisites, confirmed by Julio when the
+dependency surfaced mid-sequence.
+
+**Scheduler (`web/js/review-scheduler.js`).** Pure function, no DOM, `today` always a
+parameter (never `Date.now()` internally) — tested with `node --test`
+(`review-scheduler.test.js`, wired into CI as its own step, independent of the Playwright
+suite). Leitner boxes with intervals `[1, 2, 4, 8, 16, 32]` days. A real subtlety worth
+recording: a brand-new card starts "resting" in box 0, and a *correct* answer promotes it to
+the next box **before** computing the due date — so a new card's first correct review already
+waits 2 days (box 1's interval), never 1 (box 0's). Box 0 is only ever reached by a *wrong*
+answer resetting the card. This matches "acerto sobe uma caixa" literally: the raise happens
+the same way for a new card as for a reviewed one.
+
+**Deck.** Built fresh on every visit to `#/revisar` from `quiz-bank.json` (new this pass —
+`aggregator/internal/course/quizbank.go` flattens every compiled milestone's already-shuffled
+quiz into one file, 885 real questions, so the front end never fetches 17 full course JSONs
+just to pull out their quizzes) and the existing `glossary.json`. Card id = `cyrb53(slug|context-key|text)`
+(`web/js/hash.js` — the same hash `radar.js` already used for the daily-reading pick, now
+shared instead of duplicated); changing a question's or term's text changes its id, which
+restarts that card's box by construction — documented, not a bug.
+
+**Session (`#/revisar`).** Daily limit (default 10, editable, persisted). A quiz card reuses
+the exact `.quiz-question`/`.quiz-option` markup/CSS from the real milestone quiz (visually
+"componente reutilizado", per the plan) with its own check → feedback → "Próximo cartão" flow.
+A glossary card hides its "Em uma frase" summary behind "Mostrar resposta" first (self-test
+before seeing the answer), then "Lembrei"/"Não lembrei". State lives only in `tr:review:v1` —
+this never writes to `tr:progress:`/`tr:quiz:`, so it structurally cannot affect a milestone's
+completion gate or its own quiz history. Every control is a real `<button>`/`<input>`, so
+keyboard operability needed no extra ARIA work.
+
+**A real layout bug caught before shipping:** the first draft put `.review-card`'s own
+border/padding directly on the same `<fieldset>` as `.quiz-question` — a `<legend>` straddles
+its *own* element's border by default, so the question text visually poked out above the
+card's border. Fixed by splitting it the same way `.milestone-quiz`/`.quiz-question` already
+are elsewhere: an outer bordered `<div>` wrapping a borderless `<fieldset>`.
+
+`web/tests/review.spec.js` (9 tests, deck mocked via route interception — same pattern as
+handson/bridges/freshness — so each test controls exactly which cards exist): daily-limit
+display, a quiz card's check→feedback→advance flow, a glossary card's reveal→self-assess flow,
+daily limit stopping and a raised limit resuming, a wrong answer scheduling back to box 0 due
+tomorrow (not further out), confirms `tr:progress:`/`tr:quiz:` stay untouched after a session,
+confirms `tr:review:v1` round-trips through the item-17 export unchanged, an empty deck shows
+a plain message, axe clean on an open quiz card. Full suite: 101/101 (Playwright) + 7/7 (`node
+--test`, scheduler: interval never decreases on a correct streak, a wrong answer always resets
+to box 0 regardless of starting box, due date is never in the past across leap-year/month/year
+boundaries, determinism, `isDue` boundary cases).
+
 ## Not touched in this pass (still open from the plan)
 
 - Lighthouse scores, JSON size budget, full 360/768/1280 screenshot set (plan's full
@@ -351,6 +401,7 @@ on a perfect first score). Full suite: 92/92.
 
 ## Regression gate going forward
 
-`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently: 92/92
-passing, 0 axe violations of `serious`/`critical` impact across every route tested. The
+`web/tests/` runs in CI on every PR via `.github/workflows/web-tests.yml`. Currently:
+101/101 Playwright + 7/7 `node --test` passing, 0 axe violations of `serious`/`critical`
+impact across every route tested. The
 plan's ratchet rule applies: these numbers should only improve from here.

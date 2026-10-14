@@ -44,6 +44,13 @@ jobs:
         working-directory: web
         run: npm ci
 
+      # Pure-function tests (the spaced-review scheduler) — no browser, no
+      # dependency, runs in milliseconds; fails the build independently of
+      # the Playwright suite below.
+      - name: Run unit tests (node --test)
+        working-directory: web
+        run: npm run test:unit
+
       # Chromium only — Playwright's own cache key already covers the browser
       # directory, so a Firefox/WebKit download never happens.
       - name: Install Playwright's Chromium
