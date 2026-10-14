@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 148, "desafio": 189, "invariantes": 179, "complemento": 170, "checagem": 188,
+		"tutorial": 150, "desafio": 191, "invariantes": 181, "complemento": 172, "checagem": 190,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -425,12 +425,9 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	wantNoSection := []string{
 		"go-fintech/java-vs-go",
 		// lideranca-tecnica is being written block by block (PLANO-trilha-
-		// lideranca-tecnica.md §4/§10) — Blocos A (01-03), B (04-06) and C
-		// (07-09) shipped with real content; these are still placeholder
-		// bodies awaiting their PR.
+		// lideranca-tecnica.md §4/§10) — Blocos A-D (01-11) shipped with
+		// real content; these are still placeholder bodies awaiting Bloco E.
 		"lideranca-tecnica/carreira-impacto-e-capstone",
-		"lideranca-tecnica/liderar-em-ambiente-regulado",
-		"lideranca-tecnica/liderar-incidentes-e-operacao",
 		"lideranca-tecnica/tecnologia-e-negocio",
 	}
 	if !equalStrings(noSection, wantNoSection) {
