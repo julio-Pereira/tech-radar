@@ -1,0 +1,33 @@
+questions:
+  - question: "Duas iniciativas têm o mesmo custo de atraso estimado, mas uma leva uma semana para ser entregue e a outra leva seis meses. Segundo a lógica do WSJF apresentada neste marco, qual deveria vir primeiro, e por quê?"
+    options:
+      - "A que leva uma semana — WSJF divide o custo de atraso pelo tamanho do trabalho, então, com custo de atraso igual, a iniciativa menor libera o mesmo valor muito mais cedo"
+      - "A que leva seis meses — iniciativas maiores sempre deveriam ser priorizadas primeiro para não acumular no backlog"
+      - "É indiferente, já que o custo de atraso é igual nas duas"
+      - "Depende exclusivamente de qual equipe pediu a iniciativa primeiro"
+    answer: 0
+    explanation: "O WSJF ordena pelo custo de atraso dividido pelo tamanho do trabalho, não pelo custo de atraso isolado. Com custo de atraso igual, a iniciativa menor tem WSJF maior, porque libera o mesmo valor em muito menos tempo — por isso vem primeiro. Tamanho maior não é critério de prioridade por si só, e a ordem de pedido não é o critério que o marco ensina."
+  - question: "Um time apresenta o ROI de uma iniciativa de confiabilidade como um número único: 'isso vai economizar R$340.000 por ano'. Segundo este marco, qual é o problema dessa apresentação, mesmo que o cálculo esteja tecnicamente correto?"
+    options:
+      - "Um número de ponto único esconde a incerteza real do modelo — a alternativa honesta é apresentar uma faixa com premissas explícitas"
+      - "Não há problema, desde que o número tenha sido calculado com uma planilha"
+      - "O problema é que ROI de iniciativas de confiabilidade nunca deveria ser calculado, segundo este marco"
+      - "O número deveria ser apresentado em dólares, não em reais, para ser tomado a sério por executivos"
+    answer: 0
+    explanation: "O marco é explícito: modelos de ROI de produtividade/confiabilidade são frágeis, e a resposta correta é expressar a incerteza numa faixa com premissas declaradas, não escondê-la atrás de um número único — mesmo que o cálculo que gerou o número esteja correto, a precisão aparente é enganosa. O marco não recomenda abandonar o exercício de estimar, nem trata a moeda como o problema."
+  - question: "Um time pede ao negócio '20% do tempo do time para pagar dívida técnica' e a resposta é negada. Segundo este marco, qual abordagem alternativa tende a funcionar melhor?"
+    options:
+      - "Apresentar um item específico de dívida com o custo de atraso de não pagá-la, competindo pela mesma prioridade que qualquer outra iniciativa"
+      - "Insistir no mesmo pedido genérico em reuniões subsequentes até ser aprovado"
+      - "Pagar a dívida de forma não declarada, sem informar o negócio"
+      - "Esperar que um incidente grave force a priorização da dívida automaticamente"
+    answer: 0
+    explanation: "O marco trata dívida técnica como investimento específico, não como imposto genérico sobre a capacidade do time. Apresentar o custo de atraso concreto de um item de dívida específico ('esta dívida custa duas semanas extras por trimestre nesta área') permite que ela compita de igual para igual com outras iniciativas — um pedido genérico de '20% do tempo' perde a negociação antes de começar, e as outras duas alternativas (pagar sem declarar, ou esperar um incidente) não são recomendadas pelo marco."
+  - question: "Uma fintech define 'reduzir o tempo médio de aprovação de crédito' como meta isolada de uma equipe, sem considerar outros efeitos. Qual é o risco descrito neste marco ao transformar essa métrica de negócio em meta isolada?"
+    options:
+      - "O tempo médio pode melhorar enquanto a qualidade da aprovação piora (por exemplo, aprovações mais arriscadas) — o mesmo efeito Goodhart já visto em métricas de fluxo"
+      - "Não há risco real, porque métricas de negócio não estão sujeitas ao mesmo efeito que métricas técnicas"
+      - "O único risco é que a métrica fique difícil de calcular tecnicamente"
+      - "O risco existe apenas se a métrica for usada para avaliar uma pessoa específica, nunca quando é usada para avaliar um processo"
+    answer: 0
+    explanation: "O marco conecta explicitamente este caso ao efeito Goodhart já introduzido no marco 02: uma métrica de negócio que vira meta isolada pode melhorar no papel (tempo médio menor) enquanto piora o resultado real que a métrica deveria proteger (qualidade da aprovação, risco de crédito). O efeito não é exclusivo de métricas técnicas, e o risco existe mesmo quando a métrica mede um processo, não uma pessoa."

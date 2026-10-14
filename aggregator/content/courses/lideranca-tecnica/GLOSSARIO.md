@@ -708,3 +708,72 @@ mesma obrigação de notificação que um incidente interno.
 **Erro comum:** assumir que "o fornecedor cuida disso", sem avaliação própria de risco nem plano de
 saída contratual.
 **Onde na prática:** marco 11.
+
+## Negócio e carreira
+
+### Custo de atraso
+**Em uma frase:** a tradução de "quando entregamos" em dinheiro ou risco perdido por unidade de
+tempo.
+**No fin-platform:** a iniciativa de conformidade regulatória tem custo de atraso muito mais alto
+que uma melhoria de conversão marginal, o que muda a ordem de prioridade.
+**Erro comum:** priorizar por "importância" sentida em vez de calcular, mesmo que em faixa, o custo
+real de atraso.
+**Onde na prática:** marco 12.
+
+### WSJF (*Weighted Shortest Job First*)
+**Em uma frase:** ordenação de backlog que divide o custo de atraso pelo tamanho do trabalho.
+**No fin-platform:** duas iniciativas com o mesmo custo de atraso são ordenadas pela que libera o
+valor mais cedo, por ser menor.
+**Erro comum:** ordenar só pelo custo de atraso absoluto, ignorando o tamanho do trabalho necessário
+para liberá-lo.
+**Onde na prática:** marco 12.
+
+### Custo por transação
+**Em uma frase:** o custo de infraestrutura e operação dividido pelo volume de transações
+processadas.
+**No fin-platform:** liga diretamente uma decisão de arquitetura (banco gerenciado ×
+auto-hospedado) à margem do produto, em escala.
+**Erro comum:** tratar custo por transação como detalhe de infraestrutura, sem conexão com a
+margem do negócio.
+**Onde na prática:** marco 12.
+
+### Caso de negócio
+**Em uma frase:** documento que apresenta uma iniciativa técnica com premissas explícitas, faixa de
+retorno, custo da alternativa de não fazer e métrica de acompanhamento.
+**No fin-platform:** o caso de negócio do pagamento de uma dívida técnica específica compete pela
+mesma prioridade que qualquer outra iniciativa do backlog.
+**Erro comum:** apresentar um ROI de ponto único, sem faixa nem premissas — precisão inventada em
+vez de incerteza honesta.
+**Onde na prática:** marco 12.
+
+### OKR (*Objectives and Key Results*)
+**Em uma frase:** objetivo com resultados-chave que o time pode efetivamente influenciar e medir.
+**No fin-platform:** um resultado-chave que ninguém consegue explicar por que importa para o negócio
+não está cumprindo a função de OKR.
+**Erro comum:** usar o resultado-chave de uma pessoa para avaliá-la individualmente — o mesmo
+problema de Goodhart aplicado a metas de negócio.
+**Onde na prática:** marco 12.
+
+### Narrativa de impacto
+**Em uma frase:** relato de um projeto com situação, ação específica, resultado mensurável com
+fonte e efeito sobre outros.
+**No fin-platform:** a narrativa do pacote de promoção de uma Staff fictícia cita o tempo de ciclo
+reduzido como resultado, com fonte no histórico sintético.
+**Erro comum:** descrever resultado com adjetivo ("grande impacto") em vez de número com fonte.
+**Onde na prática:** marco 13.
+
+### *Brag doc*
+**Em uma frase:** registro contínuo de projetos, decisões e narrativas de impacto, mantido ao longo
+do tempo, não reconstruído de memória na época da promoção.
+**No fin-platform:** alimenta o pacote de promoção com evidência já organizada, em vez de uma
+reconstrução apressada.
+**Erro comum:** só começar o *brag doc* quando o ciclo de promoção já está próximo.
+**Onde na prática:** marco 13.
+
+### Pacote de promoção
+**Em uma frase:** conjunto de evidências de que uma pessoa já opera no escopo do nível seguinte, não
+apenas pronta para ele em teoria.
+**No fin-platform:** o pacote de promoção de um Staff fictício reúne projetos com evidência de
+impacto no escopo do próximo nível.
+**Erro comum:** apresentar evidência só do nível atual, sem demonstrar escopo do nível seguinte.
+**Onde na prática:** marco 09, retomado no 13.
