@@ -325,3 +325,25 @@ type SkillsCatalog struct {
 	TaggedMilestones int     `json:"taggedMilestones"`
 	TotalMilestones  int     `json:"totalMilestones"`
 }
+
+// QuizBankItem is one quiz question flattened across every course, for the
+// spaced-review deck (UX platform melhoria 5) — avoids the front end
+// fetching every course's full JSON just to pull out its quiz questions.
+// Options/Answer are copied straight from the already-compiled milestone,
+// so the shuffled order and adjusted answer index stay consistent with
+// what the reader sees on the milestone page itself.
+type QuizBankItem struct {
+	Slug           string   `json:"slug"`
+	MarcoID        string   `json:"marcoId"`
+	MilestoneTitle string   `json:"milestoneTitle"`
+	Question       string   `json:"question"`
+	Options        []string `json:"options"`
+	Answer         int      `json:"answer"`
+	Explanation    string   `json:"explanation,omitempty"`
+}
+
+// QuizBank is the full set written to web/data/quiz-bank.json.
+type QuizBank struct {
+	GeneratedAt string         `json:"generatedAt"`
+	Items       []QuizBankItem `json:"items"`
+}

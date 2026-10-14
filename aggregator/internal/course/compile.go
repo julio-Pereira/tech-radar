@@ -119,6 +119,11 @@ func Compile(contentDir, outDir string) (Index, error) {
 		log.Printf("WARN writing skills.json: %v", err)
 	}
 
+	// Quiz bank (UX platform melhoria 5, spaced review), same best-effort policy.
+	if err := compileQuizBank(compiledCourses, dataDir); err != nil {
+		log.Printf("WARN writing quiz-bank.json: %v", err)
+	}
+
 	return index, nil
 }
 
