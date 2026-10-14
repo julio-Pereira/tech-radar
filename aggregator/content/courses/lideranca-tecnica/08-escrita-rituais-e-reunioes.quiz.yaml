@@ -1,0 +1,33 @@
+questions:
+  - question: "Uma proposta de decisão complexa é apresentada em um slide com cinco bullets, e só depois de aprovada alguém percebe uma falha de raciocínio na lógica entre dois dos pontos. Segundo este marco, por que escrita narrativa tende a evitar esse tipo de problema?"
+    options:
+      - "Porque escrita narrativa obriga quem escreve a articular a lógica completa, expondo lacunas de raciocínio que bullets soltos escondem"
+      - "Porque slides são tecnicamente incapazes de representar decisões complexas, independentemente de como são estruturados"
+      - "Porque toda decisão aprovada por slide é automaticamente inválida, segundo este marco"
+      - "Não há diferença real entre os dois formatos; a falha aconteceria de qualquer forma"
+    answer: 0
+    explanation: "O marco é direto: a estrutura de texto corrido força a articulação completa do raciocínio, e é isso que expõe falhas que bullets soltos permitem esconder. Isso não significa que slides sejam tecnicamente incapazes de nada (eles têm seu lugar em apresentações ao vivo) nem que toda decisão por slide seja inválida — apenas que decisões complexas se beneficiam de passar pelo teste da escrita narrativa antes."
+  - question: "Um time pede para 'marcar uma reunião para alinhar' sobre uma proposta que ainda não foi escrita em lugar nenhum. Segundo este marco, o que esse padrão frequentemente sinaliza?"
+    options:
+      - "Que a reunião está sendo usada para adiar o trabalho real de articular a ideia por escrito antes da discussão"
+      - "Que a equipe está seguindo a prática recomendada de sempre discutir ideias verbalmente antes de documentá-las"
+      - "Que o assunto é simples demais para merecer um documento, por isso a reunião é a ferramenta certa"
+      - "Nenhuma relação específica — reuniões 'para alinhar' são sempre produtivas, independentemente de haver documento prévio"
+    answer: 0
+    explanation: "O marco trata esse padrão como sintoma comum de que ninguém escreveu a proposta ainda, e que a reunião está adiando esse trabalho — quando a proposta já existe por escrito, a reunião (se necessária) é mais curta e produtiva. Não é a prática recomendada (o padrão defendido é o oposto: escrever antes), não depende da complexidade do assunto especificamente, e o marco não trata essas reuniões como sempre produtivas."
+  - question: "Uma reunião semanal recorrente tem oito participantes e dura uma hora, mas ninguém nunca calculou o que isso representa em termos de tempo total investido. Segundo este marco, qual é o valor dessa conta (pessoas × duração × custo-hora)?"
+    options:
+      - "Tornar visível o custo real da reunião muda a decisão sobre convocá-la, perguntando se o resultado justifica o tempo coletivo investido"
+      - "A conta não tem valor prático, já que o tempo de reunião nunca deveria ser comparado a outras formas de trabalho"
+      - "O cálculo serve apenas para fins de cobrança interna entre departamentos, sem relação com a decisão de manter a reunião"
+      - "Reuniões recorrentes já estabelecidas não deveriam ser questionadas por meio de cálculo de custo"
+    answer: 0
+    explanation: "O marco propõe exatamente esse cálculo como filtro simples: visualizar o custo em pessoas-hora muda a pergunta de 'vamos marcar' para 'isso vale esse tanto de trabalho combinado?' — algo que a maioria das organizações nunca aplica explicitamente. O cálculo não é sobre cobrança entre departamentos, e reuniões recorrentes já estabelecidas são exatamente o tipo de hábito que esse filtro deveria questionar, não poupar."
+  - question: "Um RFC passa em todas as checagens estruturais do lint (problema, duas opções, trade-offs, recomendação, riscos com dono, não-objetivos), mas uma pessoa que participou da discussão real sabe que a opção realmente descartada foi por motivo político, não técnico, e isso não aparece no documento. Segundo este marco, o que esse caso demonstra?"
+    options:
+      - "Que a estrutura verificada pelo linter não garante honestidade sobre a disputa real por trás da decisão — é uma demonstração do limite do que a forma consegue garantir"
+      - "Que o lint rfc está incorretamente implementado e deveria ser reescrito para detectar motivações políticas"
+      - "Que RFCs nunca deveriam ser usados em decisões que envolvem qualquer componente político"
+      - "Que o documento é inválido e deveria ser rejeitado automaticamente pelo processo de revisão"
+    answer: 0
+    explanation: "O marco usa exatamente esse tipo de caso como demonstração do limite: a estrutura (campos obrigatórios presentes) não garante que o conteúdo seja honesto sobre a disputa real — o linter verifica forma, não verdade. Isso não é um defeito de implementação a corrigir (motivação política genuína é difícil de verificar automaticamente por design), não invalida RFCs para decisões políticas, e não torna o documento automaticamente rejeitável só por essa limitação conhecida."
