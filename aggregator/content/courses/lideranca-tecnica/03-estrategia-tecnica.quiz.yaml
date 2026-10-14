@@ -1,0 +1,49 @@
+questions:
+  - question: "Um time escreve como 'estratégia': 'reduzir o tempo de resposta da API em 30% neste trimestre'. Segundo este marco, por que isso não é uma estratégia?"
+    options:
+      - "É uma meta numérica sem um mecanismo (política) que explique como chegar lá — não restringe nenhuma decisão do dia a dia"
+      - "Porque toda estratégia precisa necessariamente incluir pelo menos três métricas numéricas, não apenas uma"
+      - "Porque 30% é um número arbitrário; qualquer outro percentual tornaria a frase uma estratégia válida"
+      - "Não há problema nenhum — isso já é uma estratégia completa e bem formada segundo o marco"
+    answer: 0
+    explanation: "O marco classifica 'meta no lugar de política' como um dos disfarces comuns de estratégia ruim exatamente por faltar o mecanismo — o 'como' que orienta decisões concretas. O problema não é a quantidade de métricas nem o valor específico do percentual; é a ausência de diagnóstico e política que ligue a meta a ações coerentes."
+  - question: "Uma estratégia técnica afirma 'preferimos confiabilidade a velocidade de lançamento de features' e, com base nisso, adia o lançamento de uma feature para investir em testes de carga. Segundo este marco, o que torna essa política orientadora válida?"
+    options:
+      - "Ela é específica o suficiente para que uma pessoa razoável pudesse discordar dela de boa fé, e de fato restringiu uma decisão real"
+      - "Ela é válida simplesmente por estar escrita em um documento formal chamado 'estratégia'"
+      - "Toda política que menciona confiabilidade é automaticamente válida neste marco, independente do contexto"
+      - "A validade depende exclusivamente de ter sido aprovada por um executivo sênior"
+    answer: 0
+    explanation: "O marco propõe dois testes para uma política orientadora real: ela exclui alternativas plausíveis, e uma pessoa razoável discordaria dela. A política do exemplo passa nos dois — de fato adiou uma feature, uma escolha que alguém focado em velocidade discordaria. Estar em um documento formal, mencionar uma palavra-chave ou ter aprovação executiva não são, por si só, o que torna uma política válida segundo o marco."
+  - question: "Segundo este marco, por que os 'não-objetivos' de uma estratégia são descritos como, com frequência, a parte mais valiosa do documento?"
+    options:
+      - "Porque são o que protege o time de se dispersar atrás de toda oportunidade desejável que aparece, mesmo sendo legítima em abstrato"
+      - "Porque não-objetivos substituem a necessidade de ter um diagnóstico ou uma política orientadora no documento"
+      - "Porque uma estratégia sem não-objetivos é tecnicamente inválida e não pode ser executada de forma alguma"
+      - "Porque os não-objetivos são a única parte do documento que precisa de aprovação executiva formal"
+    answer: 0
+    explanation: "O marco explica que o valor dos não-objetivos está em proteger o foco — deixar explícito o que não será perseguido, mesmo sendo desejável, evita a dispersão. Não-objetivos não substituem diagnóstico e política (são parte do núcleo junto com eles), não há uma regra de invalidade técnica, e a ideia de aprovação executiva exclusiva aos não-objetivos não é mencionada pelo marco."
+  - question: "Dois times discordam sobre se devem construir um sistema próprio de filas ou usar uma solução já consolidada no mercado. Segundo a ideia de mapas de evolução apresentada neste marco, qual critério ajuda a decidir?"
+    options:
+      - "Se o componente já é commodity padronizada no mercado, tende a fazer mais sentido usar o que já existe do que construir algo próprio"
+      - "Mapas de evolução determinam que a opção de construir internamente é sempre superior, independentemente do componente"
+      - "O critério dos mapas de evolução é obrigatório e substitui qualquer outra ferramenta de decisão de build × buy"
+      - "Mapas de evolução servem apenas para decisões de infraestrutura de nuvem, nunca para decisões de software"
+    answer: 0
+    explanation: "O marco descreve mapas de evolução como posicionando componentes entre 'novidade sob medida' e 'commodity padronizada' — quanto mais próximo de commodity, mais sentido faz comprar ou usar o padrão de mercado em vez de construir. A ferramenta não decreta uma resposta fixa (construir sempre vence), é explicitamente opcional (não obrigatória nem exclusiva), e não se limita a decisões de nuvem."
+  - question: "Por que este marco trata a decisão de pagar ou conviver com dívida técnica como uma decisão financeira, e não como uma obrigação moral de sempre pagar o quanto antes?"
+    options:
+      - "Porque a decisão depende de comparar o custo de atraso que a dívida gera com o custo de corrigi-la agora, como qualquer outra alocação de recursos escassos"
+      - "Porque dívida técnica, segundo este marco, nunca deveria ser paga — apenas registrada e ignorada indefinidamente"
+      - "Porque tratar dívida como decisão financeira elimina a necessidade de registrá-la com juros, como ensina arquitetura-de-software/06"
+      - "Porque este marco considera dívida técnica um problema exclusivamente de responsabilidade da área financeira da empresa, não da engenharia"
+    answer: 0
+    explanation: "O marco é direto: dívida tratada estrategicamente é uma decisão entre o que pagar agora (no caminho crítico, com juros crescentes) e o que conviver (baixo custo, isolado) — uma comparação de custos, como qualquer decisão de alocação de recursos. Não há recomendação de nunca pagar, o registro com juros de arquitetura-de-software/06 continua sendo o insumo da decisão (não é eliminado), e a decisão continua sendo de engenharia, com linguagem financeira emprestada para comunicá-la melhor."
+  - question: "Uma estratégia técnica foi escrita há dois anos e nunca mais foi revisada, mesmo com o diagnóstico original tendo mudado significativamente. Segundo este marco, o que está faltando?"
+    options:
+      - "Uma data de revisão periódica e gatilhos que forcem revisão antecipada quando o diagnóstico ou as apostas mudarem"
+      - "Nada — uma boa estratégia, uma vez escrita corretamente, nunca deveria precisar ser revisada"
+      - "A estratégia deveria ter sido reescrita a cada sprint, independentemente de mudança real no contexto"
+      - "O problema é só de formato do documento, não de processo de revisão"
+    answer: 0
+    explanation: "O marco afirma explicitamente que estratégia não é documento estático — precisa de data de revisão e de gatilhos que force revisão antecipada quando o contexto muda. A ideia de que uma boa estratégia nunca precisa de revisão contraria o marco diretamente; revisão a cada sprint sem relação com mudança real de contexto também não é o que o marco recomenda (o gatilho é sobre mudança relevante, não sobre tempo fixo arbitrário); e o problema descrito é de processo (ausência de revisão), não de formato do texto."
