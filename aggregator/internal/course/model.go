@@ -347,3 +347,40 @@ type QuizBank struct {
 	GeneratedAt string         `json:"generatedAt"`
 	Items       []QuizBankItem `json:"items"`
 }
+
+// CapstoneArtifact is one file/directory the capstone component is expected
+// to produce. Check names what would verify it ("exists", "make test"...)
+// — phase 1 (this one) only displays it; phase 2's fin-check CLI (not
+// built yet) is what would actually run it against the reader's repo.
+type CapstoneArtifact struct {
+	Path  string `yaml:"path" json:"path"`
+	Check string `yaml:"check" json:"check"`
+}
+
+// CapstoneEntry is one entry in content/capstones.yaml: the component a
+// trilha's capstone delivers to the reader's own fin-platform repo, and
+// which other declared components it depends on.
+type CapstoneEntry struct {
+	Track     string             `yaml:"track"`
+	Component string             `yaml:"component"`
+	DependsOn []string           `yaml:"depends_on"`
+	Artifacts []CapstoneArtifact `yaml:"artifacts"`
+}
+
+// CompiledCapstone is one CapstoneEntry resolved against the compiled
+// courses (TrackTitle added for display without a second fetch).
+type CompiledCapstone struct {
+	Track      string             `json:"track"`
+	TrackTitle string             `json:"trackTitle"`
+	Component  string             `json:"component"`
+	DependsOn  []string           `json:"dependsOn"`
+	Artifacts  []CapstoneArtifact `json:"artifacts"`
+}
+
+// CapstoneMap is the full set written to web/data/capstones.json —
+// #/fin-platform renders it as a component map (boxes and arrows, UX
+// platform melhoria 7 phase 1).
+type CapstoneMap struct {
+	GeneratedAt string             `json:"generatedAt"`
+	Components  []CompiledCapstone `json:"components"`
+}

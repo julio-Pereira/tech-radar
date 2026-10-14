@@ -1,0 +1,109 @@
+# Mapa de capstones do fin-platform (UX platform melhoria 7, fase 1 — mapa
+# e dado, sem verificador; a CLI fin-check fica para uma fase 2 futura).
+# component names and depends_on edges are drawn from each trilha's own
+# PROJETO.md "Contratos com os vizinhos" table (the "consome" rows) — only
+# specific, named dependencies are listed here, not the generic "todas as
+# trilhas" rows (ADRs/radar), which aren't a single actionable edge for a
+# component map. lideranca-tecnica is not included yet: it's still a stub
+# trilha (PR #36) with no "## Capstone" section in real content.
+#
+# Artifacts intentionally list only each component's own root path for now
+# — a richer per-component artifact list (specific files/commands a real
+# `fin-check` could run) is phase-2 scope, not fabricated here ahead of
+# that CLI existing to run against them.
+
+- track: spring-boot
+  component: pix-gateway
+  depends_on: []
+  artifacts:
+    - { path: "pix-gateway/", check: exists }
+
+- track: go-fintech
+  component: ledger-core
+  depends_on: []
+  artifacts:
+    - { path: "ledger-core/", check: exists }
+
+- track: kafka
+  component: pix-stream
+  depends_on: []
+  artifacts:
+    - { path: "pix-stream/", check: exists }
+
+- track: kubernetes
+  component: fin-platform
+  depends_on: []
+  artifacts:
+    - { path: "fin-platform/", check: exists }
+
+- track: observabilidade
+  component: fin-watch
+  depends_on: []
+  artifacts:
+    - { path: "fin-watch/", check: exists }
+
+- track: dados-distribuidos
+  component: fin-store
+  depends_on: [pix-stream]
+  artifacts:
+    - { path: "fin-store/", check: exists }
+
+- track: arquitetura-de-software
+  component: fin-structure
+  depends_on: [ledger-core, fin-blueprint]
+  artifacts:
+    - { path: "fin-structure/", check: exists }
+
+- track: system-design
+  component: fin-blueprint
+  depends_on: [pix-gateway, fin-store, fin-watch]
+  artifacts:
+    - { path: "fin-blueprint/", check: exists }
+
+- track: arquitetura-de-solucoes
+  component: fin-landscape
+  depends_on: [fin-blueprint, fin-structure]
+  artifacts:
+    - { path: "fin-landscape/", check: exists }
+
+- track: arquitetura-eventos
+  component: fin-flow
+  depends_on: [pix-gateway, ledger-core]
+  artifacts:
+    - { path: "fin-flow/", check: exists }
+
+- track: concorrencia-e-recursos
+  component: fin-contention
+  depends_on: [fin-store]
+  artifacts:
+    - { path: "fin-contention/", check: exists }
+
+- track: engenharia-de-dados
+  component: fin-insight
+  depends_on: [fin-store, pix-stream]
+  artifacts:
+    - { path: "fin-insight/", check: exists }
+
+- track: ml-em-producao
+  component: fin-offers
+  depends_on: [fin-insight]
+  artifacts:
+    - { path: "fin-offers/", check: exists }
+
+- track: seguranca-aplicacao
+  component: fin-idp
+  depends_on: [pix-gateway]
+  artifacts:
+    - { path: "fin-idp/", check: exists }
+
+- track: entrega-continua-e-devops
+  component: fin-pipeline
+  depends_on: [fin-platform, fin-watch, fin-idp, fin-store]
+  artifacts:
+    - { path: "fin-pipeline/", check: exists }
+
+- track: engenharia-de-plataforma
+  component: fin-devplatform
+  depends_on: [fin-pipeline, fin-landscape, fin-platform]
+  artifacts:
+    - { path: "fin-devplatform/", check: exists }
