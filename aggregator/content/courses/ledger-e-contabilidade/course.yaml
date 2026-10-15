@@ -6,9 +6,10 @@ tags: [ledger, contabilidade, partida-dobrada, saldos, estorno, conciliacao, mul
 level: advanced
 lang: pt-BR
 # 10 marcos, Σ 610 min (regra ~2x -> 20h). Escrita por bloco — ver
-# PLANO-trilha-ledger-e-contabilidade.md §4/§10. Stubs por enquanto;
-# conteúdo real chega bloco a bloco nas próximas PRs desta trilha.
+# PLANO-trilha-ledger-e-contabilidade.md §4/§10 — Bloco A (01-03) já tem
+# conteúdo completo; os demais marcos chegam em PRs subsequentes.
 estimatedHours: 20
+glossary: GLOSSARIO.md
 prerequisites: [dados-distribuidos, concorrencia-e-recursos]
 sources:
   - { title: "Accounting for Computer Scientists (Martin Kleppmann)", url: https://martin.kleppmann.com/2011/03/07/accounting-for-computer-scientists.html }

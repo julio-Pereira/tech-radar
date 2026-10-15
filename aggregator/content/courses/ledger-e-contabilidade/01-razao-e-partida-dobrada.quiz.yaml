@@ -1,0 +1,33 @@
+questions:
+  - question: "Um engenheiro novo em contabilidade assume que 'débito' sempre significa diminuir um saldo e 'crédito' sempre significa aumentar. Segundo este marco, por que essa suposição está errada?"
+    options:
+      - "Débito e crédito são direções, não valores de 'bom' ou 'ruim' universais — o efeito sobre o saldo depende da categoria da conta (ativo e despesa crescem com débito; passivo, patrimônio e receita crescem com crédito)"
+      - "A suposição está correta para contas de ativo, mas não existe nenhuma outra categoria de conta no sistema"
+      - "Débito e crédito só têm significado em contas de cliente, nunca em contas internas do plano de contas"
+      - "Não há diferença prática entre débito e crédito; os termos são intercambiáveis na prática contábil"
+    answer: 0
+    explanation: "O marco é explícito: débito e crédito são direções, e o efeito sobre o saldo de uma conta específica depende da categoria dela — não existe uma regra universal de que débito sempre diminui ou crédito sempre aumenta. A suposição errada não se limita a contas de ativo, aplica-se igualmente a contas internas, e os termos definitivamente não são intercambiáveis."
+  - question: "Um sistema tenta registrar um lançamento contábil com três pernas: duas de débito e uma de crédito, onde a soma das duas pernas de débito é maior que a perna de crédito. Segundo este marco, o que deveria acontecer?"
+    options:
+      - "O lançamento deveria ser rejeitado — a regra de balanceamento exige que a soma de todas as pernas de débito seja igual à soma de todas as pernas de crédito do mesmo lançamento"
+      - "O lançamento deveria ser aceito, já que a regra de partida dobrada só se aplica a lançamentos com exatamente duas pernas"
+      - "O sistema deveria ajustar automaticamente o valor da perna de crédito para fechar a diferença"
+      - "O lançamento é válido desde que tenha pelo menos uma perna de débito e uma de crédito, independentemente dos valores"
+    answer: 0
+    explanation: "O marco generaliza a regra de balanceamento para qualquer número de pernas: a soma de todas as pernas de débito precisa igualar a soma de todas as pernas de crédito do mesmo lançamento, não apenas quando há exatamente duas. Ajustar automaticamente um valor para forçar o balanceamento mascararia um erro real, e a regra não se satisfaz apenas com a presença de pelo menos uma perna de cada tipo — os valores totais precisam bater."
+  - question: "Um sistema implementa o saldo de uma conta como uma coluna `balance` que é diretamente incrementada ou decrementada a cada operação, sem manter o histórico detalhado de lançamentos. Segundo este marco, qual capacidade importante esse design perde?"
+    options:
+      - "A capacidade de reconstruir e explicar o saldo a partir do histórico completo — sem o diário de lançamentos, não há como responder 'de onde veio esse número?'"
+      - "Não há perda real de capacidade, desde que o valor da coluna esteja sempre correto no momento da consulta"
+      - "A perda só é relevante se o sistema precisar operar em múltiplas moedas simultaneamente"
+      - "Essa abordagem é, na verdade, superior à de manter o diário completo, por ser mais simples de implementar"
+    answer: 0
+    explanation: "O marco é direto: um saldo que é só um número atualizado não tem como responder 'por que esse valor?' — um saldo derivado do diário sempre tem essa resposta, porque é literalmente a soma de tudo que já aconteceu. A correção momentânea do valor não compensa a perda de rastreabilidade, o problema não é específico a múltiplas moedas, e o marco não trata essa simplificação como superior — trata como uma perda real de uma propriedade valiosa."
+  - question: "Segundo este marco, o que um ledger especificamente NÃO garante, mesmo mantendo toda a integridade contábil de seus lançamentos?"
+    options:
+      - "Que uma operação faça sentido de negócio (como se uma transferência de alto valor é legítima) — essa responsabilidade pertence a outro componente do sistema"
+      - "Que a soma de débitos seja igual à soma de créditos em cada lançamento"
+      - "Que nenhum lançamento seja apagado ou editado depois de registrado"
+      - "Que um saldo possa ser reconstruído a partir do histórico de lançamentos"
+    answer: 0
+    explanation: "O marco é claro sobre a fronteira: um ledger garante integridade contábil (balanceamento, reconstrução, imutabilidade), mas não garante que uma operação faça sentido de negócio, não executa pagamentos e não decide política de crédito ou limite — essas responsabilidades pertencem a outros componentes. Balanceamento, imutabilidade e reconstrução são exatamente as garantias que o ledger oferece, não o que ele não garante."
