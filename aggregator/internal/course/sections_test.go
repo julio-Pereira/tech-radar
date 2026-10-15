@@ -424,9 +424,19 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 
 	wantNoSection := []string{
 		"go-fintech/java-vs-go",
-		// ledger-e-contabilidade is being written block by block (PLANO-
-		// trilha-ledger-e-contabilidade.md §4/§10) — these are still
+		// open-finance-brasil is being written block by block (PLANO-
+		// trilha-open-finance-brasil.md §4/§10) — these are still
 		// placeholder bodies awaiting their block's content PR.
+		"open-finance-brasil/apis-de-dados-e-contrato-canonico",
+		"open-finance-brasil/conformidade-e-evolucao-de-versoes",
+		"open-finance-brasil/consentimento-no-transmissor",
+		"open-finance-brasil/desempenho-e-sla-regulatorio",
+		"open-finance-brasil/diretorio-registro-dinamico-e-confianca",
+		"open-finance-brasil/ecossistema-open-finance-papeis-e-fases",
+		"open-finance-brasil/iniciacao-de-pagamento-no-detentor",
+		"open-finance-brasil/iniciadora-e-resiliencia-por-detentora",
+		"open-finance-brasil/operar-open-finance-e-capstone",
+		"open-finance-brasil/servidor-de-autorizacao-fapi",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
