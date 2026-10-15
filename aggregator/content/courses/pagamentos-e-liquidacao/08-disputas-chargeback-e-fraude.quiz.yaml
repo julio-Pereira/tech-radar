@@ -1,0 +1,49 @@
+questions:
+  - question: "Um lojista tem evidência forte de que uma transação contestada é legítima, mas não responde à disputa dentro do prazo formal estabelecido. Segundo este marco, qual é o resultado mais provável?"
+    options:
+      - "O lojista perde a disputa por padrão, mesmo tendo evidência suficiente para vencer, porque perder o prazo decide o caso independentemente do mérito"
+      - "O prazo é automaticamente estendido sempre que o lojista demonstrar ter evidência forte"
+      - "A disputa é cancelada integralmente, já que o atraso do lojista invalida a contestação original do portador"
+      - "O resultado depende exclusivamente da categoria do código de motivo, nunca do cumprimento de prazos"
+    answer: 0
+    explanation: "O marco é explícito: perder um prazo de resposta geralmente decide o caso automaticamente contra quem perdeu o prazo, independente do mérito — a disciplina de prazo é tão decisiva quanto a evidência. Não há extensão automática por ter evidência forte, o atraso do lojista não cancela a contestação do portador, e o cumprimento de prazo é relevante independentemente da categoria do motivo."
+  - question: "Um chargeback é aberto com o código de motivo 'serviço' (produto não entregue), mas o lojista responde apresentando apenas a prova de autenticação 3DS bem-sucedida da transação original. Segundo este marco, por que essa evidência provavelmente não resolve o caso?"
+    options:
+      - "Porque a categoria do motivo determina qual evidência é relevante — autenticação 3DS responde a disputas de fraude, não a disputas de serviço, que exigem prova de entrega"
+      - "Porque autenticação 3DS nunca é uma evidência válida em nenhum tipo de disputa de chargeback"
+      - "Porque toda disputa de serviço é automaticamente decidida a favor do portador, independentemente da evidência apresentada"
+      - "Porque evidência técnica só é aceita em disputas abertas pelo próprio emissor, nunca pelo portador"
+    answer: 0
+    explanation: "O marco conecta diretamente a categoria do motivo ao tipo de evidência relevante: prova de entrega responde a um chargeback de serviço, enquanto autenticação 3DS é evidência relevante para um caso de fraude. Usar a evidência errada para a categoria do motivo deixa o caso sem a prova que realmente o resolveria. 3DS é válido em outros contextos (fraude), disputas de serviço não são decididas automaticamente a favor do portador, e evidência técnica não é restrita a disputas abertas pelo emissor."
+  - question: "Um portador contesta uma compra como fraude, mas na verdade ele mesmo fez a compra e está insatisfeito com o produto recebido. Segundo este marco, como esse caso deveria ser classificado, e por que a distinção importa?"
+    options:
+      - "Fraude amigável — e a distinção importa porque a resposta adequada (evidência de comportamento consistente do portador) é diferente da resposta a uma fraude real (investigação e ação preventiva sobre o método comprometido)"
+      - "Fraude real — qualquer contestação indevida de uma transação legítima é tratada como fraude real, independentemente da intenção do portador"
+      - "Não há diferença prática entre os dois casos; a resposta do lojista deveria ser idêntica em ambos"
+      - "Esse caso não se qualifica como nenhum tipo de fraude, já que a compra foi de fato realizada pelo portador"
+    answer: 0
+    explanation: "O marco define fraude amigável exatamente como esse caso: o próprio portador contesta uma transação legítima, inclusive por insatisfação usando o caminho errado. A distinção importa porque a resposta eficaz muda — evidência de comportamento consistente para fraude amigável, investigação e ação preventiva para fraude real. O marco trata os dois como categorias distintas que merecem respostas distintas, e o fato de a compra ter sido realizada pelo portador não isenta o caso de ser uma forma de fraude (amigável)."
+  - question: "Um sistema de pagamentos tenta abrir um chargeback para uma transação Pix fraudulenta, mas descobre que o mecanismo não existe para esse trilho. Segundo este marco, o que deveria ser usado no lugar, e por que a comparação de garantias entre trilhos importa?"
+    options:
+      - "O MED, um processo diferente reservado a fraude investigada — comparar garantias entre trilhos permite recomendar o trilho certo também em função da proteção que o pagador tem se algo der errado"
+      - "O mesmo processo de chargeback de cartão, aplicado sem nenhuma adaptação ao Pix"
+      - "A reversão simples, já que toda transação Pix pode ser desfeita unilateralmente por qualquer uma das partes"
+      - "Não existe nenhum mecanismo de disputa para fraude no Pix, tornando qualquer fraude nesse trilho irrecuperável por definição"
+    answer: 0
+    explanation: "O marco é claro: o Pix não tem chargeback, tem o MED, reservado a fraude investigada — e comparar essas garantias entre trilhos (cartão, Pix, boleto) é o que permite recomendar o trilho certo também considerando a proteção do pagador. Chargeback de cartão não se aplica diretamente ao Pix, o Pix não permite reversão unilateral simples (sua irrevogabilidade foi tratada no marco 03), e o MED, apesar de limitado, não torna toda fraude Pix irrecuperável por definição."
+  - question: "A taxa de chargeback de um lojista específico está subindo continuamente ao longo dos meses, mas ainda não ultrapassou nenhum limite formal. Segundo este marco, por que monitorar essa taxa continuamente, em vez de agir só quando o limite for ultrapassado?"
+    options:
+      - "Porque a taxa de chargeback é um indicador de risco observado pelos adquirentes e bandeiras, e agir antes que ela ultrapasse limites evita penalidades, exigência de reservas ou desligamento automático"
+      - "Porque o monitoramento contínuo é apenas uma formalidade sem relação com consequências reais para o lojista"
+      - "Porque a taxa de chargeback só se torna relevante depois que o lojista já foi penalizado pelo menos uma vez"
+      - "Porque taxas de chargeback crescentes nunca ultrapassam limites formais na prática"
+    answer: 0
+    explanation: "O marco recomenda medir a taxa continuamente justamente para agir antes que ela ultrapasse limites que disparam consequências automáticas (penalidades, reservas, desligamento) — monitorar só depois do limite ultrapassado já é tarde demais para prevenção. O monitoramento tem consequências reais associadas, não é só formalidade, não depende de uma penalização anterior, e taxas crescentes podem, sim, ultrapassar limites se não forem monitoradas."
+  - question: "Durante uma disputa de chargeback em andamento, o valor da transação é retido — nem o lojista o recebe de volta, nem o portador o tem de volta. Segundo este marco, o que precisa existir no razão para refletir corretamente essa situação?"
+    options:
+      - "Um lançamento de retenção correspondente, conservando os fundos entre as partes até a decisão final, com estorno ou reapresentação dependendo do resultado"
+      - "Nenhum lançamento é necessário até que a disputa seja formalmente decidida"
+      - "Um estorno imediato para o portador, revertido depois se o lojista vencer a disputa"
+      - "Um lançamento de reapresentação imediata, independentemente do resultado final da disputa"
+    answer: 0
+    explanation: "O marco trata cada etapa do chargeback — retenção, estorno se o lojista perder, reapresentação se o lojista ganhar — como precisando de lançamento correspondente no razão, com fundos conservados do início ao fim. Não lançar nada durante a retenção deixaria o razão inconsistente com a realidade da disputa em andamento; estornar imediatamente ou reapresentar antes da decisão final antecipa um resultado que ainda não ocorreu."
