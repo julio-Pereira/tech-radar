@@ -1,0 +1,33 @@
+questions:
+  - question: "Uma API de pagamento retorna 'aprovado' em 800ms para uma compra no cartão de crédito. Segundo este marco, o que essa resposta rápida necessariamente confirma?"
+    options:
+      - "Que o fluxo de informação foi concluído — não que o fluxo de fundos (o dinheiro efetivamente mudando de conta) já ocorreu"
+      - "Que o dinheiro já está disponível na conta do lojista"
+      - "Que a liquidação bruta em tempo real já foi executada entre emissor e adquirente"
+      - "Que não há mais nenhuma taxa a ser descontada do valor da venda"
+    answer: 0
+    explanation: "O marco é explícito: fluxo de informação e fluxo de fundos andam em velocidades diferentes. Uma resposta rápida de API normalmente confirma que a mensagem de autorização foi processada, não que o dinheiro já mudou de mãos — no cartão de crédito, isso pode levar semanas. As outras opções assumem precisamente a confusão que o marco identifica como o erro mais comum de quem só conhece pagamentos pela API de um PSP."
+  - question: "Um arranjo de pagamento acumula um período de transações e move apenas o saldo líquido entre as partes ao final do ciclo, em vez de mover cada valor integralmente no momento da transação. Que modelo de liquidação é esse, e qual é o custo em troca de usar menos caixa?"
+    options:
+      - "Liquidação líquida diferida — o custo é uma janela maior de risco de contraparte entre o fluxo de informação e o fluxo de fundos"
+      - "Liquidação bruta em tempo real — o custo é usar mais caixa por transação"
+      - "Prefunding — o custo é a necessidade de depositar fundos antecipadamente"
+      - "Não há custo associado a esse modelo; ele é estritamente superior à liquidação bruta"
+    answer: 0
+    explanation: "A descrição é exatamente a de liquidação líquida diferida, que usa menos caixa por transação às custas de expor as partes a mais tempo de risco de contraparte entre o momento do fluxo de informação e o do fluxo de fundos. A liquidação bruta em tempo real é o modelo oposto (move o valor cheio imediatamente), prefunding é um mecanismo relacionado mas distinto, e todo modelo de liquidação tem algum custo em troca de seus benefícios."
+  - question: "Num arranjo de cartão aberto, qual é o papel específico do adquirente, distinto do papel do emissor e da bandeira?"
+    options:
+      - "O adquirente é quem habilita o lojista a receber pagamentos, diferente do emissor (que mantém a conta do pagador) e da bandeira (a marca e a rede que conecta os dois lados)"
+      - "O adquirente é a mesma entidade que o emissor em todo arranjo de cartão"
+      - "O adquirente é quem define as regras do arranjo, papel que o marco atribui ao instituidor"
+      - "O adquirente só existe em arranjos fechados, nunca em arranjos abertos"
+    answer: 0
+    explanation: "O marco distingue claramente os papéis: o adquirente habilita o lojista a receber; o emissor mantém a conta ou linha de crédito do pagador; a bandeira é a marca e a rede que liga os dois. Emissor e adquirente são papéis distintos (mesmo que, em arranjos fechados, a mesma instituição acumule os dois); o instituidor define as regras do arranjo, não o adquirente; e o adquirente é central tanto em arranjos abertos quanto, de forma integrada, em arranjos fechados."
+  - question: "Um sistema divide a taxa de uma transação de R$ 100,00 entre três participantes, mas a soma das partes calculadas resulta em R$ 99,99 devido a arredondamento. Segundo este marco, como esse resultado deveria ser tratado?"
+    options:
+      - "Como um defeito — o split de taxa precisa conservar o valor total exatamente, usando uma regra de rateio explícita (como rateio por maior resto) para o centavo que sobra ou falta"
+      - "Como um arredondamento aceitável, já que a diferença é de apenas um centavo"
+      - "Como um problema que só importa se o valor da transação for muito alto"
+      - "Como uma responsabilidade exclusiva do participante que recebe a menor parte do split"
+    answer: 0
+    explanation: "O marco trata a conservação do split como estrutural, não cosmética: a soma das partes precisa bater exatamente com o valor bruto, até o centavo, exigindo uma regra de rateio explícita (como maior resto) para resolver a divisão. Um centavo de diferença não é 'aceitável' nem proporcional ao valor da transação, e a responsabilidade de conservar o total é do mecanismo de split como um todo, não de um participante específico."
