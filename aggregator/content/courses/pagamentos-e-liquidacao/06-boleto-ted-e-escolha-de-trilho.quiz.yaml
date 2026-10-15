@@ -1,0 +1,33 @@
+questions:
+  - question: "Um sistema gera a linha digitável de um boleto a partir dos dados do código de barras, e depois interpreta essa linha digitável de volta para os dados originais. Segundo este marco, o que deveria acontecer se esse processo (gerar → interpretar → gerar) for repetido?"
+    options:
+      - "Deveria devolver exatamente a mesma linha digitável — se não devolver, há um defeito no codec, não no boleto"
+      - "É esperado que pequenas diferenças apareçam, desde que o valor numérico final seja o mesmo"
+      - "O processo só precisa ser consistente se o boleto ainda não tiver vencido"
+      - "A linha digitável pode variar livremente, já que o código de barras é a única representação que importa"
+    answer: 0
+    explanation: "O marco é direto: a linha digitável e o código de barras de um mesmo boleto representam exatamente os mesmos dados codificados, e se gerar → interpretar → gerar não devolve o mesmo resultado, o defeito está no codec, não no boleto. Pequenas diferenças não são aceitáveis, a consistência não depende do vencimento, e a linha digitável não é uma representação secundária dispensável."
+  - question: "Um sistema calcula o fator de vencimento de um boleto sem tratar corretamente as bordas do intervalo de contagem de dias. Segundo este marco, qual é a consequência mais provável desse descuido?"
+    options:
+      - "O sistema gera datas de vencimento erradas de forma silenciosa, um bug que só aparece quando a data real cruza a fronteira não prevista pelo código"
+      - "O boleto simplesmente não é gerado, retornando um erro explícito imediato"
+      - "O problema só afeta a exibição visual do boleto, nunca o valor cobrado ou a data de baixa"
+      - "Não há consequência prática, já que o fator de vencimento é apenas informativo"
+    answer: 0
+    explanation: "O marco descreve exatamente esse risco: um cálculo que não trata as bordas do intervalo do fator de vencimento produz datas erradas silenciosamente, aparecendo só quando a data real cruza a fronteira que o código não previu. Não há garantia de um erro explícito imediato, o problema afeta a data real de vencimento (não só a exibição), e o campo não é meramente informativo — ele determina cálculo de multa e juros."
+  - question: "Um boleto é pago no caixa físico de um banco, mas a baixa correspondente ainda não foi processada no sistema do credor. Segundo este marco, qual é o status desse boleto do ponto de vista do credor nesse momento?"
+    options:
+      - "Continua pendente — um boleto pago mas sem baixa processada ainda é tratado como pendente pelo credor, o que pode gerar cobrança indevida se não for notado"
+      - "Já está automaticamente liquidado, já que o pagamento físico já ocorreu"
+      - "O status é indefinido e não pode ser determinado por nenhum sistema até o vencimento"
+      - "A baixa é sempre processada instantaneamente no momento do pagamento, sem nenhuma janela de atraso possível"
+    answer: 0
+    explanation: "O marco explica que dar baixa é o que formalmente encerra a cobrança — um boleto pago mas sem baixa processada continua, do ponto de vista do credor, como pendente, podendo gerar cobrança indevida se a divergência não for notada. O pagamento físico não substitui a baixa, o status não é 'indefinido' (é especificamente 'pendente' até a baixa), e a baixa não é garantidamente instantânea."
+  - question: "Um sistema de pagamentos precisa decidir, para cada transação, se usa Pix, cartão, boleto ou TED, considerando valor, urgência e horário. Segundo este marco, como essa decisão deveria ser modelada?"
+    options:
+      - "Como uma função pura, testável e auditável, com uma tabela de decisão cobrindo os cruzamentos relevantes de valor, urgência e horário"
+      - "Como uma escolha fixa e única, definida uma vez e nunca reavaliada por transação"
+      - "Como uma decisão tomada manualmente por um operador humano em cada transação"
+      - "Como uma escolha baseada exclusivamente no menor custo de transação, ignorando outros fatores"
+    answer: 0
+    explanation: "O marco recomenda explicitamente modelar a escolha de trilho como função pura — testável e auditável — com uma tabela de decisão cobrindo os cruzamentos de valor, urgência e horário, em vez de lógica implícita espalhada pelo código. Uma escolha fixa ignora que o trilho certo varia por transação, decisão manual não escala, e custo é apenas um dos fatores relevantes (junto de finalidade, tempo, reversibilidade, horário e limite)."

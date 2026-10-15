@@ -381,3 +381,105 @@ liquidação que torna um recebível antecipável.
 **Erro comum:** tratar antecipação como "desconto gratuito" — é um produto financeiro com preço
 embutido no desconto aplicado.
 **Onde na prática:** marco 05.
+
+## Boleto/TED
+
+### Linha digitável
+**Em uma frase:** a representação textual, para digitação manual, dos mesmos dados codificados no
+código de barras de um boleto.
+**No fin-rails:** *gerar → interpretar → gerar* produz exatamente a mesma linha digitável, para
+qualquer payload sintético válido.
+**Erro comum:** achar que a linha digitável e o código de barras podem divergir ligeiramente — eles
+precisam representar exatamente os mesmos dados.
+**Onde na prática:** marco 06.
+
+### Código de barras (boleto)
+**Em uma frase:** a representação para leitura óptica dos mesmos dados da linha digitável de um
+boleto.
+**No fin-rails:** o mesmo codec do `sim-boleto/` gera e interpreta ambas as representações a
+partir dos mesmos dados internos.
+**Erro comum:** implementar dois codecs separados para código de barras e linha digitável,
+arriscando divergência entre eles.
+**Onde na prática:** marco 06.
+
+### Fator de vencimento
+**Em uma frase:** número que codifica a data de vencimento de um boleto como contagem de dias a
+partir de uma data-base, com um limite de intervalo que já mudou de regra.
+**No fin-rails:** calculado e testado com tabela de casos nas bordas do intervalo, usando datas
+fictícias de virada.
+**Erro comum:** calcular o fator de vencimento sem tratar as bordas do intervalo, gerando datas
+erradas silenciosamente.
+**Onde na prática:** marco 06.
+
+### Cobrança registrada
+**Em uma frase:** um boleto publicado numa infraestrutura central antes de circular, garantindo
+que qualquer banco veja o mesmo estado do título.
+**No fin-rails:** o registro simulado garante consistência de estado entre as partes no
+`sim-boleto/`.
+**Erro comum:** assumir que todo boleto emitido é automaticamente registrado — a prática não
+registrada é residual, mas ainda existe.
+**Onde na prática:** marco 06.
+
+### Baixa (boleto)
+**Em uma frase:** o ato formal de marcar um título como liquidado, encerrando sua cobrança.
+**No fin-rails:** um boleto pago no `sim-boleto/` só deixa de ser "pendente" depois da baixa
+processada.
+**Erro comum:** achar que o pagamento físico já encerra a cobrança — sem baixa processada, o
+título continua pendente do ponto de vista do credor.
+**Onde na prática:** marco 06.
+
+### Boleto híbrido
+**Em uma frase:** um boleto que combina a linha digitável tradicional com um QR Code Pix no mesmo
+documento.
+**No fin-rails:** não muda a mecânica central do `sim-boleto/`, só adiciona um segundo canal de
+pagamento ao mesmo título.
+**Erro comum:** achar que o boleto híbrido elimina a necessidade de conciliar os dois canais de
+pagamento possíveis.
+**Onde na prática:** marco 06.
+
+### TED
+**Em uma frase:** Transferência Eletrônica Disponível — move fundos entre instituições diferentes,
+com regras próprias de janela de horário e finalidade.
+**No fin-rails:** modelada conceitualmente na tabela de trilhos, sem simulação de infraestrutura
+própria.
+**Erro comum:** assumir que TED está disponível em qualquer horário — janelas de horário limitam
+quando o envio é possível.
+**Onde na prática:** marco 06.
+
+## Liquidez
+
+### *Netting*
+**Em uma frase:** liquidação líquida — mover apenas o saldo entre as partes, em vez do valor bruto
+de cada obrigação individual.
+**No fin-rails:** o resultado do `netting` simulado é sempre igual à soma dos valores brutos por
+participante (conservação).
+**Erro comum:** achar que netting elimina o risco de contraparte — ele reduz o caixa usado, mas a
+janela de risco entre as obrigações originais e a liquidação líquida permanece.
+**Onde na prática:** marco 07.
+
+### Colchão (de liquidez)
+**Em uma frase:** o saldo de segurança mantido acima do estritamente necessário, para absorver
+picos inesperados de saída.
+**No fin-rails:** a `liquidez/` simulada nunca projeta a posição abaixo do colchão quando a
+política de reposição está ligada.
+**Erro comum:** definir o colchão como um número arbitrário, em vez de refletir a volatilidade real
+observada do fluxo de caixa.
+**Onde na prática:** marco 07.
+
+### *Float*
+**Em uma frase:** o dinheiro em trânsito entre o momento em que sai de uma conta e o momento em
+que chega efetivamente a outra.
+**No fin-rails:** mencionado como contexto histórico; o `fin-rails` não simula uso de float, dado
+que é restrito pela regulação em muitos sistemas (**conferir**).
+**Erro comum:** assumir que float é um recurso de tesouraria livremente disponível — é restringido
+pela regulação em muitos contextos.
+**Onde na prática:** marco 07.
+
+### Reposição (de liquidez)
+**Em uma frase:** aporte de capital ou empréstimo intradiário usado para recompor a posição de
+liquidez quando ela ameaça cair abaixo do colchão.
+**No fin-rails:** a política de reposição simulada é o que, no cenário de teste, mantém a posição
+projetada sempre acima do colchão.
+**Erro comum:** não ter nenhuma política de reposição definida com antecedência, negociando a
+resposta ad-hoc durante a crise de caixa.
+**Onde na prática:** marco 07.

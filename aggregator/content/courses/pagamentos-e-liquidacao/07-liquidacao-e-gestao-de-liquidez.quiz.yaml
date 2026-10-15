@@ -1,0 +1,33 @@
+questions:
+  - question: "A instituição A deve R$ 10.000 à instituição B, e B deve R$ 7.000 à A, no mesmo ciclo de liquidação. Usando netting, qual valor é efetivamente movido, e o que esse resultado precisa conservar?"
+    options:
+      - "R$ 3.000 são movidos (o saldo), e o resultado do netting precisa ser igual à soma dos valores brutos por participante"
+      - "R$ 17.000 são movidos, já que o netting soma todas as obrigações em vez de compensá-las"
+      - "Nenhum valor é movido, já que o netting cancela automaticamente obrigações bilaterais"
+      - "R$ 10.000 são movidos, ignorando a obrigação menor de B para A"
+    answer: 0
+    explanation: "O marco descreve exatamente esse cálculo: o netting move apenas o saldo (R$ 3.000, nesse exemplo) em vez das duas transferências brutas, e o resultado precisa ser igual à soma dos valores brutos por participante — uma propriedade de conservação. Somar as obrigações, cancelá-las totalmente, ou ignorar a menor delas, todos contradizem o mecanismo descrito."
+  - question: "Uma instituição configura sua gestão de liquidez considerando apenas as entradas esperadas de caixa, sem projetar as saídas com o mesmo rigor. Segundo este marco, por que essa abordagem é um erro?"
+    options:
+      - "Porque uma projeção que só considera o lado bom do fluxo de caixa não é uma projeção real, é uma esperança — e esconde o risco real de faltar caixa"
+      - "Porque entradas de caixa são, por definição, menos previsíveis que saídas em qualquer sistema de pagamento"
+      - "Não é um erro, desde que as entradas historicamente superem as saídas na média mensal"
+      - "O erro só é relevante se a instituição operar em mais de uma moeda"
+    answer: 0
+    explanation: "O marco identifica esse padrão como um dos dois erros típicos recorrentes: projetar só entradas sem o mesmo rigor nas saídas produz uma projeção otimista que, na prática, não é uma projeção real. A previsibilidade relativa de entradas e saídas não é o ponto central do erro, médias históricas favoráveis não eliminam o risco de picos específicos, e o problema não depende de operação multimoeda."
+  - question: "Um alerta de limite de liquidez é configurado para disparar quando a posição projetada cai abaixo de um valor específico. Segundo este marco, por que o momento exato desse disparo importa tanto?"
+    options:
+      - "Porque um alerta que dispara tarde demais não dá tempo de reposição, e um que dispara cedo demais com frequência excessiva gera fadiga de alerta, levando as pessoas a ignorá-lo"
+      - "Porque alertas de liquidez, diferente de outros alertas operacionais, não têm nenhum custo associado a disparar com frequência"
+      - "Porque o momento do disparo só importa durante o horário comercial, nunca durante a madrugada ou fim de semana"
+      - "Porque o sistema de liquidação exige, por regra formal, que todo alerta dispare exatamente à meia-noite"
+    answer: 0
+    explanation: "O marco explica o equilíbrio: disparar tarde demais já não permite reposição a tempo, e disparar cedo demais repetidamente produz fadiga de alerta — ambos problemas reais que tornam o momento exato do disparo importante. Alertas de liquidez não são livres de custo quando disparam em excesso, o momento importa especialmente fora do horário comercial (justamente quando a operação 24x7 continua gerando saídas), e não há exigência de horário fixo de disparo."
+  - question: "Segundo este marco, por que tratar sábado e domingo como dias sem movimento relevante é um erro específico sob um sistema de liquidação 24x7 como o Pix?"
+    options:
+      - "Porque, sob liquidação 24x7, saídas de caixa continuam ocorrendo normalmente nos fins de semana, e ignorar isso na projeção subestima o risco real de faltar caixa"
+      - "Porque fins de semana têm, por regra regulatória, limites de valor diferentes de dias úteis"
+      - "Porque o colchão mínimo só precisa ser mantido durante dias úteis, nunca durante o fim de semana"
+      - "Não é um erro — sistemas de liquidação tradicionalmente pausam movimentação em fins de semana, incluindo o Pix"
+    answer: 0
+    explanation: "O marco é direto: sob Pix 24x7, saídas continuam acontecendo normalmente em sábados e domingos, e uma projeção que trata esses dias como sem movimento relevante subestima sistematicamente o risco de descompasso de caixa justamente nesses períodos. O erro não está relacionado a limites regulatórios específicos de fim de semana, o colchão precisa ser mantido continuamente, e o próprio ponto do marco é que o Pix, ao contrário de sistemas tradicionais, não pausa em fins de semana."
