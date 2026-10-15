@@ -1,0 +1,33 @@
+questions:
+  - question: "Um lançamento de conversão de moeda tem uma perna de débito em BRL e uma perna de crédito em USD, e o sistema verifica apenas se a soma total 'parece' equilibrada somando os dois valores diretamente. Segundo este marco, por que essa verificação está errada?"
+    options:
+      - "Cada moeda precisa balancear isoladamente — débitos em BRL devem igualar créditos em BRL, e separadamente débitos em USD devem igualar créditos em USD; uma conversão é dois sublançamentos balanceados, não uma mistura direta"
+      - "Não há problema nessa verificação, desde que os dois valores sejam convertidos para a mesma moeda antes da soma"
+      - "A verificação está correta, já que somar valores de moedas diferentes diretamente é uma prática padrão em contabilidade multimoeda"
+      - "O problema só existiria se as duas moedas envolvidas tivessem números diferentes de casas decimais"
+    answer: 0
+    explanation: "O marco estabelece a regra de ouro: cada moeda balanceia isoladamente — nunca somar diretamente valores de moedas diferentes para verificar balanceamento. Converter antes de somar ainda não é a verificação correta (o lançamento original precisa balancear por moeda, não depois de uma conversão aplicada na verificação), somar diretamente contradiz exatamente a regra central do marco, e o problema existe independentemente do número de casas decimais de cada moeda."
+  - question: "Uma conversão de moeda é processada sem que o sistema registre qual taxa de câmbio foi usada, apenas o valor final convertido. Segundo este marco, o que deveria acontecer com essa conversão?"
+    options:
+      - "Deveria ser rejeitada antes de qualquer outro processamento — toda conversão precisa registrar taxa, hora e fonte"
+      - "Deveria ser aceita normalmente, já que o valor final já contém implicitamente a informação da taxa usada"
+      - "Deveria ser aceita, mas marcada para auditoria manual posterior"
+      - "O registro da taxa só é necessário para conversões acima de um valor mínimo configurado"
+    answer: 0
+    explanation: "O marco é direto: toda conversão registra taxa, hora e fonte, e uma conversão sem taxa registrada é rejeitada antes de qualquer outro processamento. O valor final convertido não permite reconstruir de forma confiável qual taxa específica foi usada, aceitar com auditoria manual posterior ainda deixa a lacuna de rastreabilidade no momento da operação, e não há exceção baseada em valor mínimo mencionada pelo marco."
+  - question: "A taxa de mercado de uma moeda estrangeira muda, e a instituição ainda mantém uma posição nessa moeda sem ter convertido o valor de fato. Segundo este marco, o que deveria acontecer com o saldo contábil dessa posição, expresso na moeda de referência?"
+    options:
+      - "A posição deveria ser reavaliada periodicamente, gerando um lançamento de ganho ou perda cambial não realizado que reflete a mudança de valor, mesmo sem conversão de fato ter ocorrido"
+      - "O saldo contábil deveria permanecer congelado no valor da última conversão real, ignorando mudanças de taxa até a próxima conversão efetiva"
+      - "A mudança de taxa só deveria ser refletida no momento em que a posição for finalmente convertida, nunca antes"
+      - "Reavaliação e conversão são o mesmo processo, então a mudança de taxa já seria automaticamente contabilizada"
+    answer: 0
+    explanation: "O marco distingue claramente reavaliação de conversão: reavaliação periódica ajusta a visão contábil de um saldo existente conforme a taxa de mercado muda, gerando ganho ou perda cambial não realizado, sem que uma conversão de fato tenha ocorrido. Congelar o saldo ou esperar até a conversão efetiva ignora essa prática deliberada, e reavaliação e conversão são explicitamente tratadas como processos distintos, não o mesmo mecanismo."
+  - question: "Um valor é convertido de BRL para USD e, imediatamente depois, convertido de volta de USD para BRL, sem nenhuma variação na taxa de câmbio entre as duas operações e sem considerar spread algum. Segundo este marco, o resultado dessa conversão de ida e volta deveria ser...?"
+    options:
+      - "Aproximadamente o valor original, dentro de uma tolerância declarada que reflete o arredondamento esperado em cada etapa da conversão — não necessariamente idêntico ao centavo"
+      - "Exatamente idêntico, ao centavo, ao valor original, sem nenhuma tolerância de arredondamento permitida"
+      - "Sempre maior que o valor original, já que toda conversão de moeda introduz uma margem adicional"
+      - "Imprevisível, já que conversões sucessivas não têm nenhuma relação matemática esperada entre si"
+    answer: 0
+    explanation: "O marco é específico: a conversão ida e volta, sem variação de taxa e sem spread, deveria devolver aproximadamente o valor original, dentro de uma tolerância declarada que reflete o arredondamento esperado em cada etapa — não exatidão absoluta ao centavo, porque arredondamento ocorre em cada conversão individual. Esperar exatidão perfeita ignora o arredondamento inerente, o resultado não é sistematicamente maior sem spread envolvido, e a relação entre as duas conversões é, sim, previsível dentro da tolerância declarada."

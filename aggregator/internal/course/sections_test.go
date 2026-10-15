@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 165, "desafio": 206, "invariantes": 196, "complemento": 187, "checagem": 205,
+		"tutorial": 168, "desafio": 209, "invariantes": 199, "complemento": 190, "checagem": 208,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -427,13 +427,10 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		// ledger-e-contabilidade is being written block by block (PLANO-
 		// trilha-ledger-e-contabilidade.md §4/§10) — these are still
 		// placeholder bodies awaiting their block's content PR.
-		"ledger-e-contabilidade/arredondamento-rateio-e-juros",
 		"ledger-e-contabilidade/auditoria-e-capstone-do-ledger",
 		"ledger-e-contabilidade/conciliacao",
 		"ledger-e-contabilidade/fechamento-de-periodo",
 		"ledger-e-contabilidade/ledger-em-escala",
-		"ledger-e-contabilidade/multimoeda-e-cambio",
-		"ledger-e-contabilidade/reservas-e-holds",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
