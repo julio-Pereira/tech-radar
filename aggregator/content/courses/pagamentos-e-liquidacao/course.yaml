@@ -1,0 +1,39 @@
+slug: pagamentos-e-liquidacao
+title: "Pagamentos e Liquidação: a Mecânica dos Trilhos — Pix, Cartões, Boleto e TED"
+subtitle: "Quem paga quem, quando o dinheiro muda de mãos e o que acontece quando o resultado é desconhecido — Pix por dentro, cartões da autorização à liquidação, boleto, disputas e orquestração, provados contra simuladores."
+category: "Domínio financeiro"
+tags: [pagamentos, pix, spi, dict, med, cartoes, iso-8583, tokenizacao, chargeback, boleto, ted, liquidacao, recebiveis, orquestracao, go, fintech]
+level: advanced
+lang: pt-BR
+# 10 marcos, Σ 610 min (regra ~2x -> 20h). Escrita por bloco — ver
+# PLANO-trilha-pagamentos-e-liquidacao.md §4/§10. Stubs por enquanto;
+# conteúdo real chega bloco a bloco nas próximas PRs desta trilha.
+estimatedHours: 20
+prerequisites: [system-design, spring-boot]
+sources:
+  - { title: "Banco Central do Brasil — Pix", url: https://www.bcb.gov.br/estabilidadefinanceira/pix }
+  - { title: "Banco Central do Brasil — Manuais do Pix (regulamento e manuais operacionais)", url: https://www.bcb.gov.br/estabilidadefinanceira/pix_regulamento_manuais }
+  - { title: "Banco Central do Brasil — Arranjos de pagamento", url: https://www.bcb.gov.br/estabilidadefinanceira/arranjospagamento }
+  - { title: "Banco Central do Brasil — Padrões de QR Code (BR Code)", url: https://www.bcb.gov.br/estabilidadefinanceira/qrcodepix }
+  - { title: "EMVCo — QR Code Specification for Payment Systems", url: https://www.emvco.com/emv-technologies/emv-qr-codes/ }
+  - { title: "PCI Security Standards Council — Documents Library", url: https://www.pcisecuritystandards.org/document_library/ }
+  - { title: "ISO 20022 — Universal financial industry message scheme", url: https://www.iso20022.org/ }
+  - { title: "FEBRABAN — Portal", url: https://portal.febraban.org.br/ }
+  - { title: "Stripe — Idempotent requests (documentação de conceitos)", url: https://docs.stripe.com/api/idempotent_requests }
+  - { title: "OWASP — Cheat Sheet Series", url: https://cheatsheetseries.owasp.org/ }
+milestones:
+  # Bloco A — O mapa
+  - 01-ecossistema-e-fluxo-de-fundos.md
+  # Bloco B — Pix
+  - 02-pix-por-dentro.md
+  - 03-pix-avancado-devolucao-e-med.md
+  # Bloco C — Cartões
+  - 04-cartoes-autorizacao-e-tokenizacao.md
+  - 05-cartoes-compensacao-liquidacao-e-recebiveis.md
+  # Bloco D — Outros trilhos e liquidez
+  - 06-boleto-ted-e-escolha-de-trilho.md
+  - 07-liquidacao-e-gestao-de-liquidez.md
+  # Bloco E — Disputas e operação
+  - 08-disputas-chargeback-e-fraude.md
+  - 09-orquestracao-de-pagamentos.md
+  - 10-operar-pagamentos-e-capstone.md
