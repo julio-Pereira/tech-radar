@@ -424,6 +424,19 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 
 	wantNoSection := []string{
 		"go-fintech/java-vs-go",
+		// pagamentos-e-liquidacao is being written block by block (PLANO-
+		// trilha-pagamentos-e-liquidacao.md §4/§10) — these are still
+		// placeholder bodies awaiting their block's content PR.
+		"pagamentos-e-liquidacao/boleto-ted-e-trilhos",
+		"pagamentos-e-liquidacao/cartoes-autorizacao",
+		"pagamentos-e-liquidacao/cartoes-liquidacao-e-recebiveis",
+		"pagamentos-e-liquidacao/disputas-e-chargeback",
+		"pagamentos-e-liquidacao/ecossistema-e-fluxo-de-fundos",
+		"pagamentos-e-liquidacao/liquidacao-e-liquidez",
+		"pagamentos-e-liquidacao/operar-pagamentos-e-capstone",
+		"pagamentos-e-liquidacao/orquestracao-de-pagamentos",
+		"pagamentos-e-liquidacao/pix-avancado-e-med",
+		"pagamentos-e-liquidacao/pix-por-dentro",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
