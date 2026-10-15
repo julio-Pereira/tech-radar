@@ -1,0 +1,33 @@
+questions:
+  - question: "Um Pix agendado chega na data marcada e a conta do pagador não tem saldo suficiente. Segundo este marco, qual é a resposta correta do sistema?"
+    options:
+      - "Terminar num estado terminal explícito (como 'agendamento não executado por saldo insuficiente') com notificação ao pagador, nunca silêncio ou novas tentativas automáticas sem limite"
+      - "Tentar executar o agendamento repetidamente, em intervalos curtos, até que haja saldo suficiente, sem informar o pagador"
+      - "Cancelar silenciosamente o agendamento sem qualquer notificação, já que a responsabilidade é do pagador"
+      - "Executar a transação de qualquer forma, deixando a conta do pagador com saldo negativo"
+    answer: 0
+    explanation: "O marco é explícito: a falta de saldo num Pix agendado precisa de um estado terminal explícito e notificação — nunca silêncio ou tentativas automáticas indefinidas. Tentar repetidamente sem informar, cancelar sem notificar, ou executar criando saldo negativo, são exatamente os comportamentos que o marco identifica como incorretos."
+  - question: "Dois pedidos de devolução parcial da mesma transação Pix chegam quase simultaneamente, cada um dentro do valor original isoladamente, mas juntos excedendo o valor da transação original. Segundo este marco, o que impede que ambos sejam processados com sucesso?"
+    options:
+      - "Uma verificação atômica sobre a soma de todas as devoluções da transação — checar cada pedido isoladamente, sem atomicidade, não é suficiente sob concorrência"
+      - "O sistema sempre processa o primeiro pedido e rejeita automaticamente qualquer pedido seguinte da mesma transação"
+      - "Não há problema real, já que devoluções parciais nunca podem ocorrer de forma concorrente no Pix"
+      - "A soma de devoluções pode legitimamente exceder o valor original, desde que cada pedido individual seja válido"
+    answer: 0
+    explanation: "O marco é direto: a regra 'soma de devoluções ≤ valor original' precisa de uma verificação atômica, porque pedidos concorrentes de devolução parcial podem, juntos, devolver mais do que foi recebido se cada um for checado isoladamente. O marco não afirma que o primeiro pedido sempre vence automaticamente, não trata concorrência como impossível, e é explícito que a soma nunca pode exceder o original."
+  - question: "Uma vítima de fraude aciona o MED pouco depois de uma transação Pix fraudulenta. Segundo este marco, por que o valor é colocado em bloqueio cautelar ANTES da conclusão da análise formal, em vez de esperar o resultado da análise para agir?"
+    options:
+      - "Porque esperar a conclusão da análise permitiria ao suposto fraudador retirar o valor da conta de destino antes de qualquer decisão"
+      - "Porque o bloqueio cautelar substitui completamente a necessidade de qualquer análise formal"
+      - "Porque a lei exige bloqueio imediato em toda transação Pix, independentemente de haver notificação de fraude"
+      - "Porque o bloqueio cautelar é apenas uma formalidade sem efeito prático sobre a disponibilidade do valor"
+    answer: 0
+    explanation: "O marco explica que o bloqueio cautelar existe precisamente para impedir que o suposto fraudador retire o valor enquanto a análise ainda está em curso — agir antes da conclusão é o que torna o mecanismo útil. O bloqueio não substitui a análise (ela ainda ocorre), não é uma exigência universal para toda transação, e tem efeito prático real sobre a disponibilidade do valor."
+  - question: "Um sistema de cobrança recorrente processa uma nova cobrança do mesmo cobrador que já cobrou o pagador nos últimos três meses, mas não há registro de autorização prévia válida para esse cobrador específico. Segundo este marco, o que deveria acontecer?"
+    options:
+      - "A cobrança deveria ser rejeitada — autorização prévia é específica para cada cobrador e precisa estar registrada, não pode ser inferida de cobranças anteriores"
+      - "A cobrança deveria ser processada normalmente, já que o histórico de cobranças anteriores já serve como autorização implícita"
+      - "A cobrança deveria ser processada, mas com um aviso enviado ao pagador depois do processamento"
+      - "A ausência de autorização só importa se o valor da cobrança for maior que as cobranças anteriores"
+    answer: 0
+    explanation: "O marco exige autorização prévia do pagador, específica para aquele cobrador, como condição para processar uma cobrança recorrente — histórico de cobranças anteriores não substitui esse registro. Processar primeiro e avisar depois, ou processar normalmente com base em cobranças passadas, contradiz diretamente essa exigência, e a ausência de autorização importa independentemente do valor da cobrança."

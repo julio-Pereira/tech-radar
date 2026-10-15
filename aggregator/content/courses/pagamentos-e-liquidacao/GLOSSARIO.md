@@ -144,3 +144,106 @@ emissor) — são partes diferentes do mesmo split.
 **Erro comum:** achar que a tarifa de intercâmbio é fixa e universal — ela varia por arranjo e é
 frequentemente regulada (**conferir** a regulação vigente).
 **Onde na prática:** marco 01.
+
+## Pix
+
+### SPI
+**Em uma frase:** o Sistema de Pagamentos Instantâneos, a infraestrutura que liquida cada
+transação Pix individualmente, 24x7.
+**No fin-rails:** o `sim-spi/` simula essa liquidação bruta em tempo real sobre dados sintéticos.
+**Erro comum:** achar que o SPI processa em lote — ele liquida transação por transação, não por
+ciclo.
+**Onde na prática:** marco 02.
+
+### DICT
+**Em uma frase:** o diretório que associa uma chave Pix à conta de destino real.
+**No fin-rails:** o `sim-spi/` inclui um DICT simulado com limite de consultas configurável.
+**Erro comum:** não proteger a consulta contra enumeração — a resposta de "chave inexistente" e
+de "limite excedido" precisa ser indistinguível.
+**Onde na prática:** marco 02.
+
+### Chave Pix
+**Em uma frase:** um identificador (CPF/CNPJ, e-mail, telefone ou aleatório) vinculado a uma conta
+no DICT.
+**No fin-rails:** o gerador sintético de chaves nunca usa um CPF ou e-mail real, apenas faixas
+reservadas a teste.
+**Erro comum:** tratar a chave como se fosse a própria conta — ela é só um apontador que o DICT
+resolve.
+**Onde na prática:** marco 02.
+
+### Identificador fim a fim
+**Em uma frase:** um valor único que acompanha uma transação Pix do início ao fim, base da
+idempotência da transação.
+**No fin-rails:** o mesmo identificador fim a fim enviado duas vezes ao `sim-spi/` produz um único
+pagamento.
+**Erro comum:** confiar só numa chave de idempotência da API de entrada, sem propagar o mesmo
+identificador por toda a cadeia de processamento.
+**Onde na prática:** marco 02.
+
+### QR estático
+**Em uma frase:** um QR Pix reutilizável, sem valor embutido, que exige o pagador digitar o
+quanto pagar.
+**No fin-rails:** o codec do `sim-spi/` gera e interpreta QR estático e dinâmico com o mesmo
+parser.
+**Erro comum:** usar QR estático numa cobrança cujo valor muda com frequência — exigiria
+reimpressão a cada mudança.
+**Onde na prática:** marco 02.
+
+### QR dinâmico
+**Em uma frase:** um QR Pix gerado para uma cobrança específica, com valor e identificador já
+embutidos ou referenciados por URL, normalmente com validade limitada.
+**No fin-rails:** o *payload* dinâmico simulado é hospedado pelo recebedor, como no sistema real.
+**Erro comum:** achar que o QR dinâmico sempre embute o valor diretamente — muitas vezes ele só
+carrega uma URL para buscar o valor.
+**Onde na prática:** marco 02.
+
+### BR Code
+**Em uma frase:** o padrão de QR Code do Pix, com campos codificados em TLV e um CRC final sobre
+todo o payload.
+**No fin-rails:** o codec de QR do `sim-spi/` valida o CRC contra os vetores de teste oficiais da
+Fase 0.
+**Erro comum:** implementar o CRC de memória em vez de usar o polinômio exato do manual vigente.
+**Onde na prática:** marco 02.
+
+### Devolução (Pix)
+**Em uma frase:** desfazer, total ou parcialmente, uma transação Pix já liquidada, com
+identificador próprio.
+**No fin-rails:** a soma de devoluções de uma transação sintética nunca excede o valor original,
+mesmo sob pedidos concorrentes.
+**Erro comum:** tratar devolução como simples "cancelamento" da transação original, em vez de uma
+nova transação que a referencia.
+**Onde na prática:** marco 03.
+
+### MED
+**Em uma frase:** o Mecanismo Especial de Devolução, acionado em casos de fraude, com bloqueio
+cautelar e análise antes da devolução.
+**No fin-rails:** o fluxo de MED simulado termina em um único estado terminal, conservando os
+fundos entre bloqueado, devolvido e irrecuperável.
+**Erro comum:** achar que o MED serve para arrependimento de compra — ele é reservado a fraude
+investigada.
+**Onde na prática:** marco 03.
+
+### Bloqueio cautelar
+**Em uma frase:** reter o valor na conta de destino durante a análise de um MED, antes de
+qualquer decisão final.
+**No fin-rails:** o bloqueio cautelar simulado impede que o valor seja retirado enquanto a análise
+está em andamento.
+**Erro comum:** esperar a conclusão da análise para bloquear — isso daria tempo ao fraudador de
+retirar o valor antes de qualquer ação.
+**Onde na prática:** marco 03.
+
+### Pix agendado
+**Em uma frase:** registrar a intenção de pagar numa data futura, não a execução imediata.
+**No fin-rails:** o agendador simulado trata falta de saldo na data marcada como um estado
+terminal explícito, com notificação.
+**Erro comum:** tentar executar repetidamente sem limite quando não há saldo, em vez de terminar
+explicitamente e notificar.
+**Onde na prática:** marco 03.
+
+### Pix Automático (recorrência)
+**Em uma frase:** cobrança recorrente autorizada previamente pelo pagador, específica para um
+cobrador e geralmente com teto de valor.
+**No fin-rails:** a cobrança recorrente simulada sem autorização registrada é sempre rejeitada.
+**Erro comum:** inferir autorização a partir do histórico de cobranças anteriores, em vez de
+exigir o registro explícito.
+**Onde na prática:** marco 03.
