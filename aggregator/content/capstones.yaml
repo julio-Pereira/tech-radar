@@ -115,3 +115,9 @@
   depends_on: [fin-pipeline, fin-watch, fin-landscape]
   artifacts:
     - { path: "fin-leadkit/", check: exists }
+
+- track: pagamentos-e-liquidacao
+  component: fin-rails
+  depends_on: [pix-gateway, ledger-core]
+  artifacts:
+    - { path: "fin-rails/", check: exists }

@@ -483,3 +483,133 @@ projetada sempre acima do colchão.
 **Erro comum:** não ter nenhuma política de reposição definida com antecedência, negociando a
 resposta ad-hoc durante a crise de caixa.
 **Onde na prática:** marco 07.
+
+## Disputas
+
+### *Chargeback*
+**Em uma frase:** o processo formal de contestação de uma transação de cartão, com prazos,
+evidência e dinheiro retido até a decisão.
+**No fin-rails:** a máquina de estados de disputa simulada conserva os fundos entre retenção,
+estorno e reapresentação.
+**Erro comum:** achar que o mérito da evidência sozinho decide o caso — perder um prazo formal
+decide o caso independentemente da evidência.
+**Onde na prática:** marco 08.
+
+### Representação
+**Em uma frase:** a resposta do lojista a uma contestação de chargeback, com evidência de que a
+transação é legítima.
+**No fin-rails:** a evidência de representação simulada varia por categoria de motivo (serviço,
+processamento ou fraude).
+**Erro comum:** apresentar evidência genérica em vez da evidência específica que responde à
+categoria do motivo do chargeback.
+**Onde na prática:** marco 08.
+
+### Código de motivo
+**Em uma frase:** a categoria declarada de um chargeback — fraude, serviço ou processamento —
+que determina qual evidência é relevante para a defesa.
+**No fin-rails:** o motivo simulado direciona qual tipo de evidência o lojista fictício precisa
+reunir.
+**Erro comum:** tratar todos os códigos de motivo com a mesma estratégia de resposta, ignorando
+que cada categoria exige evidência diferente.
+**Onde na prática:** marco 08.
+
+### Fraude amigável
+**Em uma frase:** quando o próprio portador contesta uma transação legítima que ele mesmo
+realizou.
+**No fin-rails:** o gerador sintético de casos distingue fraude amigável de fraude real para
+treinar a resposta correta a cada uma.
+**Erro comum:** tratar fraude amigável com a mesma resposta de investigação usada para fraude
+real — a evidência eficaz é diferente em cada caso.
+**Onde na prática:** marco 08.
+
+### Taxa de *chargeback*
+**Em uma frase:** a proporção de chargebacks sobre o volume de transações de um lojista, usada
+como indicador de risco.
+**No fin-rails:** calculada sobre uma massa sintética e usada para disparar um alerta no limite
+configurado.
+**Erro comum:** só reagir à taxa de chargeback depois que ela ultrapassa um limite formal, em vez
+de monitorá-la continuamente.
+**Onde na prática:** marco 08.
+
+## Orquestração
+
+### Orquestrador
+**Em uma frase:** o componente que decide qual provedor ou trilho usar para cada pagamento e
+mantém a continuidade do pagamento entre tentativas e provedores.
+**No fin-rails:** o `orquestrador/` do marco 09 é o serviço central que implementa esse papel sobre
+dois provedores simulados.
+**Erro comum:** confundir orquestrador com gateway — o gateway simplifica acesso a um PSP; o
+orquestrador decide entre vários e trata continuidade.
+**Onde na prática:** marco 09.
+
+### Roteamento (de pagamento)
+**Em uma frase:** a decisão de qual provedor usar para um pagamento específico, ponderando custo,
+taxa de aprovação, risco e disponibilidade.
+**No fin-rails:** modelado como função pura, testada contra uma tabela de casos.
+**Erro comum:** implementar roteamento como lógica implícita acumulada, em vez de uma função
+testável e auditável.
+**Onde na prática:** marco 09.
+
+### Retentativa entre provedores
+**Em uma frase:** tentar um segundo provedor depois que o primeiro falhou, sempre precedida da
+resolução do resultado desconhecido do primeiro.
+**No fin-rails:** o orquestrador simulado nunca tenta o segundo provedor antes de consultar ou
+anular no primeiro.
+**Erro comum:** tentar o segundo provedor imediatamente após um *timeout* do primeiro, arriscando
+cobrança dupla.
+**Onde na prática:** marco 09.
+
+### *Webhook* (de pagamento)
+**Em uma frase:** notificação assíncrona de um provedor sobre o resultado de um pagamento,
+exigindo assinatura, janela de tempo e idempotência de ingestão.
+**No fin-rails:** o orquestrador simulado rejeita *webhooks* sem assinatura válida ou fora da
+janela de tempo configurada.
+**Erro comum:** implementar só a verificação de assinatura, esquecendo a janela de tempo (proteção
+contra *replay*) ou a idempotência de ingestão.
+**Onde na prática:** marco 09.
+
+### Camada anticorrupção (por provedor)
+**Em uma frase:** a tradução do formato e da semântica específicos de um provedor externo para o
+modelo de domínio único do orquestrador.
+**No fin-rails:** um teste de arquitetura reprova qualquer tipo específico de provedor que vaze
+para fora da camada anticorrupção correspondente.
+**Erro comum:** deixar códigos de erro ou formatos de mensagem de um provedor específico vazarem
+para a lógica central do orquestrador.
+**Onde na prática:** marco 09.
+
+## Operação
+
+### Taxa de aprovação
+**Em uma frase:** a proporção de tentativas de pagamento que são efetivamente aprovadas.
+**No fin-rails:** calculada por trilho sobre dados sintéticos, e uma degradação injetada a reduz
+de forma detectável.
+**Erro comum:** confiar só em disponibilidade de infraestrutura, ignorando que a taxa de aprovação
+pode cair mesmo com o sistema "no ar".
+**Onde na prática:** marco 10.
+
+### Funil (de pagamento)
+**Em uma frase:** a sequência iniciado → autorizado → liquidado, com a taxa de conversão entre
+cada etapa.
+**No fin-rails:** o painel simulado identifica exatamente em qual etapa do funil uma degradação
+específica ocorre.
+**Erro comum:** medir só a taxa de aprovação final, sem visibilidade de em qual etapa do funil o
+problema realmente está.
+**Onde na prática:** marco 10.
+
+### Sonda sintética
+**Em uma frase:** uma transação de teste completa, executada periodicamente e automaticamente em
+cada trilho, usando dados sintéticos.
+**No fin-rails:** cada trilho simulado tem sua própria sonda, detectando degradação antes do
+volume real de produção.
+**Erro comum:** depender só de reclamações de clientes para detectar degradação de um trilho
+específico.
+**Onde na prática:** marco 10.
+
+### Homologação
+**Em uma frase:** um catálogo de casos de teste versionado como código que valida uma integração
+com um arranjo ou provedor antes da produção.
+**No fin-rails:** `make rails-review` executa o catálogo de homologação simulado e falha se um
+caso não estiver coberto.
+**Erro comum:** validar uma mudança de integração só com checagem manual ad-hoc, sem um catálogo
+automatizado e versionado.
+**Onde na prática:** marco 10.

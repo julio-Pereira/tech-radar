@@ -1,0 +1,49 @@
+questions:
+  - question: "Um provedor de pagamento A responde com timeout após uma tentativa de cobrança — não se sabe se ele processou a cobrança antes de falhar em responder. Segundo este marco, qual é a ação correta do orquestrador antes de tentar o provedor B?"
+    options:
+      - "Consultar o status da transação no provedor A, ou emitir uma anulação explícita, resolvendo o resultado desconhecido antes de rotear para outro provedor"
+      - "Tentar imediatamente o provedor B, já que esperar por uma resposta de A desperdiça tempo"
+      - "Assumir que o provedor A não cobrou, já que ele não respondeu com sucesso explícito"
+      - "Cancelar a transação por completo e notificar o cliente para tentar novamente mais tarde"
+    answer: 0
+    explanation: "O marco é explícito: a resposta correta a um timeout nunca é tentar outro provedor imediatamente e torcer — é consultar ou anular no provedor original primeiro, resolvendo o resultado desconhecido antes de rotear. Tentar B imediatamente, assumir falha sem confirmação, ou simplesmente cancelar sem resolver o estado real em A, todos arriscam cobrança dupla ou perda de rastreamento do que de fato ocorreu."
+  - question: "Um cliente envia dois pedidos de pagamento com a mesma chave de idempotência do orquestrador, mas devido a uma retentativa de roteamento, cada pedido acaba processado por um provedor diferente. Segundo este marco, qual deveria ser o resultado?"
+    options:
+      - "Um único pagamento — a chave de idempotência do orquestrador precisa ser própria e sobreviver à troca de provedor entre tentativas"
+      - "Dois pagamentos independentes, um para cada provedor que processou uma das tentativas"
+      - "O resultado depende exclusivamente de qual dos dois provedores respondeu primeiro"
+      - "Nenhum pagamento é processado, já que a mudança de provedor invalida qualquer chave de idempotência"
+    answer: 0
+    explanation: "O marco é direto: uma chave de idempotência válida só dentro de um provedor não é suficiente — o orquestrador precisa manter sua própria chave, de ponta a ponta, que sobrevive à troca de provedor. Dois pedidos com a mesma chave, mesmo roteados para provedores diferentes, precisam produzir um único pagamento. Produzir dois pagamentos, depender de qual respondeu primeiro, ou invalidar a chave por completo, contradizem esse princípio."
+  - question: "Um webhook de notificação de pagamento chega ao orquestrador com uma assinatura válida, mas o timestamp do evento é de três dias atrás. Segundo este marco, o que deveria acontecer, e por quê?"
+    options:
+      - "O webhook deveria ser rejeitado por estar fora da janela de tempo configurada — essa proteção existe especificamente contra replay de um webhook capturado e reenviado depois"
+      - "O webhook deveria ser aceito normalmente, já que a assinatura válida já garante toda a segurança necessária"
+      - "A janela de tempo só é relevante para webhooks sem assinatura, nunca para webhooks assinados corretamente"
+      - "O webhook deveria ser processado, mas com um atraso proporcional ao tempo decorrido desde o evento original"
+    answer: 0
+    explanation: "O marco trata assinatura e janela de tempo como proteções independentes: a assinatura comprova a origem, mas a janela de tempo protege especificamente contra replay — um webhook capturado e reenviado depois, mesmo com assinatura originalmente válida, precisa ser rejeitado fora da janela. Assinatura válida não substitui a checagem de janela, a janela é relevante independentemente de haver assinatura, e processar com atraso proporcional não é a resposta descrita pelo marco."
+  - question: "Um orquestrador permite que o formato específico de mensagens de um provedor (seus códigos de erro, sua semântica de estado) apareça diretamente na lógica central de roteamento e na máquina de estados do pagamento. Segundo este marco, qual é o problema dessa escolha?"
+    options:
+      - "Acopla todo o sistema ao vocabulário específico daquele provedor, exatamente o problema que uma camada anticorrupção por provedor existe para evitar"
+      - "Não há problema real, desde que o provedor nunca mude seu formato de mensagem"
+      - "O problema só se manifesta se o orquestrador tiver apenas um único provedor integrado"
+      - "Esse acoplamento é, na verdade, a prática recomendada para maximizar a performance de processamento"
+    answer: 0
+    explanation: "O marco recomenda uma camada anticorrupção por provedor exatamente para evitar que detalhes específicos de cada provedor vazem para o resto do orquestrador e acoplem o sistema inteiro ao vocabulário de uma integração externa. Assumir que o provedor nunca muda é uma aposta arriscada (o marco trata homologação de mudanças como necessidade real), o problema existe mesmo com um único provedor (a mudança futura dele já é suficiente), e esse acoplamento não é uma prática recomendada de performance — é uma dívida de arquitetura."
+  - question: "Um provedor de pagamento começa a responder com lentidão crescente, mas o orquestrador continua enviando todo tráfego normalmente para ele, incluindo chamadas destinadas a outros provedores que ficam represadas esperando capacidade. Segundo este marco, que padrão deveria ter evitado essa degradação em cascata?"
+    options:
+      - "A disciplina de timeout, circuit breaker e bulkhead por provedor, que impede que um provedor lento degrade a capacidade de atender chamadas a outros provedores saudáveis"
+      - "A camada anticorrupção, que trata exclusivamente da tradução de formato de mensagem, não de desempenho"
+      - "O roteamento por custo, que deveria ter escolhido esse provedor com menor frequência desde o início"
+      - "A conciliação de relatórios, que identifica divergências depois do fato, não durante o processamento"
+    answer: 0
+    explanation: "O marco atribui exatamente essa responsabilidade a timeout, circuit breaker e bulkhead aplicados por provedor — eles existem especificamente para impedir que um provedor degradado consuma capacidade que deveria estar disponível para chamadas a outros provedores. A camada anticorrupção resolve um problema diferente (vocabulário, não desempenho), o roteamento por custo não reage a degradação em tempo real por si só, e a conciliação atua após o fato, não durante o processamento ativo."
+  - question: "Um orquestrador decide, para cada pagamento, qual provedor usar com base em custo, taxa de aprovação histórica, risco e disponibilidade atual. Segundo este marco, por que modelar essa decisão como função pura testável é preferível a uma lógica implícita acumulada ao longo do tempo?"
+    options:
+      - "Porque uma função pura testável contra uma tabela de casos torna o roteamento auditável, em vez de depender de regras implícitas difíceis de verificar"
+      - "Porque funções puras são, por definição, sempre mais rápidas em tempo de execução do que lógica condicional comum"
+      - "Porque lógica implícita é proibida por regulação em qualquer sistema de roteamento de pagamentos"
+      - "Não há vantagem real — a escolha entre os dois estilos é puramente estética"
+    answer: 0
+    explanation: "O marco justifica a escolha por auditabilidade: uma função pura testável contra uma tabela de casos torna o roteamento verificável e rastreável, ao contrário de lógica implícita acumulada sem estrutura clara. A vantagem não é sobre velocidade de execução, não há menção a uma exigência regulatória específica sobre o estilo de implementação, e a escolha tem consequência prática real (auditabilidade), não é apenas estética."

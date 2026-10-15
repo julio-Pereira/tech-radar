@@ -1,0 +1,33 @@
+questions:
+  - question: "Um sistema de pagamentos mantém disponibilidade de 99,99% segundo seu monitoramento de infraestrutura, mas a taxa de aprovação de transações começa a cair silenciosamente. Segundo este marco, por que a métrica de disponibilidade, isoladamente, não capturaria esse problema?"
+    options:
+      - "Porque disponibilidade mede se o sistema está 'no ar', não se os pagamentos legítimos estão sendo aprovados — taxa de aprovação e funil são sinais distintos e necessários"
+      - "Porque disponibilidade e taxa de aprovação são, na prática, sempre a mesma métrica calculada de formas diferentes"
+      - "Porque uma queda na taxa de aprovação sempre causa, simultaneamente, uma queda proporcional na disponibilidade medida"
+      - "Não há diferença real entre as duas métricas; qualquer uma detectaria o problema igualmente bem"
+    answer: 0
+    explanation: "O marco é direto: disponibilidade sozinha não diz muito sobre a saúde de um sistema de pagamentos — um sistema 'no ar' pode ter taxa de aprovação caindo silenciosamente, um problema que um simples health check de disponibilidade nunca detectaria. As duas métricas capturam dimensões diferentes do sistema, não são a mesma coisa calculada de formas diferentes, e uma não implica necessariamente a outra."
+  - question: "O trilho Pix simulado degrada completamente numa sonda sintética. Segundo este marco, qual é a resposta recomendada, em vez de simplesmente interromper todo o processamento de pagamentos?"
+    options:
+      - "Rotear para uma alternativa viável quando existir, e avisar claramente o cliente sobre a limitação temporária, com a política de degradação definida antes do incidente"
+      - "Continuar tentando o Pix indefinidamente até que ele volte a funcionar, sem informar o cliente"
+      - "Interromper todo o processamento de pagamentos do sistema, independentemente do trilho afetado"
+      - "Inventar, no momento do incidente, uma política de contingência ad-hoc mais adequada à situação específica"
+    answer: 0
+    explanation: "O marco recomenda explicitamente rotear e avisar, com a política de degradação definida com antecedência — nos mesmos termos de uma política de orçamento de erro já estabelecida antes de qualquer crise. Tentar indefinidamente sem informar o cliente, parar todo o sistema por um problema de um único trilho, ou inventar a política sob pressão durante o incidente, contradizem essa recomendação."
+  - question: "Um incidente que afeta pagamentos tem origem na infraestrutura de um terceiro (por exemplo, uma instabilidade no SPI), fora do controle direto da instituição. Segundo este marco, o que a instituição ainda controla nessa situação, e por que isso importa?"
+    options:
+      - "A comunicação — avisar clientes afetados, atualizar status publicamente e documentar o impacto, mesmo sem poder acelerar a correção do lado externo"
+      - "Nada relevante — como o problema é externo, a instituição não tem nenhuma responsabilidade ou ação disponível"
+      - "A correção técnica direta do problema, já que toda infraestrutura de terceiros permite intervenção externa"
+      - "Apenas a decisão de processar reembolsos, sem qualquer responsabilidade de comunicação com o cliente"
+    answer: 0
+    explanation: "O marco é claro: mesmo sem controlar a correção de um problema de terceiro, a instituição controla inteiramente a comunicação — e tratar esse incidente com o mesmo silêncio que seria inaceitável num incidente interno transfere injustamente a frustração do cliente para a própria instituição. A instituição não é isenta de responsabilidade, não controla tipicamente a correção técnica direta de infraestrutura externa, e a comunicação é mais ampla do que apenas a decisão de reembolso."
+  - question: "Uma nova integração entre o orquestrador e um provedor de pagamento passa para produção sem qualquer suíte automatizada de casos de teste, apenas com uma checagem manual pontual. Meses depois, uma mudança no lado do provedor quebra silenciosamente um comportamento esperado. Segundo este marco, o que deveria ter existido para detectar esse problema antes da produção?"
+    options:
+      - "Um catálogo de casos de teste de homologação versionado como código, capaz de detectar automaticamente quando uma mudança (própria ou do arranjo) quebra um comportamento esperado"
+      - "Uma reunião mensal entre as equipes técnicas das duas instituições para discutir mudanças informalmente"
+      - "Não há nada que pudesse ter prevenido esse tipo de falha, já que mudanças de provedores externos são sempre imprevisíveis"
+      - "Apenas a documentação atualizada do contrato comercial com o provedor"
+    answer: 0
+    explanation: "O marco recomenda exatamente um catálogo de casos de teste versionado como código, substituindo checagem manual ad-hoc, para detectar de forma automatizada se uma mudança (própria ou do lado do arranjo) quebrou um comportamento esperado antes da produção. Reuniões informais e documentação contratual não substituem verificação automatizada, e o marco não trata essas falhas como inevitáveis — trata homologação como a mitigação disponível."
