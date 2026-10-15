@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 162, "desafio": 203, "invariantes": 193, "complemento": 184, "checagem": 202,
+		"tutorial": 165, "desafio": 206, "invariantes": 196, "complemento": 187, "checagem": 205,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -430,12 +430,9 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		"ledger-e-contabilidade/arredondamento-rateio-e-juros",
 		"ledger-e-contabilidade/auditoria-e-capstone-do-ledger",
 		"ledger-e-contabilidade/conciliacao",
-		"ledger-e-contabilidade/contas-e-saldos",
 		"ledger-e-contabilidade/fechamento-de-periodo",
-		"ledger-e-contabilidade/lancamentos-e-estorno",
 		"ledger-e-contabilidade/ledger-em-escala",
 		"ledger-e-contabilidade/multimoeda-e-cambio",
-		"ledger-e-contabilidade/razao-e-partida-dobrada",
 		"ledger-e-contabilidade/reservas-e-holds",
 	}
 	if !equalStrings(noSection, wantNoSection) {

@@ -1,0 +1,49 @@
+questions:
+  - question: "Um cliente vê R$ 80 no aplicativo, mas seu cartão consegue autorizar uma compra de R$ 90 por conta de um limite de cheque especial. Segundo este marco, por que esses dois números não são contraditórios?"
+    options:
+      - "Porque são tipos de saldo diferentes — o disponível (que inclui o limite como política) responde a uma pergunta diferente do saldo contábil efetivo"
+      - "Porque o aplicativo está exibindo um valor incorreto que deveria ser corrigido para bater com o limite de autorização"
+      - "Porque limites de cheque especial sempre são ignorados pelo sistema de autorização de cartão"
+      - "Porque não existe realmente um saldo disponível distinto do saldo contábil — é o mesmo número exibido de formas diferentes"
+    answer: 0
+    explanation: "O marco distingue explicitamente saldo contábil, disponível, bloqueado e projetado como respostas a perguntas diferentes — o disponível incorpora o limite de cheque especial como política, por isso pode ser maior que o saldo contábil exibido. Não há erro de exibição a corrigir, o limite não é ignorado (é exatamente o que explica a diferença), e os dois números são conceitualmente distintos, não a mesma coisa reapresentada."
+  - question: "Um sistema mantém um saldo materializado (coluna atualizada a cada lançamento) para consultas rápidas. Segundo este marco, qual verificação independente deveria existir mesmo com disciplina transacional rigorosa na atualização desse saldo?"
+    options:
+      - "Uma verificação periódica que recalcula o saldo a partir do histórico completo de lançamentos (saldo derivado) e compara com o materializado"
+      - "Nenhuma verificação é necessária, já que disciplina transacional rigorosa garante correção permanente"
+      - "A verificação só é necessária se o sistema usar múltiplas moedas simultaneamente"
+      - "Uma verificação manual feita por um auditor humano a cada fechamento anual, nunca automatizada"
+    answer: 0
+    explanation: "O marco recomenda exatamente essa verificação periódica independente como primeira linha de defesa contra um bug sutil que, de outra forma, só seria descoberto quando um cliente ou auditor notasse a divergência — mesmo com disciplina rigorosa, a verificação continua sendo valiosa. Disciplina rigorosa não elimina a necessidade de verificação, o problema não é exclusivo de múltiplas moedas, e a verificação é descrita como algo que o próprio sistema deveria rodar, não apenas uma auditoria manual anual."
+  - question: "Uma consulta de saldo voltada para o cliente, por erro de implementação, inclui o valor de uma conta interna de compensação na soma exibida. Segundo este marco, que tipo de problema é esse?"
+    options:
+      - "Um bug estruturalmente grave — contas internas e contas de cliente nunca deveriam se misturar em nenhuma consulta de saldo voltada ao cliente"
+      - "Um detalhe cosmético menor, sem impacto real sobre a correção do sistema"
+      - "Um comportamento esperado, já que contas de compensação fazem parte do saldo total do cliente"
+      - "Um problema que só seria relevante se a conta de compensação tivesse saldo negativo"
+    answer: 0
+    explanation: "O marco é direto: misturar contas internas com saldo de cliente em qualquer consulta voltada ao cliente é um bug estruturalmente grave, não um detalhe cosmético. Contas de compensação nunca fazem parte do saldo que deveria ser exibido ao cliente, e a gravidade do problema não depende do sinal do saldo da conta interna envolvida."
+  - question: "Duas operações concorrentes leem o saldo disponível de uma conta, cada uma veem 'saldo suficiente' para prosseguir, e ambas são autorizadas a gastar — resultando em gasto total maior do que o saldo realmente permitia. Segundo este marco, o que deveria ter impedido esse cenário?"
+    options:
+      - "Ler o saldo e decidir se a operação prossegue precisa ser atômico, não duas etapas separadas — sem essa atomicidade, a corrida clássica de gasto duplicado ocorre sob concorrência"
+      - "O problema só pode ser resolvido limitando o sistema a processar uma operação por vez, globalmente"
+      - "Esse cenário não é, de fato, um problema real, já que o saldo eventualmente se corrige no próximo cálculo materializado"
+      - "A solução é sempre usar saldo derivado em vez de saldo materializado, independentemente do contexto"
+    answer: 0
+    explanation: "O marco identifica exatamente essa corrida: ler saldo e decidir precisam ocorrer de forma atômica (na mesma transação), ou duas operações concorrentes podem ler o mesmo saldo 'suficiente' e ambas prosseguirem, gastando mais do que existia. Serializar globalmente todas as operações é uma solução exageradamente cara comparada à atomicidade local, o problema não se 'autocorrige' (o gasto excessivo já ocorreu), e a escolha entre saldo derivado e materializado não é, por si só, o que resolve a atomicidade da decisão."
+  - question: "Um extrato de cliente é implementado como uma tabela separada, mantida sincronizada manualmente com o diário de lançamentos por um processo independente, sujeito a atrasos e falhas de sincronização. Segundo este marco, como o extrato deveria ser pensado em vez disso?"
+    options:
+      - "Como uma projeção direta do mesmo diário de lançamentos — a mesma fonte de verdade, filtrada e formatada, não uma tabela separada a ser sincronizada"
+      - "Como um produto completamente independente do ledger, sem nenhuma relação estrutural com o diário"
+      - "Como uma cópia idêntica do saldo materializado, sem nenhuma filtragem necessária"
+      - "Como algo que só precisa refletir os lançamentos dos últimos 30 dias, descartando o restante do histórico"
+    answer: 0
+    explanation: "O marco recomenda pensar o extrato como projeção do diário de lançamentos — filtrada para a conta do cliente, formatada para leitura humana — em vez de uma tabela separada que precisa ser mantida sincronizada, justamente para evitar bugs de divergência. Tratar o extrato como totalmente independente do ledger ou como cópia do saldo materializado contradiz essa ideia, e não há limitação arbitrária de 30 dias mencionada ou implícita no marco."
+  - question: "Uma conta de passivo (que normalmente cresce com crédito) apresenta um saldo negativo em determinado momento. Segundo este marco, o que esse saldo negativo necessariamente indica?"
+    options:
+      - "Que a conta está operando na direção oposta à sua conta normal — o que pode, ou não, ser uma situação esperada dependendo do contexto, não automaticamente um 'problema'"
+      - "Que há, com certeza, um erro de lançamento que precisa ser corrigido imediatamente"
+      - "Que a conta deveria ser reclassificada permanentemente como uma conta de ativo"
+      - "Que o sistema de partida dobrada falhou em manter o balanceamento geral do ledger"
+    answer: 0
+    explanation: "O marco explica que representar o saldo com sinal consistente em relação à conta normal evita o erro de interpretar automaticamente um saldo 'negativo' como problema — ele só indica que a conta está operando na direção oposta à sua normal, o que pode ser esperado ou não, dependendo do contexto específico. Não implica necessariamente um erro de lançamento, não exige reclassificação da categoria da conta, e não indica, por si só, uma falha de balanceamento geral do ledger."

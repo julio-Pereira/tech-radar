@@ -1,0 +1,49 @@
+questions:
+  - question: "Um sistema garante imutabilidade do journal apenas através de uma convenção de código: nenhuma função da aplicação chama UPDATE ou DELETE na tabela de lançamentos. Segundo este marco, por que essa garantia é mais fraca do que revogar os privilégios correspondentes diretamente no banco de dados?"
+    options:
+      - "Porque uma convenção de código pode ser violada por um bug, uma ferramenta de acesso direto ao banco, ou código futuro escrito sem conhecer a convenção — a permissão real no banco impede a operação independentemente da origem"
+      - "Não há diferença prática entre as duas abordagens, desde que a convenção esteja bem documentada"
+      - "Convenções de código são mais seguras porque podem ser auditadas por revisão de código antes do deploy"
+      - "A diferença só importa em sistemas que usam múltiplos bancos de dados simultaneamente"
+    answer: 0
+    explanation: "O marco é claro: a forma robusta de impor imutabilidade é no próprio banco de dados, revogando privilégios — porque isso protege contra qualquer caminho de escrita, não só o que a convenção de código cobre. Revisão de código não impede uma ferramenta de acesso direto ao banco ou um bug futuro, e a diferença não é exclusiva de ambientes multi-banco."
+  - question: "Uma operação de transferência foi lançada com o valor errado. Segundo este marco, qual é a diferença central entre corrigir isso com um estorno completo e corrigir com um ajuste?"
+    options:
+      - "Estorno desfaz o lançamento inteiro, útil quando a operação não deveria ter ocorrido; ajuste corrige uma fração sem desfazer tudo, útil quando só parte da operação estava errada"
+      - "Estorno e ajuste são termos diferentes para exatamente o mesmo mecanismo de correção"
+      - "Ajuste só pode ser usado em lançamentos com uma única perna; estorno é obrigatório para lançamentos com múltiplas pernas"
+      - "Estorno é permitido apenas em contas de cliente; ajuste é permitido apenas em contas internas"
+    answer: 0
+    explanation: "O marco define claramente a diferença de uso: estorno desfaz por completo (a operação não deveria ter ocorrido), ajuste corrige uma fração (quando só uma parte, como uma taxa calculada errado, precisa de correção). Os dois não são sinônimos, a escolha não depende do número de pernas do lançamento, e não há restrição de que estorno ou ajuste sejam exclusivos de um tipo de conta."
+  - question: "A mesma requisição de lançamento, com a mesma chave de idempotência, é enviada três vezes simultaneamente devido a retentativas de rede do cliente. Segundo este marco, o que deveria acontecer?"
+    options:
+      - "Exatamente um lançamento é produzido, e todas as três respostas ao cliente são idênticas entre si"
+      - "Três lançamentos são produzidos, um para cada tentativa, já que cada requisição é tecnicamente distinta"
+      - "O sistema deveria rejeitar todas as três tentativas, exigindo que o cliente gere uma nova chave para cada uma"
+      - "Apenas a primeira tentativa recebe uma resposta; as outras duas são descartadas sem retorno"
+    answer: 0
+    explanation: "O marco é direto sobre idempotência de posting: a mesma chave processada múltiplas vezes produz um único lançamento, com a mesma resposta em cada tentativa — o próprio ponto da idempotência é permitir retentativas seguras sem gerar duplicação nem deixar o cliente sem resposta. Produzir três lançamentos contradiz diretamente essa garantia, exigir nova chave a cada tentativa anula o propósito da idempotência, e descartar respostas sem retorno não é o comportamento esperado."
+  - question: "Um relatório de saldo em uma data histórica usa a data de registro de cada lançamento em vez da data de competência. Segundo este marco, qual problema isso pode causar quando existe um lançamento retroativo?"
+    options:
+      - "O relatório produz um saldo histórico incorreto, já que um lançamento com competência em março mas registrado em abril não seria incluído corretamente na consulta de saldo de março"
+      - "Não há problema real, já que data de registro e data de competência são sempre idênticas na prática"
+      - "O problema só afeta lançamentos que envolvem conversão de moeda"
+      - "Esse erro é impossível de ocorrer, porque o sistema sempre rejeita lançamentos com datas diferentes de registro e competência"
+    answer: 0
+    explanation: "O marco descreve exatamente esse risco: confundir data de registro com data de competência produz respostas erradas para perguntas sobre saldo histórico, especialmente quando existem lançamentos retroativos. As duas datas podem legitimamente diferir (esse é o ponto central da bitemporalidade), o problema não é exclusivo de conversão de moeda, e lançamentos retroativos são explicitamente permitidos e tratados pelo marco, não rejeitados."
+  - question: "Um estorno de uma transação precisa, ele mesmo, ser desfeito porque foi feito por engano. Segundo este marco, o que é necessário para que esse 'estorno de estorno' permaneça compreensível depois?"
+    options:
+      - "Cada lançamento da cadeia (original, estorno, estorno do estorno) precisa referenciar explicitamente o lançamento anterior, mantendo a cadeia completa rastreável"
+      - "O estorno de estorno não é permitido em nenhuma circunstância, segundo este marco"
+      - "Basta que o estorno de estorno tenha o mesmo valor do lançamento original, sem necessidade de referência explícita"
+      - "A cadeia só precisa ser rastreável se envolver mais de três lançamentos consecutivos"
+    answer: 0
+    explanation: "O marco permite estorno de estorno, mas exige que ele permaneça rastreável através do encadeamento explícito de referências entre cada lançamento e o anterior — sem isso, reconstruir o que realmente aconteceu se torna impossível a partir de um certo ponto. O mecanismo é permitido (não proibido), o valor idêntico não substitui a necessidade de referência explícita, e a exigência de rastreabilidade não tem um limiar de três lançamentos para se tornar relevante."
+  - question: "Alguém descreve um journal contábil como 'apenas um event store genérico, sem nenhuma diferença real'. Segundo este marco, o que especificamente diferencia um journal contábil de um event store genérico?"
+    options:
+      - "O journal contábil carrega uma invariante adicional específica: toda entrada precisa balancear (débitos iguais a créditos), algo que um event store genérico não impõe"
+      - "Não há diferença real — a afirmação está correta, e os dois termos são completamente intercambiáveis"
+      - "Um journal contábil nunca pode ser implementado sobre a mesma infraestrutura técnica que um event store"
+      - "Event stores genéricos sempre são mutáveis, enquanto journals contábeis são sempre imutáveis — essa é a única diferença"
+    answer: 0
+    explanation: "O marco trata o journal contábil como um caso especializado de event store, com uma invariante extra específica: toda entrada precisa balancear, uma restrição que um event store genérico não impõe (nem todo evento de domínio representa movimento de dinheiro). A afirmação de que não há diferença real contradiz exatamente esse ponto, a infraestrutura técnica subjacente pode ser compartilhada, e a imutabilidade não é a única nem a principal diferença apontada pelo marco — a invariante de balanceamento é o ponto central."
