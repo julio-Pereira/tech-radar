@@ -1,0 +1,33 @@
+questions:
+  - question: "Um cartão autoriza uma compra, reduzindo o saldo disponível do cliente, mas a captura final só ocorre dias depois. Segundo este marco, o que acontece com o saldo contábil durante esse intervalo?"
+    options:
+      - "O saldo contábil permanece inalterado — só o disponível é reduzido pela reserva, até ela ser capturada (gerando lançamento final) ou liberada"
+      - "O saldo contábil é reduzido imediatamente no momento da autorização, da mesma forma que o disponível"
+      - "O saldo contábil só existe depois que a primeira reserva do cliente é criada"
+      - "Não há diferença entre saldo contábil e disponível neste marco; os dois sempre mudam juntos"
+    answer: 0
+    explanation: "O marco é explícito: uma reserva reduz o saldo disponível sem gerar, ainda, um lançamento contábil definitivo — o saldo contábil permanece inalterado até a captura (que gera o lançamento real) ou a liberação. Reduzir o contábil no momento da autorização contradiz essa separação, e contábil e disponível são tipos de saldo distintos (já vistos no marco 02) que podem divergir precisamente durante o período de uma reserva ativa."
+  - question: "Mil reservas concorrentes disputam o saldo disponível de uma mesma conta, cada uma verificando individualmente se 'há saldo suficiente' antes de ser criada, mas sem uma verificação atômica conjunta. Segundo este marco, o que pode acontecer?"
+    options:
+      - "A soma das reservas criadas pode exceder o saldo disponível inicial, porque cada verificação individual não leva em conta as outras reservas sendo criadas ao mesmo tempo"
+      - "Não há risco real, já que o banco de dados sempre impede automaticamente qualquer excesso, independente de como a verificação é implementada"
+      - "O problema só ocorre se as mil reservas vierem de clientes diferentes, nunca do mesmo cliente"
+      - "A soma das reservas sempre será exatamente igual ao saldo disponível, nunca менos nem mais"
+    answer: 0
+    explanation: "O marco descreve exatamente esse risco: sem verificar e debitar o disponível na mesma transação atômica, reservas concorrentes podem cada uma individualmente ver 'saldo suficiente' e todas serem criadas, somando mais do que o saldo realmente permitia. O banco não impede isso automaticamente sem a disciplina de atomicidade correta sendo aplicada pelo código, o cenário não depende de quantos clientes diferentes estão envolvidos, e a demonstração do marco mostra precisamente o excesso ocorrendo, não uma igualdade garantida."
+  - question: "Uma reserva é criada para uma transação, mas o consumidor do hold nunca chama explicitamente a captura nem a liberação — talvez por um bug no sistema que criou a reserva. Segundo este marco, o que deveria acontecer com essa reserva?"
+    options:
+      - "Ela deveria expirar automaticamente após o prazo configurado, liberando o valor sozinha, sem depender de uma ação explícita que nunca ocorreu"
+      - "A reserva deveria permanecer ativa indefinidamente até que um operador humano a libere manualmente"
+      - "O saldo bloqueado pela reserva deveria ser permanentemente perdido, já que não houve resolução explícita"
+      - "O sistema deveria capturar automaticamente o valor total, assumindo que a falta de ação significa confirmação"
+    answer: 0
+    explanation: "O marco é direto sobre a necessidade de expiração: toda reserva carrega uma expiração configurada, e se nem capturada nem liberada explicitamente dentro do prazo, ela expira e libera o valor sozinha — sem essa expiração, uma reserva esquecida bloquearia saldo do cliente para sempre. Depender de intervenção manual, perder o valor permanentemente, ou assumir captura automática por padrão, todos contradizem esse mecanismo de segurança."
+  - question: "Uma reserva é capturada parcialmente: o valor originalmente reservado era R$ 300, mas apenas R$ 280 são efetivamente cobrados. Segundo este marco, o que deveria acontecer com os R$ 20 restantes?"
+    options:
+      - "Devem ser liberados automaticamente no momento da captura parcial, nunca deixados bloqueados sem necessidade"
+      - "Devem permanecer bloqueados indefinidamente até uma nova reserva ser criada para consumi-los"
+      - "Devem ser automaticamente capturados também, mesmo sem corresponder a nenhuma cobrança real"
+      - "A reserva inteira deveria ser revertida, incluindo os R$ 280 já capturados corretamente"
+    answer: 0
+    explanation: "O marco é claro: uma captura parcial precisa liberar automaticamente o restante não capturado — no exemplo do próprio marco, autorizar R$ 300 e capturar R$ 280 libera os R$ 20 restantes no momento da captura, sem bloqueio desnecessário. Deixar bloqueado indefinidamente, capturar um valor sem cobrança correspondente, ou revogar a captura válida já realizada, todos contradizem esse comportamento esperado."

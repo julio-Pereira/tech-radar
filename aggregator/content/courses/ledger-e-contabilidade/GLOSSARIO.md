@@ -241,3 +241,182 @@ perdendo a história da correção.
 **Erro comum:** registrar um estorno ou ajuste sem referência explícita ao lançamento que ele
 corrige.
 **Onde na prática:** marco 03, retomado no 10.
+
+## Reserva
+
+### Autorização
+**Em uma frase:** o momento em que uma operação é aprovada, criando um compromisso sobre o saldo
+ainda sem lançamento contábil final.
+**No fin-books:** a autorização cria uma reserva, reduzindo o disponível sem alterar o contábil.
+**Erro comum:** tratar autorização e liquidação como o mesmo evento contábil.
+**Onde na prática:** marco 04.
+
+### Captura
+**Em uma frase:** converter uma reserva num lançamento contábil final, parcial ou totalmente.
+**No fin-books:** a captura parcial libera automaticamente o restante não capturado da reserva.
+**Erro comum:** capturar sem liberar o excedente de uma captura parcial, deixando saldo bloqueado
+sem necessidade.
+**Onde na prática:** marco 04.
+
+### Liquidação (de reserva)
+**Em uma frase:** a resolução final de uma reserva, seja por captura ou por liberação.
+**No fin-books:** toda reserva simulada termina em exatamente um dos três estados terminais.
+**Erro comum:** achar que uma reserva pode permanecer indefinidamente sem nenhuma resolução final.
+**Onde na prática:** marco 04.
+
+### *Hold*
+**Em uma frase:** sinônimo de reserva — redução do saldo disponível sem lançamento contábil
+final, até resolução.
+**No fin-books:** disponível = contábil − Σ holds ativos, verificado em todo instante.
+**Erro comum:** confundir hold com saldo bloqueado permanentemente — ele é temporário por
+natureza.
+**Onde na prática:** marco 04.
+
+### Captura parcial
+**Em uma frase:** capturar um valor menor do que o originalmente reservado.
+**No fin-books:** o restante não capturado é liberado automaticamente no momento da captura
+parcial.
+**Erro comum:** deixar o valor não capturado bloqueado em vez de liberá-lo imediatamente.
+**Onde na prática:** marco 04.
+
+### Expiração (de reserva)
+**Em uma frase:** a liberação automática de uma reserva não resolvida dentro do prazo
+configurado.
+**No fin-books:** com relógio falso avançado além do prazo, a reserva simulada expira e libera o
+valor sozinha.
+**Erro comum:** não configurar expiração, permitindo que uma reserva esquecida bloqueie saldo
+indefinidamente.
+**Onde na prática:** marco 04.
+
+### Estado terminal (de reserva)
+**Em uma frase:** um dos três resultados finais possíveis de uma reserva — capturada, liberada ou
+expirada — sempre único.
+**No fin-books:** uma reserva simulada nunca alcança dois estados terminais diferentes, mesmo sob
+chamadas concorrentes repetidas.
+**Erro comum:** permitir que uma reserva mude de estado terminal depois de já resolvida.
+**Onde na prática:** marco 04.
+
+## Valor
+
+### Menor unidade
+**Em uma frase:** a menor fração indivisível de uma moeda (centavo, por exemplo), usada como base
+para representar valores como inteiros.
+**No fin-books:** todo valor monetário em Go é um inteiro na menor unidade, nunca ponto
+flutuante.
+**Erro comum:** representar valor monetário como ponto flutuante binário em qualquer camada do
+sistema.
+**Onde na prática:** marco 01, retomado no 05.
+
+### *Half-even*
+**Em uma frase:** convenção de arredondamento que, no caso de valor exatamente na metade,
+arredonda para o número par mais próximo.
+**No fin-books:** usado para evitar viés sistemático de arredondamento ao longo de milhões de
+operações.
+**Erro comum:** usar `half-up` quando a convenção correta do produto é `half-even`, introduzindo
+um viés não intencional.
+**Onde na prática:** marco 05.
+
+### Maior resto
+**Em uma frase:** algoritmo de rateio que distribui os centavos restantes para as partes com
+maior resto fracionário descartado.
+**No fin-books:** garante que a soma das parcelas rateadas seja exatamente igual ao total
+original.
+**Erro comum:** dividir um total em partes iguais sem rateio por maior resto, perdendo ou criando
+centavos.
+**Onde na prática:** marco 05.
+
+### Rateio
+**Em uma frase:** dividir um valor total entre várias partes, conservando a soma exata.
+**No fin-books:** usado tanto para parcelas de uma venda quanto para split de taxas entre
+participantes.
+**Erro comum:** tratar rateio como uma simples divisão aritmética, ignorando a conservação do
+total.
+**Onde na prática:** marco 05.
+
+### Juros simples e compostos
+**Em uma frase:** juros simples aplicam a taxa sobre o principal original; compostos aplicam
+sobre o saldo já acrescido de juros anteriores.
+**No fin-books:** o acúmulo diário de juros simulado reproduz a tabela de casos de referência para
+ambos os tipos.
+**Erro comum:** aplicar a fórmula de juros compostos quando o produto real usa juros simples, ou
+vice-versa.
+**Onde na prática:** marco 05.
+
+### Base de dias
+**Em uma frase:** a convenção (252, 360 ou 365 dias por ano) usada para calcular juros
+proporcionais a um período.
+**No fin-books:** tratada como parâmetro configurável e marcada "conferir" — nunca assumida de
+memória.
+**Erro comum:** usar uma base de dias diferente da que o produto real exige, produzindo juros
+calculados incorretamente.
+**Onde na prática:** marco 05.
+
+### *Accrual*
+**Em uma frase:** lançar periodicamente o juro proporcional já acumulado, em vez de esperar o
+vencimento final.
+**No fin-books:** o saldo contábil reflete, a cada dia, o valor econômico real já acumulado.
+**Erro comum:** calcular juros só no vencimento, deixando o saldo contábil "atrasado" em relação
+ao valor econômico real.
+**Onde na prática:** marco 05.
+
+### Tarifa
+**Em uma frase:** um valor fixo ou percentual cobrado sobre uma operação, tratado como parâmetro
+configurável.
+**No fin-books:** toda tarifa aplicada é registrada como lançamento explícito, nunca descontada
+silenciosamente.
+**Erro comum:** embutir o valor de uma tarifa diretamente no código, em vez de tratá-la como
+configuração testada.
+**Onde na prática:** marco 05.
+
+## Câmbio
+
+### Moeda
+**Em uma frase:** parte inseparável de um valor monetário, com seu próprio código (ISO 4217) e
+número de casas decimais.
+**No fin-books:** o tipo `Money` nunca aceita operação entre moedas diferentes sem conversão
+explícita.
+**Erro comum:** tratar valor e moeda como campos independentes, em vez de uma unidade
+inseparável.
+**Onde na prática:** marco 01, retomado no 06.
+
+### Taxa (de câmbio)
+**Em uma frase:** o fator de conversão entre duas moedas, registrado com hora e fonte em cada
+conversão.
+**No fin-books:** uma conversão sem taxa registrada é rejeitada antes de qualquer outro
+processamento.
+**Erro comum:** reutilizar uma taxa antiga em vez de registrar uma nova taxa, com hora e fonte,
+para cada conversão.
+**Onde na prática:** marco 06.
+
+### *Spread* (cambial)
+**Em uma frase:** a diferença entre a taxa de mercado e a taxa oferecida ao cliente, a margem da
+operação de câmbio.
+**No fin-books:** tratado como parâmetro configurável, nunca um valor embutido sem registro.
+**Erro comum:** aplicar spread sem registrar seu valor explicitamente no lançamento de conversão.
+**Onde na prática:** marco 06.
+
+### Conta de posição (cambial)
+**Em uma frase:** conta que acumula a diferença entre o valor convertido e o valor de referência,
+origem do ganho ou perda cambial.
+**No fin-books:** o ganho ou perda cambial da reavaliação simulada fecha exatamente essa
+diferença.
+**Erro comum:** deixar a diferença cambial sem lançamento contábil correspondente, como se ela
+simplesmente não existisse.
+**Onde na prática:** marco 06.
+
+### Ganho/perda cambial
+**Em uma frase:** o resultado contábil de uma diferença de taxa de câmbio, seja na conversão ou
+na reavaliação.
+**No fin-books:** sempre lançado explicitamente, nunca ignorado ou descartado como resto.
+**Erro comum:** tratar ganho ou perda cambial como um detalhe irrelevante em vez de um lançamento
+contábil obrigatório.
+**Onde na prática:** marco 06.
+
+### Reavaliação
+**Em uma frase:** ajustar a visão contábil de um saldo em moeda estrangeira conforme a taxa de
+mercado muda, sem converter de fato.
+**No fin-books:** a reavaliação diária simulada gera um lançamento de ganho ou perda não
+realizado.
+**Erro comum:** confundir reavaliação com conversão — reavaliação ajusta a visão contábil;
+conversão move valor de fato.
+**Onde na prática:** marco 06.

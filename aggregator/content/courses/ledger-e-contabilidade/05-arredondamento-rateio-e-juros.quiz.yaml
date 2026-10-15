@@ -1,0 +1,49 @@
+questions:
+  - question: "Um cálculo financeiro envolve três etapas sucessivas, e o sistema arredonda o resultado após cada etapa intermediária antes de usá-lo na etapa seguinte. Segundo este marco, por que essa prática é problemática?"
+    options:
+      - "Arredondar em etapas intermediárias acumula erro de uma forma que arredondar só no resultado final evita — a regra é arredondar sempre no último passo"
+      - "Não há problema real, já que arredondamento intermediário sempre produz exatamente o mesmo resultado que arredondamento final"
+      - "O problema só ocorre quando há mais de cinco etapas sucessivas no cálculo"
+      - "Arredondar em cada etapa é, na verdade, a prática recomendada para garantir maior precisão no resultado final"
+    answer: 0
+    explanation: "O marco é direto: a regra mais importante é arredondar sempre no último passo, nunca em etapas intermediárias, porque arredondamentos intermediários acumulam erro de forma evitável. A afirmação de que os dois métodos produzem sempre o mesmo resultado contradiz exatamente o ponto do marco, não há um limiar de número de etapas que torne isso aceitável, e arredondamento intermediário é tratado como prática a evitar, não a recomendar."
+  - question: "Um sistema divide R$ 100,00 em três parcelas iguais usando divisão simples, resultando em 33,33 + 33,33 + 33,33 = R$ 99,99. Segundo este marco, qual técnica resolve esse problema, e qual propriedade ela garante?"
+    options:
+      - "Rateio por maior resto — garante que a soma das partes seja exatamente igual ao total original, distribuindo os centavos extras para as partes com maior resto fracionário descartado"
+      - "Arredondamento half-even — garante que o valor de cada parcela seja sempre um número par de centavos"
+      - "Juros compostos — garante que o valor total cresça proporcionalmente ao número de parcelas"
+      - "Nenhuma técnica resolve esse problema; perder um centavo em divisões é matematicamente inevitável"
+    answer: 0
+    explanation: "O marco descreve exatamente esse exemplo e a solução: rateio por maior resto distribui o(s) centavo(s) que sobram (ou faltam) para as partes com maior resto fracionário descartado, garantindo que a soma seja exatamente igual ao total original — no exemplo, resultando em 33,34 + 33,33 + 33,33 = R$ 100,00. Half-even é uma convenção de arredondamento diferente (não resolve rateio), juros compostos não têm relação com divisão de um total em partes, e o problema tem, sim, uma solução determinística."
+  - question: "Um sistema de cálculo de juros usa a convenção de base de dias '360' sem verificar se essa é a convenção correta para o produto financeiro em questão. Segundo este marco, qual é o risco dessa escolha?"
+    options:
+      - "A base de dias (252, 360 ou 365) produz resultados diferentes para o mesmo período de calendário, e usar a convenção errada sem conferir com contabilidade ou produto gera um cálculo de juros incorreto com aparência de correto"
+      - "Não há risco real, já que todas as convenções de base de dias produzem exatamente o mesmo resultado numérico"
+      - "O risco só existe para cálculos de juros compostos, nunca para juros simples"
+      - "A base de dias é uma escolha puramente estética, sem efeito sobre o valor calculado"
+    answer: 0
+    explanation: "O marco é claro: diferentes bases de dias produzem resultados diferentes para o mesmo período, e a escolha precisa ser conferida com a área responsável, nunca assumida de memória — usar a convenção errada produz um número plausível, mas incorreto. As diferentes bases não produzem o mesmo resultado numérico, o risco se aplica tanto a juros simples quanto compostos, e a escolha tem efeito numérico real, não é apenas estética."
+  - question: "Um sistema calcula uma taxa de juros usando apenas duas casas decimais (a mesma precisão de um valor monetário final). Segundo este marco, por que isso pode ser insuficiente?"
+    options:
+      - "Uma taxa frequentemente precisa de mais casas decimais do que o valor monetário final, para evitar erro de arredondamento acumulado ao multiplicar por um principal grande"
+      - "Não há diferença de precisão necessária entre uma taxa e um valor monetário final — ambos deveriam sempre usar exatamente duas casas decimais"
+      - "O problema só ocorre quando a taxa é aplicada a valores menores que R$ 100"
+      - "Taxas de juros nunca precisam de mais de duas casas decimais em nenhum cenário realista"
+    answer: 0
+    explanation: "O marco identifica essa como uma fonte comum de discrepância: misturar a precisão do valor monetário final com a precisão necessária para a taxa usada no cálculo pode introduzir erro de arredondamento acumulado, especialmente com principais grandes. O problema não desaparece com valores pequenos (a proporção do erro pode continuar relevante), e taxas de juros, cambiais ou similares frequentemente exigem mais precisão do que duas casas decimais."
+  - question: "Durante uma multiplicação envolvendo um valor monetário grande, o resultado excede o que o tipo numérico usado consegue representar, e o sistema continua executando com um valor incorreto sem sinalizar nada. Segundo este marco, por que esse comportamento é especialmente perigoso?"
+    options:
+      - "Porque produz um número plausível mas completamente errado, sem nenhum sinal de que algo deu errado — mais perigoso do que um erro explícito, que ao menos é detectável"
+      - "Não é perigoso, já que overflow sempre produz um valor obviamente absurdo que é fácil de identificar visualmente"
+      - "O problema só é relevante em sistemas que não usam PostgreSQL como banco de dados"
+      - "Overflow silencioso é, na verdade, equivalente em risco a um erro explícito de validação"
+    answer: 0
+    explanation: "O marco é direto: overflow silencioso é um dos bugs mais perigosos possíveis num ledger, justamente porque produz um resultado plausível mas errado, sem nenhum sinal de alerta — diferente de um erro explícito, que ao menos pode ser detectado e tratado. O resultado de um overflow não é necessariamente 'obviamente absurdo' (pode parecer um valor razoável), o problema não é específico de uma tecnologia de banco de dados, e a distinção entre silencioso e explícito é exatamente o ponto central do risco."
+  - question: "A mesma tabela de casos de teste para cálculo de juros é executada em uma implementação Go (usando inteiros na menor unidade) e em uma implementação Java (usando BigDecimal). Segundo este marco, o que esse teste de paridade entre as duas deveria provar?"
+    options:
+      - "Que a lógica de negócio, não a linguagem ou a representação numérica escolhida, é o que determina o resultado — ambas as abordagens produzem exatamente o mesmo resultado quando implementadas corretamente"
+      - "Que a implementação em Java é inerentemente mais precisa do que a implementação em Go para cálculos financeiros"
+      - "Que inteiros na menor unidade e BigDecimal são tecnicamente a mesma representação de dados, apenas com nomes diferentes"
+      - "Que esse tipo de teste de paridade é desnecessário, já que qualquer linguagem produz o mesmo resultado automaticamente"
+    answer: 0
+    explanation: "O marco descreve esse teste de paridade como prova de que a lógica de negócio determina o resultado, não a linguagem — as duas representações (inteiro na menor unidade em Go, decimal exato via BigDecimal em Java) são equivalentes quando implementadas corretamente. Não há superioridade inerente de uma linguagem sobre a outra, as duas representações são tecnicamente diferentes (apesar de equivalentes em resultado correto), e o teste de paridade é necessário justamente porque resultados idênticos não são automáticos — precisam ser verificados."
