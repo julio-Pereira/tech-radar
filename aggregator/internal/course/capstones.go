@@ -4,11 +4,34 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"time"
 
 	"gopkg.in/yaml.v3"
 )
+
+// Mirrors tools/fin-check/allowlist.go exactly (duplicated, not imported —
+// that CLI is its own standalone module with no dependency on this one).
+// content/capstones.yaml is authored in this repo, so this is the first
+// line of defense; fin-check enforces the same allowlist again at the
+// reader's end, since it can't assume the published manifest is trusted.
+var capstoneCheckAllowlist = []*regexp.Regexp{
+	regexp.MustCompile(`^go test \./\.\.\.$`),
+	regexp.MustCompile(`^make [a-zA-Z0-9_-]+$`),
+}
+
+func isAllowlistedCapstoneCheck(check string) bool {
+	if check == "exists" {
+		return true
+	}
+	for _, p := range capstoneCheckAllowlist {
+		if p.MatchString(check) {
+			return true
+		}
+	}
+	return false
+}
 
 // compileCapstones validates content/capstones.yaml (UX platform melhoria 7,
 // phase 1 — map only, no fin-check verifier yet) and writes
@@ -38,6 +61,12 @@ func compileCapstones(path string, courses map[string]CompiledCourse, dataDir st
 			return fmt.Errorf("%s: duplicate component %q (tracks %q and %q)", path, e.Component, prev, e.Track)
 		}
 		trackOf[e.Component] = e.Track
+		for _, a := range e.Artifacts {
+			if !isAllowlistedCapstoneCheck(a.Check) {
+				return fmt.Errorf(`%s: component %q artifact %q has check %q, which is not in the fin-check allowlist (only "exists", "make <target>", "go test ./..." are allowed)`,
+					path, e.Component, a.Path, a.Check)
+			}
+		}
 	}
 
 	deps := make(map[string][]string, len(entries))

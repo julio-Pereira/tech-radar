@@ -25,6 +25,15 @@ jobs:
         working-directory: aggregator
         run: go mod download
 
+      # Standalone module (no dependency on the aggregator) meant to be
+      # copied into the reader's own fin-platform repo — verified here so a
+      # broken allowlist or check runner never reaches main unnoticed.
+      - name: Test fin-check CLI
+        working-directory: tools/fin-check
+        run: |
+          go vet ./...
+          go test ./...
+
       # Same build the site ships: without it, web/data/ doesn't exist and
       # every test that fetches a course or the feed fails on a 404.
       - name: Generate web/data/

@@ -159,6 +159,36 @@ func TestCompileCapstonesRejectsCycle(t *testing.T) {
 	}
 }
 
+func TestCompileCapstonesRejectsCheckOutsideAllowlist(t *testing.T) {
+	courses := map[string]CompiledCourse{"a": fixtureCourseWithCapstone("a", true)}
+	dir := t.TempDir()
+	path := writeCapstonesYAML(t, dir, `
+- track: a
+  component: comp-a
+  artifacts:
+    - { path: "comp-a/", check: "rm -rf /" }
+`)
+	if err := compileCapstones(path, courses, t.TempDir()); err == nil {
+		t.Fatal("expected an error for a check command outside the fin-check allowlist")
+	}
+}
+
+func TestIsAllowlistedCapstoneCheck(t *testing.T) {
+	cases := map[string]bool{
+		"exists":              true,
+		"go test ./...":       true,
+		"make test":           true,
+		"go test ./foo/...":   false,
+		"make test; rm -rf /": false,
+		"rm -rf /":            false,
+	}
+	for check, want := range cases {
+		if got := isAllowlistedCapstoneCheck(check); got != want {
+			t.Errorf("isAllowlistedCapstoneCheck(%q) = %v, want %v", check, got, want)
+		}
+	}
+}
+
 func TestFindDependencyCycleSelfLoop(t *testing.T) {
 	deps := map[string][]string{"a": {"a"}}
 	if cycle := findDependencyCycle(deps); cycle != "a" {
