@@ -1,0 +1,33 @@
+questions:
+  - question: "Um lançamento antigo no journal é alterado diretamente no banco de dados, contornando as permissões de aplicação (por exemplo, por um acesso administrativo direto). Segundo este marco, o que detectaria essa adulteração, mesmo que a permissão normal de UPDATE/DELETE da aplicação já tivesse sido revogada?"
+    options:
+      - "O hash encadeado — a alteração quebraria o encadeamento de hashes de todos os lançamentos posteriores ao que foi adulterado, tornando a adulteração detectável independentemente da permissão de banco"
+      - "Nada detectaria essa adulteração, já que a permissão de banco já revogada é a única proteção existente contra alteração do journal"
+      - "Apenas uma auditoria manual completa, feita por um humano revisando lançamento por lançamento, poderia detectar esse tipo de alteração"
+      - "O balancete do período detectaria automaticamente qualquer adulteração, independentemente de haver ou não hash encadeado"
+    answer: 0
+    explanation: "O marco é explícito: o hash encadeado é uma proteção independente da permissão de banco — uma defesa em profundidade — que detecta adulteração porque qualquer alteração retroativa quebra o encadeamento de hashes dos lançamentos posteriores. A permissão de banco não é a única proteção (é exatamente por isso que o hash encadeado existe), a detecção não depende de auditoria manual completa, e o balancete não necessariamente detecta uma adulteração que preserva o balanceamento (um estorno e um lançamento fraudulento equivalente poderiam, em teoria, manter o balancete fechado)."
+  - question: "Uma instituição só verifica se as contas de controle igualam a soma dos saldos de clientes quando um auditor externo solicita essa verificação, uma vez por ano. Segundo este marco, por que essa cadência é insuficiente?"
+    options:
+      - "Verificações como essa deveriam rodar continuamente, todo dia, para que uma auditoria externa seja uma formalidade confirmando o que o sistema já sabe, em vez de uma investigação do zero quando um problema já pode estar antigo"
+      - "Não há problema real com essa cadência, desde que a verificação anual sempre encontre o resultado esperado"
+      - "A verificação anual é, na verdade, mais confiável do que verificações diárias, por ter mais tempo de preparação"
+      - "Essa verificação só é necessária em instituições que operam em múltiplas moedas"
+    answer: 0
+    explanation: "O marco recomenda rodar essas verificações continuamente, não apenas sob demanda de um auditor — isso transforma a auditoria externa numa formalidade confirmando algo já verificado, em vez de uma investigação reativa que pode descobrir um problema já antigo e difícil de rastrear. Esperar que a verificação anual 'sempre encontre o esperado' é apostar contra o propósito da verificação, cadência menor não é mais confiável, e a necessidade não se limita a contextos multimoeda."
+  - question: "Um auditor pergunta 'de onde veio esse saldo de R$ 15.432,50 na conta deste cliente?' e a equipe responde reconstruindo manualmente, a partir de planilhas e consultas ad-hoc, a história desse valor. Segundo este marco, como essa pergunta deveria ser respondida em vez disso?"
+    options:
+      - "Por uma função de explicação que, dado o saldo e a conta, devolve automaticamente a lista completa de lançamentos que o compõem, com a soma batendo exatamente — uma consulta sobre o mesmo journal, não um processo separado"
+      - "Reconstrução manual ad-hoc é, de fato, a prática recomendada, já que cada saldo tem uma história única que não pode ser automatizada"
+      - "A pergunta não deveria ser respondida diretamente; o auditor deveria receber apenas o balancete geral do período"
+      - "Essa pergunta só pode ser respondida corretamente consultando o banco de dados de backup, nunca o sistema em produção"
+    answer: 0
+    explanation: "O marco propõe exatamente uma função de explicação automatizada como resposta correta — uma consulta estrutural sobre o journal que já sustenta todo o ledger, não um processo manual separado construído especialmente para a ocasião. Reconstrução manual é tratada como o problema a evitar, o balancete geral não responde à pergunta específica sobre um saldo individual, e a função de explicação deveria funcionar sobre o sistema corrente, não exigir recorrer ao backup."
+  - question: "Depois de meses em produção, a conciliação revela que o cálculo de juros do ledger tem um erro sistemático de um centavo em determinados casos — não um erro da contraparte, mas um bug na própria lógica do sistema. Segundo este marco, que tipo de risco esse achado exemplifica, e qual prática o expôs?"
+    options:
+      - "Um risco de modelo — um erro sistemático na própria lógica de cálculo — exposto pela conciliação e pela reconstrução amostral contínuas, antes que um auditor externo o descobrisse"
+      - "Um risco de segurança de acesso, que deveria ter sido prevenido pela disciplina de autorização, não pela conciliação"
+      - "Um risco puramente cosmético, já que a diferença de um centavo não tem impacto financeiro relevante em nenhuma escala"
+      - "Um risco que só pode ser detectado por auditoria manual anual, nunca por verificações automatizadas contínuas"
+    answer: 0
+    explanation: "O marco descreve exatamente esse cenário como risco de modelo — erro sistemático na lógica de cálculo — e atribui à conciliação e à reconstrução amostral contínuas o papel de expor esse tipo de risco antes que um auditor externo o faça. Não é um risco de autorização/acesso (é um erro de lógica de negócio), um centavo sistemático multiplicado por milhões de operações é financeiramente relevante (o próprio marco 05 já tratou isso), e a exposição vem precisamente de verificações automatizadas contínuas, não de auditoria manual anual."

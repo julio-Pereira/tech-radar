@@ -118,6 +118,12 @@
 
 - track: pagamentos-e-liquidacao
   component: fin-rails
-  depends_on: [pix-gateway, ledger-core]
+  depends_on: [pix-gateway, ledger-core, fin-books]
   artifacts:
     - { path: "fin-rails/", check: exists }
+
+- track: ledger-e-contabilidade
+  component: fin-books
+  depends_on: [pix-gateway]
+  artifacts:
+    - { path: "fin-books/", check: exists }

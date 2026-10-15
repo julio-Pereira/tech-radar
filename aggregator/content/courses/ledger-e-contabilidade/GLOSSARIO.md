@@ -532,3 +532,48 @@ externa simulada.
 **Erro comum:** achar que conciliação externa só revela erro da contraparte — ela também revela
 bug do próprio ledger.
 **Onde na prática:** marco 08.
+
+## Operação
+
+### Conta quente
+**Em uma frase:** uma conta que recebe ordens de magnitude mais lançamentos que a média, cuja
+contenção vira o limite de vazão do sistema inteiro.
+**No fin-books:** a conta de tarifas simulada, recebendo um lançamento por transação, é a conta
+quente de referência da carga de teste.
+**Erro comum:** medir só a média de carga por conta, escondendo o gargalo real concentrado numa
+única conta quente.
+**Onde na prática:** marco 09.
+
+### Fragmentação de saldo
+**Em uma frase:** dividir o saldo lógico de uma conta quente em múltiplas sub-contas internas,
+cada absorvendo parte do tráfego.
+**No fin-books:** a vazão da conta fragmentada simulada é comparada, como razão, contra a
+abordagem ingênua sem fragmentação.
+**Erro comum:** fragmentar sem garantir que a soma dos fragmentos continue sendo o saldo lógico
+correto da conta.
+**Onde na prática:** marco 09.
+
+### Reconstrução (*replay*)
+**Em uma frase:** recalcular o estado atual do ledger inteiramente a partir do journal completo.
+**No fin-books:** o hash do estado reconstruído é comparado ao hash do estado corrente como
+verificação de integridade.
+**Erro comum:** confiar só no estado materializado sem nunca verificar que ele bate com a
+reconstrução completa.
+**Onde na prática:** marco 09, retomado no 10.
+
+### *Hash* encadeado
+**Em uma frase:** um hash calculado sobre o conteúdo de um lançamento mais o hash do lançamento
+anterior, formando uma cadeia verificável.
+**No fin-books:** `make audit` detecta qualquer adulteração de lançamento antigo pela quebra do
+encadeamento.
+**Erro comum:** confiar apenas na permissão de banco contra adulteração, sem a defesa em
+profundidade do hash encadeado.
+**Onde na prática:** marco 10.
+
+### WORM (*write once, read many*)
+**Em uma frase:** uma garantia de armazenamento em que o dado é escrito uma vez e nunca
+modificado depois, podendo ser lido indefinidamente.
+**No fin-books:** a retenção de longo prazo do journal simulado segue essa garantia, estendendo a
+imutabilidade do marco 03 em escala de armazenamento.
+**Erro comum:** tratar retenção regulatória como um detalhe de backup, sem garantir WORM de fato.
+**Onde na prática:** marco 10.
