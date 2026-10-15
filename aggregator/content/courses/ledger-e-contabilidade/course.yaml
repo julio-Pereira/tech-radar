@@ -1,0 +1,38 @@
+slug: ledger-e-contabilidade
+title: "Ledger e Contabilidade para Engenheiros: o Razão que Não Pode Errar"
+subtitle: "Partida dobrada, saldos com bloqueio, lançamentos imutáveis e estorno, juros e arredondamento, multimoeda, fechamento e conciliação — cada invariante provada por teste, inclusive sob concorrência e falha."
+category: "Domínio financeiro"
+tags: [ledger, contabilidade, partida-dobrada, saldos, estorno, conciliacao, multimoeda, juros, fechamento, auditoria, go, postgres, fintech]
+level: advanced
+lang: pt-BR
+# 10 marcos, Σ 610 min (regra ~2x -> 20h). Escrita por bloco — ver
+# PLANO-trilha-ledger-e-contabilidade.md §4/§10. Stubs por enquanto;
+# conteúdo real chega bloco a bloco nas próximas PRs desta trilha.
+estimatedHours: 20
+prerequisites: [dados-distribuidos, concorrencia-e-recursos]
+sources:
+  - { title: "Accounting for Computer Scientists (Martin Kleppmann)", url: https://martin.kleppmann.com/2011/03/07/accounting-for-computer-scientists.html }
+  - { title: "Designing Data-Intensive Applications (Kleppmann)", url: https://dataintensive.net/ }
+  - { title: "Banco Central do Brasil — Contabilidade (COSIF e normas contábeis)", url: https://www.bcb.gov.br/estabilidadefinanceira/cosif }
+  - { title: "PostgreSQL — Transaction Isolation", url: https://www.postgresql.org/docs/current/transaction-iso.html }
+  - { title: "Stripe — Ledger: an immutable double-entry system (engineering blog)", url: https://stripe.com/blog/ledger-stripe-system-for-tracking-and-validating-money-movement }
+  - { title: "Square — Books, an immutable double-entry accounting database service", url: https://developer.squareup.com/blog/books-an-immutable-double-entry-accounting-database-service/ }
+  - { title: "Modern Treasury — Ledgers (documentação de conceitos)", url: https://docs.moderntreasury.com/ledgers/docs/overview }
+  - { title: "Martin Fowler — Accounting Patterns", url: https://martinfowler.com/eaaDev/AccountingNarrative.html }
+  - { title: "Jepsen — Consistency Models", url: https://jepsen.io/consistency }
+  - { title: "ISO 4217 — Currency codes", url: https://www.iso.org/iso-4217-currency-codes.html }
+milestones:
+  # Bloco A — O modelo
+  - 01-razao-e-partida-dobrada.md
+  - 02-contas-e-saldos.md
+  - 03-lancamentos-imutaveis-e-estorno.md
+  # Bloco B — Valor no tempo e no espaço
+  - 04-reservas-holds-e-autorizacao.md
+  - 05-arredondamento-rateio-e-juros.md
+  - 06-multimoeda-e-cambio.md
+  # Bloco C — Confiança
+  - 07-fechamento-de-periodo.md
+  - 08-conciliacao.md
+  # Bloco D — Operar
+  - 09-ledger-em-escala.md
+  - 10-auditoria-regulatorio-e-capstone.md
