@@ -247,3 +247,137 @@ cobrador e geralmente com teto de valor.
 **Erro comum:** inferir autorização a partir do histórico de cobranças anteriores, em vez de
 exigir o registro explícito.
 **Onde na prática:** marco 03.
+
+## Cartões
+
+### Autorização
+**Em uma frase:** a conversa rápida entre portador, lojista, adquirente, bandeira e emissor que
+aprova (ou nega) uma transação de cartão, reservando o valor sem necessariamente cobrá-lo ainda.
+**No fin-rails:** o `sim-cartoes/` simula essa cadeia de quatro saltos com latência e falhas
+injetáveis.
+**Erro comum:** confundir autorização com cobrança efetiva — autorização só reserva a
+possibilidade; captura é que cobra de fato.
+**Onde na prática:** marco 04.
+
+### Captura
+**Em uma frase:** o momento em que uma autorização já concedida é efetivamente cobrada.
+**No fin-rails:** o `sim-cartoes/` modela captura imediata e captura tardia (como uma
+pré-autorização de hotel).
+**Erro comum:** achar que captura sempre ocorre no mesmo instante da autorização — muitos cenários
+têm captura tardia.
+**Onde na prática:** marco 04, retomado no 05.
+
+### Compensação (*clearing*)
+**Em uma frase:** o arquivo que agrupa as capturas de um período, consolidando o que precisa ser
+liquidado entre adquirente, bandeira e emissor.
+**No fin-rails:** a compensação simulada é o que de fato inicia o movimento de fundos entre as
+partes, não a autorização.
+**Erro comum:** achar que a autorização já move dinheiro — só a compensação inicia o fluxo de
+fundos real.
+**Onde na prática:** marco 05.
+
+### Reversão
+**Em uma frase:** desfazer uma autorização que não deveria seguir adiante, liberando o *hold*
+reservado.
+**No fin-rails:** um *timeout* simulado gera uma reversão, e o *hold* é liberado exatamente uma
+vez, mesmo com retransmissão.
+**Erro comum:** tratar reversão como opcional — ela é obrigatória sempre que um *hold* não deveria
+permanecer.
+**Onde na prática:** marco 04.
+
+### Resultado desconhecido (autorização)
+**Em uma frase:** o estado de uma autorização cuja resposta não chegou dentro do tempo esperado,
+sem se saber se ela de fato ocorreu do lado do emissor.
+**No fin-rails:** o *timeout* simulado do `sim-cartoes/` é resolvido por reversão, nunca assumido
+como "negado" por padrão.
+**Erro comum:** tratar *timeout* como sinônimo de "negado" — se a autorização de fato ocorreu, há
+um *hold* que precisa ser desfeito.
+**Onde na prática:** marco 04.
+
+### *Stand-in*
+**Em uma frase:** a decisão da bandeira (ou do adquirente) de autorizar ou negar em nome do
+emissor, quando ele está indisponível, usando regras conservadoras pré-combinadas.
+**No fin-rails:** a decisão de *stand-in* simulada é uma função pura testada contra uma tabela de
+casos.
+**Erro comum:** achar que o emissor fora do ar significa negar toda transação — *stand-in* existe
+justamente para evitar isso.
+**Onde na prática:** marco 04.
+
+### EMV
+**Em uma frase:** o padrão de chip de cartão que acrescenta criptografia e um segredo que não
+viaja em texto claro.
+**No fin-rails:** mencionado como contexto do fluxo de autorização; o `sim-cartoes/` não
+implementa criptografia de chip real.
+**Erro comum:** achar que EMV elimina toda fraude de cartão — ele dificulta a clonagem do chip,
+não cobre todos os vetores de fraude.
+**Onde na prática:** marco 04.
+
+### 3-D Secure
+**Em uma frase:** uma camada adicional de autenticação do portador, acionada com base em risco
+calculado a partir de sinais da transação.
+**No fin-rails:** a decisão simulada de acionar 3-D Secure é uma função pura testada contra uma
+tabela de casos de risco.
+**Erro comum:** tratar 3-D Secure como regra fixa de "sempre" ou "nunca" — a decisão varia por
+risco calculado, transação a transação.
+**Onde na prática:** marco 04.
+
+### PAN (*Primary Account Number*)
+**Em uma frase:** o número real do cartão de pagamento.
+**No fin-rails:** o PAN só existe dentro do pacote `cofre/`; todo o resto do sistema só vê tokens.
+**Erro comum:** deixar o PAN aparecer em log, métrica ou teste fora do `cofre/` — uma varredura
+automática do repositório proíbe isso.
+**Onde na prática:** marco 04.
+
+### Token (de cartão)
+**Em uma frase:** um identificador que substitui o número real do cartão (PAN), com significado só
+dentro de um contexto específico.
+**No fin-rails:** o orquestrador do marco 09 manipula exclusivamente tokens, nunca o PAN.
+**Erro comum:** achar que perder um token expõe o número real do cartão — um token sem o `cofre/`
+não é reversível ao PAN.
+**Onde na prática:** marco 04.
+
+### Escopo de PCI
+**Em uma frase:** o conjunto de sistemas que, por tocarem dados de cartão, precisam de auditoria
+de conformidade ao padrão PCI (**conferir** a versão vigente).
+**No fin-rails:** isolar o PAN no `cofre/` reduz drasticamente o escopo de PCI do restante do
+`fin-rails`.
+**Erro comum:** achar que tokenizar em um só componente já resolve o escopo, ignorando que outros
+componentes ainda tocam o PAN diretamente.
+**Onde na prática:** marco 04.
+
+### Luhn
+**Em uma frase:** algoritmo que valida a estrutura de um número de cartão — uma checagem de
+formato, não uma prova de que o cartão existe ou tem saldo.
+**No fin-rails:** validado por propriedade e por vetores de teste sobre números sintéticos de
+faixas reservadas a teste.
+**Erro comum:** achar que passar Luhn significa que o cartão é válido e tem saldo — é só uma
+checagem de formato.
+**Onde na prática:** marco 04.
+
+## Recebíveis
+
+### Agenda de recebíveis
+**Em uma frase:** o cronograma de parcelas futuras geradas por uma venda, cada uma com sua própria
+data de liquidação prevista.
+**No fin-rails:** a agenda simulada sempre soma exatamente o valor total da venda, com rateio de
+resto por maior resto.
+**Erro comum:** gerar parcelas que não somam exatamente o valor total da venda original.
+**Onde na prática:** marco 05.
+
+### Registro de recebíveis
+**Em uma frase:** infraestrutura que torna públicos, entre credores autorizados, os recebíveis
+futuros de um lojista, para evitar uso duplicado como garantia.
+**No fin-rails:** uma verificação de unicidade simulada reprova a segunda tentativa de comprometer
+o mesmo recebível.
+**Erro comum:** assumir que um contrato privado entre lojista e credor já previne o comprometimento
+duplicado sem um registro público.
+**Onde na prática:** marco 05.
+
+### Antecipação de recebíveis
+**Em uma frase:** trocar o valor futuro de um recebível, com desconto, por dinheiro disponível
+hoje.
+**No fin-rails:** fora de escopo como produto de crédito; este marco só cobre a mecânica de
+liquidação que torna um recebível antecipável.
+**Erro comum:** tratar antecipação como "desconto gratuito" — é um produto financeiro com preço
+embutido no desconto aplicado.
+**Onde na prática:** marco 05.

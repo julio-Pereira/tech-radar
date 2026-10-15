@@ -1,0 +1,33 @@
+questions:
+  - question: "Uma venda com cartão é autorizada às 14h, mas o lojista só recebe o valor líquido na conta vários dias depois. Segundo este marco, o que explica essa distância de tempo?"
+    options:
+      - "A distância é a soma do prazo de captura (quando a autorização é efetivamente cobrada) mais o prazo de liquidação do arranjo entre adquirente, bandeira e emissor"
+      - "A distância existe apenas porque o lojista escolheu receber de forma parcelada, nunca por causa de captura ou liquidação"
+      - "A autorização por si só já deveria liberar o dinheiro ao lojista; qualquer atraso é um erro do sistema"
+      - "A distância é causada exclusivamente pela geração do arquivo de compensação, sem relação com a liquidação do arranjo"
+    answer: 0
+    explanation: "O marco é explícito: a distância entre a venda e o dinheiro na conta do lojista é estruturalmente a soma do prazo de captura mais o prazo de liquidação do arranjo — autorização apenas reserva a possibilidade de cobrança, captura inicia o movimento real, e a liquidação entre instituições é o que efetivamente disponibiliza o valor ao lojista. A distância não depende de parcelamento especificamente, não é um erro de sistema, e o arquivo de compensação é parte do mecanismo, não a causa isolada do atraso."
+  - question: "Uma venda de R$ 100,00 é dividida em três parcelas. Segundo este marco, o que a agenda de recebíveis resultante precisa garantir sobre essas três parcelas?"
+    options:
+      - "A soma das três parcelas precisa bater exatamente com R$ 100,00, usando uma regra de rateio (como maior resto) para o centavo que não divide igualmente"
+      - "Cada parcela deve ter exatamente o mesmo valor, mesmo que isso signifique perder ou ganhar centavos na soma total"
+      - "A soma das parcelas pode ser arredondada para mais ou para menos, desde que a diferença seja menor que um real"
+      - "Não há exigência de conservação para parcelas, apenas para o split de taxas entre adquirente, bandeira e emissor"
+    answer: 0
+    explanation: "O marco exige a mesma disciplina de conservação do marco 01 aplicada a parcelas: a soma tem que bater exatamente com o valor total, usando uma regra de rateio explícita (como maior resto) para o centavo que não se divide igualmente entre as parcelas. Forçar parcelas idênticas ignorando o resto, permitir arredondamento de até um real, ou isentar parcelas da exigência de conservação, todos contradizem essa regra."
+  - question: "Uma venda já compensada e liquidada é cancelada um mês depois por devolução do produto. Segundo este marco, como esse cancelamento deveria ser tratado no sistema de liquidação?"
+    options:
+      - "Como um ajuste de valor negativo na liquidação seguinte, sem reabrir ou reescrever a liquidação já ocorrida"
+      - "Reabrindo e corrigindo diretamente o valor já liquidado no período original"
+      - "Ignorando o cancelamento até que o lojista solicite formalmente uma auditoria completa"
+      - "Gerando uma nova venda com valor negativo, sem qualquer vínculo registrado com a venda original"
+    answer: 0
+    explanation: "O marco descreve exatamente esse mecanismo: o ajuste de um cancelamento após a compensação entra como valor negativo na liquidação seguinte, evitando retrabalho contábil em período já encerrado. Reabrir a liquidação original, ignorar o cancelamento, ou criar uma venda negativa sem vínculo com a original, contradizem essa escolha de design deliberada."
+  - question: "Um lojista tenta oferecer o mesmo recebível futuro como garantia para dois credores diferentes simultaneamente. Segundo este marco, que mecanismo existe especificamente para prevenir esse problema?"
+    options:
+      - "Um registro de recebíveis, que torna públicos entre credores autorizados os recebíveis futuros do lojista, evitando o comprometimento duplicado do mesmo recebível"
+      - "A tokenização do número do cartão usado na venda original"
+      - "O algoritmo de Luhn aplicado ao número do recebível"
+      - "A reversão da autorização original que gerou o recebível"
+    answer: 0
+    explanation: "O marco é direto sobre a função do registro de recebíveis: evitar que o mesmo recebível futuro seja usado como garantia de mais de um credor ao mesmo tempo, tornando a informação pública entre credores autorizados. Tokenização e Luhn pertencem ao domínio de segurança de dados de cartão (marco 04), não ao registro de recebíveis, e reversão desfaz autorizações, sem relação com garantias de recebíveis."
