@@ -1,0 +1,49 @@
+questions:
+  - question: "A resposta de uma autorização de cartão não chega dentro do tempo esperado (timeout), mas o emissor, de fato, já havia aprovado e reservado o valor na linha do portador antes do timeout ocorrer. Segundo este marco, por que tratar esse timeout simplesmente como 'negado' é um erro?"
+    options:
+      - "Porque, se a autorização de fato ocorreu, existe um hold reservado na linha do portador que precisa ser reconhecido e desfeito por reversão — não apenas ignorado"
+      - "Porque todo timeout, por definição, significa que a transação foi aprovada automaticamente"
+      - "Não há problema em tratar timeout como negado, já que o portador nunca percebe a diferença"
+      - "O problema só existe se o lojista decidir repetir a transação imediatamente"
+    answer: 0
+    explanation: "O marco é explícito: tratar timeout como 'negado' por padrão é um erro sutil porque, se a autorização de fato ocorreu e reservou um hold, esse hold precisa ser reconhecido e desfeito via reversão — simplesmente seguir adiante como se nada tivesse acontecido deixaria o hold preso, reduzindo o limite disponível do portador. Timeout não significa aprovação automática, o portador é afetado concretamente (limite reduzido), e o problema existe independentemente de o lojista repetir a transação ou não."
+  - question: "Por que, segundo este marco, a reversão de uma autorização de cartão é descrita como obrigatória, e não como uma conveniência operacional opcional?"
+    options:
+      - "Porque uma autorização bem-sucedida reserva um valor (hold) na linha do portador, e sem reversão esse hold ficaria preso indefinidamente mesmo quando a transação não deveria seguir adiante"
+      - "Porque reversões são exigidas apenas quando o valor da transação é muito alto"
+      - "Porque a reversão é apenas uma formalidade contábil sem efeito real sobre o limite do portador"
+      - "Porque reversão e autorização duplicada são, na prática, o mesmo mecanismo"
+    answer: 0
+    explanation: "O marco conecta reversão diretamente ao hold criado por uma autorização: sem reversão obrigatória, um timeout ou cancelamento deixaria esse hold preso indefinidamente, reduzindo o limite disponível do portador por uma transação que, do lado dele, nunca se concretizou. Não há menção a um limiar de valor para tornar a reversão obrigatória, o efeito sobre o limite é real (não apenas contábil), e reversão e autorização duplicada são mecanismos distintos tratados em invariantes separadas."
+  - question: "A mesma mensagem de autorização de cartão é retransmitida duas vezes devido a uma retentativa de rede, usando a mesma referência de rastreio. Segundo este marco, o que deveria acontecer na segunda vez?"
+    options:
+      - "A segunda mensagem deve devolver o mesmo resultado da primeira, sem criar um segundo hold na conta do portador"
+      - "A segunda mensagem deve ser automaticamente negada, já que referências repetidas indicam fraude"
+      - "A segunda mensagem deve criar um novo hold independente, permitindo que o portador cancele um dos dois depois"
+      - "O comportamento correto depende exclusivamente de qual bandeira está processando a transação"
+    answer: 0
+    explanation: "O marco trata a referência de rastreio como uma chave de idempotência: a mesma referência retransmitida deveria devolver o mesmo resultado da primeira vez, nunca gerar um segundo hold. Referências repetidas não indicam fraude por si só, criar um segundo hold é exatamente o comportamento incorreto que a idempotência previne, e o princípio não depende de qual bandeira está envolvida."
+  - question: "Um sistema de pagamentos permite que o número real do cartão apareça em múltiplos componentes — o orquestrador, os logs e as métricas — além do componente de armazenamento seguro. Segundo este marco, qual é a consequência dessa escolha de arquitetura?"
+    options:
+      - "O escopo de PCI do sistema aumenta, já que cada componente que manipula o número real do cartão precisa de auditoria de conformidade"
+      - "Não há consequência de escopo, desde que o cartão seja validado por Luhn em cada componente"
+      - "O escopo de PCI só aumenta se o número do cartão for armazenado permanentemente, nunca se for apenas processado em memória"
+      - "Tokenizar o número em apenas um desses componentes já elimina toda a exposição, independentemente dos demais"
+    answer: 0
+    explanation: "O marco explica que reduzir o número de sistemas que tocam o número real do cartão reduz diretamente o escopo de PCI — a decisão central do marco é isolar esse acesso num único componente (`cofre/`) exatamente para manter esse escopo pequeno. Validar por Luhn não substitui a necessidade de isolamento, o escopo de PCI se aplica a manipulação (não só a armazenamento permanente), e tokenizar em apenas um componente não resolve a exposição nos demais que ainda tocam o número real."
+  - question: "Durante uma indisponibilidade do emissor, a bandeira autoriza uma transação em nome dele usando regras conservadoras previamente combinadas. Que mecanismo é esse, e qual é sua justificativa segundo este marco?"
+    options:
+      - "Stand-in — uma decisão de continuidade de negócio, já que autorizar com uma regra mais cautelosa é preferível a negar toda transação sempre que um emissor específico está fora do ar"
+      - "Reversão — um mecanismo para desfazer autorizações que não deveriam seguir adiante"
+      - "Tokenização — uma forma de substituir o número do cartão por um identificador temporário"
+      - "3-D Secure — uma camada adicional de autenticação do portador"
+    answer: 0
+    explanation: "A descrição corresponde exatamente ao stand-in: a bandeira (ou adquirente) decide em nome do emissor indisponível, usando regras conservadoras combinadas previamente, como decisão de continuidade de negócio. Reversão desfaz autorizações já concedidas, tokenização substitui o número do cartão por um token, e 3-D Secure é uma camada de autenticação do portador — nenhum desses é o mecanismo descrito."
+  - question: "Um sistema decide ativar 3-D Secure (uma etapa adicional de autenticação do portador) para algumas transações, mas não para outras, sem uma regra fixa de 'sempre ativar' ou 'nunca ativar'. Segundo este marco, por que essa variação é o comportamento esperado?"
+    options:
+      - "Porque a decisão de acionar 3-D Secure é baseada em risco, calculada a partir de sinais da transação — não uma regra fixa de tudo ou nada"
+      - "Porque 3-D Secure só pode ser ativado em transações de valor acima de um limite fixo, nunca abaixo"
+      - "Porque a variação indica uma falha de configuração que deveria ser corrigida para um comportamento único"
+      - "Porque 3-D Secure é um mecanismo opcional que cada lojista escolhe usar ou não, sem relação com risco"
+    answer: 0
+    explanation: "O marco descreve explicitamente 3-D Secure como uma decisão baseada em risco: uma transação de baixo risco pode passar sem fricção adicional, uma de alto risco aciona o desafio — a variação é o comportamento esperado, não uma falha. Não há menção a um limiar de valor fixo que determine a ativação, a variação não é um bug de configuração, e a decisão é descrita como função de sinais de risco, não como escolha arbitrária do lojista."

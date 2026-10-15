@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 155, "desafio": 196, "invariantes": 186, "complemento": 177, "checagem": 195,
+		"tutorial": 157, "desafio": 198, "invariantes": 188, "complemento": 179, "checagem": 197,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -428,8 +428,6 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		// trilha-pagamentos-e-liquidacao.md §4/§10) — these are still
 		// placeholder bodies awaiting their block's content PR.
 		"pagamentos-e-liquidacao/boleto-ted-e-trilhos",
-		"pagamentos-e-liquidacao/cartoes-autorizacao",
-		"pagamentos-e-liquidacao/cartoes-liquidacao-e-recebiveis",
 		"pagamentos-e-liquidacao/disputas-e-chargeback",
 		"pagamentos-e-liquidacao/liquidacao-e-liquidez",
 		"pagamentos-e-liquidacao/operar-pagamentos-e-capstone",
