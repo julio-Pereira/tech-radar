@@ -1,0 +1,33 @@
+questions:
+  - question: "Um sistema de monitoramento mostra que a carga média por conta no ledger está bem dentro da capacidade esperada, mas o sistema ainda sofre degradação de vazão. Segundo este marco, o que essa métrica de média provavelmente está escondendo?"
+    options:
+      - "Uma conta quente específica (como a de tarifas ou liquidação) recebendo ordens de magnitude mais lançamentos que a média, cuja contenção se torna o limite de vazão de todo o sistema"
+      - "Nada relevante — se a média está dentro da capacidade esperada, não deveria haver degradação real de vazão"
+      - "Um problema exclusivamente de rede, já que contenção de escrita em banco de dados nunca depende da distribuição de carga entre contas"
+      - "Um erro de medição que só pode ser corrigido aumentando a frequência de amostragem da métrica"
+    answer: 0
+    explanation: "O marco é direto: a contenção real está na conta mais quente, não na média — uma conta específica pode receber ordens de magnitude mais tráfego, e sua contenção vira o limite de vazão de todo o sistema, independentemente da capacidade média das outras contas. A degradação é consistente com esse cenário (não contradiz a média saudável), o problema é estrutural de distribuição de carga (não exclusivamente de rede), e não é um erro de medição resolvível só com mais amostragem."
+  - question: "Uma conta de tarifas recebe um lançamento por transação de um banco inteiro, tornando-se o limite de vazão do ledger. Segundo este marco, como a técnica de fragmentação de saldo resolve esse problema, mantendo a consistência contábil?"
+    options:
+      - "O saldo lógico da conta é fragmentado em múltiplas sub-contas internas, cada uma absorvendo parte do tráfego, com o saldo lógico sendo a soma dos fragmentos — transparente para consultas externas e consistente com a partida dobrada"
+      - "A conta de tarifas é simplesmente excluída da verificação de balanceamento, já que ela recebe volume muito maior que as outras"
+      - "Todas as transações passam a ignorar a conta de tarifas, registrando a taxa apenas num relatório separado fora do ledger"
+      - "A fragmentação substitui a necessidade de qualquer verificação de partida dobrada nas sub-contas internas"
+    answer: 0
+    explanation: "O marco descreve exatamente esse mecanismo: fragmentação distribui o tráfego entre sub-contas internas, cada fragmento ainda participando normalmente da partida dobrada, com o saldo lógico calculado como a soma transparente dos fragmentos. Excluir a conta da verificação de balanceamento, remover a taxa do ledger, ou dispensar a partida dobrada nos fragmentos, todos violam invariantes centrais da trilha inteira, não apenas deste marco."
+  - question: "Duas operações concorrentes, cada uma envolvendo as mesmas duas contas, adquirem bloqueios sobre essas contas em ordens diferentes (uma bloqueia A depois B; a outra bloqueia B depois A). Segundo este marco, qual é o risco dessa inconsistência, e como ele é evitado?"
+    options:
+      - "O risco é impasse (deadlock) — evitado adotando uma ordem consistente de aquisição de bloqueios entre todas as operações concorrentes, como sempre bloquear em ordem crescente de identificador"
+      - "O risco é apenas uma pequena perda de performance, sem possibilidade real de bloqueio permanente entre as operações"
+      - "Esse cenário é impossível de ocorrer na prática, já que bancos de dados modernos sempre previnem automaticamente qualquer ordem de bloqueio"
+      - "O risco só se materializa se mais de duas contas estiverem envolvidas simultaneamente na mesma operação"
+    answer: 0
+    explanation: "O marco identifica exatamente esse padrão como a receita clássica para impasse, e a solução recomendada é uma convenção consistente de ordem de aquisição de bloqueios entre todas as operações — isso elimina essa classe de impasse por construção. O risco é bloqueio mútuo real (não apenas perda de performance), bancos de dados não previnem isso automaticamente sem essa disciplina de ordem sendo aplicada pela aplicação, e o problema já existe com apenas duas contas envolvidas."
+  - question: "Depois de uma falha séria de infraestrutura, uma equipe precisa verificar se o estado atual do ledger está correto. Segundo este marco, que capacidade do journal permite essa verificação, e como ela é comprovada?"
+    options:
+      - "A capacidade de reconstrução (replay) do estado completo a partir do journal, comprovada pela comparação do hash do estado reconstruído com o hash do estado corrente"
+      - "A capacidade de editar diretamente o journal para corrigir qualquer inconsistência encontrada após a falha"
+      - "A reconstrução não é possível depois de uma falha séria — apenas o backup mais recente pode ser usado, sem verificação adicional"
+      - "A verificação depende exclusivamente de uma auditoria manual completa, sem nenhum mecanismo automatizado disponível"
+    answer: 0
+    explanation: "O marco trata o journal como um event store cujo estado pode sempre ser reconstruído por replay, com uma invariante de verificação concreta: o hash do estado reconstruído precisa bater com o hash do estado corrente. Editar o journal diretamente viola a imutabilidade estabelecida desde o marco 03, a reconstrução é precisamente o que complementa (ou até substitui) a dependência exclusiva de backup, e a verificação é automatizável via comparação de hash, não exclusivamente manual."
