@@ -1,0 +1,49 @@
+questions:
+  - question: "Uma linha de um arquivo de liquidação externo não tem um identificador fim a fim único; o sistema de conciliação a casa com um lançamento interno usando apenas a combinação de valor e data. Segundo este marco, qual é o risco específico dessa escolha de chave?"
+    options:
+      - "Aumenta o risco de falso-positivo (duas operações diferentes com valor e data coincidentes casadas erroneamente) e falso-negativo (a mesma operação representada de forma levemente diferente não sendo reconhecida)"
+      - "Não há risco real, já que valor e data juntos sempre identificam uma operação de forma única"
+      - "O risco só existe se o arquivo tiver mais de mil linhas no mesmo dia"
+      - "Esse tipo de chave é, na verdade, mais confiável do que um identificador único, por depender de dados econômicos reais"
+    answer: 0
+    explanation: "O marco é direto: quanto mais frágil a chave, maior o risco de falso-positivo (coincidência de valor e data entre operações diferentes) e falso-negativo (mesma operação não reconhecida por pequena diferença de representação). Valor e data não garantem unicidade, o risco não depende de um volume mínimo de linhas, e uma chave frágil nunca é mais confiável que um identificador único quando este está disponível."
+  - question: "Uma linha esperada no arquivo de liquidação de hoje não aparece, mas o sistema sabe, por experiência histórica, que esse tipo de linha costuma aparecer com um dia de atraso. Segundo este marco, como essa ausência deveria ser classificada inicialmente, e o que a distingue de um erro real?"
+    options:
+      - "Como uma possível diferença de timing, que se resolve sozinha com o tempo — diferente de um erro real (duplicado, valor diferente, faltante permanente), que exige investigação e correção ativa"
+      - "Como um erro real desde o primeiro momento, exigindo abertura imediata de um caso de investigação formal"
+      - "Não há diferença prática entre timing e erro real — ambos deveriam ser tratados exatamente da mesma forma"
+      - "Como uma linha que deveria ser automaticamente removida da conciliação até que apareça"
+    answer: 0
+    explanation: "O marco distingue claramente as duas categorias: diferença de timing (item 'em trânsito') se resolve sozinha com o tempo; erro real não se resolve e precisa de investigação ativa. Tratar toda ausência imediatamente como erro real ignora a possibilidade de timing esperado, as duas categorias não deveriam receber o mesmo tratamento (é justamente a distinção que importa), e simplesmente remover a linha da conciliação mascararia uma divergência real caso ela nunca apareça."
+  - question: "Uma equipe decide automatizar a conciliação começando diretamente com heurísticas de similaridade aproximada, sem antes esgotar regras determinísticas de casamento exato. Segundo este marco, por que essa ordem está invertida?"
+    options:
+      - "A estratégia mais sustentável resolve o máximo de casos com regras determinísticas (chave exata, tolerância explícita) primeiro, reservando heurísticas revisadas por humano apenas para o que sobra"
+      - "Heurísticas de similaridade são sempre mais precisas que regras determinísticas, então começar com elas produz melhores resultados"
+      - "Não há diferença de ordem — regras determinísticas e heurísticas produzem exatamente os mesmos resultados em qualquer ordem"
+      - "Regras determinísticas só funcionam depois que heurísticas já tiverem classificado uma primeira rodada de casos"
+    answer: 0
+    explanation: "O marco recomenda explicitamente a ordem inversa à descrita: regras determinísticas primeiro, esgotando o que podem resolver com confiança, e heurísticas revisadas por humano só para o restante — pular direto para heurística sofisticada inverte a ordem de confiabilidade. Heurísticas não são inerentemente mais precisas (são aproximações, por definição), a ordem importa (os resultados não são equivalentes), e regras determinísticas não dependem de uma rodada prévia de heurísticas."
+  - question: "Um motor de conciliação é executado duas vezes sobre o mesmo arquivo de liquidação, por engano, após uma falha de rede que fez parecer que a primeira execução não tinha terminado. Segundo este marco, o que deveria acontecer com os itens já casados e as exceções já abertas na primeira execução?"
+    options:
+      - "Nem os itens casados nem as exceções deveriam ser duplicados — a conciliação precisa ser idempotente em relação ao mesmo arquivo de entrada"
+      - "Todos os itens deveriam ser casados novamente, dobrando a contagem de itens conciliados com sucesso"
+      - "As exceções já abertas deveriam ser automaticamente descartadas na segunda execução"
+      - "O sistema deveria processar apenas a segunda metade do arquivo na segunda execução, assumindo que a primeira metade já foi processada"
+    answer: 0
+    explanation: "O marco exige idempotência: rodar a conciliação duas vezes sobre o mesmo arquivo nunca deveria duplicar itens casados nem exceções abertas — essa é a propriedade que torna seguro reprocessar um arquivo depois de corrigir um bug. Dobrar a contagem, descartar exceções automaticamente, ou assumir processamento parcial sem verificação, todos contradizem a garantia de idempotência exigida."
+  - question: "Um pagamento termina em estado de resultado desconhecido no momento da transação. Dias depois, a conciliação encontra a linha correspondente no arquivo de liquidação externo e confirma que a transação de fato ocorreu. Segundo este marco, que papel a conciliação desempenhou nesse caso?"
+    options:
+      - "Resolveu a incerteza operacional real sobre o resultado desconhecido — a conciliação não é só uma checagem de qualidade, é um dos mecanismos que confirma o que de fato aconteceu"
+      - "Apenas confirmou um dado que já era certo desde o início, sem nenhuma função real de resolução de incerteza"
+      - "Criou uma nova ambiguidade que não existia antes de a conciliação ser executada"
+      - "Esse cenário nunca ocorre na prática, já que resultado desconhecido sempre se resolve antes de qualquer conciliação"
+    answer: 0
+    explanation: "O marco descreve exatamente esse papel: a conciliação frequentemente é o que resolve, na prática, um pagamento em resultado desconhecido — a confirmação definitiva vem de uma fonte externa independente, não de uma nova tentativa do próprio sistema. O resultado não era certo antes da conciliação (por definição, era desconhecido), a conciliação resolve incerteza em vez de criá-la, e o marco trata esse cenário como algo que ocorre na prática, não como impossível."
+  - question: "Uma divergência recorrente e sistemática entre o ledger e um arquivo externo, depois de investigada, não revela nenhum erro do lado da contraparte — revela que o próprio ledger calcula uma taxa com um erro sistemático de um centavo. Segundo este marco, o que esse achado demonstra sobre o papel da conciliação?"
+    options:
+      - "Que a conciliação funciona como um detector de bugs do próprio ledger, não apenas como uma ferramenta de casamento de arquivos externos"
+      - "Que esse tipo de achado é impossível, já que toda divergência externa é sempre causada pelo outro lado"
+      - "Que a conciliação só tem valor quando encontra erros na contraparte, nunca quando revela problemas internos"
+      - "Que o motor de conciliação deveria ser desligado, já que ele não deveria revelar bugs do próprio sistema"
+    answer: 0
+    explanation: "O marco é direto sobre esse papel adicional: encarar a conciliação como ferramenta de detecção de bug, não só de casamento de arquivo, muda como ela é projetada e priorizada — uma divergência sistemática pode revelar um bug no próprio ledger, como no exemplo do cálculo de taxa. Esse achado não é impossível (o marco o usa como exemplo central), a conciliação tem valor em ambas as direções (erro externo ou interno), e encontrar um bug interno é precisamente um dos valores mais importantes da prática, não motivo para desligá-la."

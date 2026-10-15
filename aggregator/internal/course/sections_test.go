@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 168, "desafio": 209, "invariantes": 199, "complemento": 190, "checagem": 208,
+		"tutorial": 170, "desafio": 211, "invariantes": 201, "complemento": 192, "checagem": 210,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -428,8 +428,6 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		// trilha-ledger-e-contabilidade.md §4/§10) — these are still
 		// placeholder bodies awaiting their block's content PR.
 		"ledger-e-contabilidade/auditoria-e-capstone-do-ledger",
-		"ledger-e-contabilidade/conciliacao",
-		"ledger-e-contabilidade/fechamento-de-periodo",
 		"ledger-e-contabilidade/ledger-em-escala",
 	}
 	if !equalStrings(noSection, wantNoSection) {
