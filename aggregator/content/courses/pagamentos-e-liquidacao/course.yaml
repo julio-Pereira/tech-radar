@@ -6,9 +6,10 @@ tags: [pagamentos, pix, spi, dict, med, cartoes, iso-8583, tokenizacao, chargeba
 level: advanced
 lang: pt-BR
 # 10 marcos, Σ 610 min (regra ~2x -> 20h). Escrita por bloco — ver
-# PLANO-trilha-pagamentos-e-liquidacao.md §4/§10. Stubs por enquanto;
-# conteúdo real chega bloco a bloco nas próximas PRs desta trilha.
+# PLANO-trilha-pagamentos-e-liquidacao.md §4/§10 — Bloco A (01) já tem
+# conteúdo completo; os demais marcos chegam em PRs subsequentes.
 estimatedHours: 20
+glossary: GLOSSARIO.md
 prerequisites: [system-design, spring-boot]
 sources:
   - { title: "Banco Central do Brasil — Pix", url: https://www.bcb.gov.br/estabilidadefinanceira/pix }

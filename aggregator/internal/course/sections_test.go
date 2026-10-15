@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 152, "desafio": 193, "invariantes": 183, "complemento": 174, "checagem": 192,
+		"tutorial": 153, "desafio": 194, "invariantes": 184, "complemento": 175, "checagem": 193,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -431,7 +431,6 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		"pagamentos-e-liquidacao/cartoes-autorizacao",
 		"pagamentos-e-liquidacao/cartoes-liquidacao-e-recebiveis",
 		"pagamentos-e-liquidacao/disputas-e-chargeback",
-		"pagamentos-e-liquidacao/ecossistema-e-fluxo-de-fundos",
 		"pagamentos-e-liquidacao/liquidacao-e-liquidez",
 		"pagamentos-e-liquidacao/operar-pagamentos-e-capstone",
 		"pagamentos-e-liquidacao/orquestracao-de-pagamentos",
