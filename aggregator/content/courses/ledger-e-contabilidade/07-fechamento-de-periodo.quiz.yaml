@@ -1,0 +1,33 @@
+questions:
+  - question: "Após o fechamento de um período, o balancete mostra soma de saldos devedores diferente da soma de saldos credores. Segundo este marco, o que esse resultado indica?"
+    options:
+      - "Um sinal direto de que algum lançamento no período violou a partida dobrada, ou que o cálculo do próprio balancete tem um bug — nunca um detalhe cosmético de relatório"
+      - "Um arredondamento aceitável que pode ser ignorado, desde que a diferença seja pequena"
+      - "Que o período simplesmente precisa de mais tempo para ser processado completamente antes de fechar"
+      - "Um comportamento esperado sempre que há lançamentos em mais de uma moeda no mesmo período"
+    answer: 0
+    explanation: "O marco é direto: um balancete que não fecha é sinal direto de um problema real — uma violação de partida dobrada em algum lançamento, ou um bug no próprio cálculo do balancete — nunca um detalhe cosmético. Não há tolerância de 'diferença pequena aceitável', o problema não se resolve com mais tempo de processamento, e o balancete é verificado por moeda justamente para que múltiplas moedas não causem esse tipo de divergência por si só."
+  - question: "Um lançamento legítimo chega poucos minutos depois do horário de cut-off do fechamento diário, mas se refere a uma operação que começou antes do cut-off. Segundo este marco, qual é a pior forma de lidar com essa situação?"
+    options:
+      - "Decidir caso a caso, sob pressão, somente quando a situação realmente aparecer, sem uma regra definida com antecedência"
+      - "Aplicar uma regra explícita, decidida com antecedência, sobre se o lançamento entra no próximo período ou exige ajuste auditado"
+      - "Registrar o lançamento com a data de competência original, preservando a correção econômica da operação"
+      - "Documentar formalmente qual caminho foi escolhido para esse tipo de situação, antes que ela ocorra"
+    answer: 0
+    explanation: "O marco é explícito: a pior resposta possível é decidir caso a caso, sob pressão, quando a situação realmente aparecer — a regra para lançamento tardio precisa ser explícita e decidida com antecedência. As outras três opções descrevem exatamente a abordagem recomendada (regra antecipada, preservação da competência original, documentação formal), não a pior prática."
+  - question: "Um período contábil já fechado precisa ser corrigido porque um erro foi descoberto meses depois. Segundo este marco, o que a reabertura desse período exige?"
+    options:
+      - "Um registro auditável explícito (quem, quando, por quê) e o balancete inteiro precisa ser refeito depois da correção — nunca uma operação silenciosa ou informal"
+      - "Nenhum registro especial é necessário, já que a correção em si já serve como documentação suficiente"
+      - "Apenas a atualização direta do snapshot de fechamento já existente, sem necessidade de recalcular o balancete"
+      - "A substituição do snapshot antigo por um novo, descartando o registro histórico do fechamento original"
+    answer: 0
+    explanation: "O marco exige explicitamente registro auditável (quem, quando, por quê) e que o balancete inteiro seja refeito depois da reabertura e correção — nunca uma operação silenciosa. A correção isolada não substitui o registro formal, editar o snapshot diretamente contradiz sua imutabilidade (o snapshot deveria ser reconstruído, não editado), e descartar o registro histórico do fechamento original eliminaria a rastreabilidade que o marco exige."
+  - question: "O processo de fechamento de um período é executado duas vezes seguidas, sem nenhuma mudança nos lançamentos entre as duas execuções. Segundo este marco, o que deveria acontecer?"
+    options:
+      - "O resultado deveria ser idempotente — produzir exatamente o mesmo snapshot e balancete nas duas execuções, sem efeito colateral de rodar novamente"
+      - "A segunda execução deveria gerar um snapshot diferente, já que o tempo decorrido entre as duas execuções altera o resultado"
+      - "A segunda execução deveria ser automaticamente rejeitada pelo sistema, impedindo qualquer fechamento repetido"
+      - "O balancete da segunda execução deveria somar os valores da primeira execução, dobrando os totais"
+    answer: 0
+    explanation: "O marco exige idempotência explicitamente: fechar o mesmo período duas vezes, sem mudanças entre as execuções, deveria produzir exatamente o mesmo resultado, sem efeito colateral de rodar novamente — a mesma disciplina de idempotência presente em toda a trilha. Gerar um resultado diferente, rejeitar automaticamente a repetição, ou dobrar os totais, todos contradizem essa propriedade esperada."

@@ -420,3 +420,115 @@ realizado.
 **Erro comum:** confundir reavaliação com conversão — reavaliação ajusta a visão contábil;
 conversão move valor de fato.
 **Onde na prática:** marco 06.
+
+## Fechamento
+
+### Período
+**Em uma frase:** uma janela de tempo contábil (dia, mês) com começo e fim definidos.
+**No fin-books:** cada período simulado tem um processo de fechamento próprio, com balancete
+verificável.
+**Erro comum:** tratar "o período" como uma janela sempre potencialmente mutável, sem um ato
+formal de fechamento.
+**Onde na prática:** marco 07.
+
+### *Cut-off*
+**Em uma frase:** o horário exato em que o fechamento de um período é executado.
+**No fin-books:** um lançamento no limiar do cut-off segue uma regra determinística e explícita
+sobre a qual período pertence.
+**Erro comum:** não ter uma regra explícita para lançamentos que chegam exatamente no limiar do
+cut-off.
+**Onde na prática:** marco 07.
+
+### Calendário bancário
+**Em uma frase:** a definição configurável de quais dias são úteis e quais são feriados, usada
+para calcular fechamento e prazos.
+**No fin-books:** tratado como configuração testada — **conferir** a fonte correta do calendário
+vigente.
+**Erro comum:** hardcoded o calendário de feriados no código, em vez de tratá-lo como
+configuração testável.
+**Onde na prática:** marco 07.
+
+### *Snapshot* (de fechamento)
+**Em uma frase:** os saldos de todas as contas congelados no exato momento do fechamento de um
+período.
+**No fin-books:** o snapshot simulado é igual ao saldo reconstruído do diário para a mesma data,
+por propriedade.
+**Erro comum:** editar um snapshot diretamente para "corrigir" uma divergência, em vez de
+investigar a causa.
+**Onde na prática:** marco 07.
+
+### Balancete (*trial balance*)
+**Em uma frase:** a soma dos saldos devedores comparada à soma dos saldos credores de um período,
+por moeda.
+**No fin-books:** `make audit` verifica que o balancete fecha a cada período simulado.
+**Erro comum:** tratar um balancete que não fecha como detalhe cosmético, em vez de investigar a
+violação de partida dobrada que ele revela.
+**Onde na prática:** marco 07, retomado no 10.
+
+### Reabertura (de período)
+**Em uma frase:** a operação excepcional de reabrir um período já fechado, exigindo registro
+auditável e refazendo o balancete.
+**No fin-books:** a reabertura simulada sempre refaz o balancete inteiro depois da correção.
+**Erro comum:** reabrir um período informalmente, sem registro auditável do motivo.
+**Onde na prática:** marco 07.
+
+## Conciliação
+
+### Casamento
+**Em uma frase:** o processo de associar um lançamento interno a uma linha externa
+correspondente, usando uma chave.
+**No fin-books:** o casamento simulado é determinístico — mesma entrada, mesmo resultado,
+independente da ordem das linhas.
+**Erro comum:** usar uma chave de casamento frágil (só valor e data) quando um identificador fim a
+fim único está disponível.
+**Onde na prática:** marco 08.
+
+### Quebra (de conciliação)
+**Em uma frase:** uma divergência entre o ledger e a fonte externa que não casa automaticamente.
+**No fin-books:** toda quebra simulada é classificada (timing ou erro) antes de entrar na fila de
+exceções.
+**Erro comum:** deixar uma quebra sem classificação, tratando toda divergência genericamente da
+mesma forma.
+**Onde na prática:** marco 08.
+
+### Diferença de *timing*
+**Em uma frase:** uma divergência que se resolve sozinha com o tempo — um item "em trânsito"
+entre os dois lados.
+**No fin-books:** reclassificada automaticamente quando a contraparte confirma a linha no dia
+seguinte, no cenário simulado.
+**Erro comum:** confundir diferença de timing com erro real, deixando um erro real se acumular
+sob a desculpa de "vai resolver sozinho".
+**Onde na prática:** marco 08.
+
+### Tolerância (de conciliação)
+**Em uma frase:** o limite explícito de diferença de valor ou de tempo aceito como divergência
+esperada, não erro.
+**No fin-books:** configurada e testada; uma divergência fora da tolerância sempre gera exceção.
+**Erro comum:** usar tolerância tão ampla que mascara erros reais sob a desculpa de "divergência
+esperada".
+**Onde na prática:** marco 08.
+
+### Fila de exceções
+**Em uma frase:** o conjunto de quebras de conciliação pendentes, cada uma com idade e dono
+responsável.
+**No fin-books:** o *aging* da fila simulada é calculado com relógio falso e ordenado por idade e
+valor.
+**Erro comum:** ter uma fila de exceções sem dono explícito por item, deixando-as sem
+responsável.
+**Onde na prática:** marco 08.
+
+### *Aging*
+**Em uma frase:** há quanto tempo uma exceção de conciliação está pendente sem resolução.
+**No fin-books:** calculado com relógio falso sobre a fila de exceções simulada.
+**Erro comum:** não medir aging, perdendo visibilidade sobre exceções antigas que deveriam ter
+prioridade.
+**Onde na prática:** marco 08.
+
+### Conciliação interna/externa
+**Em uma frase:** interna compara o próprio ledger consigo mesmo (razão, subrazão, materializado);
+externa compara contra uma fonte fora do seu controle.
+**No fin-books:** `make audit` roda ambas: verificação interna de consistência e conciliação
+externa simulada.
+**Erro comum:** achar que conciliação externa só revela erro da contraparte — ela também revela
+bug do próprio ledger.
+**Onde na prática:** marco 08.
