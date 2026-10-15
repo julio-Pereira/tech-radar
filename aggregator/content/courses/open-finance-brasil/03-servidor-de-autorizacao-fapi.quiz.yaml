@@ -1,0 +1,49 @@
+questions:
+  - question: "Um cliente OAuth2 tradicional envia os parâmetros de autorização diretamente na URL do navegador. Segundo este marco, por que o perfil FAPI exige PAR (pushed authorization request) em vez desse padrão?"
+    options:
+      - "PAR move os parâmetros para fora da URL visível e manipulável pelo navegador, empurrando-os antecipadamente para um endpoint dedicado e usando apenas uma referência opaca no redirecionamento"
+      - "PAR existe apenas para reduzir o tamanho da URL, sem nenhuma motivação de segurança relacionada"
+      - "PAR substitui completamente a necessidade de autenticação do cliente no servidor de autorização"
+      - "PAR é exigido apenas quando o cliente usa mTLS, nunca quando usa private_key_jwt"
+    answer: 0
+    explanation: "O marco explica a motivação de segurança diretamente: parâmetros na URL são visíveis e manipuláveis pelo navegador; PAR move isso para um empurrão antecipado a um endpoint dedicado, com apenas uma referência opaca visível depois. Redução de tamanho de URL não é a motivação central, PAR não substitui autenticação de cliente (são mecanismos complementares), e a exigência de PAR não depende de qual mecanismo de autenticação de cliente está em uso."
+  - question: "Um token de acesso é copiado (por exemplo, de um log mal protegido) e usado por um atacante numa conexão diferente da original. Segundo este marco, o que a vinculação do token ao certificado (certificate-bound token) faz especificamente para impedir esse abuso?"
+    options:
+      - "O servidor de recurso verifica que o certificado TLS da conexão atual é o mesmo vinculado ao token na emissão — sem a chave privada correspondente, o token copiado é inútil"
+      - "A vinculação ao certificado impede qualquer cópia do token em qualquer circunstância, tornando logs de requisição inteiramente seguros"
+      - "A vinculação ao certificado substitui a necessidade de expiração curta de tokens de acesso"
+      - "Essa proteção só é eficaz se o atacante também não tiver acesso à rede do cliente legítimo"
+    answer: 0
+    explanation: "O marco descreve exatamente esse mecanismo: o token carrega uma referência criptográfica ao certificado usado para obtê-lo, e o servidor de recurso verifica que a conexão atual usa o mesmo certificado — um token copiado é inútil sem a chave privada correspondente. Isso não torna logs 'inteiramente seguros' contra qualquer vazamento, não substitui a necessidade de expiração curta (são proteções complementares), e a eficácia não depende de acesso de rede do atacante, mas de posse da chave privada."
+  - question: "Um refresh token, já rotacionado (substituído por um novo após seu uso), é apresentado novamente ao servidor numa tentativa posterior. Segundo este marco, o que esse reuso sinaliza, e qual é a resposta correta?"
+    options:
+      - "Sinaliza forte possibilidade de comprometimento (alguém além do dono legítimo também possui o token) — a resposta correta é revogar toda a família de tokens derivados dele, não apenas negar essa tentativa específica"
+      - "É um comportamento normal e esperado, que deveria simplesmente emitir um novo token sem nenhuma ação adicional"
+      - "A resposta correta é apenas registrar um log de auditoria, sem revogar nada, já que o token já havia sido invalidado pela rotação"
+      - "A resposta correta depende exclusivamente de qual mecanismo de autenticação de cliente (mTLS ou private_key_jwt) foi usado originalmente"
+    answer: 0
+    explanation: "O marco é direto: a reutilização de um refresh token já rotacionado é sinal forte de comprometimento, e a resposta correta é revogar toda a família de tokens derivados dele — negar só a tentativa específica deixaria outros tokens comprometidos ainda válidos. Não é comportamento normal (contradiz o propósito da rotação), apenas logar sem revogar deixa o comprometimento ativo, e a resposta não depende do mecanismo de autenticação de cliente usado."
+  - question: "Múltiplas requisições simultâneas chegam ao servidor de autorização usando o mesmo valor de jti (JWT ID). Segundo este marco, o que deveria acontecer, mesmo sob essa condição de concorrência?"
+    options:
+      - "Exatamente uma das tentativas concorrentes deveria ser aceita; as demais, rejeitadas — a proteção contra jti repetido precisa sobreviver a condições de corrida, não só a chamadas sequenciais"
+      - "Todas as tentativas concorrentes com o mesmo jti deveriam ser aceitas, já que chegaram dentro de uma janela de tempo muito curta"
+      - "A verificação de jti repetido só é necessária para chamadas sequenciais; concorrência está fora do escopo dessa proteção"
+      - "O servidor deveria aceitar a última tentativa recebida e rejeitar automaticamente todas as anteriores"
+    answer: 0
+    explanation: "O marco exige explicitamente que a invariante de jti único sobreviva a tentativas concorrentes, não só sequenciais — exatamente uma de N tentativas simultâneas com o mesmo jti deveria ser aceita. Aceitar todas por estarem próximas no tempo anula completamente a proteção contra replay, excluir concorrência do escopo contradiz a exigência explícita do marco, e não há regra de 'aceitar a última' — a regra é 'aceitar exatamente uma', independentemente da ordem de chegada."
+  - question: "Um cliente OAuth2 registra um redirect_uri que corresponde por prefixo a um padrão amplo, em vez de um valor exato pré-registrado. Segundo este marco, por que a correspondência exata é exigida em vez de correspondência por prefixo ou padrão?"
+    options:
+      - "Uma correspondência por prefixo ou padrão abriria espaço para um atacante registrar uma variação maliciosa que ainda corresponderia ao padrão aceito"
+      - "Correspondência exata é exigida apenas por convenção histórica, sem nenhuma motivação de segurança real"
+      - "O problema de correspondência por prefixo só existe quando o cliente usa PKCE, nunca quando usa apenas state"
+      - "Correspondência por prefixo é, na verdade, mais segura que correspondência exata, por ser mais restritiva na prática"
+    answer: 0
+    explanation: "O marco explica a motivação diretamente: correspondência por prefixo ou padrão abriria espaço para um atacante registrar uma variação maliciosa que ainda se encaixa no padrão aceito — por isso a exigência de correspondência exata. Não é uma convenção arbitrária, o risco não depende do uso de PKCE especificamente, e correspondência por prefixo é descrita como menos segura, não mais restritiva na prática relevante."
+  - question: "Uma equipe implementa o servidor de autorização FAPI usando um framework OAuth2/OIDC maduro, mas não tem certeza do que precisa implementar adicionalmente para atender ao perfil específico. Segundo este marco, o que tipicamente falta além da mecânica genérica que o framework já entrega?"
+    options:
+      - "PAR, vinculação de token ao certificado, e a suíte negativa específica do perfil FAPI — a mecânica genérica de OAuth2/OIDC o framework já cobre, mas essas três partes costumam exigir implementação adicional"
+      - "Nada adicional é necessário — um framework OAuth2/OIDC maduro já implementa o perfil FAPI completo automaticamente"
+      - "Apenas a geração de client_secret precisa ser implementada manualmente, já que FAPI não usa nenhum outro mecanismo de autenticação de cliente"
+      - "A suíte negativa é opcional e só deveria ser escrita depois da certificação oficial do ecossistema"
+    answer: 0
+    explanation: "O marco identifica exatamente essas três lacunas típicas: PAR, vinculação de token ao certificado, e a suíte negativa específica do perfil — a mecânica genérica (fluxo de autorização, emissão básica de token) o framework já cobre. Frameworks genéricos não implementam automaticamente essas extensões específicas do perfil, FAPI não se baseia em client_secret tradicional (usa private_key_jwt ou mTLS), e a suíte negativa é tratada como parte da especificação desde o início, não um passo opcional posterior à certificação."
