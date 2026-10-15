@@ -1,0 +1,49 @@
+questions:
+  - question: "Um usuário consulta uma chave Pix que não existe no DICT, e outro usuário consulta uma chave que existe, mas já excedeu o limite de consultas permitido. Segundo este marco, como essas duas respostas de erro deveriam se comparar?"
+    options:
+      - "Devem ser indistinguíveis — qualquer diferença observável entre as duas respostas vaza informação sobre quais chaves existem, viabilizando um ataque de enumeração"
+      - "A resposta de limite excedido deve ser mais detalhada, para ajudar o usuário legítimo a entender o problema"
+      - "A resposta de chave inexistente deve incluir uma sugestão de chaves parecidas que existem"
+      - "Não há problema em diferenciar as duas respostas, desde que ambas usem o mesmo código de status HTTP"
+    answer: 0
+    explanation: "O marco é explícito sobre a defesa contra enumeração: a resposta de erro nunca deve diferenciar 'chave não existe' de 'chave existe, mas consulta recusada' — qualquer diferença observável nessas respostas vaza informação que um atacante pode usar para descobrir quais chaves estão vinculadas. Tornar uma resposta mais detalhada, sugerir chaves parecidas, ou assumir que o mesmo código HTTP resolve o problema, todos ainda permitem a diferenciação que o marco identifica como o risco real."
+  - question: "Um QR Code do Pix tem um byte alterado por corrupção de dados durante a transmissão. Segundo este marco, o que deveria acontecer quando esse QR for interpretado?"
+    options:
+      - "O CRC calculado sobre o payload deveria falhar a validação, já que qualquer alteração de um único byte invalida o CRC"
+      - "O QR deveria ser aceito normalmente, já que o CRC só verifica o identificador fim a fim, não o payload inteiro"
+      - "O sistema deveria tentar corrigir automaticamente o byte alterado antes de processar"
+      - "O erro só seria detectado na consulta ao DICT, não na leitura do próprio QR"
+    answer: 0
+    explanation: "O marco descreve o CRC do BR Code como calculado sobre todo o conteúdo anterior do payload — qualquer alteração de um único caractere invalida o CRC, tornando o código inteiro verificável sem nenhuma consulta externa. Isso significa que a corrupção é detectada na própria leitura do QR, não depende de consulta ao DICT, e o sistema não tenta 'corrigir' um payload corrompido — ele rejeita a validação."
+  - question: "Um cliente lê um QR dinâmico que carrega apenas uma URL, em vez do valor da cobrança diretamente embutido no código. Segundo este marco, qual é a vantagem prática dessa indireção?"
+    options:
+      - "Permite que a cobrança tenha estado (pendente, paga, expirada) e seja atualizada sem precisar regravar o QR a cada mudança"
+      - "Torna a leitura do QR mais rápida, já que URLs são menores que dados de pagamento completos"
+      - "Elimina a necessidade de qualquer identificador fim a fim na transação"
+      - "É puramente uma escolha estética, sem vantagem funcional sobre embutir o valor diretamente"
+    answer: 0
+    explanation: "O marco explica que o payload dinâmico hospedado pelo recebedor permite que a cobrança tenha estado e seja atualizada (valor corrigido, cobrança expirada) sem regravar o QR — a indireção via URL é o que viabiliza isso. Não é sobre velocidade de leitura, não elimina o identificador fim a fim (que segue sendo necessário na mensagem de pagamento), e não é uma escolha puramente estética."
+  - question: "Um sistema representa o valor de uma transação Pix usando um tipo de ponto flutuante binário (como float ou double) em vez de texto decimal com duas casas. Segundo este marco, qual é o risco dessa escolha?"
+    options:
+      - "É a fonte mais comum e mais evitável de erro de centavo neste domínio, já que ponto flutuante binário não representa exatamente todos os valores decimais"
+      - "Não há risco real, desde que o sistema arredonde o resultado final antes de exibir ao usuário"
+      - "O risco só existe para valores acima de um milhão de reais"
+      - "Ponto flutuante binário é, na verdade, a representação recomendada pelo manual do Pix"
+    answer: 0
+    explanation: "O marco é direto: tratar valor monetário como ponto flutuante binário é a fonte mais comum e mais evitável de erro de centavo no domínio de pagamentos — porque esse tipo não representa exatamente todos os valores decimais. Arredondar no final não resolve erros de acumulação que já ocorreram nos cálculos intermediários, o problema não é exclusivo de valores altos, e o marco recomenda exatamente o oposto: texto decimal com duas casas."
+  - question: "Uma pessoa tenta vincular, numa nova instituição, uma chave Pix que já está vinculada a uma conta em outra instituição. Segundo este marco, por que esse caso usa um processo (reivindicação) diferente e mais lento do que uma vinculação comum?"
+    options:
+      - "Porque está resolvendo uma disputa sobre identidade de destino, e o processo é deliberadamente mais lento e auditável por essa razão"
+      - "Porque toda vinculação de chave, mesmo a primeira, já é naturalmente lenta e auditável"
+      - "Porque reivindicação é apenas um nome alternativo para o mesmo processo de vinculação simples"
+      - "Porque a instituição de origem sempre recusa automaticamente qualquer reivindicação"
+    answer: 0
+    explanation: "O marco explica que a reivindicação existe especificamente porque esse cenário é uma disputa sobre identidade de destino (alguém tentando vincular uma chave já vinculada em outro lugar) — e por isso o processo é deliberadamente mais lento e auditável do que uma vinculação simples, não porque toda vinculação seja assim, nem porque os dois processos sejam o mesmo nome, nem porque a instituição de origem recuse automaticamente."
+  - question: "Um sistema que processa mensagens do Pix não modela nenhum estado intermediário explícito para uma transação — ela é tratada apenas como 'sucesso' ou 'falha'. Segundo este marco, qual é a consequência mais provável dessa modelagem?"
+    options:
+      - "O sistema tende a tratar 'resultado ainda desconhecido' como 'falhou', um erro que o caso de ponta a ponta do Pix já identifica como o mais caro de cometer"
+      - "Não há consequência prática, já que toda mensagem do SPI é respondida instantaneamente sem ambiguidade"
+      - "O sistema automaticamente reclassifica qualquer estado desconhecido como 'sucesso' por padrão"
+      - "A ausência de estado intermediário só afeta a velocidade de processamento, não a correção do resultado"
+    answer: 0
+    explanation: "O marco conecta esse ponto diretamente ao caso de `system-design/09`: um sistema sem estado intermediário explícito tende a tratar 'ainda não sei' como 'falhou', o erro mais caro possível num pagamento (pode levar a cobrar de novo um pagamento que, na verdade, já havia sido processado). O SPI não garante resposta instantânea sem ambiguidade em toda situação, o sistema não reclassifica por padrão como sucesso, e o problema é de correção, não só de velocidade."
