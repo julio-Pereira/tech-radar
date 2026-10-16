@@ -1,0 +1,33 @@
+questions:
+  - question: "Uma equipe decide esperar pelo processo formal de certificação para descobrir se sua implementação viola algum requisito do perfil de segurança. Segundo este marco, por que essa estratégia é inferior a rodar um harness de conformidade continuamente, antes de qualquer submissão formal?"
+    options:
+      - "O harness pega a mesma classe de violação que a certificação pegaria, mas muito mais cedo no ciclo de desenvolvimento, evitando que o problema só seja descoberto numa instância formal e tardia"
+      - "Não há diferença real entre as duas estratégias — ambas detectam exatamente os mesmos problemas no mesmo momento do ciclo de desenvolvimento"
+      - "A certificação formal é sempre mais rigorosa que qualquer harness interno, tornando o harness desnecessário"
+      - "Rodar o harness continuamente só é útil depois que a certificação formal já identificou pelo menos uma violação"
+    answer: 0
+    explanation: "O marco é direto: o que esta trilha ensina a construir antecede a certificação — um harness que roda a cada mudança, pegando a mesma classe de problema muito mais cedo do que esperar pela certificação formal. As duas estratégias não são equivalentes em timing (é exatamente a diferença de timing que importa), o harness não é substituído pela certificação (são complementares, com o harness vindo primeiro), e o harness tem valor próprio, independente de a certificação já ter encontrado algo ou não."
+  - question: "Um transmissor serve simultaneamente duas versões de uma API, já que TPPs migram em ritmos diferentes. Segundo este marco, o que a matriz de versões precisa declarar explicitamente para que 'quais versões ainda precisamos suportar' tenha resposta confiável?"
+    options:
+      - "Quais versões estão ativas, por quanto tempo cada uma continua sendo servida, e qual é o prazo de convivência entre elas"
+      - "Apenas o número total de TPPs que ainda usam cada versão, sem nenhuma informação sobre prazos"
+      - "A matriz de versões é um documento puramente informativo, sem relação com o comportamento real do sistema"
+      - "Apenas a versão mais recente precisa ser declarada; versões antigas são automaticamente desativadas sem necessidade de registro"
+    answer: 0
+    explanation: "O marco é específico sobre o conteúdo da matriz: versões ativas, duração de cada uma, e prazo de convivência declarado — sem esses dados explícitos, a pergunta sobre o que ainda precisa ser suportado não tem resposta confiável. Contar TPPs por si só não substitui o registro de prazos, a matriz tem relação direta com decisões reais de sunset e roteamento (não é só informativa), e versões antigas não são desativadas automaticamente sem seguir o processo declarado de sunset."
+  - question: "Um requisito específico do perfil de segurança tem apenas um teste positivo (confirma que o comportamento esperado funciona), mas nenhum teste negativo (que confirmaria a recusa de uma violação correspondente). Segundo este marco, essa situação deveria ser tratada como uma cobertura completa?"
+    options:
+      - "Não — cada requisito precisa de pelo menos um teste positivo e um teste negativo; a ausência de qualquer um dos dois é uma lacuna de cobertura que o próprio harness deveria detectar e reportar"
+      - "Sim — um teste positivo já é suficiente para considerar um requisito completamente coberto"
+      - "A exigência de teste negativo só se aplica a requisitos relacionados à autenticação, nunca a outros tipos de requisito"
+      - "A cobertura de testes é uma preocupação secundária, que não precisa ser verificada automaticamente pelo próprio harness"
+    answer: 0
+    explanation: "O marco formaliza essa exigência explicitamente: todo requisito precisa de teste positivo E negativo, e a ausência de qualquer um dos dois é uma lacuna que o harness deveria detectar e reportar automaticamente — não é cobertura completa com só um dos dois. A exigência não se restringe a requisitos de autenticação (se aplica de forma geral), e a verificação de cobertura é tratada como parte central e automatizada do próprio harness, não uma preocupação secundária."
+  - question: "Uma mudança interna no código, descrita como 'apenas uma limpeza sem impacto funcional', altera acidentalmente o comportamento observável de uma versão de API que deveria ter permanecido intocada. Segundo este marco, que prática específica deveria ter detectado esse problema antes de chegar à produção?"
+    options:
+      - "Um teste de compatibilidade retroativa, que confirma que servir múltiplas versões simultaneamente não altera as respostas de nenhuma delas — inclusive após mudanças que parecem não afetar nenhuma versão específica"
+      - "Apenas uma revisão de código manual seria suficiente, sem necessidade de nenhum teste automatizado específico"
+      - "Esse tipo de problema é impossível de prevenir de forma sistemática, já que mudanças 'de limpeza' nunca têm efeitos colaterais reais"
+      - "O teste de contrato isolado, sem nenhuma verificação adicional de compatibilidade entre versões, já seria suficiente para capturar esse caso"
+    answer: 0
+    explanation: "O marco recomenda exatamente o teste de compatibilidade retroativa para esse cenário: toda mudança, mesmo uma que parece não afetar nenhuma versão específica, merece essa verificação, porque ela pega o caso sutil em que uma 'pequena limpeza' altera acidentalmente o comportamento observável de uma versão que deveria ter ficado intocada. Revisão manual isolada não substitui verificação automatizada sistemática, mudanças de limpeza podem, sim, ter efeitos colaterais reais (é exatamente o ponto do marco), e um teste de contrato isolado por versão não necessariamente captura a comparação entre o antes e o depois da mudança."

@@ -127,3 +127,9 @@
   depends_on: [pix-gateway]
   artifacts:
     - { path: "fin-books/", check: exists }
+
+- track: open-finance-brasil
+  component: fin-opengate
+  depends_on: [fin-books, fin-rails, pix-gateway]
+  artifacts:
+    - { path: "fin-opengate/", check: exists }
