@@ -1,0 +1,33 @@
+questions:
+  - question: "Um contrato de crédito recebe um evento que tentaria movê-lo de 'liquidado' de volta para 'vigente', por conta de um erro de reprocessamento. Segundo este marco, o que deveria acontecer?"
+    options:
+      - "A transição deveria ser recusada — estados terminais como 'liquidado' não têm nenhuma transição de saída válida; reabrir exigiria um mecanismo explícito e auditado, nunca uma reversão silenciosa"
+      - "A transição deveria ser aceita automaticamente, já que o reprocessamento é, por definição, uma correção legítima"
+      - "O contrato deveria ser excluído do sistema e recriado do zero sempre que esse tipo de erro ocorrer"
+      - "Estados terminais não existem neste domínio — todo estado de contrato permite transição para qualquer outro"
+    answer: 0
+    explanation: "O marco é direto: estados terminais não têm transição de saída definida, e qualquer tentativa de reabri-los precisa de um mecanismo explícito e auditado, nunca uma reversão silenciosa simplesmente porque um reprocessamento a solicitou. Aceitar automaticamente contradiz exatamente essa regra, excluir e recriar o contrato não é o mecanismo descrito, e o marco trata estados terminais como um conceito central, não inexistente."
+  - question: "Um sistema de crédito rotativo (cartão) é modelado usando exatamente a mesma estrutura de dados de um contrato fechado (com cronograma fixo de parcelas desde a concessão). Segundo este marco, por que essa escolha de modelagem tende a ser um erro?"
+    options:
+      - "Limite rotativo (uso e pagamento repetidos, sem cronograma fixo) e contrato fechado (valor, prazo e cronograma definidos na concessão) têm perfis estruturalmente diferentes, exigindo modelos de dados e de estado distintos"
+      - "Não há diferença estrutural real entre os dois tipos de produto — a escolha de modelo é puramente estética"
+      - "A diferença só importa para produtos com garantia real, nunca para produtos sem garantia"
+      - "Crédito rotativo é, na prática, apenas um caso especial de contrato fechado com prazo de uma parcela"
+    answer: 0
+    explanation: "O marco identifica essa diferença como a mais relevante para o desenho do sistema: limite rotativo e contrato fechado têm perfis estruturalmente diferentes, exigindo modelos distintos — não é uma escolha estética. A diferença não depende de garantia real, e tratar rotativo como 'contrato fechado de uma parcela' ignora justamente a característica central do rotativo (uso e pagamento repetidos, sem cronograma fixo único)."
+  - question: "Um sistema mantém o saldo devedor de um contrato como um campo atualizado diretamente a cada operação, em paralelo à sequência de eventos do contrato (desembolso, pagamentos, juros). Segundo este marco, por que esse design contradiz a ideia do contrato como fonte da verdade?"
+    options:
+      - "Saldo devedor e parcela deveriam ser sempre consequências calculadas a partir da sequência de eventos do contrato, nunca campos independentes mantidos em paralelo que podem divergir da verdade real"
+      - "Não há contradição real — manter um campo de saldo paralelo é sempre equivalente a calculá-lo a partir dos eventos"
+      - "O problema só seria relevante se o contrato fosse de crédito rotativo, nunca de contrato fechado"
+      - "Campos derivados paralelos são, na verdade, a prática recomendada por este marco para melhorar performance"
+    answer: 0
+    explanation: "O marco é explícito: o contrato (sua sequência de eventos) é a fonte da verdade, e saldo/parcela são sempre consequências calculadas dele — nunca campos independentes mantidos em paralelo, que correm o risco real de divergir da verdade. Um campo paralelo não é automaticamente equivalente (pode divergir por bug ou corrida), o problema se aplica a qualquer tipo de contrato, e o marco não recomenda esse padrão como boa prática de performance — recomenda o oposto."
+  - question: "A mesma chave de idempotência de um comando de contrato de crédito é enviada duas vezes, por uma retentativa de rede. Segundo este marco, o que deveria acontecer com o estado do contrato na segunda vez?"
+    options:
+      - "O estado não deveria mudar na segunda aplicação do comando — a mesma chave de idempotência garante que repetir o comando não produz um segundo efeito"
+      - "O estado deveria avançar duas vezes, uma para cada chamada recebida, já que cada chamada de rede é tecnicamente distinta"
+      - "A segunda chamada deveria ser rejeitada com um erro fatal, impedindo qualquer resposta ao chamador"
+      - "O comportamento correto depende exclusivamente de em qual estado específico o contrato se encontra no momento"
+    answer: 0
+    explanation: "O marco exige exatamente essa garantia de idempotência: repetir o mesmo comando, identificado pela mesma chave, não deveria mudar o estado do contrato mais de uma vez. Avançar duas vezes contradiz diretamente essa garantia, rejeitar com erro fatal sem resposta não é o comportamento idempotente esperado (a resposta deveria ser consistente, não uma falha), e a garantia de idempotência não depende do estado específico do contrato — é uma propriedade geral do tratamento de comandos."

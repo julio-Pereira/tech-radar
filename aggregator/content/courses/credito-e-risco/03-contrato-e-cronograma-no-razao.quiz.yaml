@@ -1,0 +1,33 @@
+questions:
+  - question: "Um pagamento parcial em atraso chega, cobrindo apenas parte do que é devido (multa, juros de mora e principal somados). Segundo este marco, por que a ordem em que esse valor é imputado aos diferentes componentes importa para o cálculo correto do saldo remanescente?"
+    options:
+      - "A ordem de imputação (tipicamente encargos → juros → principal) determina a quais componentes o valor se aplica primeiro; aplicá-la incorretamente distorce tanto o saldo devedor remanescente quanto a contabilização de receita de juros"
+      - "A ordem de imputação não tem efeito real sobre o saldo final, desde que o valor total pago seja o mesmo"
+      - "A ordem só é relevante quando o pagamento cobre o valor total devido, nunca em pagamentos parciais"
+      - "A ordem de imputação é uma escolha arbitrária do sistema, sem relação com regulação ou política do produto"
+    answer: 0
+    explanation: "O marco é direto: a ordem de imputação determina a quais componentes o valor se aplica primeiro, e aplicá-la incorretamente distorce o saldo remanescente e a contabilização de juros — por isso ela importa especificamente em pagamentos que não cobrem tudo. A ordem tem efeito real mesmo com o mesmo valor total pago (muda o que fica pendente), é mais relevante justamente quando o pagamento é parcial, e a ordem de imputação é regida por regra do produto e potencialmente por regulação, não arbitrária."
+  - question: "Um cliente renegocia um contrato de crédito em atraso. Segundo este marco, como essa renegociação deveria ser modelada no sistema?"
+    options:
+      - "Como a liquidação do contrato antigo (um lançamento que encerra sua posição) seguida da originação de um novo contrato, carregando o saldo remanescente como principal inicial — preservando o histórico original imutável"
+      - "Como uma edição direta dos termos do contrato existente, sem criar nenhum novo registro"
+      - "Como um simples ajuste de taxa de juros no contrato original, sem nenhum lançamento contábil adicional"
+      - "Como o cancelamento completo do contrato original, sem nenhuma relação registrada com o novo contrato renegociado"
+    answer: 0
+    explanation: "O marco é explícito sobre essa escolha de modelagem: renegociação é liquidar o contrato antigo e originar um novo com os termos renegociados, preservando a imutabilidade do histórico original. Editar diretamente o contrato existente violaria essa imutabilidade, um simples ajuste de taxa sem lançamento contábil ignora a mecânica descrita, e cancelar sem nenhuma relação registrada perderia o rastro auditável que o marco exige manter entre o contrato antigo e o novo."
+  - question: "O pagamento de uma parcela chega duas vezes ao sistema, devido a uma retentativa do banco pagador. Segundo este marco, como a segunda ocorrência duplicada deveria ser tratada no razão?"
+    options:
+      - "Por meio de um estorno explícito que desfaz o efeito da segunda aplicação, preservando o lançamento original intacto — nunca uma edição direta do lançamento de pagamento já registrado"
+      - "O lançamento de pagamento original deveria ser editado diretamente para refletir que só um pagamento de fato ocorreu"
+      - "Ambas as ocorrências deveriam ser processadas normalmente, resultando em dois lançamentos de pagamento válidos"
+      - "O sistema deveria simplesmente ignorar silenciosamente a segunda ocorrência, sem gerar nenhum lançamento adicional"
+    answer: 0
+    explanation: "O marco aplica a mesma disciplina de estorno já estabelecida no ledger: a correção de um pagamento duplicado é um lançamento de estorno explícito, nunca uma edição do lançamento original — e no exemplo do marco, isso é exatamente o que mantém a conciliação contrato×razão em zero divergência. Editar o lançamento original viola a imutabilidade do journal, processar as duas ocorrências como válidas duplicaria o pagamento incorretamente, e ignorar silenciosamente deixaria um estorno necessário ausente do registro contábil."
+  - question: "Um sistema só verifica se o saldo devedor calculado pelo cronograma do contrato bate com o saldo derivado dos lançamentos do razão durante uma auditoria anual programada, sem nenhuma verificação contínua entre essas auditorias. Segundo este marco, por que essa cadência é insuficiente?"
+    options:
+      - "A conciliação entre contrato e razão deveria ser um relatório contínuo, vazio no caso normal — rodá-la só ocasionalmente transforma uma divergência detectável rapidamente em um mistério a ser investigado meses depois"
+      - "Não há problema real nessa cadência, já que divergências entre contrato e razão são extremamente raras na prática"
+      - "A conciliação contínua só é necessária para contratos com pagamento em atraso, nunca para contratos em dia"
+      - "Auditoria anual é, na verdade, a cadência recomendada por este marco para esse tipo de verificação"
+    answer: 0
+    explanation: "O marco é direto: a conciliação entre contrato e razão deveria ser um relatório contínuo, não uma tarefa ocasional de auditoria — exatamente para que uma divergência seja um relatório claro e imediato, não um mistério descoberto tarde. O marco não trata divergências como extremamente raras (justifica a necessidade da verificação contínua), a conciliação se aplica a todo contrato, em dia ou não, e o marco recomenda exatamente o oposto de uma cadência anual isolada."
