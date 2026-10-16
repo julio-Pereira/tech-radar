@@ -6,9 +6,10 @@ tags: [credito, risco, amortizacao, price, sac, cet, politica-de-credito, pd-lgd
 level: advanced
 lang: pt-BR
 # 12 marcos, Σ 720 min (regra ~2x -> 24h). Escrita por bloco — ver
-# PLANO-trilha-credito-e-risco.md §4/§10. Stubs por enquanto;
-# conteúdo real chega bloco a bloco nas próximas PRs desta trilha.
+# PLANO-trilha-credito-e-risco.md §4/§10 — Bloco A (01-03) já tem
+# conteúdo completo; os demais marcos chegam em PRs subsequentes.
 estimatedHours: 24
+glossary: GLOSSARIO.md
 prerequisites: [ledger-e-contabilidade, ml-em-producao]
 sources:
   - { title: "Banco Central do Brasil — Sistema de Informações de Crédito (SCR)", url: https://www.bcb.gov.br/estabilidadefinanceira/scr }

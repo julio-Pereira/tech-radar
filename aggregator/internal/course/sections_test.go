@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 182, "desafio": 223, "invariantes": 213, "complemento": 204, "checagem": 222,
+		"tutorial": 185, "desafio": 226, "invariantes": 216, "complemento": 207, "checagem": 225,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -427,11 +427,8 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		// trilha-credito-e-risco.md §4/§10) — these are still
 		// placeholder bodies awaiting their block's content PR.
 		"credito-e-risco/alem-do-credito-liquidez-mercado-e-operacional",
-		"credito-e-risco/ciclo-de-vida-do-credito-e-papeis",
 		"credito-e-risco/cobranca-e-recuperacao",
-		"credito-e-risco/contrato-e-cronograma-no-razao",
 		"credito-e-risco/limite-exposicao-e-concentracao",
-		"credito-e-risco/matematica-do-credito",
 		"credito-e-risco/medir-o-risco-pd-lgd-ead",
 		"credito-e-risco/monitoramento-da-carteira",
 		"credito-e-risco/operar-credito-e-capstone",

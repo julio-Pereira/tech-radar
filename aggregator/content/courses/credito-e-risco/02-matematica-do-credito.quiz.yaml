@@ -1,0 +1,49 @@
+questions:
+  - question: "Um empréstimo de R$ 10.000,00 a 2,00% a.m. em 12 parcelas é calculado pela Tabela Price e, separadamente, pelo SAC. Segundo este marco, qual diferença estrutural explica por que o SAC produz um total de juros menor que o Price no mesmo prazo e taxa?"
+    options:
+      - "No SAC a amortização é constante, fazendo o saldo devedor cair mais rápido no início, reduzindo os juros acumulados; no Price, a parcela constante mantém o saldo mais alto por mais tempo relativamente"
+      - "Não há diferença real no total de juros entre os dois sistemas — ambos produzem exatamente o mesmo valor para a mesma taxa e prazo"
+      - "O SAC paga menos juros porque usa uma taxa de juros nominal menor que a usada no Price"
+      - "A diferença só existe se o contrato tiver um período de carência, nunca em um cronograma sem carência"
+    answer: 0
+    explanation: "O marco explica exatamente esse mecanismo: no SAC, a amortização constante faz o saldo devedor cair mais rápido no início do contrato, reduzindo os juros acumulados ao longo do tempo comparado ao Price, onde a parcela constante mantém uma dinâmica diferente de amortização. No exemplo do marco, os totais são diferentes (R$ 1.347,15 no Price vs. R$ 1.300,00 no SAC) para a mesma taxa nominal de 2,00% a.m. — a diferença não vem de taxa diferente, e ocorre mesmo sem período de carência."
+  - question: "Um contrato tem uma tarifa de R$ 150,00 financiada à parte, fazendo o cliente receber líquido R$ 9.850,00 enquanto paga parcelas calculadas sobre R$ 10.000,00 a uma taxa nominal de 2,00% a.m. Segundo este marco, o que o CET calculado para esse contrato deveria refletir?"
+    options:
+      - "Um valor maior que a taxa nominal de 2,00% a.m. — o CET incorpora tarifas, seguros e tributos, igualando o valor líquido recebido ao valor presente das parcelas, por isso sobe para aproximadamente 2,25% a.m. no exemplo do marco"
+      - "Exatamente 2,00% a.m., já que o CET é, por definição, idêntico à taxa nominal de juros em qualquer contrato"
+      - "Um valor menor que 2,00% a.m., já que a tarifa financiada reduz o custo efetivo do contrato para o cliente"
+      - "O CET não pode ser calculado quando há uma tarifa financiada à parte do principal"
+    answer: 0
+    explanation: "O marco é direto: CET é a taxa que iguala o valor líquido recebido ao valor presente das parcelas, incorporando tarifas — no exemplo específico, a tarifa de R$ 150,00 eleva o CET mensal de 2,00% para aproximadamente 2,25%. O CET não é idêntico à taxa nominal quando há custos adicionais (é sempre maior ou igual), uma tarifa financiada aumenta o custo efetivo (não reduz), e o CET é perfeitamente calculável nesse cenário — é exatamente o caso que o marco usa como exemplo central."
+  - question: "Uma função que converte uma taxa mensal para sua equivalente anual, e depois converte o resultado de volta para mensal, não devolve exatamente a taxa mensal original — a diferença excede qualquer tolerância razoável de arredondamento. Segundo este marco, o que esse resultado indica?"
+    options:
+      - "Um provável erro na implementação da equivalência de taxas — a conversão ida e volta deveria devolver a taxa original dentro de uma tolerância declarada, já que o regime é composto e a equivalência precisa ser matematicamente consistente"
+      - "Esse comportamento é esperado e normal; equivalência de taxas nunca é reversível em nenhuma circunstância"
+      - "O problema só seria relevante se a conversão envolvesse uma taxa efetiva, nunca uma taxa nominal"
+      - "Pequenas divergências na equivalência de taxas não têm nenhuma consequência prática em contratos de crédito"
+    answer: 0
+    explanation: "O marco trata a reversibilidade (ida e volta) como uma propriedade esperada e testável da equivalência de taxas no regime composto — uma divergência que excede a tolerância declarada indica um erro de implementação, não um comportamento normal. A equivalência é, sim, matematicamente reversível (dentro de tolerância), o problema não é exclusivo de taxa efetiva vs. nominal, e divergências na equivalência de taxas têm consequência real — são exatamente o tipo de erro sutil que o marco alerta sobre (dois sistemas que divergem para sempre)."
+  - question: "Um contrato de crédito tem um período de carência inicial em que o cliente não paga nenhuma parcela. Segundo este marco, por que tratar esse período como 'tempo de graça sem custo' é um erro de modelagem?"
+    options:
+      - "Os juros continuam incidindo durante a carência e, salvo desenho explícito em contrário, são capitalizados ao saldo ou diferidos — o custo existe e precisa aparecer em algum lugar do cronograma, mesmo sem parcela sendo paga"
+      - "Carência nunca gera juros em nenhuma circunstância, tornando essa preocupação irrelevante na prática"
+      - "O problema só existe em contratos SAC, nunca em contratos calculados pela Tabela Price"
+      - "Carência é, por definição, sempre um período sem nenhum custo financeiro para o cliente, independente do desenho do produto"
+    answer: 0
+    explanation: "O marco é claro: durante a carência, os juros continuam incidindo e, dependendo do desenho, são capitalizados ou diferidos — tratar esse período como sem custo ignora que esse juro existe e precisa aparecer no cronograma de algum jeito. Carência gera juros na maioria dos desenhos reais (daí o alerta do marco), o problema não é exclusivo de um sistema de amortização específico, e a ausência de custo não é garantida 'por definição' — depende do desenho explícito do produto."
+  - question: "Um cliente amortiza antecipadamente parte do saldo de seu contrato, optando por manter o prazo original em vez de reduzi-lo. Segundo este marco, o que deveria acontecer com o valor das parcelas restantes, e o que nunca deveria acontecer com o saldo devedor recalculado?"
+    options:
+      - "As parcelas restantes deveriam diminuir (já que o cliente optou por reduzir a parcela, não o prazo), e o saldo devedor recalculado nunca deveria ficar negativo em nenhum ponto do cronograma"
+      - "O prazo deveria ser automaticamente reduzido, contradizendo a escolha explícita do cliente de mantê-lo"
+      - "O valor das parcelas restantes deveria permanecer exatamente igual ao original, sem nenhum ajuste pela amortização antecipada"
+      - "O saldo devedor recalculado pode legitimamente ficar negativo por alguns períodos após uma amortização antecipada grande"
+    answer: 0
+    explanation: "O marco descreve as duas variantes de amortização antecipada (reduzir prazo ou reduzir parcela) como escolha do cliente, e uma das invariantes exige que o saldo devedor recalculado nunca fique negativo em nenhum ponto do cronograma. Optando por reduzir a parcela, mantendo o prazo, as parcelas restantes diminuem (não permanecem iguais nem o prazo é alterado contra a escolha do cliente), e saldo negativo é uma violação de invariante, nunca um resultado aceitável."
+  - question: "Uma implementação de `calc/` usa o tipo `float64` para representar e retornar o valor de uma parcela calculada, embora use tipos decimais em outras partes do código. Segundo este marco, por que essa implementação deveria ser rejeitada num teste de API?"
+    options:
+      - "Nenhuma função de `calc/` deveria aceitar ou devolver ponto flutuante binário para valor monetário — apenas decimal de precisão fixa; float só é tolerado em cálculos puramente estatísticos, nunca em dinheiro"
+      - "O uso de float64 é aceitável, desde que o valor final seja arredondado corretamente antes de ser exibido ao usuário"
+      - "A restrição contra float só se aplica ao cálculo de CET, nunca ao cálculo de parcelas pelo Price ou SAC"
+      - "float64 é, na verdade, mais preciso que tipos decimais para cálculos financeiros de qualquer natureza"
+    answer: 0
+    explanation: "O marco é categórico: nenhuma função que lida com valor monetário usa ponto flutuante binário, apenas decimal de precisão fixa — float só é tolerado em estatística (risco), nunca em dinheiro, independentemente de qual cálculo específico (Price, SAC, CET) está em jogo. Arredondar na exibição não compensa o erro de representação acumulado internamente, a restrição se aplica a todo `calc/`, e float64 não é mais preciso que decimal de precisão fixa para valores monetários — é exatamente o problema que a restrição evita."
