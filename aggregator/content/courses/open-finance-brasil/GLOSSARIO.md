@@ -368,3 +368,49 @@ enum desconhecido.
 **Erro comum:** decidir caso a caso, sob pressão de produção, em vez de ter uma política definida
 com antecedência.
 **Onde na prática:** marco 08.
+
+## Conformidade
+
+### *Harness* (de conformidade)
+**Em uma frase:** o conjunto automatizado de testes de contrato, negativos e de fluxo que
+antecede a certificação formal.
+**No fin-opengate:** `make conformance` executa o harness simulado completo a cada mudança.
+**Erro comum:** esperar pela certificação formal para descobrir uma violação, em vez de rodar o
+harness continuamente antes.
+**Onde na prática:** marco 09.
+
+### Teste negativo
+**Em uma frase:** a requisição que viola deliberadamente um requisito específico, com a recusa e
+o código de erro esperados.
+**No fin-opengate:** cada requisito do `spec-versions.yaml` simulado tem pelo menos um teste
+negativo associado.
+**Erro comum:** cobrir um requisito só com teste positivo, sem confirmar que a violação
+correspondente é de fato recusada.
+**Onde na prática:** marco 03, retomado no 09.
+
+### Evidência (relatório de)
+**Em uma frase:** o relatório versionado e reproduzível que documenta quais requisitos foram
+verificados pelo harness e com qual resultado.
+**No fin-opengate:** o relatório simulado inclui a versão da especificação e do código a cada
+execução.
+**Erro comum:** não versionar o relatório de evidência, perdendo a capacidade de provar
+conformidade numa data específica depois do fato.
+**Onde na prática:** marco 09.
+
+### Matriz de versões
+**Em uma frase:** o registro explícito de quais versões de uma API estão ativas e por quanto
+tempo cada uma continua sendo servida.
+**No fin-opengate:** a matriz simulada declara o prazo de convivência entre a versão antiga e a
+nova.
+**Erro comum:** não ter a matriz como dado explícito, tornando "quais versões ainda suportamos"
+uma pergunta sem resposta confiável.
+**Onde na prática:** marco 09.
+
+### *Drift* (contrato × comportamento)
+**Em uma frase:** a divergência silenciosa entre o que o contrato declara e o que o serviço
+realmente devolve.
+**No fin-opengate:** o harness simulado, rodado continuamente, é a defesa contra esse tipo de
+divergência se acumular.
+**Erro comum:** rodar testes de contrato só antes de uma submissão formal, deixando drift se
+acumular entre as execuções.
+**Onde na prática:** marco 09.

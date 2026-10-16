@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 180, "desafio": 221, "invariantes": 211, "complemento": 202, "checagem": 220,
+		"tutorial": 182, "desafio": 223, "invariantes": 213, "complemento": 204, "checagem": 222,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -427,8 +427,6 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		// open-finance-brasil is being written block by block (PLANO-
 		// trilha-open-finance-brasil.md §4/§10) — these are still
 		// placeholder bodies awaiting their block's content PR.
-		"open-finance-brasil/conformidade-e-evolucao-de-versoes",
-		"open-finance-brasil/operar-open-finance-e-capstone",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)

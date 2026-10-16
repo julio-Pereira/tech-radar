@@ -1,0 +1,33 @@
+questions:
+  - question: "Um TPP específico começa a receber erros 401 em massa, enquanto o restante do sistema continua funcionando normalmente. Segundo este marco, por que esse tipo de incidente (envolvendo identidade/autorização de um participante específico) é mais típico deste ecossistema do que uma simples queda geral de serviço?"
+    options:
+      - "Os incidentes mais comuns neste domínio envolvem identidade, autorização ou consentimento funcionando mal — não 'o serviço caiu' — e frequentemente afetam um participante específico, não o sistema inteiro"
+      - "Esse tipo de incidente é extremamente raro neste ecossistema, sendo mais comum em sistemas completamente isolados"
+      - "Erros 401 em massa sempre indicam uma falha geral de infraestrutura, nunca um problema específico de um TPP"
+      - "Esse padrão de incidente só pode ocorrer se o diretório de participantes estiver completamente indisponível"
+    answer: 0
+    explanation: "O marco lista exatamente esse tipo de cenário (certificado expirado, revogação que não propaga, token vazado) como os incidentes típicos deste ecossistema — variações de identidade, autorização ou consentimento, frequentemente isolados a um participante específico, não quedas gerais. O marco trata esse padrão como comum, não raro; 401 em massa para um TPP específico aponta para um problema de identidade daquele participante, não necessariamente infraestrutura geral; e o cenário do exemplo do marco não depende de indisponibilidade do diretório."
+  - question: "Um painel de monitoramento mostra apenas a saúde agregada de todo o sistema de Open Finance, sem nenhuma segmentação por TPP ou por endpoint individual. Segundo este marco, que tipo de problema esse painel tende a esconder?"
+    options:
+      - "Esconde exatamente o tipo de problema mais comum neste ecossistema: um TPP específico se comportando mal, ou um endpoint específico degradando, sem que isso seja visível na métrica agregada"
+      - "Não há problema real em usar apenas métricas agregadas, já que todos os TPPs e endpoints neste ecossistema sempre têm comportamento homogêneo"
+      - "Painéis agregados são sempre superiores a painéis segmentados para fins de diagnóstico operacional"
+      - "O problema de visibilidade agregada só é relevante durante incidentes de certificado, nunca durante picos de tráfego"
+    answer: 0
+    explanation: "O marco é direto: visibilidade por TPP e por endpoint é o que permite responder rapidamente 'é geral, ou é só esse participante específico' — a primeira pergunta de qualquer runbook deste domínio. TPPs e endpoints não têm comportamento homogêneo (é exatamente a variação entre eles que a segmentação revela), painéis agregados não são superiores para esse diagnóstico específico, e a limitação de visibilidade agregada se aplica a múltiplos tipos de incidente, não só certificados."
+  - question: "Um certificado de participante expira sem que nenhum alerta tenha sido configurado com antecedência, causando uma interrupção inesperada de serviço. Segundo este marco, como esse tipo de incidente deveria ser classificado?"
+    options:
+      - "Como um incidente inteiramente evitável — um calendário de expiração com alerta antecipado configurado com margem suficiente transforma esse problema reativo numa tarefa agendada e rotineira"
+      - "Como um incidente inevitável, já que certificados sempre expiram de forma imprevisível, sem possibilidade real de antecipação"
+      - "Como um problema que só pode ser resolvido pelo próprio participante, sem nenhuma ação possível do lado do transmissor"
+      - "Como um evento normal de operação que não justifica nenhum tipo de alerta ou monitoramento prévio"
+    answer: 0
+    explanation: "O marco classifica esse tipo de incidente como inteiramente evitável: datas de expiração são conhecidas com antecedência, e um calendário com alerta antecipado configurado com margem suficiente permite agir (rotacionar, renovar) antes do vencimento. Expiração de certificado é previsível (a data é conhecida), o transmissor tem ação disponível (monitorar e alertar, mesmo que a renovação seja do participante), e o marco recomenda exatamente monitoramento e alerta prévio, não a ausência deles."
+  - question: "Uma equipe cria runbooks operacionais para este ecossistema seguindo exatamente o mesmo modelo usado para incidentes de infraestrutura interna, sem considerar nenhuma particularidade adicional. Segundo este marco, que aspecto específico desse domínio os runbooks precisam considerar, que runbooks de infraestrutura puramente interna normalmente não precisam?"
+    options:
+      - "Muitos cenários deste domínio envolvem outra organização (uma detentora, um TPP) que não está sob controle direto da própria instituição, exigindo coordenação além dos próprios sistemas"
+      - "Runbooks deste domínio nunca precisam considerar comunicação com o cliente final, diferente de runbooks de infraestrutura interna"
+      - "Não há nenhuma diferença real entre runbooks deste domínio e runbooks de infraestrutura interna comum"
+      - "Runbooks deste domínio são sempre mais simples que runbooks de infraestrutura interna, por envolverem menos sistemas"
+    answer: 0
+    explanation: "O marco identifica exatamente essa particularidade: muitos cenários envolvem outra organização (detentora, TPP) fora do controle direto, exigindo que o runbook considere coordenação externa, não apenas ação sobre sistemas próprios. O marco também trata comunicação ao cliente como relevante (a seção de suporte ao cliente), não ausente; a diferença entre os dois tipos de runbook é real e específica (não inexistente); e envolver outra organização tende a tornar o cenário mais complexo, não mais simples, que um incidente puramente interno."
