@@ -1,0 +1,33 @@
+questions:
+  - question: "Uma instituição que só tem a capacidade de receptora de dados tenta chamar uma API de iniciação de pagamento, que exige o papel de iniciadora. Segundo este marco, o que deveria acontecer, e por quê?"
+    options:
+      - "A chamada deveria ser recusada — cada chamada é validada contra um papel específico exercido naquele momento, e a instituição não tem a capacidade de iniciadora"
+      - "A chamada deveria ser aceita, já que qualquer participante válido no diretório pode exercer qualquer papel automaticamente"
+      - "A chamada deveria ser aceita, desde que a instituição tenha sido receptora de dados do mesmo cliente anteriormente"
+      - "A recusa só seria necessária se a instituição também não fosse uma detentora de conta"
+    answer: 0
+    explanation: "O marco é explícito: uma instituição pode acumular vários papéis, mas uma chamada específica precisa ser validada contra o papel que ela de fato exerce naquele momento — ter a capacidade de receptora não concede automaticamente a de iniciadora. Estar no diretório não concede todos os papéis automaticamente, histórico de papel anterior não é suficiente, e a validação de papel não depende de a instituição também ser detentora."
+  - question: "Um sistema valida a identidade de um participante confiando inteiramente no que a própria requisição afirma sobre quem a enviou, sem consultar nenhuma fonte externa. Segundo este marco, por que esse modelo de confiança está errado?"
+    options:
+      - "A confiança precisa vir do diretório de participantes (direta ou indiretamente, via certificado da cadeia do ecossistema) — confiar no que a requisição afirma é exatamente o que o modelo de confiança do ecossistema existe para evitar"
+      - "Não há problema real nesse modelo, desde que a requisição use HTTPS para a comunicação"
+      - "O problema só existiria se o participante estivesse exercendo o papel de detentora de conta"
+      - "Esse modelo é, na verdade, o recomendado pelo ecossistema para reduzir a latência de validação"
+    answer: 0
+    explanation: "O marco é direto sobre esse ponto central: a pergunta de segurança correta é o que o diretório confirma, não o que a requisição afirma — qualquer decisão que não consulte o diretório, direta ou indiretamente, está confiando na própria palavra do chamador. HTTPS por si só não resolve esse problema de identidade organizacional, o problema não é específico ao papel de detentora, e esse modelo de confiança (baseado só na afirmação) é exatamente o que a trilha rejeita, não recomenda."
+  - question: "Um engenheiro trata 'o ecossistema de Open Finance' como um conjunto fixo e estático de APIs, sem considerar que ele foi implantado por fases ao longo do tempo. Segundo este marco, qual erro prático essa suposição pode causar?"
+    options:
+      - "Pode levar à suposição errada de que uma API 'deveria existir' numa fase em que ela ainda não foi disponibilizada, ou o oposto — tratar uma fase anterior como se já incluísse capacidades de uma fase posterior"
+      - "Não há erro prático real, já que todas as fases do ecossistema sempre disponibilizam exatamente o mesmo conjunto de APIs desde o início"
+      - "O erro só se manifesta em sistemas que operam fora do Brasil"
+      - "Tratar o ecossistema como estático é, na verdade, a abordagem correta recomendada por este marco"
+    answer: 0
+    explanation: "O marco identifica exatamente esse erro de modelagem: tratar o ecossistema como estático, sem fases, se manifesta como suposições erradas sobre quais APIs deveriam ou não estar disponíveis num dado momento. As fases de fato expandem o conjunto de APIs e requisitos ao longo do tempo (não são idênticas desde o início), o erro não é geograficamente restrito, e o marco recomenda exatamente o oposto — considerar as fases explicitamente."
+  - question: "Durante o desenvolvimento, um valor regulatório específico (um prazo, um nome de campo) é escrito diretamente no código-fonte, sem nenhuma referência de onde essa informação vem ou quando foi confirmada. Segundo este marco, por que isso é um problema, e o que `spec-versions.yaml` resolve?"
+    options:
+      - "Valores regulatórios mudam por versão da especificação; `spec-versions.yaml` registra qual versão está em uso e quando foi lida, tornando qualquer afirmação 'conferir' rastreável a uma fonte versionada, não à memória de quem escreveu o código"
+      - "Não há problema real em escrever valores regulatórios diretamente no código, desde que o código tenha testes unitários"
+      - "`spec-versions.yaml` serve apenas como documentação opcional, sem nenhuma relação com testes ou validação do código"
+      - "O problema só existe se a instituição operar em mais de uma versão da especificação simultaneamente"
+    answer: 0
+    explanation: "O marco trata `spec-versions.yaml` como o contrato com a realidade justamente porque valores regulatórios mudam com o tempo — registrar versão e data de leitura torna toda referência 'conferir' rastreável a uma fonte concreta, não a uma suposição implícita no código. Testes unitários não resolvem a desatualização de um valor regulatório em si, o arquivo tem relação direta com testes de consistência (não é só documentação), e o problema de desatualização existe mesmo operando uma única versão por vez."

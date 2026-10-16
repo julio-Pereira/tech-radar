@@ -1,0 +1,49 @@
+questions:
+  - question: "Uma SSA apresentada por um TPP tem assinatura válida, emissor correto e não está expirada — mas a organização que ela representa já foi revogada no diretório. Segundo este marco, o que deveria acontecer?"
+    options:
+      - "A SSA deveria ser recusada — validar uma SSA inclui verificar o status atual da organização no diretório, não só a validade criptográfica da assinatura"
+      - "A SSA deveria ser aceita, já que assinatura válida, emissor correto e ausência de expiração já são suficientes"
+      - "O status de revogação da organização só é relevante durante a emissão da SSA, nunca durante sua validação posterior"
+      - "A SSA deveria ser aceita temporariamente até a próxima sincronização agendada com o diretório"
+    answer: 0
+    explanation: "O marco é explícito: validar uma SSA inclui, no mínimo, assinatura, emissor, expiração e status da organização que ela representa — uma SSA tecnicamente bem assinada de uma organização já revogada não deveria ser aceita. Os três primeiros critérios sozinhos não bastam, o status de revogação é relevante a qualquer momento (não só na emissão), e aceitar temporariamente contradiz diretamente a recusa esperada."
+  - question: "Um TPP apresenta uma SSA válida, mas o certificado de transporte usado na conexão pertence a uma organização diferente da declarada na SSA. Segundo este marco, por que essa situação precisa ser detectada e recusada, mesmo com a SSA tecnicamente correta?"
+    options:
+      - "Porque a assinatura da SSA confere, mas a identidade organizacional não — o certificado de transporte precisa pertencer à mesma organização que a SSA declara"
+      - "Porque isso nunca pode ocorrer na prática, tornando a verificação desnecessária"
+      - "Porque a SSA, uma vez validada, automaticamente corrige a identidade do certificado de transporte"
+      - "Porque esse tipo de incompatibilidade só é relevante quando a SSA está expirada"
+    answer: 0
+    explanation: "O marco descreve exatamente esse cenário como exemplo central: a assinatura da SSA pode conferir perfeitamente enquanto a identidade organizacional, verificada via certificado de transporte, não confere — e essa incompatibilidade específica precisa ser detectada e recusada. O cenário é explicitamente tratado como possível e relevante, a SSA não tem poder de 'corrigir' a identidade do certificado, e a verificação é necessária independentemente do estado de expiração da SSA."
+  - question: "Um verificador de tokens aceita qualquer algoritmo de assinatura declarado no próprio cabeçalho do token, incluindo o algoritmo 'none'. Segundo este marco, por que essa prática representa um risco de downgrade de algoritmo?"
+    options:
+      - "Porque o verificador deveria impor um conjunto fechado de algoritmos permitidos, nunca aceitar o algoritmo só porque o token o declara — isso abre a porta para forçar um algoritmo mais fraco ou ausente"
+      - "Não há risco real nessa prática, desde que o restante do token esteja bem formado"
+      - "O risco de downgrade de algoritmo só se aplica a JWKS, nunca a SSAs"
+      - "Aceitar qualquer algoritmo declarado é, na verdade, a prática recomendada pelo perfil de segurança deste ecossistema"
+    answer: 0
+    explanation: "O marco lista downgrade de algoritmo como um ataque específico deste domínio, e a mitigação é impor um conjunto fechado de algoritmos permitidos, nunca confiar no que o próprio token declara. Um token bem formado com algoritmo fraco ou 'none' ainda representa risco real, o problema se aplica a qualquer verificação de assinatura (SSA ou JWKS), e a prática recomendada é exatamente o oposto da aceitação irrestrita."
+  - question: "O diretório de participantes fica temporariamente indisponível, e o sistema depende do JWKS em cache para continuar validando assinaturas. Segundo este marco, o que deveria acontecer com esse cache ao longo do tempo de indisponibilidade?"
+    options:
+      - "O cache deveria continuar sendo usado até um limite de tempo declarado explicitamente; depois desse limite, o sistema deveria falhar fechado"
+      - "O cache deveria ser usado indefinidamente, sem nenhum limite de tempo, até o diretório voltar ao ar"
+      - "O sistema deveria falhar fechado imediatamente, sem nenhuma tolerância a cache, no momento em que o diretório fica indisponível"
+      - "O cache só é relevante para SSAs, nunca para chaves JWKS"
+    answer: 0
+    explanation: "O marco trata essa tolerância como uma decisão explícita: o cache é usado até um limite de tempo declarado, e depois disso o sistema falha fechado — nem tolerância indefinida, nem falha imediata sem nenhuma janela de cache. A pergunta central do marco é justamente 'por quanto tempo tolerar', implicando que existe um limite definido, e o cache de JWKS é central ao próprio tema deste marco, não irrelevante."
+  - question: "Um participante precisa rotacionar seu certificado de transporte. O sistema implementa a rotação invalidando o certificado antigo no exato instante em que o novo é emitido, sem nenhum período de transição. Segundo este marco, qual é o problema prático dessa implementação, mesmo sendo 'tecnicamente correta'?"
+    options:
+      - "O participante é efetivamente derrubado no momento em que tenta fazer a coisa certa (rotacionar), porque falta uma janela de sobreposição em que ambos os certificados são válidos simultaneamente"
+      - "Não há problema prático real — invalidar imediatamente o certificado antigo é sempre a abordagem mais segura e recomendada"
+      - "O problema só ocorre se a rotação envolver mudança de chave de assinatura, nunca de certificado de transporte"
+      - "Esse cenário é puramente hipotético e não ocorre em sistemas de produção reais"
+    answer: 0
+    explanation: "O marco descreve exatamente essa consequência: sem janela de sobreposição, a rotação 'tecnicamente correta' é operacionalmente hostil, derrubando o participante no momento em que ele faz a coisa certa. O marco não recomenda invalidação imediata como a abordagem mais segura — recomenda sobreposição —, o problema se aplica tanto a certificados quanto a chaves de assinatura, e é descrito como um cenário comum em produção, não hipotético."
+  - question: "Um sistema de registro dinâmico (DCR) é implementado apenas como um cadastro manual único, sem suporte para atualizar metadados ou remover um participante depois do registro inicial. Segundo este marco, em que cenário comum essa implementação falha?"
+    options:
+      - "Falha exatamente no cenário mais comum em produção: rotação de chave e mudança de metadados do participante ao longo do tempo"
+      - "Essa implementação nunca falha, já que participantes de Open Finance nunca precisam atualizar seus metadados depois do registro"
+      - "A falha só ocorre se o participante mudar de papel no ecossistema, nunca por rotação de chave"
+      - "DCR sem suporte a atualização é, na verdade, a abordagem recomendada pela especificação de registro dinâmico"
+    answer: 0
+    explanation: "O marco é direto: DCR é um ciclo de vida completo — registrar, atualizar, remover — e tratar como cadastro manual único falha exatamente no cenário mais comum em produção, rotação de chave e mudança de metadados ao longo do tempo. Participantes de fato precisam atualizar metadados com frequência, a falha não se limita a mudança de papel, e a especificação de registro dinâmico (RFC 7591) contempla esse ciclo de vida completo, não um registro único e imutável."

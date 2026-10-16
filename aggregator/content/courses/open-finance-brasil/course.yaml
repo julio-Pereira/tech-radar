@@ -6,9 +6,10 @@ tags: [open-finance, fapi, mtls, consentimento, dcr, diretorio, pix, iniciacao-d
 level: advanced
 lang: pt-BR
 # 10 marcos, Σ 610 min (regra ~2x -> 20h). Escrita por bloco — ver
-# PLANO-trilha-open-finance-brasil.md §4/§10. Stubs por enquanto;
-# conteúdo real chega bloco a bloco nas próximas PRs desta trilha.
+# PLANO-trilha-open-finance-brasil.md §4/§10 — Bloco A (01-03) já tem
+# conteúdo completo; os demais marcos chegam em PRs subsequentes.
 estimatedHours: 20
+glossary: GLOSSARIO.md
 prerequisites: [seguranca-aplicacao, system-design]
 sources:
   - { title: "Open Finance Brasil — Portal de especificações (Confluence)", url: https://openfinancebrasil.atlassian.net/wiki/spaces/OF/overview }
