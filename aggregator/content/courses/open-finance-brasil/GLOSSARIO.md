@@ -303,3 +303,68 @@ chance razoável de sucesso.
 **No fin-opengate:** toda recusa por cota excedida simulada inclui esse cabeçalho.
 **Erro comum:** recusar uma requisição por excesso de cota sem indicar quando tentar novamente.
 **Onde na prática:** marco 06.
+
+## Pagamento
+
+### Iniciação (de pagamento)
+**Em uma frase:** o ato de dar início a um pagamento em nome do cliente, a partir de outra
+instituição.
+**No fin-opengate:** a iniciação simulada é idempotente e carrega a chave do TPP que a solicitou.
+**Erro comum:** tratar iniciação como sinônimo de liquidação — a iniciação só começa o processo, o
+estado final pode demorar.
+**Onde na prática:** marco 07.
+
+### Vinculação (valor/recebedor)
+**Em uma frase:** a garantia de que valor e recebedor declarados no consentimento de pagamento não
+mudam entre as etapas até a iniciação de fato.
+**No fin-opengate:** o `transmissor/` simulado recusa qualquer tentativa de alterar valor ou
+recebedor entre as etapas.
+**Erro comum:** permitir qualquer alteração de valor ou recebedor como "atualização", em vez de
+recusar como operação diferente da consentida.
+**Onde na prática:** marco 07.
+
+### Estado terminal (de pagamento)
+**Em uma frase:** o resultado final único de uma iniciação de pagamento, imune a notificações
+duplicadas ou fora de ordem recebidas depois.
+**No fin-opengate:** o estado terminal simulado nunca é revertido por uma notificação tardia.
+**Erro comum:** processar uma notificação atrasada como nova informação, revertendo um estado
+terminal já alcançado.
+**Onde na prática:** marco 07.
+
+### Resultado desconhecido (de pagamento)
+**Em uma frase:** o estado de uma iniciação cuja resposta não chegou a tempo, resolvido por
+consulta, nunca por novo débito.
+**No fin-opengate:** o stub de SPI simulado gera esse estado sob timeout, resolvido por consulta
+no `iniciador/`.
+**Erro comum:** tratar timeout como falha e reenviar com uma nova chave, arriscando um segundo
+débito.
+**Onde na prática:** marco 07, retomado no 08.
+
+## Resiliência
+
+### Isolamento por detentora
+**Em uma frase:** aplicar timeout, circuit breaker e bulkhead individualmente a cada detentora,
+nunca globalmente.
+**No fin-opengate:** uma detentora com latência injetada não afeta, além de uma margem declarada,
+as demais no `iniciador/` simulado.
+**Erro comum:** aplicar resiliência de forma global, permitindo que a pior detentora degrade a
+experiência de todos os clientes.
+**Onde na prática:** marco 08.
+
+### Descoberta (de endpoints)
+**Em uma frase:** o processo de encontrar, via diretório, os endpoints e metadados publicados por
+cada detentora.
+**No fin-opengate:** o `iniciador/` simulado descobre cada detentora individualmente antes de
+registrar-se nela.
+**Erro comum:** assumir um endpoint fixo e universal para todas as detentoras, em vez de descobrir
+dinamicamente.
+**Onde na prática:** marco 08.
+
+### Política de "fora do padrão"
+**Em uma frase:** a decisão declarada de tolerar com alerta ou recusar um desvio de implementação
+de uma detentora específica.
+**No fin-opengate:** a política simulada decide, por detentora, como tratar um campo extra ou
+enum desconhecido.
+**Erro comum:** decidir caso a caso, sob pressão de produção, em vez de ter uma política definida
+com antecedência.
+**Onde na prática:** marco 08.

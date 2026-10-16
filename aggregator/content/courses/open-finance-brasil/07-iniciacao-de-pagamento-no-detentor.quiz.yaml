@@ -1,0 +1,49 @@
+questions:
+  - question: "Uma primeira tentativa de iniciação de pagamento, usando um consentimento de pagamento específico, falha por timeout. O TPP tenta novamente usando o mesmo consentimento. Segundo este marco, essa segunda tentativa deveria ser aceita?"
+    options:
+      - "Não — o consentimento de pagamento é de uso único; mesmo uma primeira tentativa falhada não o torna reutilizável para uma nova iniciação"
+      - "Sim, já que a primeira tentativa falhou e, portanto, o consentimento ainda não foi efetivamente consumido"
+      - "Isso depende exclusivamente de quanto tempo passou entre a primeira e a segunda tentativa"
+      - "Sim, desde que o valor e o recebedor permaneçam exatamente os mesmos na segunda tentativa"
+    answer: 0
+    explanation: "O marco é direto: a propriedade mais importante do consentimento de pagamento é ser de uso único — depois de consumido numa iniciação, nunca autoriza uma segunda movimentação, mesmo que a primeira tenha falhado por algum motivo. A questão não é sobre o resultado da primeira tentativa (sucesso ou falha), não depende de tempo decorrido, e nem mesmo manter valor e recebedor idênticos torna o consentimento reutilizável."
+  - question: "Entre o momento em que um consentimento de pagamento é criado e o momento em que a iniciação de fato ocorre, uma etapa intermediária tenta alterar o valor da transação (por exemplo, um ajuste de centavos). Segundo este marco, o que deveria acontecer?"
+    options:
+      - "A tentativa de alteração deveria ser recusada — valor e recebedor precisam permanecer idênticos entre o consentimento original e a iniciação de fato em toda a cadeia de etapas"
+      - "A alteração deveria ser aceita automaticamente, já que pequenos ajustes de valor são considerados normais no fluxo de pagamento"
+      - "A alteração deveria ser aceita, mas registrada como uma nova operação separada da iniciação original"
+      - "A regra de imutabilidade de valor só se aplica ao recebedor, nunca ao valor da transação"
+    answer: 0
+    explanation: "O marco é explícito: qualquer tentativa de alterar valor ou recebedor entre as etapas é, por definição, uma operação diferente da que foi consentida, e precisa ser recusada, não aceita silenciosamente como 'uma atualização'. Não há exceção para ajustes pequenos, tratar como operação separada ainda não resolve a violação da vinculação original, e a regra se aplica tanto a valor quanto a recebedor, não apenas a um dos dois."
+  - question: "Uma iniciação de pagamento já alcançou seu estado terminal (liquidada), mas uma notificação duplicada e atrasada da mesma transação chega ao sistema depois disso. Segundo este marco, o que deveria acontecer com o estado da iniciação?"
+    options:
+      - "O estado terminal já alcançado deveria permanecer inalterado — notificações duplicadas ou fora de ordem, recebidas depois do estado final, nunca deveriam revertê-lo"
+      - "O estado deveria ser recalculado do zero a partir da notificação mais recente recebida, substituindo o estado anterior"
+      - "A notificação atrasada deveria sempre criar um novo registro de pagamento separado"
+      - "O sistema deveria reverter automaticamente para o estado anterior ao terminal, aguardando confirmação adicional"
+    answer: 0
+    explanation: "O marco exige que o estado terminal permaneça único mesmo sob notificações duplicadas ou fora de ordem chegando depois — processar uma notificação tardia como se fosse nova informação, revertendo um estado já estabelecido, introduz exatamente a inconsistência que esse desenho previne. Recalcular do zero, criar um registro separado, ou reverter o estado terminal, todos contradizem a garantia de estado terminal único."
+  - question: "O stub de SPI usado numa iniciação de pagamento simulada responde com timeout — não se sabe se a transação foi de fato processada antes da falha de resposta. Segundo este marco, qual é a ação correta, e qual seria o erro a evitar?"
+    options:
+      - "Resolver o resultado desconhecido por consulta ao estado real da transação — o erro a evitar é assumir falha e tentar um novo débito às cegas, que arriscaria uma segunda movimentação de dinheiro"
+      - "Assumir que a transação falhou e iniciar imediatamente uma nova tentativa de débito, já que não houve confirmação de sucesso"
+      - "Assumir que a transação foi bem-sucedida, já que o timeout não é, por si só, evidência de falha"
+      - "Cancelar permanentemente a iniciação e exigir que o cliente crie um novo consentimento do zero"
+    answer: 0
+    explanation: "O marco aplica a mesma disciplina já estabelecida para o Pix em geral: resultado desconhecido se resolve por consulta, nunca assumindo falha e tentando de novo às cegas — isso arriscaria debitar duas vezes para a mesma intenção original de pagamento. Assumir sucesso sem confirmação também é incorreto (o resultado é genuinamente desconhecido), e cancelar exigindo novo consentimento ignora a possibilidade de resolver via consulta primeiro."
+  - question: "Um pagamento agendado é aceito para execução numa data futura. Segundo este marco, o que deveria acontecer com o valor correspondente no momento da aceitação, antes da execução de fato ocorrer?"
+    options:
+      - "O valor deveria ser reservado por um hold no momento da aceitação, e esse hold deveria ser liberado corretamente se o agendamento for cancelado antes da execução"
+      - "O valor deveria ser debitado imediatamente da conta do cliente, independentemente da data futura de execução"
+      - "Nenhuma ação deveria ocorrer até o dia exato da execução agendada, sem nenhuma reserva prévia do valor"
+      - "O valor deveria ser debitado apenas parcialmente no momento da aceitação, com o restante debitado na execução"
+    answer: 0
+    explanation: "O marco conecta esse mecanismo diretamente ao hold já formalizado no ledger: um pagamento agendado reserva o valor no momento da aceitação e libera esse hold se o agendamento for cancelado antes da execução — nunca deixando o valor bloqueado indefinidamente sem resolução. Debitar imediatamente anteciparia a execução incorretamente, não reservar nada deixaria o saldo disponível para outros usos indevidamente, e não há menção a débito parcial nesse mecanismo."
+  - question: "Durante uma iniciação de pagamento por um TPP terceiro, a verificação de antifraude aplicada é idêntica, sem nenhuma distinção, à verificação usada para uma transação iniciada diretamente pelo cliente dentro do aplicativo do próprio banco detentor. Segundo este marco, por que essa equivalência pode ser um problema?"
+    options:
+      - "A iniciação por terceiros é um canal com perfil de risco distinto de uma transação iniciada diretamente pelo cliente, e a verificação de antifraude precisa considerar essa diferença"
+      - "Não há problema real — iniciação por terceiro e iniciação direta pelo cliente têm exatamente o mesmo perfil de risco em todos os casos"
+      - "O problema só seria relevante se o valor da transação fosse maior que o limite regulatório padrão"
+      - "A verificação de antifraude é responsabilidade exclusiva do TPP, nunca do detentor, nesse fluxo"
+    answer: 0
+    explanation: "O marco é explícito: a detecção de fraude se aplica à iniciação por terceiros com um perfil de risco próprio, distinto de uma transação iniciada diretamente pelo cliente no aplicativo do detentor — tratar os dois canais de forma idêntica ignora essa diferença real de risco. Os perfis de risco não são equivalentes por padrão, o problema não está ligado a um limiar específico de valor, e a verificação de antifraude na iniciação é responsabilidade do detentor (que processa a iniciação), não exclusivamente do TPP."

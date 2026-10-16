@@ -1,0 +1,33 @@
+questions:
+  - question: "Uma detentora específica no ecossistema começa a responder com latência muito alta. Sem isolamento adequado, o que acontece com o restante do aplicativo da iniciadora, incluindo clientes que não têm nenhuma relação com essa detentora?"
+    options:
+      - "As chamadas lentas consomem recursos compartilhados (threads, conexões), paralisando potencialmente o aplicativo inteiro — inclusive para clientes sem relação com a detentora degradada"
+      - "Apenas os clientes da detentora lenta são afetados, mesmo sem nenhum mecanismo de isolamento implementado"
+      - "Não há impacto algum em outros clientes, já que cada chamada HTTP é sempre completamente independente das demais"
+      - "O impacto se limita exclusivamente ao tempo de resposta visível, sem nenhum risco de indisponibilidade mais ampla"
+    answer: 0
+    explanation: "O marco descreve exatamente esse risco: sem bulkhead e circuit breaker aplicados por detentora, uma detentora lenta consome recursos compartilhados e pode paralisar o aplicativo inteiro, afetando até clientes sem relação com ela — esse é o motivo central para isolamento por detentora. Sem isolamento, o impacto não fica contido automaticamente, recursos compartilhados (pools de conexão, threads) não são isolados por padrão, e o risco vai além de apenas tempo de resposta — pode se tornar indisponibilidade real."
+  - question: "Uma iniciação de pagamento sofre timeout ao chamar uma detentora — não se sabe se o pagamento foi processado antes da falha de resposta. Segundo este marco, qual é a ação correta da iniciadora, e o que ela nunca deveria fazer?"
+    options:
+      - "Deveria consultar o estado real da transação; nunca deveria enviar um novo envio com uma chave de idempotência nova, assumindo que a primeira tentativa falhou"
+      - "Deveria assumir que o pagamento falhou e reenviar imediatamente com uma nova chave de idempotência"
+      - "Deveria aguardar indefinidamente, sem nenhuma ação, até que a detentora responda espontaneamente"
+      - "Deveria cancelar permanentemente a tentativa e notificar o cliente para iniciar um processo totalmente novo do zero"
+    answer: 0
+    explanation: "O marco reafirma a mesma disciplina do marco 07: timeout numa iniciação leva à consulta do estado real, nunca a um novo envio com chave nova — isso arriscaria debitar duas vezes a mesma intenção original. Reenviar com chave nova é exatamente o comportamento proibido, aguardar indefinidamente sem consultar não resolve a incerteza ativamente, e cancelar e reiniciar do zero ignora a possibilidade de o pagamento já ter sido processado com sucesso do outro lado."
+  - question: "Uma detentora real diverge ligeiramente da especificação formal, retornando um campo extra não documentado numa resposta. A equipe da iniciadora decide, no momento em que o problema aparece em produção, se deve tolerar ou recusar essa divergência. Segundo este marco, por que essa abordagem (decidir caso a caso sob pressão) é inferior a ter uma política definida com antecedência?"
+    options:
+      - "Decisões tomadas sob pressão de produção tendem a ser piores do que uma política declarada com antecedência sobre como lidar com desvios de implementação entre detentoras"
+      - "Não há diferença prática entre decidir com antecedência ou sob pressão — o resultado tende a ser idêntico em ambos os casos"
+      - "Divergências de implementação entre detentoras nunca ocorrem na prática, tornando essa política inteiramente desnecessária"
+      - "A única resposta correta a qualquer divergência é sempre recusar a resposta da detentora, sem necessidade de política adicional"
+    answer: 0
+    explanation: "O marco é direto: a escolha entre tolerar com alerta e recusar, feita caso a caso sob pressão de produção, tende a ser pior do que uma política decidida com antecedência — por isso recomenda declarar essa política antes do problema aparecer. As duas abordagens não são equivalentes em qualidade de decisão, o marco trata divergências entre detentoras reais como esperadas (não hipotéticas), e não há uma resposta única e automática de 'sempre recusar' — a política pode legitimamente optar por tolerar com alerta em certos casos."
+  - question: "Um sistema de monitoramento mede apenas a taxa de sucesso agregada de todas as detentoras combinadas, sem nenhuma métrica por detentora individual. Segundo este marco, qual limitação prática essa abordagem tem?"
+    options:
+      - "Impede identificar qual detentora específica está degradando a experiência, dificultando decidir se o problema justifica uma política de tolerância diferente ou uma escalada formal para aquela detentora"
+      - "Não há limitação real, já que a taxa agregada sempre reflete com precisão o comportamento de cada detentora individual"
+      - "A limitação só é relevante se o ecossistema tiver menos de cinco detentoras integradas"
+      - "Métricas agregadas são, na verdade, sempre superiores a métricas por detentora para fins de diagnóstico operacional"
+    answer: 0
+    explanation: "O marco recomenda explicitamente medir por detentora individualmente, porque isso é o que permite identificar qual detentora específica está degradando a experiência e decidir a ação apropriada — uma métrica só agregada esconde exatamente essa informação. A agregação pode mascarar o comportamento de uma detentora específica mesmo com poucas detentoras no ecossistema, e o marco não trata métricas agregadas como superiores — trata a granularidade por detentora como necessária para diagnóstico eficaz."
