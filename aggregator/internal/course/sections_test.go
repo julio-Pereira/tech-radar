@@ -423,10 +423,22 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	}
 
 	wantNoSection := []string{
-		"go-fintech/java-vs-go",
-		// open-finance-brasil is being written block by block (PLANO-
-		// trilha-open-finance-brasil.md §4/§10) — these are still
+		// credito-e-risco is being written block by block (PLANO-
+		// trilha-credito-e-risco.md §4/§10) — these are still
 		// placeholder bodies awaiting their block's content PR.
+		"credito-e-risco/alem-do-credito-liquidez-mercado-e-operacional",
+		"credito-e-risco/ciclo-de-vida-do-credito-e-papeis",
+		"credito-e-risco/cobranca-e-recuperacao",
+		"credito-e-risco/contrato-e-cronograma-no-razao",
+		"credito-e-risco/limite-exposicao-e-concentracao",
+		"credito-e-risco/matematica-do-credito",
+		"credito-e-risco/medir-o-risco-pd-lgd-ead",
+		"credito-e-risco/monitoramento-da-carteira",
+		"credito-e-risco/operar-credito-e-capstone",
+		"credito-e-risco/originacao-e-dados-de-entrada",
+		"credito-e-risco/politica-de-credito-e-motor-de-decisao",
+		"credito-e-risco/provisao-e-perda-esperada",
+		"go-fintech/java-vs-go",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
