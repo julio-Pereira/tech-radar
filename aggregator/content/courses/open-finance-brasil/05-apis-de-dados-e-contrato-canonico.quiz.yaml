@@ -1,0 +1,33 @@
+questions:
+  - question: "Uma equipe escreve manualmente, de memória, a estrutura esperada das respostas de uma API de dados do ecossistema, em vez de gerar tipos e validação a partir do OpenAPI publicado. Segundo este marco, qual problema essa abordagem tende a causar?"
+    options:
+      - "Divergências entre o contrato real e a implementação só são descobertas quando um TPP reclama, em vez de serem detectadas automaticamente por validação em tempo de execução contra o OpenAPI oficial"
+      - "Não há problema real, já que a estrutura de uma API de dados raramente muda ao longo do tempo"
+      - "O problema só ocorre em APIs de crédito, nunca em APIs de contas ou cadastro"
+      - "Escrever de memória é, na verdade, a prática recomendada por este marco para reduzir dependências externas"
+    answer: 0
+    explanation: "O marco recomenda contrato-primeiro exatamente para evitar esse problema: gerar tipos e validar em runtime a partir do OpenAPI detecta divergências automaticamente, em vez de descobri-las só quando um TPP reclama. O contrato pode, de fato, evoluir por versão, o problema não é exclusivo de uma família de API específica, e o marco recomenda exatamente o oposto de escrever de memória."
+  - question: "O core bancário de uma instituição não possui um campo que o contrato canônico exige como obrigatório para uma resposta de API. Segundo este marco, qual é a resposta correta da camada anticorrupção nesse caso?"
+    options:
+      - "Recusar devolver a resposta (ou o campo específico) de forma explícita, em vez de inventar um valor para preencher a lacuna"
+      - "Inventar um valor plausível para o campo, já que qualquer resposta é melhor do que nenhuma resposta"
+      - "Omitir silenciosamente o campo da resposta, sem sinalizar que ele está ausente"
+      - "Devolver o campo como uma string vazia, tratando isso como equivalente a 'ausência de dado'"
+    answer: 0
+    explanation: "O marco é direto: a camada anticorrupção recusa devolver o que não consegue garantir corretamente, nunca inventa um valor. Inventar um valor plausível, omitir silenciosamente, ou usar uma string vazia como substituto, todos mascaram a limitação real do core em vez de torná-la um erro observável e tratável."
+  - question: "Durante a paginação de um extrato de transações, novos lançamentos chegam exatamente durante a leitura, deslocando a posição relativa dos itens numa paginação baseada em offset numérico simples. Segundo este marco, que problema isso pode causar, e o que evita esse problema?"
+    options:
+      - "Itens podem se perder ou se repetir entre páginas; uma estratégia deliberada (como cursor estável) desenhada especificamente para esse cenário de mutação concorrente evita o problema"
+      - "Não há problema real com offset numérico simples, já que extratos nunca recebem novos lançamentos durante uma leitura em andamento"
+      - "O problema só ocorre se a paginação for implementada em uma linguagem diferente da usada no core bancário"
+      - "A solução é sempre reiniciar a paginação do zero sempre que qualquer novo lançamento for detectado"
+    answer: 0
+    explanation: "O marco identifica exatamente esse risco: paginação com offset numérico simples pode perder ou repetir itens quando o extrato muda durante a leitura, e por isso uma estratégia deliberada (cursor estável, por exemplo) precisa ser desenhada especificamente para esse cenário, não assumida como 'provavelmente funciona'. Extratos reais recebem lançamentos continuamente (o cenário é comum, não raro), o problema não depende da linguagem de implementação, e reiniciar a paginação do zero a cada mudança não é a solução recomendada (é ineficiente e ainda não garante integridade por si só)."
+  - question: "Um endpoint de API tecnicamente tem acesso a um campo de dado, mas o consentimento ativo do cliente não inclui a permissão correspondente a esse campo. Segundo este marco, o que deveria acontecer com esse campo na resposta?"
+    options:
+      - "O campo não deveria ser incluído na resposta — minimização por permissão significa devolver apenas os campos que o consentimento ativo efetivamente cobre"
+      - "O campo deveria ser incluído normalmente, já que a capacidade técnica do endpoint é o único critério relevante para decidir o que devolver"
+      - "O campo deveria ser incluído, mas com um valor ofuscado ou mascarado, em vez de omitido completamente"
+      - "A decisão de incluir ou omitir o campo deveria ser delegada ao próprio TPP que consome a API"
+    answer: 0
+    explanation: "O marco é explícito sobre minimização por permissão: a resposta só deveria incluir os campos cobertos pelas permissões do consentimento ativo, mesmo que o endpoint tecnicamente pudesse retornar mais — devolver um campo fora do consentimento, mesmo 'por conveniência', é uma violação. Capacidade técnica do endpoint não é o critério relevante, mascarar ainda expõe a existência do dado de forma inadequada, e a decisão não é do TPP consumidor — é do transmissor, com base no consentimento real do cliente."

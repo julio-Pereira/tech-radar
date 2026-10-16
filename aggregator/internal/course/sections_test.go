@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 175, "desafio": 216, "invariantes": 206, "complemento": 197, "checagem": 215,
+		"tutorial": 178, "desafio": 219, "invariantes": 209, "complemento": 200, "checagem": 218,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -427,10 +427,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		// open-finance-brasil is being written block by block (PLANO-
 		// trilha-open-finance-brasil.md §4/§10) — these are still
 		// placeholder bodies awaiting their block's content PR.
-		"open-finance-brasil/apis-de-dados-e-contrato-canonico",
 		"open-finance-brasil/conformidade-e-evolucao-de-versoes",
-		"open-finance-brasil/consentimento-no-transmissor",
-		"open-finance-brasil/desempenho-e-sla-regulatorio",
 		"open-finance-brasil/iniciacao-de-pagamento-no-detentor",
 		"open-finance-brasil/iniciadora-e-resiliencia-por-detentora",
 		"open-finance-brasil/operar-open-finance-e-capstone",
