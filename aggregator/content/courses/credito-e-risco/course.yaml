@@ -1,0 +1,35 @@
+slug: credito-e-risco
+title: "Crédito e Risco para Engenheiros: do Contrato ao Provisionamento"
+subtitle: "Cronograma, razão, política de decisão, PD/LGD/EAD, limites, cobrança, provisão e monitoramento da carteira — cada regra e cada medida provadas por teste."
+category: "Domínio financeiro"
+tags: [credito, risco, amortizacao, price, sac, cet, politica-de-credito, pd-lgd-ead, provisao, cobranca, carteira, ledger, go, fintech]
+level: advanced
+lang: pt-BR
+# 12 marcos, Σ 720 min (regra ~2x -> 24h). Escrita por bloco — ver
+# PLANO-trilha-credito-e-risco.md §4/§10. Stubs por enquanto;
+# conteúdo real chega bloco a bloco nas próximas PRs desta trilha.
+estimatedHours: 24
+prerequisites: [ledger-e-contabilidade, ml-em-producao]
+sources:
+  - { title: "Banco Central do Brasil — Sistema de Informações de Crédito (SCR)", url: https://www.bcb.gov.br/estabilidadefinanceira/scr }
+  - { title: "Banco Central do Brasil — Normas e regulamentação", url: https://www.bcb.gov.br/estabilidadefinanceira/buscanormas }
+  - { title: "Basel Committee — Principles for the management of credit risk", url: https://www.bis.org/publ/bcbs75.htm }
+  - { title: "IFRS 9 — Financial Instruments (visão geral)", url: https://www.ifrs.org/issued-standards/list-of-standards/ifrs-9-financial-instruments/ }
+milestones:
+  # Bloco A — O contrato
+  - 01-ciclo-de-vida-do-credito-e-papeis.md
+  - 02-matematica-do-credito.md
+  - 03-contrato-e-cronograma-no-razao.md
+  # Bloco B — Conceder
+  - 04-originacao-e-dados-de-entrada.md
+  - 05-politica-de-credito-e-motor-de-decisao.md
+  # Bloco C — Medir e limitar o risco
+  - 06-medir-o-risco-pd-lgd-ead.md
+  - 07-limite-exposicao-e-concentracao.md
+  # Bloco D — Cobrar e provisionar
+  - 08-cobranca-e-recuperacao.md
+  - 09-provisao-e-perda-esperada.md
+  # Bloco E — Carteira e operação
+  - 10-alem-do-credito-liquidez-mercado-e-operacional.md
+  - 11-monitoramento-da-carteira.md
+  - 12-operar-credito-e-capstone.md
