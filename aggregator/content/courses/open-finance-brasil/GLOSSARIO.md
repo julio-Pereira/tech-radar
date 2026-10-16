@@ -141,3 +141,165 @@ certificado difere da declarada na SSA.
 **Erro comum:** validar a assinatura de uma SSA sem verificar se o certificado de transporte
 pertence à mesma organização.
 **Onde na prática:** marco 02.
+
+## Autorização
+
+### FAPI
+**Em uma frase:** o perfil de segurança de APIs financeiras que estende OAuth2/OIDC com
+exigências adicionais de proteção.
+**No fin-opengate:** o `transmissor/` implementa o perfil FAPI simulado sobre uma base padrão de
+OAuth2.
+**Erro comum:** achar que implementar OAuth2 básico já satisfaz o perfil FAPI — ele exige
+extensões específicas além disso.
+**Onde na prática:** marco 03.
+
+### PAR (*pushed authorization request*)
+**Em uma frase:** mecanismo que move os parâmetros de uma requisição de autorização para fora da
+URL visível, empurrando-os antecipadamente a um endpoint dedicado.
+**No fin-opengate:** o `transmissor/` simulado só aceita requisições de autorização iniciadas via
+PAR.
+**Erro comum:** enviar parâmetros de autorização sensíveis diretamente na URL, visível e
+manipulável pelo navegador.
+**Onde na prática:** marco 03.
+
+### *Request object*
+**Em uma frase:** os parâmetros de uma requisição de autorização empacotados e assinados
+criptograficamente.
+**No fin-opengate:** validado quanto a assinatura e campos obrigatórios antes de qualquer
+interação com o usuário.
+**Erro comum:** aceitar parâmetros de autorização não assinados quando o perfil exige um request
+object.
+**Onde na prática:** marco 03.
+
+### Token vinculado ao certificado
+**Em uma frase:** um token que carrega referência criptográfica ao certificado TLS usado para
+obtê-lo, verificada em cada uso.
+**No fin-opengate:** um token simulado usado com certificado diferente do que o obteve é sempre
+recusado.
+**Erro comum:** emitir tokens sem vinculação ao certificado, tornando um token copiado utilizável
+por qualquer um que o possua.
+**Onde na prática:** marco 03.
+
+### `jti` (*JWT ID*)
+**Em uma frase:** identificador único de uma instância específica de token ou request object,
+usado para prevenir replay.
+**No fin-opengate:** um `jti` repetido é recusado mesmo sob tentativas concorrentes simultâneas.
+**Erro comum:** não verificar `jti` sob concorrência, aceitando mais de uma tentativa simultânea
+com o mesmo identificador.
+**Onde na prática:** marco 03.
+
+### Rotação de *refresh* com detecção de reuso
+**Em uma frase:** substituir um refresh token usado por um novo, revogando toda a família de
+tokens se o antigo for reutilizado depois.
+**No fin-opengate:** a reutilização simulada de um refresh já rotacionado revoga toda a família
+derivada dele.
+**Erro comum:** negar só a tentativa de reuso específica, sem revogar o restante da família de
+tokens potencialmente comprometida.
+**Onde na prática:** marco 03.
+
+## Consentimento
+
+### Consentimento (de dados)
+**Em uma frase:** a autorização do cliente para acesso repetido a um conjunto específico de dados,
+dentro de um prazo de validade.
+**No fin-opengate:** modelado como máquina de estados explícita no `transmissor/` simulado.
+**Erro comum:** tratar consentimento como um booleano simples, em vez de uma máquina de estados
+com transições válidas e inválidas.
+**Onde na prática:** marco 04.
+
+### Permissão (de consentimento)
+**Em uma frase:** uma categoria específica de acesso que o cliente concede explicitamente dentro
+de um consentimento.
+**No fin-opengate:** uma chamada com escopo válido, mas sem a permissão correspondente, é sempre
+recusada.
+**Erro comum:** confundir permissão de consentimento com escopo OAuth — o primeiro é necessário,
+mas não suficiente.
+**Onde na prática:** marco 04.
+
+### Limite de obsolescência
+**Em uma frase:** o tempo máximo declarado até que uma revogação de consentimento tenha efeito em
+qualquer ponto do sistema.
+**No fin-opengate:** verificado com relógio falso contra o cache de validade de consentimento
+simulado.
+**Erro comum:** prometer propagação "instantânea" de revogação sem um limite declarado e
+verificável.
+**Onde na prática:** marco 04.
+
+### Invalidação ativa
+**Em uma frase:** disparar a invalidação de uma entrada de cache de consentimento no momento do
+evento de revogação, sem depender só do TTL.
+**No fin-opengate:** o evento de revogação simulado invalida ativamente o cache correspondente.
+**Erro comum:** depender só de TTL para invalidação, deixando o pior caso de atraso igual ao TTL
+inteiro.
+**Onde na prática:** marco 04.
+
+### Consentimento de pagamento
+**Em uma frase:** autorização de uso único, vinculada a valor e destinatário específicos, para
+mover dinheiro.
+**No fin-opengate:** modelado separadamente do consentimento de dados, com regras de uso único.
+**Erro comum:** usar o mesmo modelo de consentimento de dados (acesso repetido) para consentimento
+de pagamento.
+**Onde na prática:** marco 04, retomado no 07.
+
+## Dados
+
+### Contrato canônico
+**Em uma frase:** a estrutura de dados pública e estável definida pelo ecossistema, para a qual o
+core precisa ser traduzido.
+**No fin-opengate:** toda resposta das APIs de dados valida contra o OpenAPI do contrato canônico.
+**Erro comum:** expor a estrutura interna do core diretamente, sem tradução para o contrato
+público.
+**Onde na prática:** marco 05.
+
+### Camada anticorrupção (de Open Finance)
+**Em uma frase:** o componente que traduz o core legado para o contrato canônico, recusando
+devolver o que não consegue garantir.
+**No fin-opengate:** a camada simulada recusa explicitamente um campo obrigatório que o core não
+possui.
+**Erro comum:** inventar um valor para preencher um campo obrigatório que o core não tem, em vez
+de recusar explicitamente.
+**Onde na prática:** marco 05.
+
+### Minimização (por permissão)
+**Em uma frase:** devolver numa resposta apenas os campos cobertos pelas permissões do
+consentimento ativo.
+**No fin-opengate:** a resposta simulada varia conforme as permissões do consentimento usado na
+chamada.
+**Erro comum:** devolver um campo fora do consentimento "por conveniência", mesmo que o endpoint
+tecnicamente pudesse.
+**Onde na prática:** marco 05.
+
+### *Sunset* (de versão de API)
+**Em uma frase:** a data em que uma versão antiga de uma API deixa de responder, após um período
+de coexistência com a nova.
+**No fin-opengate:** o teste de compatibilidade simulado garante que a versão antiga responde
+igual até o sunset.
+**Erro comum:** mudar o comportamento de uma versão antiga silenciosamente, sem seguir o processo
+de sunset declarado.
+**Onde na prática:** marco 05, retomado no 09.
+
+## Desempenho
+
+### SLA regulatório
+**Em uma frase:** o requisito de disponibilidade e desempenho imposto pelo ecossistema, tratado
+como SLI/SLO.
+**No fin-opengate:** medido e verificado continuamente sobre dados sintéticos de carga.
+**Erro comum:** medir desempenho num ponto diferente do que o requisito regulado pressupõe
+(servidor × borda × cliente).
+**Onde na prática:** marco 06.
+
+### Cota por TPP
+**Em uma frase:** o limite de tráfego isolado por participante, impedindo que um TPP degrade a
+experiência dos demais.
+**No fin-opengate:** um TPP simulado a 10x a cota recebe recusa sem afetar o desempenho dos
+demais.
+**Erro comum:** não isolar tráfego por TPP, permitindo que o comportamento de um afete a todos
+(*noisy neighbor*).
+**Onde na prática:** marco 06.
+
+### `Retry-After`
+**Em uma frase:** o cabeçalho que informa quando a próxima tentativa, após um limite de taxa, tem
+chance razoável de sucesso.
+**No fin-opengate:** toda recusa por cota excedida simulada inclui esse cabeçalho.
+**Erro comum:** recusar uma requisição por excesso de cota sem indicar quando tentar novamente.
+**Onde na prática:** marco 06.

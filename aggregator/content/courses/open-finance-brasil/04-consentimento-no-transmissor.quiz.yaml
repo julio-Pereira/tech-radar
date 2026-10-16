@@ -1,0 +1,49 @@
+questions:
+  - question: "Um token de acesso tem escopo 'contas', e a chamada correspondente busca o saldo de uma conta — mas o consentimento ativo do cliente não cobre a permissão específica de saldo. Segundo este marco, o que deveria acontecer?"
+    options:
+      - "A chamada deveria ser recusada — escopo OAuth é necessário, mas não suficiente; a permissão específica do consentimento também precisa cobrir a chamada"
+      - "A chamada deveria ser aceita, já que o escopo 'contas' já abrange implicitamente qualquer dado relacionado a contas, incluindo saldo"
+      - "A chamada deveria ser aceita, mas com um aviso ao TPP de que o consentimento deveria ser atualizado"
+      - "O escopo OAuth e a permissão de consentimento são, na prática, a mesma verificação, tornando essa situação impossível"
+    answer: 0
+    explanation: "O marco é explícito sobre essa distinção estrutural: escopo é necessário, mas não suficiente — a chamada só é permitida se o consentimento específico também cobrir a permissão exigida. Escopo amplo não implica automaticamente todas as permissões relacionadas, aceitar com aviso ainda viola o consentimento real do cliente, e escopo e permissão de consentimento são verificações distintas, não a mesma coisa."
+  - question: "O cliente revoga um consentimento, mas o sistema só invalida o cache de validade quando o TTL configurado expira naturalmente, sem nenhum mecanismo adicional. Segundo este marco, qual é o pior caso de atraso de propagação dessa revogação, e por que isso é um problema?"
+    options:
+      - "O pior caso é o TTL inteiro — um atraso potencialmente longo que viola a expectativa de um limite de propagação declarado e verificável"
+      - "Não há atraso real, já que revogação sempre tem efeito instantâneo independentemente da configuração de cache"
+      - "O pior caso é sempre menor que um segundo, independentemente do valor configurado do TTL"
+      - "O problema só existe se o consentimento revogado for de pagamento, nunca de dados"
+    answer: 0
+    explanation: "O marco descreve exatamente essa demonstração: com invalidação apenas por TTL, sem invalidação ativa, o pior caso observado de atraso é o TTL inteiro — e isso é precisamente por que a invalidação ativa (disparada por evento) é necessária, para cumprir um limite de propagação declarado e verificável. Revogação não é instantânea sem mecanismo ativo, o atraso depende diretamente do TTL configurado (pode ser longo), e o problema de propagação se aplica a consentimento de dados, o foco deste marco especificamente."
+  - question: "Um sistema de revogação de consentimento recebe a mesma solicitação de revogação três vezes, enviadas quase simultaneamente (por exemplo, por retentativa de rede). Segundo este marco, quantos eventos de consentimento revogado deveriam ser publicados?"
+    options:
+      - "Um único evento — a mesma revogação enviada múltiplas vezes concorrentes deveria resultar em exatamente um evento publicado, não em duplicação"
+      - "Três eventos, um para cada solicitação recebida, já que cada requisição é tecnicamente distinta"
+      - "Nenhum evento deveria ser publicado até que um operador humano confirme manualmente a revogação"
+      - "O número de eventos publicados depende exclusivamente da ordem de chegada das três solicitações"
+    answer: 0
+    explanation: "O marco exige idempotência de ingestão: a mesma revogação enviada N vezes concorrentes resulta em um único evento publicado, não em eventos duplicados. Publicar um evento por requisição recebida contradiz essa exigência, não há necessidade de confirmação manual para uma operação já idempotente por design, e o resultado não deveria depender da ordem de chegada das solicitações redundantes."
+  - question: "Um TPP, sem ter essa permissão específica, tenta reativar um consentimento que o cliente já havia revogado explicitamente. Segundo este marco, por que esse tipo de ação precisa ser impedido por uma distinção clara de 'quem pode mudar o quê'?"
+    options:
+      - "Porque um consentimento tem um dono claro (o cliente) e regras específicas sobre quais atores podem efetuar quais transições — sem essa distinção, qualquer parte poderia reverter uma decisão que não é sua para reverter"
+      - "Porque TPPs nunca têm permissão para interagir com o ciclo de vida de um consentimento em nenhuma circunstância"
+      - "Porque reativar um consentimento revogado é tecnicamente impossível, independentemente de controles de permissão"
+      - "Porque essa restrição só é relevante para consentimentos de pagamento, nunca para consentimentos de dados"
+    answer: 0
+    explanation: "O marco identifica exatamente esse risco: sem distinção clara de permissão por ator, um TPP poderia, por exemplo, reativar um consentimento que o cliente já havia revogado — por isso o consentimento precisa de um dono claro e regras explícitas sobre quem pode mudar o quê. TPPs podem, em certos fluxos, solicitar encerramento (não estão totalmente fora do ciclo de vida), a reversão é tecnicamente possível sem o controle correto (por isso o controle é necessário), e a distinção de permissão por ator se aplica tanto a consentimento de dados quanto de pagamento."
+  - question: "Um sistema implementa o consentimento usando um conjunto de campos booleanos independentes (ativo: sim/não, revogado: sim/não, expirado: sim/não) em vez de uma máquina de estados explícita com transições definidas. Segundo este marco, qual problema essa abordagem tende a causar?"
+    options:
+      - "Torna difícil responder de forma verificável 'esse consentimento ainda vale?', já que combinações inconsistentes de flags (por exemplo, ativo=sim e revogado=sim simultaneamente) podem ocorrer sem uma transição clara que as impeça"
+      - "Não há problema real — flags booleanos independentes são sempre equivalentes, em poder expressivo, a uma máquina de estados"
+      - "O problema só se manifesta quando o sistema opera com mais de uma moeda ou jurisdição simultaneamente"
+      - "Flags booleanos são, na verdade, a abordagem recomendada por este marco, por serem mais simples de implementar"
+    answer: 0
+    explanation: "O marco recomenda explicitamente modelar consentimento como máquina de estados com transições válidas e inválidas, justamente porque isso torna 'esse consentimento ainda vale?' uma pergunta com resposta única e verificável — flags independentes permitem combinações inconsistentes que uma máquina de estados bem definida impede por construção. Flags não são equivalentes em robustez a uma máquina de estados nesse contexto, o problema não depende de moeda ou jurisdição, e o marco recomenda a abordagem oposta à de flags independentes."
+  - question: "Uma equipe está implementando tanto o consentimento de acesso a dados (saldo, extrato) quanto o consentimento de iniciação de pagamento, e decide usar exatamente o mesmo modelo de estados e regras para os dois. Segundo este marco, por que essa decisão é um erro?"
+    options:
+      - "Consentimento de pagamento é estruturalmente diferente — uso único, vinculado a valor e destinatário específicos, porque move dinheiro — enquanto consentimento de dados autoriza acesso repetido dentro de um prazo de validade"
+      - "Não é um erro; os dois tipos de consentimento são, na prática, idênticos em todos os aspectos relevantes de modelagem"
+      - "O erro só seria relevante se o valor do pagamento fosse acima de um determinado limite"
+      - "Consentimento de pagamento não deveria existir como conceito separado, segundo este marco"
+    answer: 0
+    explanation: "O marco é direto sobre essa diferença estrutural: consentimento de pagamento é de uso único e vinculado a valor/destinatário porque move dinheiro (tratado em detalhe no marco 07), enquanto consentimento de dados autoriza acesso repetido dentro de um prazo — tratá-los com o mesmo modelo seria um erro, já que as consequências de uma falha de controle são de natureza diferente em cada caso. Os dois não são idênticos em modelagem, a diferença não depende de um limiar de valor específico, e o marco trata consentimento de pagamento como um conceito distinto e necessário, não dispensável."

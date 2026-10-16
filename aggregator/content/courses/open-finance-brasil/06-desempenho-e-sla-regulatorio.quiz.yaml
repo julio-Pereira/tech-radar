@@ -1,0 +1,33 @@
+questions:
+  - question: "Uma equipe mede a latência de uma API no servidor (apenas tempo de processamento interno), mas o requisito regulado pressupõe medição na borda (incluindo rede e proxy). Segundo este marco, qual é o risco dessa escolha não declarada explicitamente?"
+    options:
+      - "Comparar o número medido no ponto errado contra o limite regulado é um erro sutil de conformidade, já que os dois pontos de medição produzem números diferentes para a mesma chamada"
+      - "Não há diferença prática entre medir no servidor ou na borda — ambos sempre produzem exatamente o mesmo valor"
+      - "O risco só existe se a instituição operar em mais de uma região geográfica"
+      - "Medir no servidor é sempre mais preciso e deveria ser preferido independentemente do que o requisito regulado pressupõe"
+    answer: 0
+    explanation: "O marco é direto: medir no servidor, na borda ou pelo cliente produz três números diferentes para a mesma requisição, e o ponto de medição precisa ser declarado explicitamente porque comparar o número errado contra o limite certo é um erro sutil de conformidade. Os três pontos de medição não são equivalentes, o problema não depende de operação multi-região, e não há uma escolha universalmente 'mais precisa' — a escolha certa depende do que o requisito regulado de fato mede."
+  - question: "Um TPP envia uma requisição malformada com um parâmetro inválido, recebendo um erro 4xx por culpa própria. Segundo este marco, esse erro deveria contar como indisponibilidade do serviço do transmissor?"
+    options:
+      - "Não — misturar erro de cliente com indisponibilidade real faz o transmissor parecer menos disponível do que realmente está, por culpa de chamadas que nunca eram válidas"
+      - "Sim — qualquer resposta de erro, independentemente da causa, deveria contar igualmente contra a disponibilidade medida"
+      - "Isso depende exclusivamente de qual TPP específico enviou a requisição malformada"
+      - "Esse tipo de erro só é relevante para o cálculo de disponibilidade se ocorrer durante um horário de pico"
+    answer: 0
+    explanation: "O marco é explícito: erro do cliente (4xx por parâmetro inválido do próprio TPP) não deveria contar como indisponibilidade — fazer isso distorce a métrica real do serviço. Contar todo erro igualmente ignora essa distinção importante, a regra não depende de qual TPP específico cometeu o erro, e não há exceção baseada em horário de pico mencionada pelo marco."
+  - question: "Um sistema implementa cache de respostas de uma API de dados para melhorar desempenho, mas a chave de cache não inclui informação sobre qual consentimento gerou a resposta original. Segundo este marco, qual risco concreto essa implementação introduz?"
+    options:
+      - "O risco de servir, para um consentimento diferente do que gerou a resposta original, dados que esse segundo consentimento nunca autorizou"
+      - "Não há risco real, já que respostas de API de dados são sempre idênticas independentemente do consentimento que as solicitou"
+      - "O risco só existe se o cache for compartilhado entre diferentes transmissores, nunca dentro do mesmo transmissor"
+      - "O problema é puramente de desempenho (cache desnecessariamente grande), sem nenhuma implicação de privacidade ou autorização"
+    answer: 0
+    explanation: "O marco identifica exatamente esse risco: um cache que não particiona por consentimento pode servir dados autorizados por um consentimento para uma requisição amparada por um consentimento diferente — uma violação real de autorização, não um detalhe de desempenho. Respostas de dados variam conforme o consentimento (diferentes clientes, diferentes permissões), o risco existe mesmo dentro do mesmo transmissor, e a implicação é de autorização e privacidade, não apenas de tamanho de cache."
+  - question: "O core bancário por trás de um transmissor está respondendo lentamente, e o comportamento observado do sistema varia de forma inconsistente entre devolver uma resposta parcial e devolver um erro completo, dependendo de qual requisição específica sofre timeout primeiro. Segundo este marco, o que deveria existir em vez dessa inconsistência?"
+    options:
+      - "Uma política declarada e consistente que decide deliberadamente entre resposta parcial e erro explícito, não um comportamento que varia por sorte de timing"
+      - "Não há problema real nessa variação, já que tanto resposta parcial quanto erro são igualmente aceitáveis em qualquer circunstância"
+      - "O sistema deveria sempre preferir timeout silencioso sem nenhuma resposta, evitando a decisão entre as duas opções"
+      - "A escolha entre resposta parcial e erro deveria ser delegada ao TPP consumidor a cada chamada individual"
+    answer: 0
+    explanation: "O marco é direto: a escolha entre resposta parcial e erro explícito sob um core lento é uma política deliberada, não um acidente de timeout — o comportamento inconsistente, que varia por sorte de timing, é descrito como a pior opção possível. As duas opções não são 'sempre igualmente aceitáveis' sem uma decisão explícita de qual usar, timeout silencioso sem resposta não é a alternativa recomendada, e a decisão é do transmissor via política declarada, não delegada ao TPP a cada chamada."
