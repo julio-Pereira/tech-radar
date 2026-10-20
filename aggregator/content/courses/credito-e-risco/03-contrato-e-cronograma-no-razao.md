@@ -13,15 +13,15 @@ references:
 O **desembolso** — o momento em que o valor do empréstimo efetivamente sai da instituição para o
 cliente — é o primeiro lançamento contábil do ciclo de vida de um contrato: débito na conta de
 empréstimos a receber (um ativo que nasce), crédito na conta de disponibilidades. Esse lançamento
-posta no razão (`fin-books`) exatamente como qualquer outro lançamento balanceado — nenhuma
-exceção especial para crédito.
+posta no razão (`fin-books`, com as contas e saldos de `ledger-e-contabilidade/02`) exatamente
+como qualquer outro lançamento balanceado — nenhuma exceção especial para crédito.
 
 ## *Accrual* diário × reconhecimento por vencimento
 
 Os **juros** de um contrato podem ser reconhecidos de duas formas: por **vencimento** (só no
 momento em que a parcela é devida) ou por ***accrual* diário** (reconhecendo, dia a dia, a
 fração proporcional de juros já "ganha" até aquele ponto — a mesma prática de acúmulo diário já
-introduzida no ledger). A segunda abordagem mantém o saldo contábil sempre refletindo o valor
+introduzida em `ledger-e-contabilidade/05`). A segunda abordagem mantém o saldo contábil sempre refletindo o valor
 econômico real da carteira, em vez de "pular" o reconhecimento inteiro de uma vez no vencimento.
 
 ## Ordem de imputação do pagamento
@@ -62,7 +62,7 @@ cliente.
 ## Estorno de pagamento
 
 Um pagamento que precisa ser desfeito (uma retentativa duplicada do banco pagador, por exemplo)
-usa a mesma disciplina de **estorno** já estabelecida no ledger: um lançamento que desfaz o
+usa a mesma disciplina de **estorno** de `ledger-e-contabilidade/03`: um lançamento que desfaz o
 pagamento original, devolvendo o saldo devedor ao estado anterior — nunca uma edição direta do
 lançamento de pagamento já registrado.
 
@@ -80,7 +80,8 @@ Em qualquer momento, o **saldo devedor calculado a partir do cronograma do contr
 **igual** ao **saldo derivado dos lançamentos do razão** para aquele contrato. A conciliação entre
 os dois não é uma tarefa ocasional de auditoria — é um **relatório contínuo**, que deveria estar
 **vazio** no caso normal e apontar exatamente qual contrato diverge, e por quanto, quando algo dá
-errado.
+errado. É a conciliação de `ledger-e-contabilidade/08` com um dos lados sendo o cronograma do
+contrato.
 
 ## Exemplo numa fintech
 

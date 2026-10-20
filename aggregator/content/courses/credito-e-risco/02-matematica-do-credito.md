@@ -33,7 +33,8 @@ No **SAC** (Sistema de Amortização Constante), a **amortização** é constant
 **diminui** ao longo do tempo, porque os juros incidem sobre um saldo que cai na mesma proporção a
 cada período. No mesmo exemplo (R$ 10.000,00, 2,00% a.m., 12 parcelas), a amortização constante é
 **R$ 833,33**; a primeira parcela sai **R$ 1.033,33** (amortização mais os juros do saldo
-integral); a última, **R$ 850,00** (amortização mais os juros de um saldo já bem menor). Os juros
+integral); a última, **R$ 850,04** (amortização de R$ 833,37 — os R$ 833,33 mais os R$ 0,04 de
+resíduo de arredondamento acumulados nas onze anteriores — mais R$ 16,67 de juros). Os juros
 totais do SAC são **R$ 1.300,00** — menores que no Price, porque o saldo devedor cai mais rápido
 no início.
 
@@ -51,8 +52,8 @@ Quando um período não corresponde exatamente a um mês completo, o cálculo **
 juro proporcionalmente aos dias reais — e isso exige uma **base de dias** declarada (252, 360 ou
 365 — **conferir** a convenção do produto específico, já que elas produzem resultados
 ligeiramente diferentes para o mesmo intervalo de calendário). Essa é a mesma disciplina de base
-de dias já introduzida, de forma geral, no ledger — aqui aplicada especificamente ao cálculo de
-parcelas de crédito.
+de dias já introduzida, de forma geral, em `ledger-e-contabilidade/05` — aqui aplicada
+especificamente ao cálculo de parcelas de crédito.
 
 ## Custo Efetivo Total (CET)
 
@@ -76,7 +77,7 @@ exata vigente).
 
 ## Arredondamento e o ajuste na última parcela
 
-A mesma disciplina de arredondamento já estabelecida para o ledger se aplica aqui: cada parcela é
+A mesma disciplina de arredondamento de `ledger-e-contabilidade/05` se aplica aqui: cada parcela é
 calculada e arredondada, e qualquer resíduo de centavos acumulado ao longo do cronograma é
 absorvido na **última parcela** — nunca distribuído de forma inconsistente entre parcelas
 intermediárias, e nunca descartado silenciosamente.
@@ -135,6 +136,10 @@ você conheça (mantendo os dados específicos privados, só comparando o result
    numa direção?
 4. Por que nenhuma função de cálculo monetário deveria aceitar ou devolver ponto flutuante
    binário?
+5. No SAC do exemplo, por que a última parcela sai R$ 850,04 e não R$ 850,00 — e o que quebraria
+   se o resíduo de R$ 0,04 fosse descartado?
+6. Na amortização antecipada, o que muda no cronograma restante quando o cliente escolhe reduzir o
+   prazo em vez de reduzir a parcela — e por que os juros totais caem nos dois casos?
 
 > **Reencontro — `go-fintech/02`.** O tipo `Money` daquele marco é exatamente a base de
 > representação decimal sem ponto flutuante que `calc/` usa para todo valor monetário neste

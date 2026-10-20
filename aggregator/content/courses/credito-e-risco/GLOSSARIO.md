@@ -103,6 +103,15 @@ composto.
 composto.
 **Onde na prática:** marco 02.
 
+### Equivalência de taxas
+**Em uma frase:** converter uma taxa entre períodos diferentes (mensal ↔ anual) mantendo o mesmo
+efeito no regime composto.
+**No fin-lend:** `calc/` testa a conversão ida e volta (mensal → anual → mensal) dentro da
+tolerância declarada.
+**Erro comum:** converter linearmente (2% a.m. = 24% a.a.), quando o equivalente composto é
+≈ 26,8% a.a.
+**Onde na prática:** marco 02.
+
 ### Tabela Price
 **Em uma frase:** sistema de amortização com parcela constante e composição variável entre juros
 e amortização.
@@ -119,6 +128,14 @@ que o Price equivalente.
 prazo.
 **Onde na prática:** marco 02.
 
+### Carência
+**Em uma frase:** período inicial sem pagamento de parcela, durante o qual os juros continuam
+incidindo.
+**No fin-lend:** `calc/` capitaliza ou difere os juros da carência conforme o desenho declarado
+do produto.
+**Erro comum:** tratar a carência como "tempo de graça sem custo" e sumir com os juros do período.
+**Onde na prática:** marco 02.
+
 ### CET (Custo Efetivo Total)
 **Em uma frase:** a taxa que iguala o valor líquido recebido ao valor presente das parcelas,
 incorporando tarifas e custos adicionais.
@@ -126,6 +143,13 @@ incorporando tarifas e custos adicionais.
 financiada.
 **Erro comum:** reportar a taxa nominal como se fosse o custo real da operação, ignorando
 tarifas e seguros.
+**Onde na prática:** marco 02.
+
+### IOF
+**Em uma frase:** o tributo sobre operações de crédito, que entra no custo da operação e no CET.
+**No fin-lend:** um parâmetro em `regras.yaml` com valor fictício e fonte marcada "conferir".
+**Erro comum:** fixar alíquotas no código ou interpretar a regra tributária dentro do sistema, em
+vez de tratá-la como parâmetro versionado.
 **Onde na prática:** marco 02.
 
 ### Pro rata
