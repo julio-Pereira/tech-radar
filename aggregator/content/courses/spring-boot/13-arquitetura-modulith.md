@@ -26,7 +26,33 @@ fronteiras rígidas **sem** pagar o preço da rede.
 
 Módulos "por convenção" apodrecem — nada impede um `import` proibido. **Spring Modulith**
 (2.x) torna a fronteira **verificável**: cada pacote de topo é um módulo; o que está em
-subpacotes é interno e **não** pode ser importado por outro módulo. E isso é um **teste**:
+subpacotes é interno e **não** pode ser importado por outro módulo. E isso é um **teste**.
+As dependências vêm de um BOM próprio, com versão fora do Boot:
+
+```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.modulith</groupId>
+      <artifactId>spring-modulith-bom</artifactId>
+      <version>2.1.2</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+
+<!-- em <dependencies> -->
+<dependency>
+  <groupId>org.springframework.modulith</groupId>
+  <artifactId>spring-modulith-starter-core</artifactId>
+</dependency>
+<dependency>
+  <groupId>org.springframework.modulith</groupId>
+  <artifactId>spring-modulith-starter-test</artifactId>
+  <scope>test</scope>
+</dependency>
+```
 
 ```java
 class ModularityTests {
@@ -50,10 +76,64 @@ documentação de arquitetura é **gerada do código**, sempre atualizada.
 
 Módulos não devem se chamar direto como serviços acoplados. O Modulith incentiva
 **eventos de aplicação**: `payments` publica `PaymentConfirmed`; `antifraud` e `audit`
-**escutam**, sem `payments` conhecê-los. `@ApplicationModuleListener` roda o handler de
-forma transacional e assíncrona. Repare que é o **mesmo desenho do outbox** (marco 06),
-só que in-process — e por isso, no dia em que um módulo virar microservice, o evento já
-existe: troca-se o barramento in-process pelo Kafka, e os *listeners* mal percebem.
+**escutam**, sem `payments` conhecê-los.
+
+```java
+@ApplicationModuleListener
+void on(PaymentConfirmed event) { ... }
+```
+
+`@ApplicationModuleListener` não é mágica: é a soma de três anotações do Spring que você
+já conhece, cada uma com uma consequência:
+
+- `@TransactionalEventListener` — o handler só roda **depois do commit** da transação
+  que publicou o evento (fase `AFTER_COMMIT`). Se o pagamento fizer rollback, o
+  antifraude nunca ouve falar dele.
+- `@Async` — roda em outra thread; `payments` não espera o antifraude terminar.
+- `@Transactional(propagation = REQUIRES_NEW)` — o handler ganha transação própria: o
+  que o antifraude grava não depende da transação de `payments`, que já terminou.
+
+Repare no buraco entre os dois primeiros: depois do commit e antes de o handler rodar,
+o evento só existe **na memória**. Se o processo cair nesse intervalo, ou se o handler
+lançar exceção, o evento se perde sem rastro. Sozinho, isso **não** é o desenho do outbox
+do marco 06. Vira outbox com o **Event Publication Registry**, que grava cada publicação
+numa tabela **na mesma transação** de quem publica e só a marca como concluída quando o
+listener termina com sucesso:
+
+```xml
+<dependency>
+  <groupId>org.springframework.modulith</groupId>
+  <artifactId>spring-modulith-starter-jpa</artifactId>
+</dependency>
+```
+
+Com Flyway e `ddl-auto=none`, a tabela do registro é sua responsabilidade — sem ela, a
+própria **publicação** falha (`relation "event_publication" does not exist`) e derruba
+a transação de `payments`. O schema para Postgres vem no jar
+`spring-modulith-events-jdbc` (`schemas/v2/schema-postgresql.sql`):
+
+```sql
+-- V4__event_publication.sql
+CREATE TABLE IF NOT EXISTS event_publication (
+  id                     UUID NOT NULL,
+  listener_id            TEXT NOT NULL,
+  event_type             TEXT NOT NULL,
+  serialized_event       TEXT NOT NULL,
+  publication_date       TIMESTAMP WITH TIME ZONE NOT NULL,
+  completion_date        TIMESTAMP WITH TIME ZONE,
+  status                 TEXT,
+  completion_attempts    INT,
+  last_resubmission_date TIMESTAMP WITH TIME ZONE,
+  PRIMARY KEY (id)
+);
+```
+
+Agora, se o listener do antifraude falha, a linha fica com `status = FAILED` e
+`completion_date` nula — pendente, pronta para ser republicada, exatamente como um
+evento do outbox que o relay ainda não entregou. É **esse** conjunto (listener + registro)
+que tem o mesmo desenho do outbox, só que in-process — e por isso, no dia em que um
+módulo virar microservice, o evento já existe: troca-se o barramento in-process pelo
+Kafka, e os *listeners* mal percebem.
 
 ## Hexagonal sem cerimônia
 
@@ -108,12 +188,28 @@ mvn test -Dtest=ModularityTests
 # o teste documenta() gera os diagramas em target/spring-modulith-docs/
 ```
 
+Os módulos precisam estar em `src/main/java`: o `ApplicationModules.of(...)` analisa só
+classes de produção, e uma aplicação de exemplo montada em `src/test` falha com
+`No classes found in packages`.
+
+**Invariantes testáveis.**
+
+- Com as fronteiras respeitadas, `verify()` passa e `target/spring-modulith-docs/` traz
+  `components.puml` e um `module-<nome>.puml` por módulo.
+- Com o `import` ilegal, `verify()` falha com
+  `Module 'payments' depends on non-exposed type ...antifraud.internal...` — e, se
+  `antifraud` já escuta eventos de `payments`, também com o ciclo entre os dois.
+- Com o Event Publication Registry, um listener que lança exceção deixa a publicação com
+  `status = FAILED` e `completion_date` nula na tabela `event_publication`.
+
 ## Principais aprendizados
 
 - O inimigo nunca foi o monolito; foi o **big ball of mud**. **Modulith** dá fronteiras
   rígidas sem o custo de rede.
 - `ApplicationModules.verify()` transforma fronteira em **teste**; eventos internos
-  desacoplam módulos (mesmo desenho do outbox, in-process).
+  desacoplam módulos. `@ApplicationModuleListener` = `@TransactionalEventListener` +
+  `@Async` + `@Transactional(REQUIRES_NEW)`; só com o **Event Publication Registry** ele
+  tem a garantia do outbox.
 - **Hexagonal** onde a fronteira importa; sem cerimônia no resto.
 - Quebre em microservice por razão **concreta** (escala, cadência, time, isolamento) —
   senão você só **distribui o problema**. O Modulith deixa a extração barata quando a

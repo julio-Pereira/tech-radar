@@ -22,9 +22,12 @@ Duas formas melhores:
   imagem OCI otimizada **sem Dockerfile**, com camadas separadas (dependências, snapshot,
   aplicação), usuário não-root e boas práticas por padrão. É o caminho de menor atrito e
   o default recomendado.
-- **Dockerfile em camadas** — quando você precisa de controle fino, use o *layertools* do
-  Boot para extrair as camadas (`dependencies`, `spring-boot-loader`, `snapshot-
-  dependencies`, `application`) e copiá-las em ordem de estabilidade. As dependências
+- **Dockerfile em camadas** — quando você precisa de controle fino, use o modo `tools` do
+  jar do Boot para extrair as camadas (`dependencies`, `spring-boot-loader`, `snapshot-
+  dependencies`, `application`) e copiá-las em ordem de estabilidade:
+  `java -Djarmode=tools -jar app.jar extract --layers --launcher`. (O antigo
+  `-Djarmode=layertools` não existe mais no Boot 4: o jar responde
+  `Unsupported jarmode 'layertools'`.) As dependências
   (raramente mudam) ficam numa camada cacheável; só a camada da aplicação reconstrói a
   cada commit.
 
@@ -55,7 +58,9 @@ e as restrições de reflexão.
 Quando o Kubernetes manda um pod parar (deploy, escala pra baixo), matar o processo no
 meio de uma transação em voo é inaceitável numa fintech — pode deixar um pagamento em
 estado indefinido. **Graceful shutdown** faz o servidor **parar de aceitar novas
-requisições** e **esperar** as em andamento terminarem (até um limite):
+requisições** e **esperar** as em andamento terminarem (até um limite). Desde o Boot 3.4
+ele é o **padrão** — as duas linhas abaixo só deixam a escolha explícita e documentada (e
+os 30 s também são o default):
 
 ```properties
 server.shutdown=graceful
@@ -73,13 +78,17 @@ Kubernetes:
 
 - **Liveness** falha → o pod é **reiniciado**. Use só para estado irrecuperável; ligar
   liveness a uma dependência externa causa *restart loop* quando ela oscila.
-- **Readiness** falha → o pod **sai do balanceador** mas continua vivo. É onde entra a
-  dependência crítica (o antifraude): indisponível → não recebe tráfego, sem reiniciar.
+- **Readiness** falha → o pod **sai do balanceador** mas continua vivo. É onde entra o que
+  é do próprio pod (aquecendo, em shutdown). Dependência externa compartilhada, como o
+  antifraude, fica fora — derrubaria todos os pods juntos (marco 10).
 
 No rollout, o Boot marca readiness como *out* no início do shutdown, então o Kubernetes
 para de mandar tráfego **antes** do graceful shutdown drenar as requisições em voo. Esse
-é o encadeamento que dá deploy sem derrubar transação. (Amarra com a futura trilha de
-Kubernetes.)
+é o encadeamento que dá deploy sem derrubar transação.
+
+> **Reencontro adiante — `kubernetes/06`.** O lado do cluster dessa coreografia — o
+> `preStop`, o `terminationGracePeriodSeconds` e por que o pod ainda recebe tráfego por
+> alguns segundos depois do SIGTERM — é o assunto desse marco.
 
 ## Exemplo numa fintech
 
@@ -100,41 +109,118 @@ para quem move dinheiro.
    docker inspect pix-gateway:v1 --format '{{.Config.User}}'   # não deve ser root/vazio
    ```
 
-2. Rode com graceful shutdown e prove que ele espera requisição em voo:
+2. Rode com graceful shutdown e prove que ele espera requisição em voo. Para isso o
+   exercício precisa de duas peças que só existem num perfil `drill` — diferença
+   estrutural, logo perfil (marco 03); em produção nenhuma delas é registrada:
 
-   ```properties
-   server.shutdown=graceful
-   spring.lifecycle.timeout-per-shutdown-phase=30s
+   ```java
+   @Profile("drill")
+   @RestController
+   class SlowController {
+       @GetMapping("/drill/slow")
+       String slow() throws InterruptedException {
+           Thread.sleep(5_000);          // simula uma iniciação em voo de 5 s
+           return "terminei";
+       }
+   }
+
+   // O issuer real do marco 09 não existe na sua máquina. No perfil drill, os tokens são
+   // validados por uma chave pública local. (Só trocar a propriedade não basta: com
+   // issuer-uri configurado, o Boot o prefere a public-key-location.)
+   @Profile("drill")
+   @Configuration
+   class DrillJwtConfig {
+       @Bean
+       JwtDecoder drillJwtDecoder(@Value("${drill.jwt.public-key-location}") Resource key) throws Exception {
+           try (InputStream in = key.getInputStream()) {
+               return NimbusJwtDecoder.withPublicKey(RsaKeyConverters.x509().convert(in)).build();
+           }
+       }
+   }
    ```
+
+   Refaça a imagem `pix-gateway:v1` do passo 1 com essas duas classes. Depois, gere o par
+   de chaves e um script que emite tokens assinados com ele:
 
    ```bash
-   docker run -p 8080:8080 pix-gateway:v1 &
-   # dispare uma requisição de ~2s (endpoint de teste com Thread.sleep) e, no meio dela:
-   docker stop -t 30 <container-id>
-   # a requisição em voo deve terminar com 200, não com conexão resetada
+   mkdir -p drill && cd drill
+   openssl genrsa -out private.pem 2048
+   openssl rsa -in private.pem -pubout -out public.pem
+   cat > mint-jwt.sh <<'SH'
+   #!/usr/bin/env bash
+   # uso: ./mint-jwt.sh "payments:write payments:read"  -> JWT RS256 válido por 1h
+   set -euo pipefail
+   b64() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
+   now=$(date +%s)
+   header=$(printf '{"alg":"RS256","typ":"JWT"}' | b64)
+   payload=$(printf '{"iss":"https://auth.openfinance.example.com","sub":"drill","scope":"%s","iat":%d,"exp":%d}' "$1" "$now" "$((now+3600))" | b64)
+   sig=$(printf '%s.%s' "$header" "$payload" | openssl dgst -sha256 -sign private.pem | b64)
+   echo "$header.$payload.$sig"
+   SH
+   chmod +x mint-jwt.sh && cd ..
    ```
+
+   Suba um Postgres e a aplicação na mesma rede Docker. Sem Kafka, o relay do outbox
+   registra erro de conexão a cada rodada — esperado aqui; os eventos ficam no outbox.
+
+   ```bash
+   docker network create pixnet
+   docker run -d --name pg --network pixnet -e POSTGRES_PASSWORD=pix -e POSTGRES_DB=pix postgres:17-alpine
+
+   docker run -d --name app-v1 --network pixnet -p 8080:8080 -v "$PWD/drill:/keys:ro" \
+     -e SPRING_PROFILES_ACTIVE=drill -e DRILL_JWT_PUBLIC_KEY_LOCATION=file:/keys/public.pem \
+     -e SPRING_DATASOURCE_URL=jdbc:postgresql://pg:5432/pix \
+     -e SPRING_DATASOURCE_USERNAME=postgres -e SPRING_DATASOURCE_PASSWORD=pix \
+     -e PIX_PSP_BASE_URL=http://psp.invalid \
+     pix-gateway:v1
+
+   TOKEN=$(cd drill && ./mint-jwt.sh "payments:write payments:read")
+   curl -s -H "Authorization: Bearer $TOKEN" localhost:8080/drill/slow &   # 5 s em voo
+   sleep 1 && docker stop -t 30 app-v1
+   wait
+   ```
+
+**Invariante testável.** O `curl` imprime `terminei` com status 200, o `docker stop`
+leva ~5 s (não 30, nem 0) e o log mostra `Commencing graceful shutdown. Waiting for
+active requests to complete` seguido de `Graceful shutdown complete`.
 
 3. **Migração expand/contract + rollback.** Adicione uma migração Flyway que só
    *expande* o schema (nova coluna nullable, sem remover nada):
 
    ```sql
    -- V3__add_channel_column.sql
-   ALTER TABLE pagamentos ADD COLUMN canal TEXT;
+   ALTER TABLE payments ADD COLUMN channel TEXT;
    ```
 
-   Suba a versão nova (`v2`, já lendo `canal`), confirme que funciona, e então **faça
-   rollback para a imagem `v1`** sem reverter a migração:
+   A versão nova (`v2`) aceita `channel` no `PaymentRequest` e grava na entidade
+   `Payment`. Suba a `v2`, confirme que funciona, e então **faça rollback para a imagem
+   `v1`** sem reverter a migração (o `docker run` é o do passo 2, só muda a imagem e o
+   nome do container):
 
    ```bash
    mvn spring-boot:build-image -Dspring-boot.build-image.imageName=pix-gateway:v2
-   docker run -p 8080:8080 pix-gateway:v2 &   # aplica V3, usa a coluna canal
-   docker stop <container-v2>
-   docker run -p 8080:8080 pix-gateway:v1 &   # volta pra v1, schema já com a coluna
-   curl -i -X POST localhost:8080/payments -d '{"...sem canal..."}'   # v1 ainda funciona
+   docker rm app-v1
+   docker run -d --name app-v2 ... pix-gateway:v2          # aplica V3
+   curl -i -X POST localhost:8080/payments \
+     -H "Authorization: Bearer $TOKEN" -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
+     -H 'Content-Type: application/json' -d '{"amount": 80.00, "channel": "app"}'   # 201
+
+   docker stop app-v2
+   docker run -d --name app-v1 ... pix-gateway:v1          # volta pra v1, schema já em V3
+   curl -i -X POST localhost:8080/payments \
+     -H "Authorization: Bearer $TOKEN" -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
+     -H 'Content-Type: application/json' -d '{"amount": 80.00}'                      # 201
+
+   docker exec pg psql -U postgres -d pix -c "select amount, status, channel from payments"
    ```
 
-   A prova do marco: **v1 continua funcionando** com o schema de v2 no ar — é o que
-   "expand/contract" garante (a coluna nova é nullable, v1 simplesmente não a usa).
+**Invariantes testáveis.** A `v1` sobe sem erro, e o log do Flyway diz
+`Schema "public" has a version (3) that is newer than the latest available migration
+(2) !` — um aviso, não uma falha: por padrão o Boot ignora migrações "do futuro"
+(`spring.flyway.ignore-migration-patterns=*:future`). Os dois `POST` respondem `201`, e
+a consulta mostra duas linhas: uma com `channel = app`, outra com `channel` vazio. É o
+que "expand/contract" garante: a coluna nova é nullable, e a `v1` simplesmente não a
+usa.
 
 **Checagem.** (a) O que quebraria no passo 3 se `V3` tivesse `NOT NULL` sem default?
 (b) Por que buildpacks já resolve "sem root" por padrão, e o que isso evita?

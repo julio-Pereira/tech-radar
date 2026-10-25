@@ -37,9 +37,11 @@ rápidos porque carregam pouco; use-os para o grosso da cobertura de camada.
 ## Testcontainers: Postgres e Kafka reais no teste
 
 Aqui está o pulo do gato senior. Testar contra **H2** (banco em memória) é confortável e
-**mentiroso**: H2 não é Postgres. Ele não tem o mesmo comportamento de `SELECT ... FOR
-UPDATE`, de tipos, de constraints, de isolamento. Um teste verde no H2 pode esconder um
-bug que só aparece no Postgres de produção — o pior tipo de bug.
+**mentiroso**: H2 não é Postgres, nem no "modo PostgreSQL". Ele imita a sintaxe mais
+comum, mas diverge em tipos, em DDL, em conversões e em detalhes de isolamento. Às vezes
+a divergência é barulhenta (a migração nem roda); às vezes é silenciosa (o teste passa
+gravando outra coisa). Um teste verde no H2 pode esconder um bug que só aparece no
+Postgres de produção — o pior tipo de bug.
 
 **Testcontainers** sobe um **Postgres real** (e um **Kafka real**) num container Docker,
 durante o teste. Com `@ServiceConnection` (Boot), o Spring **auto-configura** o
@@ -52,7 +54,7 @@ manual:
 class PaymentOutboxIT {
 
     @Container @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
 
     @Container @ServiceConnection
     static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.3.1");
@@ -93,11 +95,39 @@ conciliação. Nenhum mock daria essa confiança.
 
 ## Mão na massa
 
-**Desafio — migrar de H2 para Testcontainers e capturar um bug.** Pegue um teste de
-locking (marco 05) escrito contra H2 que passa "verde" e migre-o para Postgres via
-`@ServiceConnection`. Observe o comportamento de `SELECT ... FOR UPDATE` mudar: o H2
-escondia a real contenção entre as threads concorrentes. Documente o bug que o H2
-mascarava e prove, no Postgres real, que o saldo nunca fica negativo.
+**Desafio — escrever no H2 de propósito, migrar e achar a diferença.**
+
+1. Adicione o H2 como dependência de teste (`com.h2database:h2`, versão gerenciada pelo
+   Boot) e aponte um teste para ele em modo PostgreSQL:
+
+   ```properties
+   spring.datasource.url=jdbc:h2:mem:pix;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+   ```
+
+2. **Rode o teste de débito concorrente do marco 05 nesse H2.** Ele passa: 5 sucessos, 5
+   "saldo insuficiente", saldo 0. Registre isso — o H2 implementa `FOR UPDATE` com lock de
+   linha, e nem toda divergência está onde se espera. Um teste verde no H2 não prova nada
+   sobre o Postgres; ele só não reprovou.
+3. **Agora deixe o Flyway aplicar as migrações reais do pix-gateway no H2.** A `V2` do
+   marco 06 não passa: primeiro `Unknown data type: "TIMESTAMPTZ"`; trocando por
+   `TIMESTAMP WITH TIME ZONE`, um erro de sintaxe em
+   `id UUID PRIMARY KEY DEFAULT gen_random_uuid()` (o H2 exige o `DEFAULT` antes do
+   `PRIMARY KEY`). A tentação é manter um schema "só para o H2" — e é aí que o problema
+   fica silencioso.
+4. **Encontre a divergência silenciosa.** Com as tabelas criadas no H2, execute o mesmo
+   SQL que o serviço de idempotência do marco 06 usa:
+
+   ```sql
+   update idempotency_keys set response_body = '{"a":1}'::jsonb where idempotency_key = 'k1';
+   select response_body::text from idempotency_keys where idempotency_key = 'k1';
+   ```
+
+   No Postgres, o resultado é o objeto `{"a": 1}`. No H2, é `"{\"a\":1}"` — uma **string
+   JSON** contendo o texto, não o objeto. O `UPDATE` "funciona", e a resposta gravada de
+   cada pagamento passa a ser outra coisa.
+5. Leve o teste de replay do marco 06 para o Postgres via `@ServiceConnection` (é o que
+   ele já faz) e registre, num parágrafo, as três observações: o que o H2 aprovou sem
+   provar, o que ele recusou, e o que ele aceitou errado.
 
 ```bash
 mvn test
@@ -108,7 +138,7 @@ mvn test
 - Pirâmide honesta: unitário para domínio, **slices** (`@WebMvcTest`/`@DataJpaTest`) para
   camadas, **integração** para o que importa.
 - **Testcontainers + `@ServiceConnection`** dá Postgres e Kafka reais no teste; **H2
-  mente** e esconde bugs de produção.
+  mente** — às vezes recusando o DDL real, às vezes aceitando e gravando outra coisa.
 - Mocke a **fronteira**, nunca o **sujeito**; `@MockitoBean` no lugar errado é teste
   tautológico.
 - **Contract testing** garante integração entre serviços sem subir todos juntos.

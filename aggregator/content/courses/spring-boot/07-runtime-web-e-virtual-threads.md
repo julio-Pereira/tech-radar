@@ -10,6 +10,8 @@ references:
     url: https://docs.spring.io/spring-framework/reference/web-reactive.html
   - title: "JEP 444 — Virtual Threads"
     url: https://openjdk.org/jeps/444
+  - title: "JEP 491 — Synchronize Virtual Threads without Pinning"
+    url: https://openjdk.org/jeps/491
 ---
 
 ## O modelo tradicional: thread-per-request no Tomcat
@@ -58,9 +60,17 @@ quase sempre o caminho certo em Java 21.
 Mas há armadilhas que separam quem leu a doc de quem só ligou a flag:
 
 - **Pinning** — se a virtual thread bloqueia dentro de um bloco `synchronized` (ou de
-  código nativo), ela **não desmonta** e prende a carrier, matando o ganho. O JDK
-  moderno reduziu muito isso, mas bibliotecas antigas com `synchronized` em I/O ainda
-  mordem. Prefira `ReentrantLock`.
+  código nativo), ela **não desmonta** e prende a carrier, matando o ganho. No **Java
+  21, que é a baseline deste curso, isso ainda acontece** com qualquer `synchronized`
+  que envolva espera; a correção veio no **Java 24** (JEP 491), que deixa a virtual
+  thread desmontar dentro de `synchronized`. Até migrar, prefira `ReentrantLock` no seu
+  código e descubra o pinning das bibliotecas com o JFR, que registra o evento
+  `jdk.VirtualThreadPinned` com a pilha de quem prendeu a carrier:
+
+  ```bash
+  java -XX:StartFlightRecording=filename=pin.jfr,settings=profile -jar app.jar
+  jfr print --events jdk.VirtualThreadPinned pin.jfr
+  ```
 - **O pool de JDBC vira o novo gargalo.** Virtual threads removem o limite de *threads*,
   mas o HikariCP continua com N conexões. Se 10 mil virtual threads correrem para um
   pool de 20 conexões, 9.980 esperam. O ponto de contenção só **mudou de lugar** — de
@@ -78,9 +88,64 @@ para as gravações acompanhe.
 
 ## Mão na massa
 
-Reflita e responda por que, no cenário de *fan-out* acima, ligar virtual threads sem
-aumentar o `maximum-pool-size` do HikariCP pode **não** melhorar a latência de uma
-requisição que também grava no banco — e onde exatamente a fila se formou.
+**Desafio — achar onde a fila se forma.** Monte o *fan-out* do exemplo e meça, com e
+sem virtual threads, onde as requisições esperam.
+
+1. Crie `POST /quotes`: três chamadas `GET /quote/{psp}` via `RestClient` (uma por PSP)
+   e, no fim, um `INSERT` da rota escolhida. Crie também `POST /quotes-tx`, idêntico,
+   mas anotado com `@Transactional` e com uma consulta qualquer (`select 1`) **antes** das
+   chamadas — o antipadrão do marco 05: a conexão fica presa durante o I/O. O
+   `RestClient.Builder` vem de um starter próprio no Boot 4, e o WireMock entra como
+   dependência de teste (o mesmo do marco 08):
+
+   ```xml
+   <dependency>
+     <groupId>org.springframework.boot</groupId>
+     <artifactId>spring-boot-starter-restclient</artifactId>
+   </dependency>
+   <dependency>
+     <groupId>org.wiremock</groupId>
+     <artifactId>wiremock-standalone</artifactId>
+     <version>3.13.1</version>
+     <scope>test</scope>
+   </dependency>
+   ```
+
+   Construa o client com `.requestFactory(new SimpleClientHttpRequestFactory())`: o
+   client padrão pode negociar HTTP/2 com o WireMock e, sob 200 requisições
+   simultâneas, falhar com `too many concurrent streams` — ruído que não é o que você
+   quer medir.
+2. Num teste `@SpringBootTest(webEnvironment = RANDOM_PORT)`, faça o WireMock responder
+   cada PSP com `withFixedDelay(100)` e aperte os recursos para a fila aparecer rápido:
+
+   ```properties
+   spring.datasource.hikari.maximum-pool-size=5
+   server.tomcat.threads.max=20
+   ```
+
+3. Dispare **200 requisições simultâneas** em cada endpoint, com
+   `spring.threads.virtual.enabled=false` e depois `=true`. Durante a carga, amostre a
+   cada 10 ms o gauge `hikaricp.connections.pending` (as threads esperando conexão) pelo
+   `MeterRegistry` injetado no teste, e guarde o pico e o tempo total.
+
+**Invariantes testáveis.** Os números variam com a máquina; a forma, não. Na verificação
+deste marco:
+
+| Endpoint | Threads de plataforma (20) | Virtual threads |
+| --- | --- | --- |
+| `/quotes` (transação só no `INSERT`) | ~3,6 s, pico de *pending* 0 | ~0,6 s, pico 0 |
+| `/quotes-tx` (transação em volta do I/O) | ~12,3 s, pico 16 | ~12,3 s, pico 190 |
+
+- Com a transação só na escrita, virtual threads derrubam o tempo total várias vezes e o
+  pool nunca enfileira: o gargalo eram as 20 threads do Tomcat.
+- Com a transação segurando a conexão durante o I/O, virtual threads **não ganham nada**
+  e o pico de `pending` sobe para perto das 200 requisições: a fila saiu das threads e
+  foi para as 5 conexões do pool. Aumentar o pool só adia a parede; o conserto é tirar o
+  I/O de dentro da transação.
+
+**Checagem.** Por que, no cenário de *fan-out*, ligar virtual threads sem mexer no pool
+do HikariCP pode **não** melhorar a latência de uma requisição que também grava no
+banco — e em qual das duas linhas da tabela isso acontece?
 
 ## Principais aprendizados
 
@@ -90,5 +155,6 @@ requisição que também grava no banco — e onde exatamente a fila se formou.
   complexidade — justifique-o por requisito, não por moda.
 - **Virtual threads (Java 21)** dão o modelo simples do MVC com escala de assíncrono;
   `spring.threads.virtual.enabled=true`, sem reescrever.
-- Cuidado com **pinning** (`synchronized`) e lembre que o **pool JDBC** passa a ser o
-  novo gargalo.
+- Cuidado com **pinning** (`synchronized` ainda prende a carrier no Java 21; o JFR mostra
+  onde) e lembre que o **pool JDBC** passa a ser o novo gargalo — meça
+  `hikaricp.connections.pending`.

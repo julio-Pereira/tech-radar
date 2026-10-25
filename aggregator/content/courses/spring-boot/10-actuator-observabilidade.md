@@ -29,11 +29,20 @@ saber quando rotear tráfego e quando reiniciar um pod.
 
 ## Liveness ≠ readiness
 
-Um health check não pode mentir. Se o antifraude do pix-gateway está fora, o pod ainda
-responde HTTP mas **não deve** receber tráfego. Modele **readiness** (posso atender?)
-separada de **liveness** (estou vivo ou preciso reiniciar?) com um indicador customizado:
+Um health check não pode mentir — nem para mais, nem para menos. O Boot separa duas
+perguntas: **liveness** (estou vivo, ou preciso ser reiniciado?) e **readiness** (posso
+atender agora?). Cada uma é um *grupo* de indicadores, exposto em
+`/actuator/health/liveness` e `/actuator/health/readiness`. Por padrão, cada grupo
+contém **só o estado interno da aplicação** (`livenessState`, `readinessState`) — um
+indicador que você escreve aparece no `/actuator/health` agregado, mas não entra em
+nenhum dos dois grupos até você pedir.
+
+Um indicador customizado para o antifraude:
 
 ```java
+import org.springframework.boot.health.contributor.Health;           // pacote novo no Boot 4
+import org.springframework.boot.health.contributor.HealthIndicator;
+
 @Component
 class FraudCheckHealthIndicator implements HealthIndicator {
     private final FraudClient fraud;
@@ -47,8 +56,26 @@ class FraudCheckHealthIndicator implements HealthIndicator {
 }
 ```
 
-Cuidado: um readiness que depende de uma dependência não-crítica derruba o pod à toa.
-Modele como *readiness* só o que, faltando, torna o serviço incapaz de atender.
+Colocá-lo na readiness é uma linha:
+
+```properties
+management.endpoint.health.group.readiness.include=readinessState,fraudCheck
+```
+
+A pergunta é se você **deve**. O antifraude é um serviço **compartilhado**: todos os pods
+do pix-gateway falam com o mesmo. Se ele cai e a readiness depende dele, **todos** os
+pods ficam *not ready* ao mesmo tempo, o Service fica sem nenhum endpoint e o cliente
+recebe erro de conexão — você transformou a queda de uma dependência em queda total, sem
+chance de degradar com honestidade. Por isso a posição deste curso (e do capstone) é:
+
+- **Readiness não inclui dependência externa compartilhada.** O antifraude fora vira
+  circuito aberto e fallback honesto (marco 08), e o indicador continua no
+  `/actuator/health` agregado, para dashboard e alerta.
+- **Readiness inclui o que é do próprio pod** e que outro pod saudável não teria: ainda
+  aquecendo cache, ainda sem conexão de banco própria, em shutdown.
+
+O `include` existe para quando a dependência é, de fato, por pod — e para você ver no
+tutorial a diferença que uma linha faz.
 
 ## O salto senior: a Observation API
 
@@ -114,12 +141,17 @@ antes que o cliente reclame.
 
 **Tutorial — Actuator e a Observation API no `pix-gateway`.**
 
-1. Adicione o starter e exponha o mínimo:
+1. O Actuator já está no projeto desde o marco 01? Se não, adicione o starter. O
+   endpoint `/actuator/prometheus` só existe com o registry do Prometheus no classpath:
 
    ```xml
    <dependency>
      <groupId>org.springframework.boot</groupId>
      <artifactId>spring-boot-starter-actuator</artifactId>
+   </dependency>
+   <dependency>
+     <groupId>io.micrometer</groupId>
+     <artifactId>micrometer-registry-prometheus</artifactId>
    </dependency>
    ```
 
@@ -128,7 +160,22 @@ antes que o cliente reclame.
    management.endpoint.health.probes.enabled=true
    ```
 
-2. Confira os endpoints:
+   (As URLs já estão liberadas no `SecurityConfig` do marco 09.)
+
+2. Instrumente a iniciação com a Observation API. Injete o `ObservationRegistry` que o
+   Boot configura e embrulhe a chamada ao service no controller:
+
+   ```java
+   return Observation.createNotStarted("payment.initiate", observations)
+           .lowCardinalityKeyValue("psp", "psp-a")              // o PSP roteado
+           .observe(() -> ResponseEntity.status(HttpStatus.CREATED)
+                   .body(service.initiate(idemKey, req)));
+   ```
+
+   Faça uma iniciação e confira as métricas que nasceram dela — o nome com ponto vira
+   `payment_initiate_seconds_count`, `..._sum` e `..._max` no Prometheus, com os labels
+   `psp` e `error` (`none` quando deu certo, o nome da exceção quando não), além de um
+   `payment_initiate_active_seconds_*` para as iniciações em andamento:
 
    ```bash
    curl localhost:8080/actuator/health
@@ -137,23 +184,31 @@ antes que o cliente reclame.
    curl localhost:8080/actuator/prometheus | grep payment_initiate
    ```
 
-3. Implemente o `FraudCheckHealthIndicator` do exemplo acima e prove que ele derruba
-   só a **readiness**, não a liveness, quando `fraud.isReachable()` retorna falso — um
-   teste de fatia (`@SpringBootTest(webEnvironment = RANDOM_PORT)`) que troca o
-   `FraudClient` por um mock que sempre falha e confere:
+3. Implemente o `FraudCheckHealthIndicator` e prove as duas configurações num teste
+   `@SpringBootTest(webEnvironment = RANDOM_PORT)` que troca o `FraudClient` por um
+   `@MockitoBean` que sempre responde `false`.
 
-   ```bash
-   curl localhost:8080/actuator/health/liveness    # UP
-   curl localhost:8080/actuator/health/readiness   # DOWN
-   ```
+**Invariantes testáveis.**
+
+| Configuração | `/actuator/health` | `/liveness` | `/readiness` |
+| --- | --- | --- | --- |
+| padrão (sem `include`) | `503` DOWN | `200` UP | `200` UP |
+| `group.readiness.include=readinessState,fraudCheck` | `503` DOWN | `200` UP | `503` DOWN |
+
+A liveness nunca cai por causa do antifraude — reiniciar o pod não conserta um serviço
+alheio. A primeira linha é a posição do curso; a segunda é o que acontece com **todos** os
+pods ao mesmo tempo se você escolher a outra.
 
 **Checagem.** (a) O que muda no Kubernetes se você ligar essa dependência à liveness
-em vez da readiness? (b) Por que `paymentId` nunca deve virar `lowCardinalityKeyValue`?
+em vez da readiness? (b) Com três pods e o antifraude fora, quantos endpoints o Service
+tem em cada linha da tabela? (c) Por que `paymentId` nunca deve virar
+`lowCardinalityKeyValue`?
 
 ## Principais aprendizados
 
-- Separe **liveness** de **readiness**; modele como readiness só a dependência sem a
-  qual o serviço não atende.
+- Separe **liveness** de **readiness**. Os grupos começam só com o estado interno; um
+  indicador entra neles por `include`. Dependência externa **compartilhada** não entra
+  na readiness — derrubaria todos os pods juntos.
 - A **Observation API** instrumenta uma vez e entrega métrica + trace + log
   correlacionado; cuide da **cardinalidade** (low para métrica, high para trace).
 - **Tracing distribuído** (OTel) + **exemplars** ligam o gráfico ao trace à log da

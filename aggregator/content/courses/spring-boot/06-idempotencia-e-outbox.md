@@ -25,29 +25,52 @@ quando executá-la N vezes tem o mesmo efeito de executá-la uma vez.
 O cliente gera uma chave única por *intenção* (um UUID por pagamento pretendido) e a
 envia no header `Idempotency-Key`. O servidor:
 
-1. Numa tabela `idempotency_keys` com **unique constraint** na chave, tenta inserir a
-   chave **na mesma transação** do processamento.
+1. Numa tabela `idempotency_keys` com **unique constraint** na chave, **insere a chave
+   primeiro**, antes de qualquer efeito, na mesma transação do processamento.
 2. Se a inserção **suceder**, processa e **persiste a resposta** associada à chave.
 3. Se a inserção **violar a unique constraint**, a operação já foi feita: retorna a
    **resposta persistida**, sem reprocessar.
 
+A ordem é o que importa. O atalho tentador — "consulta a chave; se não existe, processa e
+grava" — tem uma janela entre a consulta e a gravação: duas requisições simultâneas
+consultam, as duas não acham nada, **as duas processam** (o PSP é chamado duas vezes) e só
+a segunda gravação colide, tarde demais. Inserindo primeiro, a colisão acontece *antes*
+do efeito:
+
 ```java
-@Transactional
 public PaymentResponse initiate(String idemKey, PaymentRequest req) {
-    return idempotencyStore.find(idemKey)
-        .map(IdempotencyRecord::response)          // já processado → devolve o mesmo
-        .orElseGet(() -> {
-            PaymentResponse resp = process(req);   // primeira vez → processa
-            idempotencyStore.save(idemKey, resp);  // unique constraint protege corrida
+    try {
+        return tx.execute(status -> {
+            // 1. reserva a chave ANTES de qualquer efeito. Uma segunda requisição com a
+            //    mesma chave fica bloqueada neste INSERT até a primeira terminar.
+            jdbc.update("insert into idempotency_keys (idempotency_key) values (?)", idemKey);
+            PaymentResponse resp = process(req);                       // 2. o efeito
+            jdbc.update("update idempotency_keys set response_body = ?::jsonb where idempotency_key = ?",
+                    json.writeValueAsString(resp), idemKey);           // 3. a resposta, gravada
             return resp;
         });
+    } catch (DuplicateKeyException alreadyDone) {
+        // 4. a chave já existia: a transação acima foi desfeita sem processar nada.
+        //    A resposta da primeira requisição é lida fora dela, numa leitura nova.
+        String body = jdbc.queryForObject(
+                "select response_body::text from idempotency_keys where idempotency_key = ?",
+                String.class, idemKey);
+        return json.readValue(body, PaymentResponse.class);
+    }
 }
 ```
 
-A unique constraint é o coração: mesmo com duas requisições **simultâneas** com a mesma
-chave, o banco deixa só uma inserir; a outra colide, faz rollback e reentrega a resposta
-gravada. Idempotência de verdade se apoia numa garantia do banco, não num `if` na
-aplicação.
+(`tx` é um `TransactionTemplate`, `jdbc` um `JdbcTemplate` e `json` o `JsonMapper` do
+Jackson 3 — todos injetados pelo Boot. A transação é explícita, e não `@Transactional`,
+porque a leitura do passo 4 precisa acontecer **depois** do rollback da tentativa que
+colidiu, fora dela.)
+
+A unique constraint é o coração, e o Postgres faz o resto: com duas requisições
+**simultâneas** com a mesma chave, o `INSERT` da segunda **espera** a transação da
+primeira terminar. Se ela comitou, a segunda colide (`DuplicateKeyException`), não
+processa nada e devolve a resposta gravada — byte a byte a mesma. Se a primeira falhou e
+fez rollback, a chave não existe mais e a segunda processa normalmente, como deve ser.
+Idempotência de verdade se apoia numa garantia do banco, não num `if` na aplicação.
 
 ## O problema do dual-write
 
@@ -76,19 +99,43 @@ public void initiate(PaymentRequest req) {
 
 ```java
 @Scheduled(fixedDelay = 500)
-@Transactional
-public void relay() {
-    for (OutboxEvent e : outbox.findUnpublishedBatch(100)) {
-        kafka.send("payments", e.aggregateId(), e.payload());
-        e.markPublished();
+void relay() throws Exception {             // sem @Transactional: nenhuma conexão presa no I/O
+    for (OutboxEvent e : outbox.findTop100ByPublishedAtIsNullOrderByCreatedAt()) {
+        kafka.send("payments.initiated", e.aggregateId().toString(), e.payload())
+             .get(5, TimeUnit.SECONDS);      // espera o ack do broker; falha = exceção, lote para
+        outbox.markPublished(e.id(), Instant.now());   // transação curta, só depois do ack
     }
 }
 ```
 
+Dois detalhes que um relay ingênuo erra:
+
+- **Esperar o ack.** `kafka.send` é assíncrono: devolve um `CompletableFuture` antes de o
+  broker confirmar. Marcar como publicado sem esperar o `get` é perder o evento em
+  silêncio quando o broker recusa. Com o `get`, uma falha vira exceção, o lote para e o
+  evento fica pendente para a próxima rodada.
+- **Não segurar transação durante o I/O.** Um `@Transactional` no método inteiro
+  prenderia uma conexão do pool enquanto o relay espera o Kafka — o mesmo erro do
+  marco 05. Aqui, cada `markPublished` é uma atualização curta, com transação própria,
+  só depois do ack:
+
+```java
+interface OutboxRepository extends JpaRepository<OutboxEvent, UUID> {
+    List<OutboxEvent> findTop100ByPublishedAtIsNullOrderByCreatedAt();
+
+    @Modifying @Transactional
+    @Query("update OutboxEvent e set e.publishedAt = :at where e.id = :id")
+    void markPublished(@Param("id") UUID id, @Param("at") Instant at);
+}
+```
+
+O `@Scheduled` só roda com `@EnableScheduling` numa classe de configuração (a própria
+`PixGatewayApplication` serve).
+
 Duas verdades para internalizar:
 
-- **Semântica de entrega é at-least-once.** O relay pode crashar entre o `send` e o
-  `markPublished` e reenviar o evento. Portanto o **consumidor tem que ser idempotente**
+- **Semântica de entrega é at-least-once.** O relay pode crashar entre o ack do `send` e
+  o `markPublished` e reenviar o evento. Portanto o **consumidor tem que ser idempotente**
   — mesma disciplina do início do marco, agora do outro lado do fio. Exactly-once
   distribuído é caro e quase sempre desnecessário; at-least-once + consumidor idempotente
   é o padrão da indústria.
@@ -107,7 +154,17 @@ idempotência do quiz da trilha `go-fintech`, agora sobre JPA + Kafka.
 
 ## Mão na massa
 
-**Tutorial — outbox mínimo.** Modele a tabela `outbox`:
+**Tutorial — outbox mínimo.** Adicione o Kafka ao pix-gateway (o Jackson já vem com o
+starter web):
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-kafka</artifactId>
+</dependency>
+```
+
+Crie as tabelas numa segunda migração, `V2__idempotency_and_outbox.sql`:
 
 ```sql
 CREATE TABLE outbox (
@@ -120,13 +177,28 @@ CREATE TABLE outbox (
 );
 CREATE TABLE idempotency_keys (
     idempotency_key TEXT PRIMARY KEY,
-    response_body JSONB NOT NULL,
+    response_body JSONB,                 -- NULL enquanto a primeira requisição processa
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
+`response_body` precisa aceitar `NULL`: a chave é inserida no passo 1, antes de existir
+resposta. Na entidade `OutboxEvent`, guarde `payload` como uma `String` com o JSON já
+serializado e mapeie-a com `@JdbcTypeCode(SqlTypes.JSON)`, para o Hibernate gravá-la na
+coluna `JSONB`. Por ser `String`, o relay a publica com o serializador padrão do Kafka no
+Boot (`StringSerializer`), sem configuração extra.
+
 Faça `initiate` gravar pagamento + evento na mesma transação, e um `@Scheduled` relay
-que publica e marca como enviado.
+que publica e marca como enviado. O controller passa a ler o header e a responder
+`201 Created` — o teste `initiate_returns501` do marco 01 cumpriu seu papel e sai:
+
+```java
+@PostMapping
+ResponseEntity<PaymentResponse> initiate(@RequestHeader("Idempotency-Key") String idemKey,
+                                         @RequestBody PaymentRequest req) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(service.initiate(idemKey, req));
+}
+```
 
 **Desafio — replay de Idempotency-Key.** Escreva um teste (Testcontainers Postgres +
 Kafka) que envia o **mesmo** `Idempotency-Key` duas vezes concorrentemente e verifica:
@@ -135,19 +207,28 @@ evento foi publicado. Force o relay a crashar entre `send` e `markPublished` e p
 o consumidor idempotente absorve a reentrega.
 
 Se você chega neste marco sem ainda ter lido o 11 (onde Testcontainers é ensinado em
-detalhe), este é o esqueleto mínimo para subir Postgres e Kafka juntos no teste:
+detalhe), este é o esqueleto mínimo para subir Postgres e Kafka juntos no teste. O Kafka
+pede mais um artefato de teste, `org.testcontainers:testcontainers-kafka`:
 
 ```java
-@Container @ServiceConnection static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+import org.testcontainers.kafka.KafkaContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+
+@Container @ServiceConnection static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
 @Container @ServiceConnection static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.3.1");
 ```
 
+Acrescente o mesmo `KafkaContainer`, como `@Bean @ServiceConnection`, à
+`TestcontainersConfiguration` do marco 04 — a aplicação agora precisa de um broker para
+subir nos outros testes também.
+
 ## Principais aprendizados
 
-- Idempotência se apoia numa **unique constraint** do banco, não num `if`; guarde e
-  reentregue a resposta associada à `Idempotency-Key`.
+- Idempotência se apoia numa **unique constraint** do banco, não num `if`: **insira a
+  chave antes do efeito**, guarde e reentregue a resposta associada à `Idempotency-Key`.
 - **Dual-write** (banco + Kafka) não é atômico; sequência ingênua gera inconsistência
   silenciosa.
-- **Outbox**: uma escrita transacional (negócio + evento) e um relay assíncrono. Entrega
+- **Outbox**: uma escrita transacional (negócio + evento) e um relay assíncrono que
+  espera o ack do broker e não segura transação durante o I/O. Entrega
   **at-least-once** → o consumidor **precisa** ser idempotente.
 - O outbox desacopla sua API da disponibilidade do broker.

@@ -62,8 +62,11 @@ Duas boas práticas que separam o brinquedo do artefato de produção:
 
 - **`@ConditionalOnMissingBean` em tudo** — o squad consumidor sempre pode sobrescrever
   o seu default. Você oferece, não impõe.
-- **`spring-boot-autoconfigure-processor`** no build — gera metadados de condição em
-  compile time, deixando o *Condition Evaluation Report* rápido e completo.
+- **`spring-boot-autoconfigure-processor`** no build — em compile time, ele copia as
+  condições simples de cada auto-configuração (`@ConditionalOnClass`, por exemplo) para
+  o arquivo `META-INF/spring-autoconfigure-metadata.properties`. No startup, o Boot lê
+  esse arquivo e descarta as auto-configurações que não se aplicam **sem carregar a
+  classe** delas — startup mais rápido, que cresce com o número de starters internos.
 
 ## Um starter interno de plataforma
 
@@ -197,6 +200,11 @@ módulos, num diretório `fintech-audit-starter/` ao lado do `pix-gateway`:
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
@@ -232,13 +240,19 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
+import org.springframework.core.Ordered;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-public class CorrelationFilter extends OncePerRequestFilter {
+public class CorrelationFilter extends OncePerRequestFilter implements Ordered {
     private static final String MDC_KEY = "correlationId";
     private final String headerName;
 
     public CorrelationFilter(String headerName) { this.headerName = headerName; }
+
+    // antes de qualquer outro filtro, inclusive o Spring Security (-100): uma requisição
+    // recusada com 401/403 também precisa sair com o id de correlação
+    @Override
+    public int getOrder() { return Ordered.HIGHEST_PRECEDENCE; }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -257,6 +271,11 @@ public class CorrelationFilter extends OncePerRequestFilter {
     }
 }
 ```
+
+O `getOrder()` não é detalhe. Sem ele, o filtro entra depois do Spring Security (que o
+pix-gateway ganha no marco 09) e as requisições barradas com 401/403 — justamente as que
+uma auditoria mais quer correlacionar — saem **sem** o header. O teste do pix-gateway
+abaixo pega isso no dia em que a segurança chegar.
 
 `AuditAutoConfiguration.java`:
 
@@ -365,8 +384,18 @@ class AuditAutoConfigurationTest {
 </project>
 ```
 
-Rode `mvn install` no reator (`fintech-audit-starter/`) — 3 testes verdes, os jars vão
-para o `~/.m2` local. Adicione ao `pom.xml` do `pix-gateway`:
+Rode `mvn clean install` no reator (`fintech-audit-starter/`) — 3 testes verdes, os
+jars vão para o `~/.m2` local. Confira o que o processor gerou (o `clean` garante que o
+arquivo é regerado do zero):
+
+```bash
+unzip -p fintech-audit-autoconfigure/target/fintech-audit-autoconfigure-0.0.1-SNAPSHOT.jar \
+  META-INF/spring-autoconfigure-metadata.properties
+# ...AuditAutoConfiguration.ConditionalOnClass=jakarta.servlet.Filter
+```
+
+Essa linha é o que permite ao Boot pular a `AuditAutoConfiguration` numa aplicação sem
+servlet sem nem carregar a classe. Adicione ao `pom.xml` do `pix-gateway`:
 
 ```xml
 <dependency>

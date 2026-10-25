@@ -24,7 +24,7 @@ questions:
       - "O bloqueio dentro de `synchronized`, que impede o desmonte e prende a carrier thread"
       - "A fixação do número de carrier threads disponíveis pelo valor de `GOMAXPROCS` equivalente da JVM"
     answer: 2
-    explanation: "O ganho depende de a JVM desmontar a virtual thread da carrier quando ela bloqueia. Dentro de um bloco `synchronized`, o desmonte não acontece e a carrier fica presa — o benefício some. O JDK moderno reduziu bastante o problema, e a recomendação prática continua sendo preferir `ReentrantLock` em código que faz I/O."
+    explanation: "O ganho depende de a JVM desmontar a virtual thread da carrier quando ela bloqueia. Dentro de um bloco `synchronized`, o desmonte não acontece e a carrier fica presa — o benefício some. No Java 21 isso ainda acontece; o Java 24 (JEP 491) passou a desmontar dentro de `synchronized`. Até lá, prefira `ReentrantLock` e use o evento `jdk.VirtualThreadPinned` do JFR para achar o pinning nas bibliotecas."
 
   - question: "Você ligou `spring.threads.virtual.enabled=true` e a latência do endpoint que grava no banco não melhorou. Por quê?"
     options:
