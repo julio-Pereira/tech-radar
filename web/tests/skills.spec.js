@@ -36,11 +36,11 @@ test('completing a tagged milestone moves both the bar and the table for every c
 
   await page.goto('/#/skills');
   const estrategiaRow = page.locator('.skills-table tr', { has: page.locator('th', { hasText: 'Estratégia' }) });
-  await expect(estrategiaRow.locator('td').nth(1)).toHaveText('60 min');
+  await expect(estrategiaRow.locator('td').nth(1)).toHaveText('70 min');
   await expect(estrategiaRow.locator('td').nth(3)).not.toHaveText('0%');
 
   const execucaoRow = page.locator('.skills-table tr', { has: page.locator('th', { hasText: 'Execução' }) });
-  await expect(execucaoRow.locator('td').nth(1)).toHaveText('60 min');
+  await expect(execucaoRow.locator('td').nth(1)).toHaveText('70 min');
 
   // The chart's fill bar for Estratégia (first row in the Liderança group)
   // should now have a nonzero width, matching the table's nonzero %.
@@ -54,7 +54,7 @@ test('resetting a course\'s progress drops its competencies back to 0%', async (
   await page.locator('#check-lideranca-tecnica-papel-escopo-e-arquetipos').check();
   await page.goto('/#/skills');
   const estrategiaRow = page.locator('.skills-table tr', { has: page.locator('th', { hasText: 'Estratégia' }) });
-  await expect(estrategiaRow.locator('td').nth(1)).toHaveText('60 min');
+  await expect(estrategiaRow.locator('td').nth(1)).toHaveText('70 min');
 
   await page.evaluate(() => localStorage.removeItem('tr:progress:lideranca-tecnica'));
   await page.reload();
