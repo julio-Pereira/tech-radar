@@ -201,7 +201,9 @@ says where it is taught.*
 The linker links only the **first occurrence** of each concept per milestone, at most
 **8** concept links per milestone, never in the owner milestone, headings, code or links,
 and never in a block that already bridges to the same owner (that occurrence still counts
-as the first). It writes `web/data/conceitos.json` (owner, summary, "tambem", "citadoEm")
+as the first). The author's own pointer also wins: a term right before "(marco NN)" or a
+`` (`slug/NN`) `` bridge to a milestone other than the owner stays plain, and doesn't count as
+the first occurrence. It writes `web/data/conceitos.json` (owner, summary, "tambem", "citadoEm")
 next to `glossary.json`.
 
 - **Use, don't re-teach.** If a concept has an owner, cite the term and write only what

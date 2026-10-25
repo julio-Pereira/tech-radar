@@ -81,6 +81,7 @@ type conceitoSet struct {
 	conceitos []*conceitoResolvido
 	aliases   []conceitoAlias // longest first, so the longest alias wins at a position
 	citacoes  map[string][]conceitoCitacao
+	index     bridgeIndex // resolves an author's "(marco NN)" next to a term
 }
 
 type conceitoAlias struct {
@@ -113,7 +114,7 @@ func loadConceitos(path string) ([]Conceito, error) {
 // silently drop others.
 func resolveConceitos(list []Conceito, index bridgeIndex) (*conceitoSet, []error) {
 	var errs []error
-	set := &conceitoSet{citacoes: map[string][]conceitoCitacao{}}
+	set := &conceitoSet{citacoes: map[string][]conceitoCitacao{}, index: index}
 	seenID := map[string]bool{}
 	seenAlias := map[string]string{} // folded alias -> concept id
 
@@ -322,6 +323,31 @@ func (l *conceitoLinker) claim(rc *conceitoResolvido, targets map[string]bool) b
 	return true
 }
 
+// authorRefRe matches an author's in-trilha pointer right after a term:
+// " (marco 05)", " (marcos 05 e 07)" — the first number is the target.
+var authorRefRe = regexp.MustCompile(`^\s*\(marcos? (\d{2})`)
+
+// openParenRe matches a run that ends in " (" — the bridge that follows is
+// the next sibling node, not part of this text.
+var openParenRe = regexp.MustCompile(`^\s*\($`)
+
+// authorPointsElsewhere reports whether the text right after a matched
+// alias is an author's reference to a milestone other than the concept's
+// owner: "(marco NN)" in this trilha, or "(" followed by a bridge link.
+func (l *conceitoLinker) authorPointsElsewhere(rest string, next ast.Node, rc *conceitoResolvido) bool {
+	if m := authorRefRe.FindStringSubmatch(rest); m != nil {
+		id, ok := l.set.index[l.slug][m[1]]
+		return ok && !(l.slug == rc.dono.Slug && id == rc.dono.ID)
+	}
+	if openParenRe.MatchString(rest) {
+		if link, ok := next.(*ast.Link); ok {
+			dest := string(link.Destination)
+			return strings.HasPrefix(dest, "#/learn/") && dest != rc.dono.href()
+		}
+	}
+	return false
+}
+
 func (l *conceitoLinker) newLink(rc *conceitoResolvido) *ast.Link {
 	link := ast.NewLink()
 	link.Destination = []byte(rc.dono.href())
@@ -344,7 +370,13 @@ func (l *conceitoLinker) linkCodeSpan(container ast.Node, cs *ast.CodeSpan, targ
 		if !(content == a.text || (a.foldCase && strings.EqualFold(content, a.text))) {
 			continue
 		}
-		if l.claim(a.conceito, targets) {
+		// Same rule as in prose: an author's pointer right after the span
+		// ("`Idempotency-Key` (`spring-boot/06`)") wins over the concept link.
+		rest, after := "", cs.NextSibling()
+		if t, ok := after.(*ast.Text); ok {
+			rest, after = string(t.Segment.Value(l.source)), t.NextSibling()
+		}
+		if !l.authorPointsElsewhere(rest, after, a.conceito) && l.claim(a.conceito, targets) {
 			link := l.newLink(a.conceito)
 			container.ReplaceChild(container, cs, link)
 			link.AppendChild(link, cs)
@@ -371,10 +403,16 @@ func (l *conceitoLinker) linkRun(container ast.Node, run []*ast.Text, targets ma
 		if a == nil {
 			break
 		}
-		if l.claim(a.conceito, targets) {
-			pieces = append(pieces, piece{m, m + len(a.text), a.conceito})
+		end := m + len(a.text)
+		// The author's own pointer wins: "idempotente (marco 05)" or
+		// "Idempotency-Key (`spring-boot/06`)" right after the term already
+		// sends the reader somewhere; a concept link to a different owner
+		// next to it would offer two destinations for one word. Not linked,
+		// and not counted as the first occurrence either.
+		if !l.authorPointsElsewhere(s[end:], run[len(run)-1].NextSibling(), a.conceito) && l.claim(a.conceito, targets) {
+			pieces = append(pieces, piece{m, end, a.conceito})
 		}
-		pos = m + len(a.text)
+		pos = end
 	}
 	if len(pieces) == 0 {
 		return
