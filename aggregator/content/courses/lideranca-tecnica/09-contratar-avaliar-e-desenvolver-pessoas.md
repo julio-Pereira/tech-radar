@@ -2,7 +2,7 @@
 id: contratar-avaliar-e-desenvolver-pessoas
 title: "Contratar, avaliar e desenvolver pessoas"
 summary: "Contratação, avaliação de desempenho baseada em evidência, plano de melhoria e desenvolvimento de outros — como processo e conceito, nunca como vigilância."
-estimatedMinutes: 70
+estimatedMinutes: 75
 competencies: [pessoas]
 references:
   - title: "Google re:Work — Guides (contratação, gestão)"
@@ -80,6 +80,21 @@ concreto e específico do líder (não só "se esforce mais"), **checkpoints dat
 **consequência declarada** com antecedência — nunca descoberta no fim do prazo. Quando e como
 envolver a área de RH formalmente é, em si, uma decisão que varia por instituição — **conferir**.
 
+## O colega brilhante e corrosivo
+
+Um caso difícil não é o de quem entrega pouco, e sim o de quem entrega muito e piora o time em
+volta: revisões de código que humilham em vez de ensinar, conhecimento guardado como fonte de
+poder, decisões impostas sem discussão. Tolerar esse padrão custa mais do que parece, porque o
+custo não aparece na entrega dessa pessoa. Ele aparece no resto do time: as pessoas param de
+propor ideias (a segurança psicológica do marco 07), evitam a área dela e o fator-ônibus daquela
+parte do código cai para um. A defesa é avaliar **resultado** e **comportamento** como **duas
+dimensões separadas**, cada uma com evidência própria e datada; um resultado excelente não
+compensa um comportamento que reduz o resultado dos outros. A conversa é direta e usa o SBI do
+marco 07 ("na revisão do PR de devoluções, na terça, você escreveu que a solução era 'de
+estagiário'; desde então, a autora não abriu outro PR na área"). Se o comportamento se repete
+depois de feedback claro, ele entra num **plano de melhoria** como qualquer outro critério
+observável. Quanto tolerar antes disso é política de cada instituição — **conferir** com RH.
+
 ## Promoção
 
 Um pacote de promoção reúne **evidências** (não afirmações) de que a pessoa já está operando no
@@ -115,7 +130,9 @@ desenvolvimento aconteça por acaso.
 estruturadas, e os vieses de recência, halo e semelhança são bem documentados em pesquisa de
 seleção e avaliação de pessoas. [P] planos de melhoria, calibração de promoção e o formato de
 *debrief* vêm de prática consolidada de praticantes, não de estudo controlado isolado. [O] como
-equilibrar rigor de processo com empatia individual depende do contexto e da pessoa. **Toda regra
+equilibrar rigor de processo com empatia individual depende do contexto e da pessoa. [P] o padrão do colega de alto resultado e comportamento corrosivo, e a avaliação em duas
+dimensões, vêm de relatos de praticantes, entre eles *The Manager's Path*, de Camille Fournier.
+**Toda regra
 trabalhista, de remuneração e de RH citada neste marco é "conferir" com as áreas competentes da sua
 instituição — nada aqui é orientação jurídica.**
 
@@ -127,6 +144,12 @@ de evidência, mantido ao longo dos seis meses, mostra um padrão consistente de
 nota final muda, não por simpatia, mas porque a evidência distribuída no tempo conta uma história
 diferente da memória recente.
 
+No mesmo ciclo, "Pessoa B" (engenheiro fictício do Time Pix) tem a melhor entrega individual do
+time e três registros datados de revisões de código com linguagem humilhante, além de uma área do
+código que só ele altera. A nota "só resultado" o põe no topo. A nota por evidência, com as duas
+dimensões, fica abaixo da esperada para o nível, e a conversa que vem dela é sobre comportamento,
+não sobre entrega.
+
 ## Hands-on
 
 **Tutorial.** Construa a rubrica de entrevista de uma vaga sênior fictícia e rode
@@ -135,7 +158,8 @@ fictícios. Rode `lint expectativas` sobre a escada de carreira do Time Pix.
 
 **Desafio.** (a) Desenhe o loop de entrevista completo para uma vaga; (b) avalie uma pessoa
 fictícia a partir de um registro sintético de evidências e escreva o plano de melhoria de um caso
-fictício de desempenho abaixo do esperado.
+fictício de desempenho abaixo do esperado; (c) avalie o caso "Pessoa B" nas duas dimensões,
+resultado e comportamento, e escreva a abertura SBI da conversa.
 
 **Invariantes testáveis**
 
@@ -163,6 +187,14 @@ fictício de desempenho abaixo do esperado.
    datada, linguagem de comportamento, distribuição temporal correta) ainda pode ser **injusta** se
    as evidências foram escolhidas a dedo (viés de seleção do que foi registrado) — a estrutura
    verifica forma, não neutralidade da escolha do que documentar.
+10. `lint avaliacao` **reprova** uma avaliação que não tem as **duas dimensões** (resultado e
+    comportamento), cada uma com evidência datada própria.
+11. No caso sintético "Pessoa B" do registro de evidências, a **nota por evidência difere** da
+    nota "só resultado" do gabarito — propriedade verificada sobre o conjunto sintético.
+12. **Demonstração do limite:** uma avaliação que cita o comportamento corrosivo e o neutraliza
+    com adjetivos sobre o resultado ("as revisões são duras, mas ele é excepcional") passa na
+    estrutura das duas dimensões e continua ruim — o *lint* verifica que a dimensão existe, não
+    que ela pesou.
 
 **Complemento.** Escreva as expectativas detalhadas de um nível da sua escada de carreira, ou uma
 autoavaliação sua baseada em evidência própria. Mantenha no dossiê privado.
@@ -199,5 +231,7 @@ autoavaliação sua baseada em evidência própria. Mantenha no dossiê privado.
 - Plano de melhoria exige diagnóstico de causa antes, critérios observáveis, apoio concreto,
   checkpoints datados e consequência declarada.
 - Promoção exige evidência do escopo do nível seguinte, não só competência no nível atual.
+- Resultado e comportamento são avaliados como dimensões separadas; resultado alto não compensa
+  comportamento que reduz o resultado do time.
 - Remuneração e desligamento são tratados como processo e conceito; toda regra específica é
   "conferir" com RH e jurídico — nunca orientação definitiva deste marco.

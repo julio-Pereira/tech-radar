@@ -1,7 +1,7 @@
 questions:
   - question: "Um gerente pede para a equipe 'estimar com mais cuidado' depois de perceber que estimativas anteriores foram otimistas demais. Segundo este marco, por que isso provavelmente não resolve o problema?"
     options:
-      - "A falácia do planejamento persiste mesmo quando a pessoa sabe que tarefas parecidas levaram mais tempo no passado — a saída é usar distribuição histórica, não pedir mais cuidado"
+      - "Pedir cuidado não corrige a falácia do planejamento; a saída é usar a distribuição histórica"
       - "Pedir mais cuidado sempre resolve o problema, desde que a pessoa dedique tempo suficiente à estimativa"
       - "O problema é exclusivo de equipes inexperientes; equipes seniores não sofrem da falácia do planejamento"
       - "A falácia do planejamento só afeta estimativas de prazo superiores a seis meses"
@@ -9,7 +9,7 @@ questions:
     explanation: "O marco é direto: mesmo sabendo do histórico, as pessoas continuam estimando a tarefa atual como exceção — por isso a solução não é 'mais cuidado', é trocar estimativa individual por previsão baseada na distribuição histórica de entregas. A falácia não é exclusiva de iniciantes nem limitada a prazos longos, e 'mais cuidado' não a neutraliza, segundo o marco."
   - question: "Ao prever a data de entrega de um backlog, reduzir o número de itens (cortar escopo) nunca deveria atrasar a data prevista pela simulação de Monte Carlo. Segundo este marco, por que essa propriedade é esperada?"
     options:
-      - "Porque com menos trabalho para fazer, qualquer simulação válida produz uma data igual ou mais cedo do que com o escopo original, para a mesma amostra de throughput"
+      - "Com menos itens, cada simulação termina igual ou antes, dada a mesma amostra de throughput"
       - "Porque a simulação de Monte Carlo ignora completamente o tamanho do backlog ao calcular a previsão"
       - "A propriedade não é garantida — reduzir escopo pode atrasar a previsão dependendo da semente usada"
       - "Essa propriedade só vale quando a capacidade do time também é reduzida simultaneamente"
@@ -17,8 +17,8 @@ questions:
     explanation: "O marco lista essa invariante explicitamente: reduzir escopo nunca atrasa a data prevista, para qualquer semente — é uma propriedade estrutural do modelo (menos trabalho, mesma ou melhor data), não algo condicional à semente ou a mudanças simultâneas de capacidade. Dizer que a simulação ignora o backlog contradiz o próprio mecanismo da previsão, que depende do volume de itens."
   - question: "Uma funcionalidade tem prazo regulatório fixo em seis semanas, mas a previsão com 85% de confiança aponta oito semanas. Segundo este marco, qual é a conversa correta a se ter?"
     options:
-      - "Sobre o que cabe em termos de escopo até a data fixa, com qualidade — não sobre pressionar o time a entregar mais rápido"
-      - "Sobre demitir ou substituir membros do time que não conseguem cumprir o prazo regulatório"
+      - "Sobre o escopo que cabe até a data fixa, com qualidade, e não sobre acelerar o time"
+      - "Sobre substituir quem não consegue cumprir o prazo"
       - "Sobre ignorar o prazo regulatório, já que previsões internas sempre têm prioridade sobre obrigações externas"
       - "Sobre pedir que o time trabalhe horas extras até a previsão de 85% coincidir com o prazo de seis semanas"
     answer: 0

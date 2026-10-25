@@ -2,7 +2,7 @@
 id: escrita-rituais-e-reunioes
 title: "Escrita, rituais e reuniões"
 summary: "Comunicação escrita, rituais de time e reuniões como ferramentas de liderança — o que documentar, como conduzir e quando uma reunião é a ferramenta errada."
-estimatedMinutes: 50
+estimatedMinutes: 55
 competencies: [execucao]
 references:
   - title: "Will Larson — Irrational Exuberance"
@@ -49,6 +49,25 @@ característico quando perde o propósito original: revisão de design vira teat
 foi tomada antes da reunião; retrospectiva vira reclamação sem ação quando não produz item de
 melhoria com dono; *office hours* vira tempo vazio quando ninguém sabe que pode aparecer com
 qualquer dúvida.
+
+## Processo proporcional ao tamanho e valores de time
+
+Todo processo deveria ser a **resposta a um problema observado**, não um ritual herdado do time
+anterior de alguém. Um time de seis pessoas sentadas no mesmo canal resolve numa conversa o que um
+time de trinta precisa escrever: revisão de design formal, calendário de plantão, *template* de
+RFC. Importar o processo do time de trinta para o de seis custa horas sem resolver nada; deixar o
+de trinta sem processo faz cada decisão depender de quem estava na conversa certa. Por isso todo
+processo do time é escrito com três campos: o **problema que resolve**, o **dono** e a **data de
+revisão**. Na revisão, a pergunta é se o problema ainda existe; se não existe, o processo sai. É o
+critério de remoção que impede o acúmulo de rituais que ninguém lembra por que começaram. Escrever o
+processo também é escrever **para quem chega**: a pessoa nova não tem a história que explica por
+que o time faz assim.
+
+Os **valores de time** seguem o mesmo raciocínio. "Qualidade" e "colaboração" não orientam
+decisão nenhuma, porque ninguém defende o contrário. Um valor útil **escolhe lado** num conflito
+real, no mesmo formato dos princípios de engenharia do marco 03, agora aplicado a comportamento:
+"preferimos perguntar no canal do time a resolver sozinho em silêncio", "preferimos reverter rápido
+a investigar em produção". Se ninguém sensato discordaria do valor, ele não ajuda a decidir.
 
 ## Desenho de reunião
 
@@ -97,7 +116,10 @@ produtiva, porque todo mundo já processou o conteúdo individualmente.
 *Evidência.* [P] escrita narrativa e desenho deliberado de reunião vêm de prática consolidada de
 praticantes (cultura de documentos de empresas como Amazon, entre outras), não de estudo
 controlado. [O] o formato certo de documento e a frequência ideal de cada ritual dependem fortemente
-da cultura da organização.
+da cultura da organização. [P] processo como resposta a problema observado, proporcional ao
+tamanho do time e com critério de remoção, vem de relatos de praticantes, entre eles *The
+Manager's Path*, de Camille Fournier. [O] o tamanho em que um time "passa a precisar" de cada
+processo é julgamento, não limiar fixo.
 
 ## Exemplo numa fintech
 
@@ -106,10 +128,17 @@ nunca chegar a uma decisão. Reescrita como RFC de três páginas (problema, op�
 recomendação) e discutida numa única reunião de 30 minutos com pré-leitura obrigatória, termina em
 decisão registrada no mesmo dia.
 
+Na mesma época, o Time Pix revisa o catálogo dos seus rituais. A "reunião de sincronização com
+risco" nasceu quando as duas equipes não tinham contrato de API; o contrato existe há seis meses, e
+a reunião continua toda terça. Ao preencher o campo "problema que resolve", ninguém consegue
+escrever um problema atual. A reunião sai do catálogo, com a nota de que volta se o contrato
+voltar a mudar com frequência.
+
 ## Hands-on
 
 **Tutorial.** Rode `lint rfc` e `lint onepager` do `fin-leadkit` sobre os modelos, e use a
-calculadora de custo de reunião.
+calculadora de custo de reunião. Preencha `modelos-de-doc/processos.md` com o catálogo dos
+rituais do Time Pix: problema que cada um resolve, dono e data de revisão.
 
 **Desafio.** Converta uma discussão sintética de uma *thread* de chat em um RFC completo e na versão
 executiva (*one-pager*) do mesmo conteúdo.
@@ -131,6 +160,12 @@ executiva (*one-pager*) do mesmo conteúdo.
 6. O resumo gerado automaticamente a partir de um RFC completo **preserva a recomendação original**
    — teste de conservação: a recomendação do resumo nunca diverge da recomendação do documento
    fonte.
+7. `lint processo` **reprova** um processo sem **problema que resolve**, sem **dono** ou sem
+   **data de revisão** — cada ausência listada separadamente.
+8. Com o **relógio falso** (o mesmo do marco 11), um processo com data de revisão vencida é
+   **sinalizado**; avançar o relógio para antes da data remove o sinal.
+9. Os **valores de time** passam no mesmo teste de forma "preferimos X a Y" dos princípios do
+   marco 03; um valor sem o lado preterido ("valorizamos qualidade") é reprovado.
 
 **Complemento.** Identifique uma reunião recorrente sua e, ou elimine-a, ou transforme-a
 explicitamente num dos três tipos (decisão, informação, criação) com o desenho completo.
@@ -162,4 +197,6 @@ explicitamente num dos três tipos (decisão, informação, criação) com o des
   pré-leitura, saída escrita.
 - Visualizar o custo real de uma reunião (pessoas × duração × custo-hora) muda a decisão de
   convocá-la.
+- Processo nasce de um problema observado, tem dono e data de revisão, e sai quando o problema
+  deixa de existir.
 - "Reunião para alinhar" é, com frequência, sintoma de proposta ainda não escrita.

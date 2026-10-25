@@ -1,7 +1,7 @@
 questions:
   - question: "Uma narrativa de impacto para pacote de promoção descreve um projeto como 'tive um impacto muito grande na confiabilidade do sistema'. Segundo este marco, por que essa narrativa é insuficiente para um comitê de promoção, mesmo que o projeto tenha sido real e importante?"
     options:
-      - "Falta resultado mensurável com fonte — 'impacto muito grande' é um adjetivo, não evidência que o comitê consiga avaliar sem confiar apenas na palavra de quem escreveu"
+      - "Falta resultado mensurável com fonte; 'impacto muito grande' é adjetivo, não evidência"
       - "A narrativa é insuficiente porque não menciona o nome da tecnologia usada no projeto"
       - "Não há problema real, já que comitês de promoção avaliam principalmente a dedicação demonstrada, não números"
       - "O problema é que a narrativa deveria ter sido escrita por outra pessoa do time, nunca pela própria pessoa"
@@ -9,7 +9,7 @@ questions:
     explanation: "O marco é explícito sobre as quatro partes de uma narrativa de impacto, e resultado mensurável com fonte é uma delas — sem número e sem fonte, 'impacto muito grande' é afirmação, não evidência. O comitê não avalia principalmente por dedicação, a tecnologia específica não é o ponto, e a narrativa pode (e geralmente deve) ser escrita pela própria pessoa, desde que apoiada em evidência."
   - question: "Uma pessoa divulga amplamente seu próprio trabalho em fóruns internos, mas a narrativa nunca menciona o time nem o efeito sobre outras pessoas — só o que ela, individualmente, fez. Segundo este marco, o que esse padrão sugere sobre a linha entre visibilidade legítima e autopromoção?"
     options:
-      - "Que vale reexaminar: a linha geralmente está em quem mais se beneficia da narrativa, e quando só a própria pessoa aparece, é um sinal de autopromoção, não de visibilidade legítima"
+      - "Que vale reexaminar: quando só a própria pessoa aparece, a narrativa pende para autopromoção"
       - "Que não há problema algum, porque qualquer divulgação do próprio trabalho é sempre visibilidade legítima"
       - "Que a pessoa deveria parar de divulgar qualquer trabalho publicamente, segundo este marco"
       - "Que o problema só existiria se a divulgação fosse feita fora do horário de trabalho"
@@ -20,14 +20,14 @@ questions:
       - "Como um movimento válido do pêndulo entre IC e gestão — não como um recuo ou fracasso na carreira"
       - "Como um sinal claro de que a pessoa fracassou na gestão técnica"
       - "Como algo que só é aceitável se a pessoa nunca mais tentar gestão novamente"
-      - "Como uma escolha que não existe na prática, já que a carreira é descrita como uma escada única com gestão no topo"
+      - "Como uma escolha inexistente, já que a carreira é uma escada única com gestão no topo"
     answer: 0
     explanation: "O marco descreve a escolha entre IC, gestão técnica e híbrido como um pêndulo revisitável, não uma escada única com gestão no topo — muitas pessoas transitam entre os dois mais de uma vez, e cada movimento é uma decisão válida, não um recuo. O marco não trata a volta ao IC como fracasso, nem exige que a pessoa nunca mais considere gestão."
-  - question: "Durante o capstone desta trilha, o diretório `dossie/` aparece acidentalmente no índice do Git de um repositório. Segundo este marco, o que deveria acontecer e por quê?"
+  - question: "Uma gestora técnica percebe, depois de um ano no cargo, que já não consegue julgar se a estimativa do time para uma mudança no ledger é razoável. Segundo este marco, o que ela perdeu e como conservar o suficiente?"
     options:
-      - "`make check-privacidade` deveria falhar — o dossiê pessoal precisa ficar fora do controle de versão porque pode conter reflexões privadas e, potencialmente, dados que não deveriam ser compartilhados"
-      - "Nada deveria acontecer, já que o dossiê é só um resumo de artefatos já públicos no repositório"
-      - "O sistema deveria apenas registrar um aviso informativo, nunca falhar a verificação"
-      - "O problema só seria relevante se o dossiê contivesse código-fonte, não reflexões de carreira"
+      - "Intuição técnica; conserva-se com revisão de design, protótipo fora do caminho crítico e plantão"
+      - "Nada relevante: a gestão não precisa julgar estimativas, basta confiar no número que o time apresenta no planejamento"
+      - "A capacidade de programar; a saída é voltar a pegar tarefas do caminho crítico para reaprender o sistema por dentro"
+      - "Tempo de agenda; a saída é ler os relatórios de status com mais atenção"
     answer: 0
-    explanation: "O marco é direto: `make check-privacidade` falha especificamente se o diretório `dossie/` aparecer no índice do Git, porque esse diretório é pessoal e privado por design — não um resumo público. A verificação é uma falha ativa, não um aviso informativo, e o conteúdo relevante não se limita a código-fonte."
+    explanation: "O marco lista contexto do código, intuição de estimativa e credibilidade técnica como o que se perde primeiro na gestão, e propõe práticas de pouco tempo para conservar o suficiente: revisão de design, protótipos e ferramentas fora do caminho crítico, plantão ocasional e leitura atenta de post-mortems. Confiar sem julgar abre mão do que o papel exige; voltar ao caminho crítico repete o erro que o marco 05 descreve; e relatório de status não devolve contexto de código."
