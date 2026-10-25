@@ -94,6 +94,9 @@ para de mandar tráfego **antes** do graceful shutdown drenar as requisições e
 > `preStop`, o `terminationGracePeriodSeconds` e por que o pod ainda recebe tráfego por
 > alguns segundos depois do SIGTERM — é o assunto desse marco.
 
+> **Reencontro adiante — `dados-distribuidos/11`.** O expand/contract completo, em quatro fases, com o DDL que trava a tabela inteira
+> e o *backfill* que preenche a coluna nova sem derrubar nada.
+
 ## Exemplo numa fintech
 
 O **pix-gateway** roda de imagem construída por buildpacks (não-root, camadas cacheadas),
@@ -103,6 +106,8 @@ pod antigo morre — **nenhuma transação Pix é cortada no meio**, requisito n
 para quem move dinheiro.
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 11: a suíte inteira verde com `mvn test`, sem serviço pré-instalado além do Docker.
 
 **Tutorial — imagem sem root e rollback com schema já migrado.**
 
@@ -228,6 +233,17 @@ usa.
 
 **Checagem.** (a) O que quebraria no passo 3 se `V3` tivesse `NOT NULL` sem default?
 (b) Por que buildpacks já resolve "sem root" por padrão, e o que isso evita?
+
+**Gabarito.** (a) A `v1` não conhece a coluna e não a preenche: com `NOT NULL` sem default,
+todo `INSERT` dela em `payments` falharia com violação de restrição, e o rollback da
+aplicação deixaria de funcionar sem reverter a migração — exatamente o que o
+expand/contract evita. A coluna obrigatória só entra numa etapa posterior (*contract*),
+depois que nenhuma versão em produção escreve sem ela. (b) A imagem gerada pelos
+buildpacks roda com um usuário sem privilégios (`1002:1001` na verificação deste marco),
+definido pelo próprio builder; ninguém precisa lembrar de um `USER` no Dockerfile. Isso
+evita que uma falha na aplicação — uma desserialização insegura, uma dependência
+comprometida — vire controle de root dentro do container, e facilita escapar dele para o
+nó.
 
 ## Principais aprendizados
 

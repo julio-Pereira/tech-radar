@@ -107,6 +107,8 @@ mais previsível.) A superfície de auditoria fica limpa: o binário
 
 ## Mão na massa
 
+**Pré-requisito do estado do pix-gateway:** o do marco 02, já com o `fintech-audit-spring-boot-starter` instalado no `~/.m2` e o teste de correlação verde.
+
 **Desafio — subir os dois perfis sem recompilar.** Crie `application.yaml` (defaults),
 `application-dev.yaml` e `application-prod.yaml` no `pix-gateway`, cada um só com o
 que muda (`pix.psp.base-url` apontando para sandbox em `dev`, para o endpoint real em
@@ -172,6 +174,15 @@ O nome diferente é proposital: no classpath de teste, esse arquivo é lido **ju
 **Checagem.** (a) Por que a mesma imagem promovida de homolog para prod é mais
 auditável que builds separados por ambiente? (b) O que muda se você usar `@Profile`
 em vez de uma propriedade para o exemplo acima?
+
+**Gabarito.** (a) Com a mesma imagem, o que foi testado em homologação é, byte a byte, o
+que roda em produção: o hash da imagem prova isso para a auditoria. Com builds separados,
+cada ambiente tem um binário que nunca foi testado como tal — basta uma dependência
+resolvida diferente entre os dois builds. (b) Com `@Profile`, a diferença deixa de ser um
+valor e vira código: o bean (ou o arquivo) de prod precisa existir dentro do artefato, e
+apontar para um PSP novo exige rebuild. Para uma URL, que muda por ambiente e pode mudar
+sem deploy, a propriedade externa é o certo; o profile fica para quando o *comportamento*
+muda (um cliente fake em `dev`).
 
 ## Principais aprendizados
 

@@ -118,6 +118,8 @@ binding de propriedades. Simples na superfície; nos próximos marcos abrimos a 
 
 ## Mão na massa
 
+**Pré-requisito do estado do pix-gateway:** nenhum — o projeto nasce aqui. Basta JDK 21 e Maven.
+
 **Tutorial — nascer o pix-gateway.**
 
 1. Gere o projeto em [start.spring.io](https://start.spring.io) com Boot 4.1 e Java 21.

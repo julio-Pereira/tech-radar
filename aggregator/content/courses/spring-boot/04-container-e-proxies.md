@@ -154,6 +154,8 @@ segundo lançamento, expõe o rollback que nunca aconteceu.
 
 ## Mão na massa
 
+**Pré-requisito do estado do pix-gateway:** o do marco 03 (`PspProperties` validada, perfis `dev`/`prod`, `src/test/resources/application.properties`). A partir daqui, Docker rodando para o Testcontainers.
+
 **Tutorial — reproduzir e provar o bug de self-invocation.**
 
 1. Escreva `RefundService` com `processRefund` chamando `this.applyRefund` (anotado

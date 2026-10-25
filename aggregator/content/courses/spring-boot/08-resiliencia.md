@@ -163,6 +163,9 @@ de forma transparente — enfileira a intenção para processar quando a depend�
 e responde `202 Accepted`, nunca `200` com um resultado inventado. Em fintech, o fallback
 errado custa dinheiro real.
 
+> **Reencontro adiante — `open-finance-brasil/08`.** Uma iniciadora fala com dezenas de detentoras, e o mesmo circuit breaker e bulkhead
+> passam a ser aplicados **por detentora** — uma lenta não pode derrubar as outras.
+
 ## Exemplo numa fintech
 
 São **23h59 do dia de vencimento** e o PSP está degradado — respondendo, mas lento e com
@@ -174,6 +177,8 @@ pagamento entra numa fila durável para quando o PSP voltar, em vez de falhar de
 pior, fingir sucesso.
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 07: `spring-boot-starter-restclient` e WireMock (`wiremock-standalone`) já no `pom.xml`.
 
 **Desafio — client de PSP resiliente.** Implemente o `RestClient` do PSP com
 connect/read timeout, `@Retry` (backoff + jitter, só na operação idempotente) e

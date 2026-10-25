@@ -116,6 +116,8 @@ nome do header configurável por `fintech.audit.header-name`.
 
 ## Mão na massa
 
+**Pré-requisito do estado do pix-gateway:** o do marco 01: `POST /payments` respondendo `501` e `mvn test` verde.
+
 **Desafio — extrair um `fintech-audit-spring-boot-starter`.** Um reator Maven de 2
 módulos, num diretório `fintech-audit-starter/` ao lado do `pix-gateway`:
 

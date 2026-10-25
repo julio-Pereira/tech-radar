@@ -121,6 +121,9 @@ mês). O **error budget** é o 0,1% restante; o alerta dispara por **burn rate**
 velocidade com que você queima o budget. Queima rápida (vai estourar o mês em horas)
 acorda alguém; queima lenta vira um ticket. Menos ruído, mais sinal.
 
+> **Reencontro adiante — `observabilidade/12`.** Escolher o SLI que reflete a experiência do cliente, as recording rules que o
+> calculam e o que fazer com a dependência que você não controla — o PSP.
+
 ## Segurança: exponha o mínimo
 
 Ligando com o marco 09: Actuator mal exposto vaza segredo e permite alterar
@@ -143,6 +146,8 @@ error budget de latência da iniciação rápido demais", que aponta para o PSP 
 antes que o cliente reclame.
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 09: resource server JWT com `SecurityConfig` liberando `/actuator/health/**` e `/actuator/prometheus`, e os testes antigos ajustados à segurança.
 
 **Tutorial — Actuator e a Observation API no `pix-gateway`.**
 
@@ -208,6 +213,18 @@ pods ao mesmo tempo se você escolher a outra.
 em vez da readiness? (b) Com três pods e o antifraude fora, quantos endpoints o Service
 tem em cada linha da tabela? (c) Por que `paymentId` nunca deve virar
 `lowCardinalityKeyValue`?
+
+**Gabarito.** (a) Liveness falhando faz o Kubernetes **reiniciar** o pod. Com o antifraude
+fora, todos os pods reiniciam em sequência, sobem, acham o antifraude ainda fora e
+reiniciam de novo — um *restart loop* que derruba o gateway inteiro por causa de um
+serviço alheio, e que nenhum reinício conserta. (b) Na configuração padrão, os três pods
+continuam prontos: o Service tem 3 endpoints, e cada requisição recebe um fallback
+honesto. Com o `include`, os três ficam *not ready* juntos e o Service fica com **zero**
+endpoints: o cliente recebe erro de conexão em vez de uma resposta. (c) Cada valor
+distinto de um label de métrica cria uma série nova no Prometheus. `paymentId` tem um
+valor por pagamento, então seriam milhões de séries, cada uma com um ponto só —
+armazenamento e consultas explodem. No span, onde cada requisição já é um registro
+próprio, o `paymentId` é exatamente o que você quer.
 
 ## Principais aprendizados
 

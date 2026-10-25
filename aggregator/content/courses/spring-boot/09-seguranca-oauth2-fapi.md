@@ -121,6 +121,10 @@ e repassar o certificado do cliente; o essencial é entender **por que** cada pe
 — roubo de token e falsificação de identidade são o modelo de ameaça de quem move
 dinheiro alheio.
 
+> **Reencontro adiante — `seguranca-aplicacao/07`.** Os requisitos do FAPI que mais pegam na prática, o token *sender-constrained* e o
+> mTLS de verdade, do lado de quem configura o servidor de autorização. Os fluxos OAuth2 e
+> OIDC por baixo estão em `seguranca-aplicacao/05`.
+
 ## Actuator como superfície de ataque
 
 Ligar o marco 10 (observabilidade) com este: os endpoints do Actuator são **poderosos** e
@@ -154,6 +158,8 @@ conexão é mTLS e o access token é certificate-bound — o gateway rejeita um 
 `cnf` não bate com o certificado apresentado.
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 08: cliente do PSP com timeout, `@Retry` com fallback e `@CircuitBreaker`.
 
 **Tutorial — proteger o gateway.** Configure o pix-gateway como resource server JWT,
 com regras por escopo (`payments:write` no `POST`, `payments:read` nas consultas) e

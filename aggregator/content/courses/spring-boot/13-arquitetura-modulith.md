@@ -75,12 +75,12 @@ documentação de arquitetura é **gerada do código**, sempre atualizada.
 ## Comunicação entre módulos: eventos internos
 
 Módulos não devem se chamar direto como serviços acoplados. O Modulith incentiva
-**eventos de aplicação**: `payments` publica `PaymentConfirmed`; `antifraud` e `audit`
+**eventos de aplicação**: `payments` publica `PaymentInitiated`; `antifraud` e `audit`
 **escutam**, sem `payments` conhecê-los.
 
 ```java
 @ApplicationModuleListener
-void on(PaymentConfirmed event) { ... }
+void on(PaymentInitiated event) { ... }
 ```
 
 `@ApplicationModuleListener` não é mágica: é a soma de três anotações do Spring que você
@@ -146,6 +146,9 @@ overengineering. Aplique a inversão onde a fronteira **importa** (integrações
 regra de negócio central); no resto, um service direto basta. Arquitetura é sobre onde
 gastar complexidade, não sobre gastá-la em tudo.
 
+> **Reencontro adiante — `arquitetura-de-software/04`.** Portas e adaptadores a fundo: onde ficam DTOs e transações, a camada
+> anticorrupção como adaptador e o teste de contrato que todo adaptador da porta precisa passar.
+
 ## Quando quebrar em microservices
 
 Extraia um serviço quando houver uma razão **concreta**, não estética:
@@ -177,6 +180,8 @@ a integração. (Ponte com o marco *java-vs-go* da trilha `go-fintech` e com o s
 visualizações de arquitetura.)
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 12: migrações até a `V3__add_channel_column.sql` e a imagem gerada por buildpacks.
 
 **Desafio — fronteira verificada.** Estruture o pix-gateway em três módulos Spring
 Modulith e escreva o teste `ApplicationModules.verify()`. Depois, introduza de propósito

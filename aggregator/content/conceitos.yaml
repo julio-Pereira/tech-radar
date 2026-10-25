@@ -82,11 +82,16 @@
   apelidos: ["SBOM", "SBOMs"]
 
 # ── Eventos e dados ────────────────────────────────────────────────────────
+# Outbox: o dono continua sendo arquitetura-eventos/08, que ensina o padrão
+# independente de stack (dual-write, relay, garantias). spring-boot/06 é a
+# implementação em Spring (insert-first, relay que espera o ack) e
+# spring-boot/13 a versão in-process (Event Publication Registry): aparecem
+# como aprofundamento, não como dono.
 - id: outbox
   termo: "Outbox (transactional outbox)"
   dono: arquitetura-eventos/08
   apelidos: ["Outbox", "outbox"]
-  tambem: [kafka/08, spring-boot/06]
+  tambem: [kafka/08, spring-boot/06, spring-boot/13]
 
 - id: idempotencia
   termo: "Idempotência"
@@ -157,6 +162,24 @@
   termo: "Error budget (orçamento de erro)"
   dono: observabilidade/12
   apelidos: ["Error budget", "error budget", "Orçamento de erro", "orçamento de erro"]
+
+- id: circuit-breaker
+  termo: "Circuit breaker"
+  dono: spring-boot/08
+  apelidos: ["Circuit breaker", "circuit breaker", "circuit breakers"]
+  tambem: [open-finance-brasil/08]
+
+- id: bulkhead
+  termo: "Bulkhead"
+  dono: spring-boot/08
+  apelidos: ["Bulkhead", "bulkhead", "bulkheads"]
+  tambem: [open-finance-brasil/08, concorrencia-e-recursos/05]
+
+- id: testcontainers
+  termo: "Testcontainers"
+  dono: spring-boot/11
+  apelidos: ["Testcontainers"]
+  tambem: [arquitetura-eventos/12, concorrencia-e-recursos/08]
 
 - id: dora
   termo: "Métricas DORA"

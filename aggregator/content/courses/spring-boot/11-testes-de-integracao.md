@@ -59,7 +59,7 @@ class PaymentOutboxIT {
     @Container @ServiceConnection
     static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.3.1");
 
-    @Autowired PaymentService payments;
+    @Autowired PaymentInitiationService payments;
     // ... testa initiate + outbox contra Postgres e Kafka de verdade
 }
 ```
@@ -86,6 +86,9 @@ das mensagens) sem subir os dois juntos: o provedor prova que honra o contrato; 
 consumidor prova que trabalha contra ele. Cada lado testa rápido e isolado, e a
 integração continua garantida.
 
+> **Reencontro adiante — `arquitetura-eventos/12`.** O contract testing aplicado a evento assíncrono, e as duas suítes que uma
+> arquitetura de eventos não pode deixar de ter: reprojeção determinística e idempotência.
+
 ## Exemplo numa fintech
 
 O teste crítico do **pix-gateway** é o do outbox rodando contra **Kafka real** via
@@ -94,6 +97,8 @@ atomicamente do lado do banco e com entrega efetiva no broker — a garantia que
 conciliação. Nenhum mock daria essa confiança.
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 10: Actuator com Prometheus, a `Observation` de `payment.initiate` e o `FraudCheckHealthIndicator`.
 
 **Desafio — escrever no H2 de propósito, migrar e achar a diferença.**
 

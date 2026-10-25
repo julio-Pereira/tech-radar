@@ -95,6 +95,10 @@ Mas há armadilhas que separam quem leu a doc de quem só ligou a flag:
   pool de 20 conexões, 9.980 esperam. O ponto de contenção só **mudou de lugar** — de
   threads para conexões. Dimensione o pool conscientemente.
 
+> **Reencontro adiante — `concorrencia-e-recursos/06`.** Quando a thread fica barata, o que sobra é limitar a concorrência por recurso e
+> cancelar a tempo: interrupção cooperativa, *structured concurrency* e a comparação com o
+> `context` do Go.
+
 ## Exemplo numa fintech
 
 Um endpoint do **pix-gateway** faz *fan-out* para **3 PSPs** para cotar a melhor rota
@@ -106,6 +110,8 @@ sob concorrência salta sem uma única mudança de código — desde que o pool 
 para as gravações acompanhe.
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 06: `V2__idempotency_and_outbox.sql`, serviço de idempotência insert-first, relay do outbox e Kafka na `TestcontainersConfiguration`.
 
 **Desafio — achar onde a fila se forma.** Monte o *fan-out* do exemplo e meça, com e
 sem virtual threads, onde as requisições esperam.
@@ -165,6 +171,14 @@ deste marco:
 **Checagem.** Por que, no cenário de *fan-out*, ligar virtual threads sem mexer no pool
 do HikariCP pode **não** melhorar a latência de uma requisição que também grava no
 banco — e em qual das duas linhas da tabela isso acontece?
+
+**Gabarito.** Virtual threads removem o limite de *threads*, não o de *conexões*. Se a
+transação abre antes das chamadas ao PSP, cada requisição segura uma das 5 conexões
+durante todo o I/O, e as outras esperam na fila do Hikari — com threads de plataforma ou
+virtuais, a vazão é a mesma: 5 requisições por vez. É a linha `/quotes-tx`: o tempo total
+não muda e o pico de `hikaricp.connections.pending` salta de 16 para 190, porque agora há
+threads de sobra para chegar à fila. Na linha `/quotes`, a conexão só é usada no `INSERT`,
+por milissegundos, e o ganho das virtual threads aparece inteiro.
 
 ## Principais aprendizados
 

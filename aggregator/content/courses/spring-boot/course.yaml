@@ -6,6 +6,7 @@ tags: [java, spring, backend, fintech]
 level: advanced
 lang: pt-BR
 estimatedHours: 22
+glossary: GLOSSARIO.md
 sources:
   - title: "Spring Boot Reference Documentation"
     url: https://docs.spring.io/spring-boot/index.html
