@@ -79,8 +79,10 @@ tutorial a diferença que uma linha faz.
 
 ## O salto senior: a Observation API
 
-Instrumentar *três vezes* — um contador aqui, um span de trace ali, um log acolá — é
-retrabalho e gera sinais que não se correlacionam. A **Micrometer Observation API**
+Um *trace* é o registro de uma requisição atravessando os serviços, e cada etapa dele (a
+chamada ao PSP, a query no banco) é um *span*, com início, fim e atributos. Instrumentar
+*três vezes* — um contador aqui, um span ali, um log acolá — é retrabalho e gera sinais
+que não se correlacionam. A **Micrometer Observation API**
 resolve isso: você instrumenta **uma vez** e obtém, da mesma observação, **métrica +
 trace + log correlacionado**.
 
@@ -91,14 +93,17 @@ Observation.createNotStarted("payment.initiate", registry)
     .observe(() -> pspClient.initiate(req));
 ```
 
-`lowCardinalityKeyValue` vira dimensão de métrica (poucos valores possíveis — nunca use
-`paymentId` aqui, ou explode a cardinalidade do Prometheus). `highCardinalityKeyValue`
+`lowCardinalityKeyValue` vira dimensão de métrica. *Cardinalidade* é o número de valores
+distintos que um label pode ter, e cada combinação de labels vira uma série guardada à
+parte no Prometheus: `psp` tem meia dúzia de valores; `paymentId` aqui criaria uma série
+por pagamento e explodiria o armazenamento. `highCardinalityKeyValue`
 vira atributo do span de trace, onde alta cardinalidade é bem-vinda. Uma chamada, três
 sinais coerentes.
 
 ## Tracing distribuído e exemplars
 
-Com Micrometer Tracing exportando via **OpenTelemetry (OTLP)**, cada request ganha um
+Com Micrometer Tracing exportando via **OpenTelemetry** (pelo OTLP, o protocolo de
+exportação do OpenTelemetry), cada request ganha um
 `traceId` propagado por todos os serviços. Você segue uma transação Pix do gateway →
 antifraude → conciliação num único trace, e os **logs** já saem com o mesmo `traceId`
 (via MDC) — do gráfico de latência ao log da requisição exata, em dois cliques.

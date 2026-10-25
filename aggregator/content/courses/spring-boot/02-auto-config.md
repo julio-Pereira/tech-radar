@@ -50,7 +50,9 @@ public class AuditAutoConfiguration {
 ```
 
 O Boot só descobre essa classe se ela estiver listada no arquivo de imports — **não**
-via component scan (auto-configs vivem fora do pacote da aplicação de propósito):
+via *component scan* (a varredura que registra as classes anotadas com `@Component`,
+`@Service` etc. dentro do pacote da aplicação). Auto-configs vivem fora desse pacote de
+propósito:
 
 ```
 # src/main/resources/META-INF/spring/
@@ -60,9 +62,9 @@ com.acme.fintech.audit.AuditAutoConfiguration
 
 Duas boas práticas que separam o brinquedo do artefato de produção:
 
-- **`@ConditionalOnMissingBean` em tudo** — o squad consumidor sempre pode sobrescrever
-  o seu default. Você oferece, não impõe.
-- **`spring-boot-autoconfigure-processor`** no build — em compile time, ele copia as
+- Ponha **`@ConditionalOnMissingBean` em tudo**: assim o squad consumidor sempre pode
+  sobrescrever o seu default declarando o próprio bean. Você oferece, não impõe.
+- Ponha o **`spring-boot-autoconfigure-processor`** no build. Em compile time, ele copia as
   condições simples de cada auto-configuração (`@ConditionalOnClass`, por exemplo) para
   o arquivo `META-INF/spring-autoconfigure-metadata.properties`. No startup, o Boot lê
   esse arquivo e descarta as auto-configurações que não se aplicam **sem carregar a
@@ -106,7 +108,9 @@ o grafo de dependências que você declara é o que o consumidor realmente carre
 O **pix-gateway** vai crescer e, com ele, outros serviços do time de pagamentos
 (conciliação, antifraude). Todos precisam do **mesmo** cabeçalho de correlação de
 auditoria (`X-Correlation-Id`) propagado e registrado — requisito de rastreabilidade
-BACEN. Em vez de copiar um `@Component` filtro entre repositórios, o time de plataforma
+BACEN. O id de correlação é um identificador único por requisição: chega no header (ou é
+gerado na entrada), volta na resposta e aparece em cada linha de log daquela requisição,
+para que um atendimento ou uma auditoria encontre tudo o que aconteceu com ela. Em vez de copiar um `@Component` filtro entre repositórios, o time de plataforma
 publica o starter de auditoria: cada serviço ganha o filtro condicionalmente, com o
 nome do header configurável por `fintech.audit.header-name`.
 
@@ -228,7 +232,9 @@ public record AuditProperties(
 }
 ```
 
-`CorrelationFilter.java`:
+`CorrelationFilter.java` — o filtro põe o id no **MDC** (*Mapped Diagnostic Context*, um
+mapa por thread que o SLF4J acrescenta a cada linha de log) e o remove no fim, para não
+vazar para a próxima requisição que reusar a thread:
 
 ```java
 package com.fintech.audit.autoconfigure;

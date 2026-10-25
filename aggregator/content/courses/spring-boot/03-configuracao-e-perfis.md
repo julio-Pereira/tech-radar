@@ -57,8 +57,9 @@ simplificada):
 3. Variáveis de ambiente do SO
 4. Argumentos de linha de comando (`--pix.psp.read-timeout=5s`)
 
-O de cima é o *default*; o de baixo **sobrescreve**. Isso materializa o 12-factor: o
-mesmo artefato roda em qualquer lugar, e o ambiente injeta o que muda. Nunca decida
+O de cima é o *default*; o de baixo **sobrescreve**. Isso materializa o *12-factor* — o conjunto de
+doze práticas para aplicações de nuvem cujo fator III manda guardar a configuração no
+ambiente, fora do código: o mesmo artefato roda em qualquer lugar, e o ambiente injeta o que muda. Nunca decida
 comportamento com `if (profile == "prod")` no código — deixe a configuração externa
 decidir.
 
@@ -81,8 +82,10 @@ imagem** parametrizada por ambiente.
 
 `spring.config.import` puxa configuração externa de forma declarativa —
 `spring.config.import=optional:configtree:/etc/secrets/` lê cada arquivo de um volume
-como uma propriedade, o formato que Kubernetes *Secrets* montam. Para Vault,
-`spring.config.import=vault://secret/pix-gateway`.
+como uma propriedade, o formato que Kubernetes *Secrets* montam. Para o HashiCorp
+Vault (um cofre de segredos com controle de acesso e auditoria),
+`spring.config.import=vault://secret/pix-gateway` — esse prefixo vem do Spring Cloud
+Vault, não do Boot.
 
 A regra inegociável: **segredo nunca entra no repositório nem na imagem**. Credencial
 de PSP, chave de assinatura, senha de banco vêm de env var, volume montado ou cofre —

@@ -18,12 +18,12 @@ Empacotar um JAR fat numa imagem `COPY app.jar` funciona, mas desperdiça cache:
 mudança de código reconstrói a camada inteira, incluindo as dependências que não mudaram.
 Duas formas melhores:
 
-- **Buildpacks** (`./gradlew bootBuildImage` / `mvn spring-boot:build-image`) — geram uma
-  imagem OCI otimizada **sem Dockerfile**, com camadas separadas (dependências, snapshot,
-  aplicação), usuário não-root e boas práticas por padrão. É o caminho de menor atrito e
-  o default recomendado.
-- **Dockerfile em camadas** — quando você precisa de controle fino, use o modo `tools` do
-  jar do Boot para extrair as camadas (`dependencies`, `spring-boot-loader`, `snapshot-
+- Os **buildpacks** (`./gradlew bootBuildImage` / `mvn spring-boot:build-image`) geram
+  uma imagem OCI (o formato padrão de imagem de container) otimizada **sem Dockerfile**,
+  com camadas separadas (dependências, snapshot, aplicação), usuário não-root e boas
+  práticas por padrão. É o caminho de menor atrito e o default recomendado.
+- Um **Dockerfile em camadas** serve quando você precisa de controle fino. Use o modo
+  `tools` do jar do Boot para extrair as camadas (`dependencies`, `spring-boot-loader`, `snapshot-
   dependencies`, `application`) e copiá-las em ordem de estabilidade:
   `java -Djarmode=tools -jar app.jar extract --layers --launcher`. (O antigo
   `-Djarmode=layertools` não existe mais no Boot 4: o jar responde
@@ -36,17 +36,20 @@ Duas formas melhores:
 Tempo de startup vira requisito quando você escala sob demanda ou reinicia numa janela de
 incidente. Dois caminhos, com trade-offs bem diferentes:
 
-- **CDS / AppCDS** (Class Data Sharing) — arquiva o estado de classes carregadas para
-  a JVM mapear na subida em vez de recarregar. Ganho de startup **moderado**, custo
-  **baixo**, **nenhuma** mudança no modelo de execução: continua uma JVM normal, com JIT
+- O **CDS / AppCDS** (*Class Data Sharing*) arquiva num arquivo as classes já carregadas
+  e verificadas, e a JVM mapeia esse arquivo na subida em vez de carregá-las de novo. O
+  ganho de startup é **moderado**, o custo é **baixo** e não há **nenhuma** mudança no
+  modelo de execução: continua uma JVM normal, com JIT
   e todo o ecossistema. O Boot 4 integra isso de forma quase transparente. É o ganho
   barato — comece por ele.
-- **GraalVM native image** — compila **ahead-of-time** para um binário nativo. Startup em
+- A **GraalVM native image** compila a aplicação **ahead-of-time** (antes de rodar, e não
+  durante, como o JIT da JVM) para um binário nativo. Startup em
   **dezenas de milissegundos** e consumo de memória muito menor — ótimo para serverless e
   escala agressiva. O custo é real e precisa ser dito: **reflexão, proxies dinâmicos e
   carregamento de recurso precisam ser conhecidos em build time** (o Spring AOT gera
-  boa parte dos hints, mas bibliotecas fora do radar exigem configuração manual);
-  **agentes Java e algumas ferramentas de APM não funcionam**; e o **tempo de build é
+  boa parte dessas indicações — os *hints* —, mas bibliotecas fora do radar exigem
+  configuração manual); **agentes Java e algumas ferramentas de APM** (monitoramento de
+  performance que se injeta na JVM) **não funcionam**; e o **tempo de build é
   muito maior**. Não é "ligar uma flag" — é uma decisão de arquitetura.
 
 A regra: **CDS** dá 80% do ganho de startup por 5% do custo; vá de **native** só quando o
@@ -76,9 +79,10 @@ Ligando com o marco 10: o Boot expõe `/actuator/health/liveness` e
 `/actuator/health/readiness` (com `management.endpoint.health.probes.enabled=true`). No
 Kubernetes:
 
-- **Liveness** falha → o pod é **reiniciado**. Use só para estado irrecuperável; ligar
-  liveness a uma dependência externa causa *restart loop* quando ela oscila.
-- **Readiness** falha → o pod **sai do balanceador** mas continua vivo. É onde entra o que
+- Quando a **liveness** falha, o pod é **reiniciado**. Use-a só para estado
+  irrecuperável; ligar a liveness a uma dependência externa causa *restart loop*
+  (reinícios em sequência, sem fim) quando ela oscila.
+- Quando a **readiness** falha, o pod **sai do balanceador** mas continua vivo. É onde entra o que
   é do próprio pod (aquecendo, em shutdown). Dependência externa compartilhada, como o
   antifraude, fica fora — derrubaria todos os pods juntos (marco 10).
 

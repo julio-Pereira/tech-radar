@@ -27,28 +27,34 @@ curta, cirúrgica, só em volta da escrita no banco.
 
 **Propagation** decide o que acontece quando um método transacional chama outro:
 
-- `REQUIRED` (default) — junta-se à transação corrente ou cria uma. 90% dos casos.
-- `REQUIRES_NEW` — **suspende** a corrente e abre outra independente. Use para o que
-  precisa persistir *mesmo que a transação de negócio faça rollback* — ex.: gravar um
-  registro de auditoria de uma tentativa falha. O custo escondido: a transação suspensa
-  **ainda segura sua conexão do pool**, e a nova pede uma **segunda** — duas unidades de
-  trabalho concorrentes, cada uma precisando de duas conexões do mesmo pool, é a receita
-  do deadlock de pool (`concorrencia-e-recursos/04`). Com `maximumPoolSize` pequeno,
-  `REQUIRES_NEW` chamado sob carga pode travar o serviço inteiro.
-- `NESTED` — savepoint dentro da transação atual.
+- `REQUIRED`, o default, junta-se à transação corrente ou cria uma se não houver. Cobre
+  90% dos casos.
+- `REQUIRES_NEW` **suspende** a transação corrente e abre outra, independente. Use-o para
+  o que precisa persistir *mesmo que a transação de negócio faça rollback* — por exemplo,
+  gravar o registro de auditoria de uma tentativa que falhou. O custo escondido: a
+  transação suspensa **ainda segura sua conexão do pool**, e a nova pede uma
+  **segunda**. Se várias requisições ao mesmo tempo seguram a primeira conexão e esperam
+  a segunda, e o pool acabou, ninguém avança — é o *deadlock* de pool
+  (`concorrencia-e-recursos/04`). Com `maximumPoolSize` pequeno, `REQUIRES_NEW` chamado
+  sob carga pode travar o serviço inteiro.
+- `NESTED` cria um *savepoint* — um ponto de retorno dentro da transação atual. Um erro
+  desfaz só o trabalho feito depois dele, e a transação de fora continua.
 
 **Isolation** controla o que uma transação enxerga das outras. O default do Postgres é
-`READ_COMMITTED`. Subir para `REPEATABLE_READ`/`SERIALIZABLE` resolve *anomalias* (leitura
-não-repetível, phantom) ao custo de contenção e de possíveis erros de serialização que
+`READ_COMMITTED`. Subir para `REPEATABLE_READ`/`SERIALIZABLE` resolve *anomalias* — a **leitura
+não-repetível** (ler a mesma linha duas vezes na transação e achar valores diferentes,
+porque outra transação comitou no meio) e o **phantom** (repetir uma consulta e achar
+linhas novas que outra transação inseriu) — ao custo de contenção e de possíveis erros de serialização que
 você **tem** que tratar com retry. Não suba isolation por reflexo; suba quando a anomalia
 for real para o seu caso — e meça.
 
 `@Transactional(readOnly = true)` em consultas não é decoração: o Hibernate deixa de
 fazer *dirty checking* (não compara as entidades carregadas para decidir o que gravar),
 o driver recebe a conexão marcada como somente-leitura, e o código documenta a intenção.
-O que ele **não** faz sozinho é mandar a consulta para uma réplica de leitura: isso só
-acontece se você configurar um `AbstractRoutingDataSource` que escolha o `DataSource`
-pela flag `readOnly` da transação corrente. Sem esse roteador, tudo vai para o primário.
+O que ele **não** faz sozinho é mandar a consulta para uma réplica de leitura (uma cópia
+do banco que só atende leituras): isso só acontece se você configurar um
+`AbstractRoutingDataSource` que escolha o `DataSource` pela flag `readOnly` da transação
+corrente. Sem esse roteador, tudo vai para o primário, o banco que recebe as escritas.
 
 ## Vazamento de conexão e a hierarquia de timeouts
 
@@ -74,8 +80,10 @@ desistiu de esperar resposta.
 ## N+1: o assassino silencioso de latência
 
 Carregar uma lista de pagamentos e acessar `payment.getPsp()` em cada um dispara **uma
-query por item** — o problema N+1. Ele não aparece em teste com 2 registros; aparece na
-produção com 10 mil. Resolva com `@EntityGraph` (ou `JOIN FETCH`):
+query por item**: a associação é *lazy* (só é buscada quando acessada), então são uma
+query para a lista e mais N, uma por pagamento — o problema N+1. Ele não aparece em
+teste com 2 registros; aparece na produção com 10 mil. Resolva pedindo a associação na
+mesma query, com `@EntityGraph` (ou um `JOIN FETCH` em JPQL):
 
 ```java
 @EntityGraph(attributePaths = "psp")
@@ -121,14 +129,32 @@ CREATE TABLE payments (
 
 ## A decisão do ledger: locking otimista vs pessimista
 
-Duas transações debitando a **mesma conta** ao mesmo tempo podem, sem controle, ambas
-lerem saldo 100, ambas debitarem 80, e deixar saldo 20 em vez de negativo recusado —
-um *lost update*. Há duas defesas:
+Duas transações debitando a **mesma conta** ao mesmo tempo podem, sem controle, ler as
+duas o saldo 100, debitar as duas 80 e gravar as duas 20. Saíram 160 de uma conta que
+tinha 100, e o segundo débito, que deveria ter sido recusado, apagou o primeiro. É um
+*lost update* — uma atualização perdida:
 
-**Otimista (`@Version`)** — uma coluna de versão; no commit, se a versão mudou desde a
-leitura, o Hibernate lança `OptimisticLockException` e você **repete a operação**. Ótimo
-quando conflito é *raro*: nada de lock no banco, alta concorrência, custo só quando
-bate.
+```
+  sem lock:
+  tx A                     saldo no banco                tx B
+  lê ───────────────────▶       100       ◀─────────────── lê
+  100 - 80 = 20                                  100 - 80 = 20
+  grava 20 ─────────────▶        20
+                                 20       ◀─────────── grava 20
+                          (o débito de A sumiu)
+
+  com SELECT ... FOR UPDATE:
+  lê e trava ───────────▶       100       ◀── B tenta ler: espera
+  grava 20, commit ─────▶        20       ──▶ B lê 20; 20 < 80:
+                                              "saldo insuficiente"
+```
+
+Há duas defesas.
+
+**Otimista, com `@Version`.** Uma coluna de versão acompanha a linha; no commit, se a
+versão mudou desde a leitura, o Hibernate lança `OptimisticLockException` e você
+**repete a operação**. Serve quando o conflito é *raro*: não há lock no banco, a
+concorrência é alta e o custo só aparece quando o conflito acontece.
 
 ```java
 @Entity
@@ -140,9 +166,10 @@ class Account {
 }
 ```
 
-**Pessimista (`SELECT ... FOR UPDATE`)** — trava a linha no banco enquanto opera; quem
-chegar depois **espera**. Ótimo quando conflito é *frequente* (conta muito movimentada):
-serializa de fato, sem retries em cascata.
+**Pessimista, com `SELECT ... FOR UPDATE`.** A leitura trava a linha no banco até o fim
+da transação, e quem chegar depois **espera**. Serve quando o conflito é *frequente*
+(uma conta muito movimentada): as transações passam uma de cada vez, sem retries em
+cascata.
 
 ```java
 @Lock(LockModeType.PESSIMISTIC_WRITE)
