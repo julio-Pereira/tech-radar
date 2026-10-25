@@ -1225,6 +1225,75 @@
   to { opacity: 1; transform: none; }
 }
 
+/* ── Concept detour: return banner, end-of-owner link, return highlight ──── */
+.desvio-banner {
+  position: sticky;
+  /* Below the sticky site header, whose height desvio.js measures: it wraps
+     to ~180px on a phone, so a fixed offset would hide the banner. */
+  top: calc(var(--site-header-h, 64px) + 0.5rem);
+  z-index: 9;
+  display: flex;
+  align-items: center; /* no wrap: the text wraps inside its link, × stays right */
+  gap: 0.4rem 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.5rem 0.35rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+/* On a narrow screen the site header alone is ~180px; pinning the banner
+   too would take a third of the viewport. It stays at the top of the trilha
+   instead, and "Terminou? Voltar" closes the owner milestone. */
+@media (max-width: 700px) {
+  .desvio-banner { position: static; }
+}
+
+.desvio-voltar {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text);
+  text-decoration: none;
+}
+.desvio-voltar:hover strong,
+.desvio-voltar:focus-visible strong { text-decoration: underline; }
+
+.desvio-mais { color: var(--text-muted); font-size: 0.85rem; }
+
+.desvio-fechar {
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+.desvio-fechar:hover { color: var(--text); }
+
+.milestone-body .desvio-fim {
+  margin-top: 1.4rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+/* The term the reader came back to, for 2 s. */
+.milestone-body a.conceito-retorno {
+  outline: 2px solid var(--accent-hover);
+  outline-offset: 3px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .milestone-body a.conceito { transition: background-color 400ms ease-out, outline-color 400ms ease-out; }
+}
+
 /* ── Reduced motion ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .progress-bar,

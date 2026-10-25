@@ -13,6 +13,7 @@
 // the term into the preview's own links; it is positioned with `fixed`, so no
 // ancestor needs to become a positioning context.
 import { getProgress } from '../storage.js';
+import { startDesvio } from './desvio.js';
 
 /**
  * @typedef {{ slug: string, marcoId: string, titulo: string, trilha: string, nn: string, minutos?: number }} ConceitoMarco
@@ -51,8 +52,17 @@ let openSeq = 0;
 let closeTimer = 0;
 let lastPointerType = '';
 let lastPointerDownAt = -Infinity; // not 0: performance.now() starts at page load
-/** @type {HTMLAnchorElement | null} the term Esc just returned focus to */
-let refocusedByEscape = null;
+/** @type {HTMLAnchorElement | null} a term whose next focus must not open the preview */
+let suppressFocusFor = null;
+
+/**
+ * Focus about to be moved to `link` by code (Esc closing the preview, a
+ * detour returning to its point) must not pop the preview open.
+ * @param {HTMLAnchorElement} link
+ */
+export function suppressFocusPreview(link) {
+  suppressFocusFor = link;
+}
 
 /** @param {EventTarget | null} target @returns {HTMLAnchorElement | null} */
 function conceptLink(target) {
@@ -246,8 +256,8 @@ export function initConceitos(root) {
       // the second one (preview already open) and navigate straight away;
       // mouse users get the hover delay instead.
       if (performance.now() - lastPointerDownAt < 600) return;
-      if (link === refocusedByEscape) {
-        refocusedByEscape = null; // Esc closed it; giving focus back must not reopen it
+      if (link === suppressFocusFor) {
+        suppressFocusFor = null;
         return;
       }
       window.clearTimeout(closeTimer);
@@ -265,6 +275,17 @@ export function initConceitos(root) {
   });
 
   root.addEventListener('click', (e) => {
+    // A new tab or window is not a detour of this page.
+    const plain = e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey;
+
+    // The preview's milestone links ("Ir para o marco", "Aplicado também
+    // em") are detours from the term the preview belongs to.
+    if (openFor && insidePreview(e.target) && e.target instanceof Element) {
+      const a = e.target.closest('a[href^="#/learn/"]');
+      if (a instanceof HTMLAnchorElement && plain) startDesvio(openFor, a.getAttribute('href') || '');
+      return;
+    }
+
     const link = conceptLink(e.target);
     if (!link) return;
     // Touch: the first tap previews; navigating needs the preview's button
@@ -275,6 +296,7 @@ export function initConceitos(root) {
       open(link);
       return;
     }
+    if (plain) startDesvio(link, link.getAttribute('href') || '');
     close();
   });
 
@@ -284,7 +306,7 @@ export function initConceitos(root) {
     const hadFocusInside = insidePreview(document.activeElement);
     close();
     if (hadFocusInside) {
-      refocusedByEscape = link;
+      suppressFocusPreview(link);
       link.focus();
     }
   });

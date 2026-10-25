@@ -31,12 +31,13 @@ export function init() {
   route();
 }
 
-/** @returns {{ name: 'radar' | 'learn' | 'course' | 'paths' | 'path' | 'glossario' | 'glossario-term' | 'skills' | 'review' | 'capstone', slug?: string, marcoId?: string }} */
+/** @returns {{ name: 'radar' | 'learn' | 'course' | 'paths' | 'path' | 'glossario' | 'glossario-term' | 'skills' | 'review' | 'capstone', slug?: string, marcoId?: string, conceitoId?: string }} */
 function parseRoute() {
   const hash = location.hash.replace(/^#/, '');
   const parts = hash.split('/').filter(Boolean); // "#/learn/x/y" → ["learn","x","y"]
   if (parts[0] === 'learn') {
-    return parts[1] ? { name: 'course', slug: parts[1], marcoId: parts[2] } : { name: 'learn' };
+    // 4th segment: a concept's return point (#/learn/<slug>/<marco>/<conceito>).
+    return parts[1] ? { name: 'course', slug: parts[1], marcoId: parts[2], conceitoId: parts[3] } : { name: 'learn' };
   }
   if (parts[0] === 'paths') {
     return parts[1] ? { name: 'path', slug: parts[1] } : { name: 'paths' };
@@ -78,7 +79,7 @@ function route() {
     announceRoute('Trilhas', isFirstNavigation);
     renderCoursesIndex();
   } else if (r.name === 'course' && r.slug) {
-    renderCourse(r.slug, isFirstNavigation, r.marcoId); // announces its own title once loaded (or not-found)
+    renderCourse(r.slug, isFirstNavigation, r.marcoId, r.conceitoId); // announces its own title once loaded (or not-found)
   } else if (r.name === 'paths') {
     announceRoute('Caminhos', isFirstNavigation);
     renderPathsIndex();

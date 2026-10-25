@@ -5,6 +5,7 @@ import { buildReferences } from './content-blocks.js';
 import { buildMilestoneBody } from './sections.js';
 import { scrollToMilestone } from './scroll.js';
 import { freshnessLabel } from '../dom-helpers.js';
+import { inDesvio } from './desvio.js';
 
 /** @typedef {import('../types.js').Milestone} Milestone */
 
@@ -160,7 +161,9 @@ export function buildTimelineNode(slug, milestone, completed, onToggle, prevMile
     const willExpand = !expanded;
     toggle.setAttribute('aria-expanded', String(willExpand));
     body.classList.toggle('hidden', expanded);
-    if (willExpand) setLastVisited(slug, milestone.id);
+    // A milestone opened during a concept detour is not "where the reader
+    // left off": the origin trilha stays the one to continue.
+    if (willExpand && !inDesvio()) setLastVisited(slug, milestone.id);
   });
 
   checkbox.addEventListener('change', () => {
