@@ -172,7 +172,7 @@ func TestGlossaryEntriesValid(t *testing.T) {
 		if !d.IsDir() {
 			continue
 		}
-		compiled, _, err := compileCourse(filepath.Join(contentDir, d.Name()), bridgeIdx, planned, vocab)
+		compiled, _, err := compileCourse(filepath.Join(contentDir, d.Name()), bridgeIdx, planned, vocab, nil)
 		if err != nil {
 			t.Fatalf("compile %s: %v", d.Name(), err)
 		}

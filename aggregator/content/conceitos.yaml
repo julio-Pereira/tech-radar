@@ -1,0 +1,33 @@
+# Conceitos transversais: um dono por conceito; as outras trilhas citam e o
+# compilador liga (internal/course/conceitos.go). Convenção: README, "Cross-track
+# concepts: usar, não reensinar".
+#
+# Campos:
+#   id           kebab-case, único e imutável (vira ponto de retorno na URL)
+#   termo        nome exibido na prévia
+#   dono         marco que ensina o conceito, na sintaxe das pontes (slug/NN)
+#   apelidos     textos exatos que identificam o conceito; casam em fronteira de
+#                palavra e, por padrão, com a caixa exata ("PAR" ≠ "par")
+#   resumo       opcional; vazio = "Em uma frase" do verbete do glossário da
+#                trilha dona cujo termo casa com um apelido
+#   tambem       opcional; aprofundamentos aplicados, exibidos na prévia
+#   ignorarCaixa opcional, padrão false
+#   ignorarEm    opcional; marcos onde não ligar (além do próprio dono)
+#
+# Regras de ligação: só a primeira ocorrência de cada conceito por marco, no
+# máximo 8 links de conceito por marco, nunca no marco dono, em títulos, em
+# código ou dentro de links, nem num bloco que já tem ponte para o mesmo dono.
+#
+# Fase 1: só as duas sementes de teste. A semente curada (~30 conceitos, cada
+# dono conferido no marco) entra na Fase 4.
+
+- id: jws
+  termo: "JWS (JSON Web Signature)"
+  dono: seguranca-aplicacao/04
+  apelidos: ["JWS", "JSON Web Signature"]
+
+- id: outbox
+  termo: "Outbox (transactional outbox)"
+  dono: arquitetura-eventos/08
+  apelidos: ["Outbox", "outbox"]
+  tambem: [kafka/08, spring-boot/06]

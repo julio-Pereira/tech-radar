@@ -53,7 +53,7 @@ func TestCompileRejectsReviewEveryWithoutReviewedAt(t *testing.T) {
 	dir := t.TempDir()
 	writeFreshnessFixtureCourse(t, dir, "reviewEvery: 12m\n")
 
-	if _, _, err := compileCourse(dir, bridgeIndex{}, nil, nil); err == nil {
+	if _, _, err := compileCourse(dir, bridgeIndex{}, nil, nil, nil); err == nil {
 		t.Fatal("expected an error for reviewEvery without reviewedAt")
 	}
 }
@@ -62,7 +62,7 @@ func TestCompileRejectsUnknownReviewEvery(t *testing.T) {
 	dir := t.TempDir()
 	writeFreshnessFixtureCourse(t, dir, "reviewedAt: 2026-10-12\nreviewEvery: weekly\n")
 
-	if _, _, err := compileCourse(dir, bridgeIndex{}, nil, nil); err == nil {
+	if _, _, err := compileCourse(dir, bridgeIndex{}, nil, nil, nil); err == nil {
 		t.Fatal("expected an error for an unrecognized reviewEvery")
 	}
 }
@@ -71,7 +71,7 @@ func TestCompileAcceptsReviewedAtAloneAndEmitsReviewDue(t *testing.T) {
 	dir := t.TempDir()
 	writeFreshnessFixtureCourse(t, dir, "reviewedAt: 2026-10-12\nreviewEvery: 6m\n")
 
-	compiled, _, err := compileCourse(dir, bridgeIndex{}, nil, nil)
+	compiled, _, err := compileCourse(dir, bridgeIndex{}, nil, nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
