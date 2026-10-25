@@ -15,12 +15,14 @@ circuit breaker, OAuth2 no padrão FAPI, Actuator com métricas de negócio, tes
 integração com Testcontainers e um deploy que sobrevive a rollback.
 
 Se você não fez a trilha de kafka, publique a outbox num tópico de um Kafka local em
-compose — o contrato (`payments.initiated`, chave `accountId`) é o que importa.
+container — o contrato (tópico `payments.initiated`, chave = id do pagamento, como o relay
+do marco 06 publica) é o que importa.
 
 ## Pré-requisitos
 
 - JDK 21+ e Maven ou Gradle
-- Docker (Postgres e Kafka em compose; Testcontainers usa o mesmo daemon)
+- Docker (Testcontainers sobe Postgres e Kafka nos testes; o marco 12 roda a imagem com um
+  Postgres em container)
 - ~6 GB de RAM livres
 - `curl` ou `httpie`, e um gerador de carga simples para o marco 07
 - **Não precisa:** licença comercial, conta em cloud paga, nenhum starter proprietário.
@@ -33,23 +35,23 @@ compose — o contrato (`payments.initiated`, chave `accountId`) é o que import
 | 02 | Uma auto-configuração própria, com `@ConditionalOnProperty` | Desligar por propriedade e ver o bean sumir do contexto |
 | 03 | Perfis `dev`/`prod`, segredo fora do jar, config externalizada | Subir os dois perfis sem recompilar |
 | 04 | Fronteiras de proxy entendidas: `@Transactional` que de fato aplica | Teste que prova que a chamada interna **não** abre transação |
-| 05 | Persistência com Postgres, isolamento escolhido e justificado | Teste de concorrência que expõe write skew no nível errado |
+| 05 | Persistência com Postgres e Flyway, locking escolhido e justificado | Teste de débito concorrente: metade sucede, metade recebe "saldo insuficiente", saldo final ≥ 0 |
 | 06 | Idempotência por chave de negócio + tabela de outbox | Requisição repetida não gera segundo pagamento nem segundo evento |
-| 07 | Endpoint sob carga com virtual threads, pool dimensionado | Comparação medida: p99 antes e depois, com o mesmo gerador |
-| 08 | Circuit breaker, timeout e retry com backoff no cliente do PSP | Injetar 100% de erro no PSP e o serviço não colapsa |
-| 09 | OAuth2 resource server no padrão FAPI, escopos por operação | Token sem o escopo certo recebe 403, com teste |
-| 10 | Actuator + Micrometer, métricas de negócio e healthcheck honesto | Taxa de autorização exposta; readiness não checa dependência externa |
+| 07 | Endpoint de fan-out sob carga, com e sem virtual threads | Tempo total e pico de `hikaricp.connections.pending` medidos nas quatro combinações |
+| 08 | Circuit breaker, timeout e retry com backoff no cliente do PSP | Com 100% de erro no PSP, o circuito abre e o fallback responde `202` sem chamar o PSP |
+| 09 | OAuth2 resource server no padrão FAPI, escopos por operação | Token sem o escopo certo recebe 403, com teste, e a negativa sai no log `AUDIT` |
+| 10 | Actuator + Micrometer, métricas de negócio e healthcheck honesto | `payment_initiate_seconds_*` por PSP e resultado no Prometheus; readiness não checa dependência externa |
 | 11 | Testes de integração com Testcontainers (Postgres + Kafka) | Suíte roda do zero em máquina limpa, sem serviço pré-instalado |
 | 12 | Imagem OCI sem root, deploy com migração expand/contract | Rollback da aplicação funciona com o schema já migrado |
 | 13 | Reorganização em módulos, com dependência entre eles testada | Teste de arquitetura falha se um módulo importar o interno do outro |
 
 ## Definição de pronto (capstone)
 
-- [ ] `docker compose up` + `mvn spring-boot:run` sobe o serviço em máquina limpa
+- [ ] A imagem do marco 12 sobe em máquina limpa com só um Postgres em container
 - [ ] A mesma requisição enviada 100 vezes gera **um** pagamento e **um** evento
-- [ ] Nenhum dual-write: o evento sai da outbox, na mesma transação do pagamento
+- [ ] Nenhum dual-write: o evento entra no outbox na mesma transação do pagamento
 - [ ] Suíte de integração com Testcontainers verde, sem dependência de ambiente
-- [ ] Token sem escopo é negado; o teste está no repo
+- [ ] Token sem escopo é negado, o teste está no repo, e a negativa aparece no log `AUDIT`
 - [ ] Migração de schema compatível com a versão anterior, com rollback exercitado
 - [ ] Métricas de negócio no Actuator, e a readiness não derruba tudo quando o PSP cai
 - [ ] Uma ADR por bloco: fronteira transacional, idempotência, resiliência, segurança
@@ -61,8 +63,9 @@ Provoque cada cenário e escreva um post-mortem de uma página — inclusive qua
 1. **Repetir a mesma requisição** 100 vezes em paralelo. Um pagamento ou cem?
 2. **Derrubar o Postgres** no meio de uma transação com outbox. Sobrou evento órfão ou
    pagamento sem evento?
-3. **Injetar 100% de erro no PSP.** O circuit breaker abriu, ou o pool esgotou primeiro?
+3. **Injetar 100% de erro no PSP.** O circuito abriu? Depois de aberto, quantas chamadas
+   novas chegaram ao PSP, e o cliente recebeu `202` ou erro?
 4. **Fazer deploy da versão nova** com a migração aplicada e depois **rollback**. A
    versão antiga ainda funciona com o schema novo?
-5. **Enviar um token expirado e um sem escopo.** Os dois são negados com o código certo,
-   e a negativa aparece em algum log auditável?
+5. **Enviar um token expirado e um sem escopo.** Os dois são negados com o código certo
+   (`401` e `403`), e cada negativa aparece no log `AUDIT` com o id de correlação?

@@ -240,14 +240,20 @@ O `pix-gateway` é o seu componente do `fin-platform` — a especificação comp
 
 **Critérios de pronto — cada um deve ser provado por um teste ou por um comando**
 
-- [ ] A mesma requisição enviada 100 vezes em paralelo gera **um** pagamento e **um** evento
-- [ ] Nenhum dual-write: derrubar o broker não produz pagamento sem evento nem o contrário
-- [ ] Um `import` de classe interna de outro módulo faz o build falhar
-- [ ] Token sem o escopo correto recebe 403, e a negativa aparece em log auditável
-- [ ] Com o PSP devolvendo 100% de erro, o circuit breaker abre antes de o pool esgotar
+- [ ] A mesma requisição enviada 100 vezes em paralelo gera **um** pagamento e **um**
+  evento, e todas as respostas são iguais (marco 06)
+- [ ] Nenhum dual-write: com o broker fora, o pagamento é gravado e o evento espera no
+  outbox; quando o broker volta, o relay o publica (marco 06)
+- [ ] Um `import` de classe interna de outro módulo faz o build falhar (marco 13)
+- [ ] Token sem o escopo correto recebe 403, e a negativa aparece no log `AUDIT` com o id
+  de correlação (marco 09)
+- [ ] Com o PSP devolvendo 100% de erro, o circuito abre e as iniciações seguintes
+  respondem `202` sem nenhuma chamada nova ao PSP (marco 08)
 - [ ] A versão anterior da aplicação continua funcionando com o schema já migrado
-- [ ] `mvn verify` roda do zero em máquina limpa, sem serviço pré-instalado
-- [ ] Uma ADR por bloco: fronteira transacional, idempotência, resiliência, segurança
+  (marco 12)
+- [ ] `mvn verify` roda do zero em máquina limpa, só com Docker (marco 11)
+- [ ] Uma ADR por bloco: fronteira transacional, idempotência, resiliência, segurança —
+  no formato de `arquitetura-de-software/07`
 
 **Antes de fechar**, rode o game day do `PROJETO.md` e escreva um post-mortem de uma
 página — inclusive se nada tiver quebrado.

@@ -34,3 +34,21 @@ questions:
       - "Desabilitar o Actuator em produção e habilitá-lo sob demanda durante incidentes"
     answer: 0
     explanation: "São endpoints poderosos: `env` mostra variáveis, incluindo segredo; `heapdump` despeja a memória; `loggers` muda comportamento em runtime. Tratá-los como superfície de ataque significa incluir só `health` e `prometheus` e autenticar o resto. Desligar em produção tira a ferramenta justamente quando ela é necessária."
+
+  - question: "Por que é seguro desligar a proteção CSRF no `pix-gateway`?"
+    options:
+      - "Porque o JWT é assinado, e o servidor detecta qualquer requisição forjada pela assinatura"
+      - "Porque o mTLS do FAPI já impede que outro site envie requisições em nome do cliente"
+      - "Porque o CORS bloqueia as requisições de outras origens antes de chegarem ao controller"
+      - "Porque a credencial vai no header `Authorization`, e o navegador não a anexa sozinho"
+    answer: 3
+    explanation: "CSRF explora a credencial que o navegador anexa automaticamente — o cookie. O gateway não usa cookie nem sessão: o token precisa ser colocado no header pelo cliente em cada chamada, e um site malicioso não consegue fazer isso. A assinatura não ajuda, porque o atacante estaria usando o token legítimo; e CORS não impede o envio de toda requisição."
+
+  - question: "Um token expirado e uma requisição sem token são ambos recusados com `401`. Que evento o Spring Security publica em cada caso?"
+    options:
+      - "Uma falha de autenticação para o token expirado e uma negativa de autorização para a requisição sem token"
+      - "Uma negativa de autorização nos dois casos, porque nenhum dos dois chega a ter uma identidade"
+      - "Uma falha de autenticação nos dois casos, porque o `401` sempre indica credencial inválida"
+      - "Nenhum evento: o filtro do resource server responde antes de o Spring Security publicar algo"
+    answer: 0
+    explanation: "O token expirado é rejeitado ao ser decodificado, sem nunca virar identidade: `AuthenticationFailureBadCredentialsEvent`. A requisição sem token segue como anônima e é negada na autorização: `AuthorizationDeniedEvent`, com o principal `anonymousUser`. Um listener de auditoria precisa ouvir os dois para registrar todas as negativas."
