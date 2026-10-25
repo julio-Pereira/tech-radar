@@ -232,6 +232,26 @@ segundo lançamento, expõe o rollback que nunca aconteceu.
    mvn test -Dtest=RefundServiceIT
    ```
 
+   O `-Dtest` é necessário: por convenção, testes com sufixo `IT` são de integração e
+   **não** rodam no `mvn test` — o Surefire só pega `*Test` e `*Tests`. Quem os executa é
+   o Failsafe, na fase `verify`. O `spring-boot-starter-parent` já configura o plugin,
+   mas ele só entra no build quando declarado:
+
+   ```xml
+   <build>
+     <plugins>
+       <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-failsafe-plugin</artifactId>
+       </plugin>
+       <!-- o spring-boot-maven-plugin continua aqui -->
+     </plugins>
+   </build>
+   ```
+
+   A partir daqui, `mvn verify` roda as duas suítes: unitários e fatias primeiro, depois
+   os `*IT`. Sem o Failsafe, um `*IT` vermelho nunca derruba o build.
+
 ## Principais aprendizados
 
 - Injeção por construtor + singleton *stateless* é o default seguro sob concorrência.

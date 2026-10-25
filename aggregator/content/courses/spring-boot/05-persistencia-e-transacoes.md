@@ -195,7 +195,7 @@ transação, depois do lock — impossível de furar por corrida.
 
 ## Mão na massa
 
-**Pré-requisito do estado do pix-gateway:** o do marco 04: JPA, driver do Postgres, `TestcontainersConfiguration` importada nos testes antigos e o `RefundServiceIT` verde depois do refactor.
+**Pré-requisito do estado do pix-gateway:** o do marco 04: JPA, driver do Postgres, `TestcontainersConfiguration` importada nos testes antigos, Failsafe declarado no `pom.xml` e o `RefundServiceIT` verde depois do refactor.
 
 **Desafio — débito concorrente que nunca deixa saldo negativo.**
 

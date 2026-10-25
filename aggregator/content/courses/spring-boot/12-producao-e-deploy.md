@@ -107,7 +107,7 @@ para quem move dinheiro.
 
 ## Mão na massa
 
-**Pré-requisito do estado do pix-gateway:** o do marco 11: a suíte inteira verde com `mvn test`, sem serviço pré-instalado além do Docker.
+**Pré-requisito do estado do pix-gateway:** o do marco 11: a suíte inteira verde com `mvn verify` (incluindo os `*IT`), sem serviço pré-instalado além do Docker.
 
 **Tutorial — imagem sem root e rollback com schema já migrado.**
 

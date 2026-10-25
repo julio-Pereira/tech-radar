@@ -251,7 +251,8 @@ O `pix-gateway` é o seu componente do `fin-platform` — a especificação comp
   respondem `202` sem nenhuma chamada nova ao PSP (marco 08)
 - [ ] A versão anterior da aplicação continua funcionando com o schema já migrado
   (marco 12)
-- [ ] `mvn verify` roda do zero em máquina limpa, só com Docker (marco 11)
+- [ ] `mvn verify` roda do zero em máquina limpa, só com Docker, incluindo os `*IT` pelo
+  Failsafe (marcos 04 e 11)
 - [ ] Uma ADR por bloco: fronteira transacional, idempotência, resiliência, segurança —
   no formato de `arquitetura-de-software/07`
 

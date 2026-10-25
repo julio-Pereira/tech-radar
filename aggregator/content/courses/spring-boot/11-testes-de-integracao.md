@@ -135,7 +135,7 @@ conciliação. Nenhum mock daria essa confiança.
    provar, o que ele recusou, e o que ele aceitou errado.
 
 ```bash
-mvn test
+mvn verify      # unitários e fatias no Surefire, *IT no Failsafe (marco 04)
 ```
 
 ## Principais aprendizados
