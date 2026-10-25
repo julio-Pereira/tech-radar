@@ -983,17 +983,39 @@
 }
 .glossario-conceito-dono a { color: var(--accent-hover); }
 
-/* "Usado em" on a concept's owner milestone. */
+/* "Usado em" on a concept's owner milestone: a one-line count, opened on demand. */
 .conceito-usado-em {
   margin: 1rem 0 0;
-  padding: 0.7rem 0.9rem;
   border: 1px dashed var(--border);
   border-radius: var(--radius);
   color: var(--text-muted);
   font-size: 0.85rem;
-  line-height: 1.7;
 }
-.conceito-usado-em strong { color: var(--text); }
+.conceito-usado-em summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  cursor: pointer;
+  list-style: none; /* flex drops the native marker anyway; draw our own */
+}
+.conceito-usado-em summary::-webkit-details-marker { display: none; }
+.conceito-usado-em summary::before {
+  content: "▸";
+  color: var(--accent-hover);
+}
+.conceito-usado-em[open] summary::before { transform: rotate(90deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .conceito-usado-em summary::before { transition: transform 120ms ease-out; }
+}
+.conceito-usado-em ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.9rem 0.7rem;
+  line-height: 1.8;
+}
+.conceito-usado-em-trilha { color: var(--text); }
 .conceito-usado-em a { color: var(--accent-hover); }
 
 /* ── Competências (#/skills — UX platform melhoria 2) ─────────────────────── */

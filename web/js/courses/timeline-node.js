@@ -178,40 +178,58 @@ export function buildTimelineNode(slug, milestone, completed, onToggle, prevMile
 }
 
 /**
+ * Short trilha name for dense lists: the title up to its subtitle colon,
+ * without the "para Fintech" every title carries. Full titles run up to 90+
+ * characters, which is what made a long "Usado em" heavy to read.
+ * @param {string} title
+ */
+export function shortTrilha(title) {
+  return title.split(':')[0].replace(/ para Fintech$/, '').trim();
+}
+
+/**
  * "Usado em": the reverse of a concept link, on the milestone that owns the
  * concept — where else in the catalog this marco's concepts are cited.
+ * Collapsed by default to a one-line count; open, one line per trilha with
+ * its milestone numbers. Each number's accessible name stays complete.
  * @param {import('../types.js').ConceitoMarco[]} usos
  */
 function buildUsadoEm(usos) {
-  const p = document.createElement('p');
-  p.className = 'conceito-usado-em';
-  const label = document.createElement('strong');
-  label.textContent = 'Usado em:';
-  p.appendChild(label);
-  p.appendChild(document.createTextNode(' '));
-  // Grouped by trilha: titles are long, and "Open Finance … › 02, 03, 10"
-  // reads far better than the same title three times. Each number is a link
-  // whose accessible name still says the whole thing.
   /** @type {Map<string, import('../types.js').ConceitoMarco[]>} */
   const byTrilha = new Map();
   for (const u of usos) {
     if (!byTrilha.has(u.trilha)) byTrilha.set(u.trilha, []);
     byTrilha.get(u.trilha).push(u);
   }
-  let first = true;
+
+  const details = document.createElement('details');
+  details.className = 'conceito-usado-em';
+  const summary = document.createElement('summary');
+  const nm = usos.length;
+  const nt = byTrilha.size;
+  summary.textContent = `Usado em ${nm} ${nm === 1 ? 'marco' : 'marcos'} de ${nt} ${nt === 1 ? 'trilha' : 'trilhas'}`;
+  details.appendChild(summary);
+
+  const list = document.createElement('ul');
   for (const [trilha, marcos] of byTrilha) {
-    if (!first) p.appendChild(document.createTextNode(' · '));
-    first = false;
-    p.appendChild(document.createTextNode(`${trilha} › `));
+    const li = document.createElement('li');
+    const name = document.createElement('span');
+    name.className = 'conceito-usado-em-trilha';
+    name.textContent = shortTrilha(trilha);
+    name.title = trilha;
+    li.appendChild(name);
+    li.appendChild(document.createTextNode(' › '));
     marcos.forEach((u, i) => {
-      if (i > 0) p.appendChild(document.createTextNode(', '));
+      if (i > 0) li.appendChild(document.createTextNode(', '));
       const a = document.createElement('a');
       a.href = `#/learn/${u.slug}/${u.marcoId}`;
       a.textContent = u.nn;
       a.setAttribute('aria-label', `${trilha} › ${u.nn} · ${u.titulo}`);
       a.title = u.titulo;
-      p.appendChild(a);
+      li.appendChild(a);
     });
+    list.appendChild(li);
   }
-  return p;
+  details.appendChild(list);
+  return details;
 }

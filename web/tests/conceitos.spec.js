@@ -162,13 +162,21 @@ test.describe('reverse links (Fase 4)', () => {
   test('the owner milestone lists where its concepts are used', async ({ page }) => {
     await page.goto('/#/learn/seguranca-aplicacao/jose-por-dentro');
     const usado = page.locator('.timeline-node[data-id="jose-por-dentro"] .conceito-usado-em');
-    await expect(usado).toContainText('Usado em:');
+    // Collapsed by default to a one-line count.
+    await expect(usado.locator('summary')).toHaveText(/^Usado em \d+ marcos de \d+ trilhas$/);
+    await expect(usado).not.toHaveAttribute('open', '');
     const sb = usado.locator('a[href="#/learn/spring-boot/seguranca-oauth2-fapi"]');
+    await expect(sb).toBeHidden();
+
+    await usado.locator('summary').click();
+    await expect(sb).toBeVisible();
     await expect(sb).toHaveText('09');
     await expect(sb).toHaveAccessibleName(/^Spring Boot para Fintech › 09 · /);
-    // Grouped by trilha: a trilha with several citing marcos appears once.
-    await expect(usado).toContainText('Open Finance Brasil por Dentro');
-    expect((await usado.textContent()).split('Open Finance Brasil por Dentro').length - 1).toBe(1);
+    // One line per trilha, with the short name ("Open Finance Brasil por
+    // Dentro", not the 94-character title).
+    const of = usado.locator('li', { hasText: 'Open Finance Brasil por Dentro ›' });
+    await expect(of).toHaveCount(1);
+    await expect(of).not.toContainText('Construir o Transmissor');
   });
 
   test("the glossary lists the owner's definition first, marked principal", async ({ page }) => {
