@@ -13,21 +13,166 @@
 #   tambem       opcional; aprofundamentos aplicados, exibidos na prévia
 #   ignorarCaixa opcional, padrão false
 #   ignorarEm    opcional; marcos onde não ligar (além do próprio dono)
+#   naoSeguidoDe opcional; regex do texto logo depois do apelido que anula a
+#                ocorrência ("RFC 8705" é norma, não documento de decisão)
 #
 # Regras de ligação: só a primeira ocorrência de cada conceito por marco, no
 # máximo 8 links de conceito por marco, nunca no marco dono, em títulos, em
 # código ou dentro de links, nem num bloco que já tem ponte para o mesmo dono.
 #
-# Fase 1: só as duas sementes de teste. A semente curada (~30 conceitos, cada
-# dono conferido no marco) entra na Fase 4.
+# Semente curada (Fase 4). Cada dono foi conferido no marco: o marco ensina o
+# conceito e cita pelo menos um apelido. Fora de propósito: palavras comuns
+# (Taxa, Fase, Política, Estado, Token...) e siglas ambíguas (TTL). PAN ficou
+# fora porque o marco que o ensina (pagamentos-e-liquidacao/04) diz "número do
+# cartão" e nunca "PAN". JOSE, JWE, DPoP e CIBA ficaram fora por não serem
+# citados (e ligados) fora do próprio marco dono: não são transversais hoje.
 
+# ── Segurança: JOSE, OAuth e FAPI ──────────────────────────────────────────
 - id: jws
   termo: "JWS (JSON Web Signature)"
   dono: seguranca-aplicacao/04
   apelidos: ["JWS", "JSON Web Signature"]
 
+- id: jwt
+  termo: "JWT (JSON Web Token)"
+  dono: seguranca-aplicacao/04
+  apelidos: ["JWT", "JWTs", "JSON Web Token"]
+  resumo: "Token compacto com cabeçalho, claims e assinatura em base64url; na prática quase sempre um JWS, legível por qualquer um e verificável só por quem tem a chave."
+
+- id: jwks
+  termo: "JWKS (JSON Web Key Set)"
+  dono: seguranca-aplicacao/04
+  apelidos: ["JWKS"]
+  tambem: [open-finance-brasil/02]
+
+- id: private-key-jwt
+  termo: "private_key_jwt"
+  dono: seguranca-aplicacao/05
+  apelidos: ["private_key_jwt"]
+  resumo: "Autenticação do client no servidor de autorização por uma afirmação JWT assinada com a chave privada do próprio client, em vez de um segredo compartilhado."
+  tambem: [open-finance-brasil/03]
+
+- id: pkce
+  termo: "PKCE (Proof Key for Code Exchange)"
+  dono: seguranca-aplicacao/05
+  apelidos: ["PKCE"]
+
+- id: par
+  termo: "PAR (Pushed Authorization Request)"
+  dono: seguranca-aplicacao/05
+  apelidos: ["PAR", "Pushed Authorization Request"]
+  tambem: [open-finance-brasil/03]
+
+- id: fapi
+  termo: "FAPI (Financial-grade API)"
+  dono: seguranca-aplicacao/07
+  apelidos: ["FAPI"]
+  resumo: "Perfil de segurança da OpenID Foundation para APIs financeiras: endurece OAuth 2.0 e OpenID Connect (PAR, mTLS ou private_key_jwt, tokens vinculados ao cliente) e é a base do Open Finance Brasil."
+  tambem: [open-finance-brasil/03]
+
+- id: mtls
+  termo: "mTLS (TLS mútuo)"
+  dono: seguranca-aplicacao/07
+  apelidos: ["mTLS", "TLS mútuo"]
+  tambem: [open-finance-brasil/03]
+
+- id: sbom
+  termo: "SBOM (Software Bill of Materials)"
+  dono: seguranca-aplicacao/12
+  apelidos: ["SBOM", "SBOMs"]
+
+# ── Eventos e dados ────────────────────────────────────────────────────────
 - id: outbox
   termo: "Outbox (transactional outbox)"
   dono: arquitetura-eventos/08
   apelidos: ["Outbox", "outbox"]
   tambem: [kafka/08, spring-boot/06]
+
+- id: idempotencia
+  termo: "Idempotência"
+  dono: arquitetura-eventos/08
+  apelidos: ["Idempotência", "idempotência", "idempotente", "idempotentes"]
+  resumo: "Propriedade de uma operação que, repetida com a mesma entrada, produz o mesmo efeito que uma única execução — a defesa contra reentrega e retentativa em sistemas distribuídos."
+  tambem: [system-design/05]
+
+- id: idempotency-key
+  termo: "Idempotency-Key"
+  dono: system-design/05
+  apelidos: ["Idempotency-Key"]
+
+- id: saga
+  termo: "Saga"
+  dono: arquitetura-eventos/09
+  apelidos: ["Saga", "saga", "Sagas", "sagas"]
+  tambem: [kafka/08]
+
+- id: cqrs
+  termo: "CQRS"
+  dono: arquitetura-eventos/06
+  apelidos: ["CQRS"]
+
+- id: cdc
+  termo: "CDC (Change Data Capture)"
+  dono: dados-distribuidos/14
+  apelidos: ["CDC", "Change Data Capture", "change data capture"]
+  tambem: [kafka/08]
+
+- id: rpo
+  termo: "RPO (Recovery Point Objective)"
+  dono: dados-distribuidos/12
+  apelidos: ["RPO"]
+  tambem: [system-design/13]
+
+- id: rto
+  termo: "RTO (Recovery Time Objective)"
+  dono: dados-distribuidos/12
+  apelidos: ["RTO"]
+  tambem: [system-design/13]
+
+- id: pitr
+  termo: "PITR (point-in-time recovery)"
+  dono: dados-distribuidos/12
+  apelidos: ["PITR"]
+
+# ── Confiabilidade ─────────────────────────────────────────────────────────
+- id: slo
+  termo: "SLO (Service Level Objective)"
+  dono: observabilidade/02
+  apelidos: ["SLO", "SLOs"]
+  tambem: [observabilidade/12]
+
+- id: sli
+  termo: "SLI (Service Level Indicator)"
+  dono: observabilidade/02
+  apelidos: ["SLI", "SLIs"]
+  tambem: [observabilidade/12]
+
+- id: sla
+  termo: "SLA (Service Level Agreement)"
+  dono: observabilidade/02
+  apelidos: ["SLA", "SLAs"]
+  tambem: [open-finance-brasil/06]
+
+- id: error-budget
+  termo: "Error budget (orçamento de erro)"
+  dono: observabilidade/12
+  apelidos: ["Error budget", "error budget", "Orçamento de erro", "orçamento de erro"]
+
+- id: dora
+  termo: "Métricas DORA"
+  dono: entrega-continua-e-devops/01
+  apelidos: ["Métricas DORA", "métricas DORA", "DORA"]
+
+# ── Decisão e escrita ──────────────────────────────────────────────────────
+- id: adr
+  termo: "ADR (Architecture Decision Record)"
+  dono: arquitetura-de-software/07
+  apelidos: ["ADR", "ADRs"]
+  tambem: [system-design/01, arquitetura-de-solucoes/06]
+
+- id: rfc
+  termo: "RFC (documento de decisão)"
+  dono: arquitetura-de-solucoes/08
+  apelidos: ["RFC", "RFCs"]
+  # "RFC 8705", "RFC 7807"...: citação de norma, não o documento de decisão.
+  naoSeguidoDe: ['\s*\d']

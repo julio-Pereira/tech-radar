@@ -101,6 +101,10 @@ type CompiledMilestone struct {
 	// Competencies is copied straight from the frontmatter — empty when this
 	// marco hasn't been retroactively tagged yet.
 	Competencies []string `json:"competencies,omitempty"`
+	// UsadoEm lists, for a milestone that owns transversal concepts
+	// (conceitos.yaml), the other milestones where they are cited and
+	// linked — the reverse of a concept link.
+	UsadoEm []ConceitoMarco `json:"usadoEm,omitempty"`
 }
 
 // Section is one H2-delimited chunk of a milestone body. A "Hands-on" /
@@ -251,6 +255,13 @@ type GlossaryEntry struct {
 	// MarcoID is Marco resolved against the bridge index to a real milestone
 	// id, when resolvable — lets the term page deep-link straight to it.
 	MarcoID string `json:"marcoId,omitempty"`
+	// Conceito is the transversal concept (conceitos.yaml) this term is, when
+	// one of its aliases matches; Principal marks the definition from the
+	// concept's owner trilha, and ConceitoDono says where it is taught —
+	// even when the owner trilha has no glossary entry of its own.
+	Conceito     string         `json:"conceito,omitempty"`
+	Principal    bool           `json:"principal,omitempty"`
+	ConceitoDono *ConceitoMarco `json:"conceitoDono,omitempty"`
 }
 
 // GlossaryCatalog is the full cross-trilha set written to

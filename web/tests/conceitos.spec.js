@@ -157,3 +157,42 @@ test.describe('reduced motion', () => {
     expect(await preview.evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
   });
 });
+
+test.describe('reverse links (Fase 4)', () => {
+  test('the owner milestone lists where its concepts are used', async ({ page }) => {
+    await page.goto('/#/learn/seguranca-aplicacao/jose-por-dentro');
+    const usado = page.locator('.timeline-node[data-id="jose-por-dentro"] .conceito-usado-em');
+    // Collapsed by default to a one-line count.
+    await expect(usado.locator('summary')).toHaveText(/^Usado em \d+ marcos de \d+ trilhas$/);
+    await expect(usado).not.toHaveAttribute('open', '');
+    const sb = usado.locator('a[href="#/learn/spring-boot/seguranca-oauth2-fapi"]');
+    await expect(sb).toBeHidden();
+
+    await usado.locator('summary').click();
+    await expect(sb).toBeVisible();
+    await expect(sb).toHaveText('09');
+    await expect(sb).toHaveAccessibleName(/^Spring Boot para Fintech › 09 · /);
+    // One line per trilha, with the short name ("Open Finance Brasil por
+    // Dentro", not the 94-character title).
+    const of = usado.locator('li', { hasText: 'Open Finance Brasil por Dentro ›' });
+    await expect(of).toHaveCount(1);
+    await expect(of).not.toContainText('Construir o Transmissor');
+  });
+
+  test("the glossary lists the owner's definition first, marked principal", async ({ page }) => {
+    await page.goto('/#/glossario/mtls');
+    const first = page.locator('.glossario-definition').first();
+    await expect(first).toHaveClass(/principal/);
+    await expect(first.locator('.glossario-principal')).toHaveText('definição principal');
+    await expect(first.locator('.glossario-definition-track')).toContainText('Segurança de Aplicação');
+    // The entry now points at the marco that teaches mTLS (07, not 06).
+    await expect(first.locator('.glossario-definition-link')).toHaveAttribute('href', '#/learn/seguranca-aplicacao/fapi-mtls-e-ciba');
+  });
+
+  test('a term defined outside its owner trilha says where it is taught', async ({ page }) => {
+    await page.goto('/#/glossario/idempotencia');
+    const note = page.locator('.glossario-conceito-dono');
+    await expect(note).toContainText('Ensinado principalmente em');
+    await expect(note.locator('a')).toHaveAttribute('href', '#/learn/arquitetura-eventos/outbox-inbox-idempotencia');
+  });
+});

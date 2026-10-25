@@ -305,8 +305,15 @@ func TestConceitosResolve(t *testing.T) {
 	for _, e := range errs {
 		t.Errorf("conceitos.yaml: %v", e)
 	}
+	explicit := map[string]bool{}
+	for _, rc := range set.conceitos {
+		explicit[rc.ID] = strings.TrimSpace(rc.Resumo) != ""
+	}
 	for _, e := range entries {
-		if e.Resumo == "" || e.Glossario == "" || e.Dono.Titulo == "" || e.Dono.Minutos == 0 {
+		// The glossary anchor is required only when the summary came from
+		// the glossary; a hand-written resumo exists precisely because the
+		// owner trilha has no entry for the term.
+		if e.Resumo == "" || (!explicit[e.ID] && e.Glossario == "") || e.Dono.Titulo == "" || e.Dono.Minutos == 0 {
 			t.Errorf("conceito %q: catálogo incompleto: %+v", e.ID, e)
 		}
 		if len(e.CitadoEm) == 0 {
@@ -538,4 +545,86 @@ func aliasIn(s string, a *conceitoAlias) bool {
 		from = at + 1
 	}
 	return false
+}
+
+// ── Fase 4: naoSeguidoDe, the seed and the reverse links ────────────────────
+
+func TestLinkerNaoSeguidoDe(t *testing.T) {
+	set := fixtureSet(t, []Conceito{{ID: "rfc", Termo: "RFC", Dono: "dono/01", Apelidos: []string{"RFC"}, NaoSeguidoDe: []string{`\s*\d`}}})
+	html := linkedHTML(t, set, "leitor", "01", "marco-leitor", "Siga a RFC 8705 e depois escreva uma RFC curta.\n")
+	if conceitoLinkCount(html, "rfc") != 1 || !strings.Contains(html, `>RFC</a> curta`) {
+		t.Errorf("a standard citation must be skipped and the decision document linked:\n%s", html)
+	}
+	if _, errs := resolveConceitos([]Conceito{{ID: "x", Termo: "x", Dono: "dono/01", Apelidos: []string{"X"}, NaoSeguidoDe: []string{"("}}}, conceitoFixtureIndex); len(errs) == 0 {
+		t.Error("an invalid naoSeguidoDe regex must be a registry error")
+	}
+}
+
+// TestConceitosSeedCases pins the plan's acceptance case (spring-boot/09 links
+// jwt, private-key-jwt, fapi and mtls) and the RFC standard exclusion.
+func TestConceitosSeedCases(t *testing.T) {
+	_, courses, _ := realConceitos(t)
+	html := courseMilestoneHTML(t, courses, "spring-boot", "seguranca-oauth2-fapi")
+	for _, id := range []string{"jwt", "private-key-jwt", "fapi", "mtls"} {
+		if conceitoLinkCount(html, id) != 1 {
+			t.Errorf("spring-boot/09: want one %s link", id)
+		}
+	}
+	// Only standards ("RFC 8705") are cited as RFC in these marcos.
+	for _, m := range [][2]string{{"seguranca-aplicacao", "fapi-mtls-e-ciba"}, {"go-fintech", "rest-bff"}} {
+		if conceitoLinkCount(courseMilestoneHTML(t, courses, m[0], m[1]), "rfc") != 0 {
+			t.Errorf("%s/%s: a standard citation (RFC NNNN) was linked as a decision document", m[0], m[1])
+		}
+	}
+}
+
+func TestConceitosReverseLinks(t *testing.T) {
+	set, courses, glossary := realConceitos(t)
+	entries, errs := buildConceitosCatalog(set, courses, glossary)
+	if len(errs) > 0 {
+		t.Fatalf("catalog: %v", errs)
+	}
+	markGlossaryConceitos(set, entries, glossary)
+	find := func(slug, term string) GlossaryEntry {
+		for _, g := range glossary {
+			if g.Slug == slug && g.Term == term {
+				return g
+			}
+		}
+		t.Fatalf("glossary entry %s/%q not found", slug, term)
+		return GlossaryEntry{}
+	}
+
+	// The owner's definition is the principal one, and the mTLS entry now
+	// points at the marco that teaches it (07, fixed from 06).
+	mtls := find("seguranca-aplicacao", "mTLS")
+	if mtls.Conceito != "mtls" || !mtls.Principal || mtls.MarcoID != "fapi-mtls-e-ciba" {
+		t.Errorf("mTLS entry: got conceito=%q principal=%v marcoId=%q", mtls.Conceito, mtls.Principal, mtls.MarcoID)
+	}
+	// Idempotência is defined in engenharia-de-dados but taught in
+	// arquitetura-eventos/08: not principal, and it says where the owner is.
+	idem := find("engenharia-de-dados", "Idempotência")
+	if idem.Conceito != "idempotencia" || idem.Principal || idem.ConceitoDono == nil || idem.ConceitoDono.Slug != "arquitetura-eventos" {
+		t.Errorf("Idempotência entry: got %+v", idem)
+	}
+
+	changed := applyUsadoEm(entries, courses)
+	if len(changed) == 0 {
+		t.Fatal("no owner course got usadoEm")
+	}
+	var usado []ConceitoMarco
+	for _, m := range courses["seguranca-aplicacao"].Milestones {
+		if m.ID == "jose-por-dentro" {
+			usado = m.UsadoEm
+		}
+	}
+	found := false
+	for _, u := range usado {
+		if u.Slug == "spring-boot" && u.MarcoID == "seguranca-oauth2-fapi" {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("seguranca-aplicacao/04 usadoEm should include spring-boot/09, got %+v", usado)
+	}
 }

@@ -964,6 +964,60 @@
 
 .glossario-definition-link:hover { text-decoration: underline; }
 
+.glossario-definition.principal { border-color: var(--accent); }
+
+.glossario-principal {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+
+.glossario-conceito-dono {
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.glossario-conceito-dono a { color: var(--accent-hover); }
+
+/* "Usado em" on a concept's owner milestone: a one-line count, opened on demand. */
+.conceito-usado-em {
+  margin: 1rem 0 0;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.conceito-usado-em summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  cursor: pointer;
+  list-style: none; /* flex drops the native marker anyway; draw our own */
+}
+.conceito-usado-em summary::-webkit-details-marker { display: none; }
+.conceito-usado-em summary::before {
+  content: "▸";
+  color: var(--accent-hover);
+}
+.conceito-usado-em[open] summary::before { transform: rotate(90deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .conceito-usado-em summary::before { transition: transform 120ms ease-out; }
+}
+.conceito-usado-em ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.9rem 0.7rem;
+  line-height: 1.8;
+}
+.conceito-usado-em-trilha { color: var(--text); }
+.conceito-usado-em a { color: var(--accent-hover); }
+
 /* ── Competências (#/skills — UX platform melhoria 2) ─────────────────────── */
 .skills-coverage {
   font-size: 0.82rem;
