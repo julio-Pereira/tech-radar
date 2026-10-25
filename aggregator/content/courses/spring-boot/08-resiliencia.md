@@ -54,7 +54,20 @@ Quando uma dependência está *consistentemente* falhando, continuar tentando (m
 timeout) desperdiça recursos e piora a saturação. O **circuit breaker** monitora a taxa
 de falha; ao ultrapassar um limite, ele **abre** e passa a **falhar rápido** por um
 tempo, sem nem chamar o serviço morto — dando a ele espaço para se recuperar. Depois,
-entra em *half-open* e testa com poucas chamadas antes de fechar de novo.
+entra em *half-open* (meio aberto) e testa com poucas chamadas antes de fechar de novo:
+
+```
+               falha ≥ 50% na janela
+  ┌────────┐ ─────────────────────────▶ ┌────────┐ falha rápido, sem
+  │ CLOSED │                            │  OPEN  │ chamar o PSP
+  └────────┘                            └────────┘
+       ▲                                     │ passou o tempo de
+       │ testes deram certo                  ▼ wait-duration
+       │                              ┌───────────┐
+       └───────────────────────────── │ HALF_OPEN │
+                                      └───────────┘
+                                 teste falhou ─▶ volta a OPEN
+```
 
 O **bulkhead** isola recursos: um pool de concorrência separado por dependência, para
 que o PSP-A lento não consuma todas as threads e afunde também as chamadas ao PSP-B. É
@@ -104,7 +117,22 @@ Três decisões estão nesse trecho, e cada uma tem motivo:
   primeira tentativa. No `@Retry`, o fallback só roda depois de esgotadas as tentativas
   ou com o circuito aberto.
 - **Circuito aberto não se repete.** Com o circuito aberto, a chamada falha com
-  `CallNotPermittedException`; repeti-la só adiaria o fallback. Diga isso ao retry:
+  `CallNotPermittedException`; repeti-la só adiaria o fallback.
+
+```
+  chamador ─▶ Retry ─▶ CircuitBreaker ─▶ pspClient.post()
+              (fora)      (dentro)
+
+  fallback no Retry:
+    503 ─▶ CB registra a falha ─▶ Retry vê o erro, espera, repete
+    3 tentativas esgotadas ─▶ fallback
+
+  fallback no CircuitBreaker:
+    503 ─▶ CB chama o fallback e devolve ACCEPTED
+        ─▶ Retry vê sucesso ─▶ nunca repete
+```
+
+Diga ao retry para não repetir o circuito aberto:
 
 ```yaml
 resilience4j:

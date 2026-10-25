@@ -26,12 +26,15 @@ escala mal quando o trabalho é dominado por espera.
 
 ## WebFlux: reativo, poderoso e caro
 
-O Spring WebFlux inverte o modelo: um punhado de *event-loop threads* nunca bloqueia;
-o I/O é assíncrono e o resultado chega via `Mono`/`Flux`. Com poucas threads você
-sustenta dezenas de milhares de conexões — ideal para *streaming*, muitas conexões
-lentas, ou back-pressure real.
+O Spring WebFlux inverte o modelo: um punhado de threads de *event loop* — cada uma num
+laço que pega o próximo evento pronto (dados chegaram, conexão abriu) e processa sem
+nunca esperar — atende todas as conexões. O I/O é assíncrono e o resultado chega via
+`Mono`/`Flux`. Com poucas threads você sustenta dezenas de milhares de conexões — ideal
+para *streaming*, muitas conexões lentas, ou *back-pressure* real (o consumidor lento
+consegue dizer ao produtor "mande menos", em vez de ser soterrado).
 
-O custo é alto e honesto: **todo o stack precisa ser reativo** (driver R2DBC no lugar
+O custo é alto e honesto: **todo o stack precisa ser reativo** (driver R2DBC, a versão não bloqueante do acesso a
+banco, no lugar
 do JDBC, clients não-bloqueantes), stack traces viram um quebra-cabeça, `ThreadLocal`
 para de funcionar (contexto anda no `Context` do Reactor), e a curva de aprendizado do
 time é real. Para o CRUD transacional típico de uma fintech — request entra, fala com
@@ -47,6 +50,21 @@ JVM: milhões cabem na memória. Quando uma virtual thread bloqueia em I/O, a JV
 thread. Você escreve código bloqueante, linear, com `try/catch` e `ThreadLocal`
 normais — e ele escala como reativo.
 
+```
+  █ = usando CPU     ░ = parada no I/O, segurando a thread
+
+  uma thread de plataforma por requisição (Tomcat, 200 threads)
+  T1  ██ espera PSP ░░░░░░░░░░░░░░ ██
+  T2  ██ espera PSP ░░░░░░░░░░░░░░ ██
+  ... a requisição 201 espera uma thread livre
+
+  virtual threads (milhares) sobre poucas carriers
+  carrier 1  [VT1 ██][VT2 ██][VT3 ██][VT1 ██][VT4 ██] ...
+  carrier 2  [VT5 ██][VT6 ██][VT2 ██][VT7 ██] ...
+  VT1 bloqueou no I/O → desmontou; a carrier 1 pegou a VT2.
+  O I/O de VT1 voltou → ela é montada de novo, em qualquer carrier.
+```
+
 No Boot, é uma linha:
 
 ```properties
@@ -59,8 +77,9 @@ quase sempre o caminho certo em Java 21.
 
 Mas há armadilhas que separam quem leu a doc de quem só ligou a flag:
 
-- **Pinning** — se a virtual thread bloqueia dentro de um bloco `synchronized` (ou de
-  código nativo), ela **não desmonta** e prende a carrier, matando o ganho. No **Java
+- O **pinning** acontece quando a virtual thread bloqueia dentro de um bloco
+  `synchronized` (ou de código nativo): ela **não desmonta** e prende a carrier, matando
+  o ganho. No **Java
   21, que é a baseline deste curso, isso ainda acontece** com qualquer `synchronized`
   que envolva espera; a correção veio no **Java 24** (JEP 491), que deixa a virtual
   thread desmontar dentro de `synchronized`. Até migrar, prefira `ReentrantLock` no seu
@@ -71,7 +90,7 @@ Mas há armadilhas que separam quem leu a doc de quem só ligou a flag:
   java -XX:StartFlightRecording=filename=pin.jfr,settings=profile -jar app.jar
   jfr print --events jdk.VirtualThreadPinned pin.jfr
   ```
-- **O pool de JDBC vira o novo gargalo.** Virtual threads removem o limite de *threads*,
+- O **pool de JDBC vira o novo gargalo.** Virtual threads removem o limite de *threads*,
   mas o HikariCP continua com N conexões. Se 10 mil virtual threads correrem para um
   pool de 20 conexões, 9.980 esperam. O ponto de contenção só **mudou de lugar** — de
   threads para conexões. Dimensione o pool conscientemente.

@@ -150,13 +150,14 @@ gastar complexidade, não sobre gastá-la em tudo.
 
 Extraia um serviço quando houver uma razão **concreta**, não estética:
 
-- **Escala independente** — o antifraude consome GPU e escala num ritmo diferente do
-  resto.
-- **Cadência de deploy independente** — um módulo muda 10× por dia e não pode esperar o
+- **Escala independente:** o antifraude consome GPU e precisa escalar num ritmo diferente
+  do resto.
+- **Cadência de deploy independente:** um módulo muda 10× por dia e não pode esperar o
   release do monolito.
-- **Fronteira organizacional** — um time separado é dono daquele domínio (Lei de Conway).
-- **Isolamento de falha/tecnologia** — precisa de outra linguagem, ou não pode derrubar o
-  resto ao cair.
+- **Fronteira organizacional:** um time separado é dono daquele domínio, e a estrutura do
+  sistema tende a espelhar a da organização (Lei de Conway).
+- **Isolamento de falha ou de tecnologia:** o módulo precisa de outra linguagem, ou não
+  pode derrubar o resto quando cair.
 
 Se nenhuma se aplica, quebrar só **distribui o problema**: você troca uma chamada de
 método (rápida, transacional, tipada) por uma chamada de rede (lenta, sem transação

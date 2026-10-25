@@ -70,12 +70,27 @@ A unique constraint é o coração, e o Postgres faz o resto: com duas requisiç
 primeira terminar. Se ela comitou, a segunda colide (`DuplicateKeyException`), não
 processa nada e devolve a resposta gravada — byte a byte a mesma. Se a primeira falhou e
 fez rollback, a chave não existe mais e a segunda processa normalmente, como deve ser.
+
+```
+  req A (key K)             Postgres              req B (key K)
+  INSERT K ─────────▶  K reservada, tx A
+                       aberta            ◀──────── INSERT K
+  process():                                       bloqueado,
+    pagamento + outbox                             esperando tx A
+  UPDATE response_body
+  COMMIT ───────────▶  K comitada ────────▶ DuplicateKeyException
+                                           rollback: nada processado
+  ◀── 201 {paymentId: P}                   SELECT response_body
+                                           ◀── 201 {paymentId: P}
+```
+
 Idempotência de verdade se apoia numa garantia do banco, não num `if` na aplicação.
 
 ## O problema do dual-write
 
 Agora complique: ao processar o pagamento você precisa **gravar no banco** *e*
-**publicar um evento** (`PaymentInitiated`) no Kafka para o antifraude e a conciliação.
+**publicar um evento** (`PaymentInitiated`) no Kafka para o antifraude e a conciliação
+(o processo que confere cada pagamento registrado contra o que o PSP de fato liquidou).
 Fazer os dois "juntos" é impossível de forma atômica — banco e Kafka são sistemas
 distintos, sem transação compartilhada. Se você commita no banco e o `kafkaTemplate.send`
 falha, o evento some. Se publica antes e o banco faz rollback, você anuncia um pagamento
@@ -86,8 +101,24 @@ armadilha que gera inconsistência silenciosa em produção.
 
 A solução: **uma escrita só**. Na mesma transação do banco que grava o pagamento, você
 insere o evento numa tabela `outbox`. Como é a *mesma* transação, ou os dois persistem
-ou nenhum — atômico de verdade. Depois, um **relay** assíncrono lê o outbox e publica no
-Kafka, marcando o que já enviou.
+ou nenhum — atômico de verdade. Depois, um **relay** — um processo de fundo que só
+repassa — lê o outbox e publica no Kafka, marcando o que já enviou:
+
+```
+            ┌─────────── uma transação ───────────┐
+  initiate ─┤  INSERT payments  +  INSERT outbox  ├─ COMMIT
+            └─────────────────────────────────────┘
+                              │
+          relay (@Scheduled, a cada 500 ms, sem transação)
+                              │
+   SELECT pendentes ─▶ kafka.send(...).get() ─▶ ack do broker
+                                                     │
+        UPDATE outbox SET published_at ◀─────────────┘
+        (transação curta, só depois do ack)
+
+  broker fora: o send falha, nada é marcado, e o evento
+  espera no banco pela próxima rodada
+```
 
 ```java
 @Transactional
@@ -110,8 +141,8 @@ void relay() throws Exception {             // sem @Transactional: nenhuma conex
 
 Dois detalhes que um relay ingênuo erra:
 
-- **Esperar o ack.** `kafka.send` é assíncrono: devolve um `CompletableFuture` antes de o
-  broker confirmar. Marcar como publicado sem esperar o `get` é perder o evento em
+- **Esperar o ack.** O *ack* é a confirmação do broker de que gravou a mensagem.
+  `kafka.send` é assíncrono: devolve um `CompletableFuture` antes de o broker confirmar. Marcar como publicado sem esperar o `get` é perder o evento em
   silêncio quando o broker recusa. Com o `get`, uma falha vira exceção, o lote para e o
   evento fica pendente para a próxima rodada.
 - **Não segurar transação durante o I/O.** Um `@Transactional` no método inteiro
@@ -134,7 +165,8 @@ O `@Scheduled` só roda com `@EnableScheduling` numa classe de configuração (a
 
 Duas verdades para internalizar:
 
-- **Semântica de entrega é at-least-once.** O relay pode crashar entre o ack do `send` e
+- **Semântica de entrega é at-least-once** — "pelo menos uma vez": nenhum evento se
+  perde, mas algum pode chegar duplicado. O relay pode crashar entre o ack do `send` e
   o `markPublished` e reenviar o evento. Portanto o **consumidor tem que ser idempotente**
   — mesma disciplina do início do marco, agora do outro lado do fio. Exactly-once
   distribuído é caro e quase sempre desnecessário; at-least-once + consumidor idempotente

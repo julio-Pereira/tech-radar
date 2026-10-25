@@ -22,10 +22,12 @@ pronto para rodar em qualquer lugar com uma JVM.
 
 Três pilares sustentam a produtividade:
 
-- **Starters** — dependências agrupadas por capacidade (`spring-boot-starter-webmvc`,
-  `-data-jpa`, `-security`), com versões já testadas em conjunto.
-- **Auto-configuração** — o Boot inspeciona o classpath e configura beans sozinho.
-- **Actuator** — endpoints de produção (health, métricas) prontos de fábrica.
+- Os **starters** agrupam dependências por capacidade (`spring-boot-starter-webmvc`,
+  `-data-jpa`, `-security`), com versões já testadas em conjunto: você declara *o que*
+  quer, não a lista de bibliotecas compatíveis.
+- A **auto-configuração** inspeciona o classpath e cria sozinha os objetos que a
+  aplicação vai usar — os *beans*, gerenciados pelo container do Spring.
+- O **Actuator** expõe endpoints de produção (saúde, métricas) prontos de fábrica.
 
 Isso você já sabe. O que separa o uso senior do uso "copiei do tutorial" é entender
 **o que acontece por baixo** — e é aí que começa este curso.
@@ -35,14 +37,17 @@ Isso você já sabe. O que separa o uso senior do uso "copiei do tutorial" é en
 `SpringApplication.run(...)` não é mágica; é uma sequência determinística. Conhecê-la
 é o que permite depurar um startup lento ou um bean que não sobe:
 
-1. **Cria o `ApplicationContext`** apropriado ao classpath (servlet, reativo ou nenhum).
-2. **Prepara o environment** — resolve `application.yaml`, perfis, variáveis de
-   ambiente e argumentos numa ordem de precedência fixa (marco 03).
-3. **Faz o *bean definition scanning*** — component scan e as auto-configurações
-   registram *definições* de beans (ainda não instâncias).
-4. **Refresh do contexto** — instancia os *singletons*, resolve dependências, aplica
-   os `BeanPostProcessor`s e cria os proxies de `@Transactional`/`@Async` (marco 04).
-   No fim do refresh o Tomcat embarcado **sobe e abre a porta**.
+1. **Cria o `ApplicationContext`** — o container que guarda e liga os beans — do tipo
+   apropriado ao classpath (servlet, reativo ou nenhum).
+2. **Prepara o environment**: resolve `application.yaml`, perfis, variáveis de ambiente
+   e argumentos numa ordem de precedência fixa (marco 03).
+3. **Registra as definições de beans**: o *component scan* (a varredura das classes
+   anotadas no pacote da aplicação) e as auto-configurações dizem *quais* beans vão
+   existir, mas nenhum é criado ainda.
+4. **Faz o *refresh* do contexto**: instancia os *singletons* (os beans de instância
+   única, o padrão), resolve dependências, aplica os `BeanPostProcessor`s e cria os
+   proxies de `@Transactional`/`@Async` (marco 04). No fim do refresh o Tomcat embarcado
+   **sobe e abre a porta**.
 5. **Dispara os `ApplicationRunner`/`CommandLineRunner`** e publica
    `ApplicationReadyEvent`. Só depois disso o estado de *readiness* passa a
    `ACCEPTING_TRAFFIC`.
@@ -61,15 +66,15 @@ que você vai aprender a explorar.
 Este curso tem baseline **Spring Boot 4.1 / Java 21**. O salto 3.x → 4.x traz mudanças
 que aparecem ao longo dos marcos — não decore, só saiba que o chão mudou:
 
-- **Spring Framework 7** por baixo, exigindo **Java 17+** (usamos 21 pelas *virtual
-  threads*, marco 07).
-- **Jakarta EE 11** — pacotes `jakarta.*` já consolidados (nada de `javax.*`).
-- **Jackson 3** como padrão (namespace `tools.jackson`), relevante quando você
-  customiza serialização monetária.
-- **JSpecify** para *null-safety* anotada, ajudando ferramentas a pegar NPE em compile
-  time.
-- **API versioning** nativo no Spring MVC e **split das auto-configurações** em JARs
-  por módulo — o classpath ficou mais explícito (marco 02). Na prática, os starters
+- Por baixo roda o **Spring Framework 7**, que exige **Java 17+**. Usamos o 21 pelas
+  *virtual threads* (marco 07).
+- O **Jakarta EE 11** consolida os pacotes `jakarta.*`; não sobra nenhum `javax.*`.
+- O **Jackson 3** é o padrão de JSON, agora no namespace `tools.jackson` — relevante
+  quando você customiza a serialização de valores monetários.
+- O **JSpecify** padroniza as anotações de *null-safety* (`@Nullable`, `@NonNull`), e
+  com elas as ferramentas apontam `NullPointerException` em tempo de compilação.
+- O Spring MVC ganhou **versionamento de API** nativo, e as auto-configurações foram
+  **divididas** em JARs por módulo — o classpath ficou mais explícito (marco 02). Na prática, os starters
   ficaram mais granulares: `spring-boot-starter-web` cedeu lugar a
   `spring-boot-starter-webmvc`, cada tecnologia tem seu starter de teste
   (`spring-boot-starter-webmvc-test` traz o `MockMvc`) e capacidades que antes vinham
@@ -79,17 +84,23 @@ que aparecem ao longo dos marcos — não decore, só saiba que o chão mudou:
 ## O produto do curso: pix-gateway
 
 Em vez de exemplos avulsos, o curso evolui **um único produto**: o **pix-gateway**, um
-serviço de **iniciação de pagamentos Open Finance**. Ele nasce aqui como um esqueleto
+serviço de **iniciação de pagamentos Open Finance** — o ecossistema regulado pelo Banco
+Central em que uma instituição autorizada pelo cliente dispara um Pix a partir da conta
+dele em outra instituição. Quem de fato liquida o Pix é um **PSP** (prestador de serviço
+de pagamento), que o gateway chama por HTTP. Ele nasce aqui como um esqueleto
 e ganha camadas marco a marco — configuração, persistência, idempotência, resiliência,
 segurança, observabilidade e deploy. É o espelho Java do LedgerCore da trilha
 `go-fintech`: mesmo domínio, outra stack.
 
 O domínio impõe requisitos que moldam **toda** decisão técnica:
 
-- **Auditoria BACEN** — cada release e cada transação precisam ser rastreáveis.
-- **LGPD** — dado pessoal mascarado em log; "apagar" quase sempre é anonimizar.
-- **Idempotência** — um webhook de PSP reenviado não pode cobrar duas vezes (marco 06).
-- **Precisão monetária** — `BigDecimal` com `RoundingMode` explícito, **nunca**
+- A **auditoria do BACEN** (Banco Central) exige que cada release e cada transação sejam
+  rastreáveis.
+- A **LGPD** exige dado pessoal mascarado em log, e "apagar" um cliente quase sempre
+  significa anonimizar, não deletar.
+- A **idempotência** garante que um aviso do PSP reenviado (o *webhook*, uma chamada HTTP
+  que ele faz de volta ao gateway) não cobre duas vezes (marco 06).
+- A **precisão monetária** pede `BigDecimal` com `RoundingMode` explícito, **nunca**
   `double`. O equivalente Go é `int64`/`decimal`; aqui a JVM te dá o tipo certo, basta
   não trair ele.
 

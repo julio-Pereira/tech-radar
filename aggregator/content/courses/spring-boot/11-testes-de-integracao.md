@@ -17,13 +17,13 @@ references:
 Muito teste não prova muita coisa. A pirâmide senior não é "cobertura alta a qualquer
 custo": é **cada teste no nível certo, provando o que só ele pode provar**.
 
-- **Unitários** — lógica de domínio pura (cálculo de tarifa, regra de saldo) sem Spring.
-  Rápidos, milhares deles.
-- **Slices** — sobem só uma fatia do contexto. `@WebMvcTest` (só a camada web: rotas,
-  serialização, validação, segurança) e `@DataJpaTest` (só JPA/repos com transação de
-  teste). Rápidos e focados.
-- **Integração** — o sistema conversando com infra real (banco, broker). Poucos, mas
-  são os que pegam os bugs que importam em fintech.
+- Os **unitários** cobrem a lógica de domínio pura (cálculo de tarifa, regra de saldo),
+  sem Spring. São rápidos, e você tem milhares deles.
+- Os **slices** (fatias) sobem só um pedaço do contexto: `@WebMvcTest` carrega só a
+  camada web (rotas, serialização, validação, segurança) e `@DataJpaTest` só o JPA e os
+  repositórios, com uma transação de teste. São rápidos e focados.
+- Os de **integração** põem o sistema para conversar com infraestrutura real (banco,
+  broker). São poucos, mas são os que pegam os bugs que importam em fintech.
 
 ## Slices: testar uma camada por vez
 

@@ -63,8 +63,10 @@ rotas da API (ou o Actuator vai para uma `management.server.port` que não é pu
 ## Resource server: o gateway valida, não emite
 
 O pix-gateway é um **resource server**: ele não faz login de usuário nem emite tokens —
-recebe um **JWT** (Bearer) emitido por um *authorization server* (o provedor de
-identidade do Open Finance) e o **valida**. Configurar é declarar de onde vêm as chaves:
+recebe um **JWT** (*JSON Web Token*: um JSON assinado que diz quem é o cliente, o que ele
+pode fazer e até quando), enviado como *Bearer token* no header `Authorization` e emitido
+por um *authorization server* (o provedor de identidade do Open Finance), e o
+**valida**. Configurar é declarar de onde vêm as chaves:
 
 ```yaml
 spring:
@@ -75,8 +77,10 @@ spring:
           issuer-uri: https://auth.openfinance.example.com
 ```
 
-O Boot busca o JWKS do issuer, valida assinatura, expiração e `issuer`, e transforma os
-*scopes* do token em `authorities`. A partir daí, autorização é declarativa. A busca é
+O Boot busca o JWKS do issuer (o conjunto de chaves públicas que ele publica para quem
+precisa verificar suas assinaturas), valida assinatura, expiração e `issuer`, e
+transforma os *scopes* do token — as permissões que ele carrega, como `payments:write` —
+em `authorities`, o nome que o Spring Security dá às permissões. A partir daí, autorização é declarativa. A busca é
 preguiçosa — acontece na primeira requisição com token, não no boot —, mas a
 propriedade é obrigatória: sem ela (ou outra fonte de chaves), o contexto não sobe por
 falta de um bean `JwtDecoder`.
@@ -101,14 +105,15 @@ componente do record e compara o `BigDecimal` numericamente (`50000.00` passa,
 Open Banking/Open Finance não aceita OAuth2 "de baunilha". Exige o perfil **FAPI**
 (Financial-grade API), que endurece tudo:
 
-- **mTLS (TLS mútuo)** — não só o servidor apresenta certificado; o **cliente** também.
-  A identidade da instituição participante é o certificado, emitido pela ICP do
-  ecossistema (no Brasil, a estrutura do Open Finance).
-- **Certificate-bound access tokens** (RFC 8705) — o token é **amarrado** ao certificado
-  do cliente (claim `cnf`/`x5t#S256`). Um token roubado é inútil sem a chave privada do
-  certificado: acaba o *bearer token* que qualquer um usa.
-- **`private_key_jwt`** — o cliente se autentica assinando um JWT com sua chave privada,
-  em vez de um `client_secret` compartilhado.
+- No **mTLS** (TLS mútuo), não só o servidor apresenta certificado: o **cliente** também.
+  A identidade da instituição participante é o certificado, emitido pela ICP
+  (infraestrutura de chaves públicas) do ecossistema — no Brasil, a do Open Finance.
+- Os **certificate-bound access tokens** (RFC 8705) ficam **amarrados** ao certificado do
+  cliente: o token traz no *claim* (campo) `cnf` o hash do certificado (`x5t#S256`). Um
+  token roubado é inútil sem a chave privada daquele certificado — acaba o *bearer
+  token* que qualquer um que o tenha pode usar.
+- Com **`private_key_jwt`**, o cliente se autentica no authorization server assinando um
+  JWT com sua chave privada, em vez de enviar um `client_secret` compartilhado.
 
 Você **não** implementa criptografia de FAPI à mão. O Spring Security valida o JWT,
 extrai o claim de confirmação e você configura o `WebServerFactory`/ingress para exigir
@@ -128,11 +133,17 @@ autenticação, e trate o Actuator como parte da superfície de ataque que ele �
 
 ## OWASP API Security Top 10 no pix-gateway
 
-Mapeie os riscos ao produto: **BOLA** (Broken Object Level Authorization) — um cliente
-consegue ver o pagamento de outro? valide *ownership*, não só autenticação.
-**Broken Authentication** — JWT validado corretamente, sem endpoints esquecidos.
-**Unrestricted Resource Consumption** — rate limiting (marco 08 ajuda). **Security
-Misconfiguration** — o Actuator acima. Cada item é uma pergunta concreta sobre o gateway.
+Mapeie os riscos ao produto, um por um, como perguntas concretas sobre o gateway:
+
+- **BOLA** (*Broken Object Level Authorization*): um cliente consegue ver o pagamento de
+  outro trocando o id na URL? Valide que o pagamento pertence a quem pede (*ownership*),
+  não só que o token é válido.
+- **Broken Authentication**: todo endpoint valida o JWT, ou sobrou algum esquecido fora
+  da `SecurityFilterChain`?
+- **Unrestricted Resource Consumption**: um cliente consegue disparar requisições sem
+  limite? Isso pede limite de taxa por cliente (no gateway de API ou na aplicação); o
+  bulkhead do marco 08 protege as dependências, não a sua porta de entrada.
+- **Security Misconfiguration**: o Actuator está exposto como na seção acima?
 
 ## Exemplo numa fintech
 

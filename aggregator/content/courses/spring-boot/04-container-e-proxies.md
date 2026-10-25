@@ -17,25 +17,42 @@ references:
 Um bean não é só `new`. O container passa cada singleton por uma esteira, no *refresh*
 do contexto:
 
-1. **Instanciação** — o construtor roda. Por isso **injeção por construtor** é o padrão:
-   deixa o objeto imutável (`final`), impossível de existir num estado meio-montado, e
-   testável sem o container.
-2. **Populate** — dependências injetadas por campo ou *setter* (com injeção por
-   construtor, isso já aconteceu no passo 1).
-3. **Callbacks `*Aware`** — o container entrega ao bean referências da infraestrutura
-   que ele pediu (`BeanNameAware`, `ApplicationContextAware`). Raro em código de
-   aplicação; comum em bibliotecas.
-4. **`BeanPostProcessor` (before)** — ganchos que interceptam *cada* bean antes da
-   inicialização.
-5. **Init** — `@PostConstruct`, `InitializingBean`.
-6. **`BeanPostProcessor` (after)** — **aqui nascem os proxies** (guarde isto).
-7. **Uso** — o bean (ou seu proxy) atende requisições.
-8. **Destroy** — `@PreDestroy` no shutdown.
+1. **Instanciação.** O container chama o construtor. Por isso **injeção por construtor**
+   é o padrão: o objeto nasce com as dependências em campos `final`, nunca existe num
+   estado meio-montado e pode ser testado com um `new`, sem o container.
+2. **Injeção por campo ou *setter*.** As dependências que não vieram pelo construtor são
+   preenchidas agora. Com injeção por construtor, não sobra nada para este passo.
+3. **Callbacks `*Aware`.** O container entrega ao bean as referências da própria
+   infraestrutura que ele pediu ao implementar `BeanNameAware`,
+   `ApplicationContextAware` e afins. É raro em código de aplicação e comum em
+   bibliotecas.
+4. **`BeanPostProcessor`, antes da inicialização.** Cada *post-processor* registrado
+   recebe o bean e pode inspecioná-lo ou alterá-lo antes do passo 5.
+5. **Inicialização.** Rodam os métodos `@PostConstruct` (ou `afterPropertiesSet()` de
+   quem implementa `InitializingBean`): é o lugar de validar o estado ou abrir um
+   recurso.
+6. **`BeanPostProcessor`, depois da inicialização.** Os post-processors podem devolver
+   **outro objeto** no lugar do bean — e é **aqui que nascem os proxies** (guarde isto).
+7. **Uso.** O que ficou registrado — o bean ou o proxy que o embrulha — é o que os outros
+   beans recebem por injeção e o que atende as requisições.
+8. **Destruição.** No shutdown do contexto, rodam os métodos `@PreDestroy`.
 
-`BeanPostProcessor` e `BeanFactoryPostProcessor` são os pontos de extensão do próprio
-Boot: `@ConfigurationProperties`, `@Autowired` e AOP são todos implementados como
-post-processors. Você raramente escreve um, mas saber que existem explica *como* a
-anotação vira comportamento.
+```
+  1 new ─▶ 2 injeção ─▶ 3 *Aware ─▶ 4 BPP before ─▶ 5 @PostConstruct
+                                                          │
+       8 @PreDestroy ◀── 7 uso ◀── 6 BPP after ◀──────────┘
+                                       │
+                     pode trocar o bean por um proxy:
+                     quem injeta recebe  [proxy] ─▶ [seu bean]
+```
+
+Um `BeanPostProcessor` age sobre beans prontos; um `BeanFactoryPostProcessor` age antes,
+sobre as *definições* de bean (o passo 3 do marco 01), quando nenhum bean foi criado
+ainda. São os pontos de extensão do próprio Boot: `@ConfigurationProperties`,
+`@Autowired` e a AOP (*programação orientada a aspectos*: comportamento transversal,
+como transação, aplicado em volta dos seus métodos sem estar escrito neles) são todos
+implementados como post-processors. Você raramente escreve um, mas saber que existem
+explica *como* a anotação vira comportamento.
 
 ## Escopos
 
@@ -54,7 +71,7 @@ proxy**. Quem chama o bean recebe, na verdade, o proxy; ele executa o *advice*
 delega ao seu método real.
 
 ```
-chamador → [proxy: begin tx] → seuBean.metodo() → [proxy: commit] 
+chamador → [proxy: begin tx] → seuBean.metodo() → [proxy: commit]
 ```
 
 São dois mecanismos: **JDK dynamic proxy**, que implementa as interfaces do bean, e
@@ -91,6 +108,23 @@ class RefundService {
         ledger.credit(...);   // se falhar aqui, o débito NÃO faz rollback
     }
 }
+```
+
+O desenho mostra onde a chamada se perde:
+
+```
+                 ┌────────────── proxy de RefundService ──────────────┐
+  controller ──▶ │  advice de processRefund: nenhum                   │
+                 │        │                                           │
+                 │        ▼                                           │
+                 │  ┌────────────── objeto real ──────────────┐       │
+                 │  │ processRefund()                         │       │
+                 │  │    └─ this.applyRefund() ──┐            │       │
+                 │  │                            ▼            │       │
+                 │  │ applyRefund()  ◀── chega direto, sem tx │       │
+                 │  └─────────────────────────────────────────┘       │
+                 │  advice @Transactional de applyRefund: não roda    │
+                 └────────────────────────────────────────────────────┘
 ```
 
 Como `applyRefund` é invocado por `this`, o `@Transactional` é ignorado: débito e
