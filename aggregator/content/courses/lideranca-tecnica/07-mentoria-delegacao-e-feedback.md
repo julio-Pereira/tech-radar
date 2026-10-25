@@ -2,7 +2,7 @@
 id: mentoria-delegacao-e-feedback
 title: "Mentoria, delegação e feedback"
 summary: "Você é medido pelo que o time consegue sem você — e isso se constrói delegando bem, ensinando de propósito e dando feedback que muda comportamento."
-estimatedMinutes: 65
+estimatedMinutes: 75
 competencies: [pessoas]
 references:
   - title: "Amy Edmondson — Psychological safety"
@@ -95,6 +95,32 @@ deveria ser bem-vindo, não evitado. O papel do líder é garantir que o conflit
 do marco 06 (direitos de decisão explícitos) em vez de deixar o conflito se arrastar
 indefinidamente.
 
+## Diagnóstico de time disfuncional por sintoma
+
+O marco 02 diagnostica a **organização** pelo fluxo; aqui o objeto é o **time**, a partir do
+sintoma que chega até você. Quatro sintomas aparecem com frequência, e cada um tem mais de uma
+causa possível. **Não entrega**: escopo mal cortado, dependência travada, falta de habilidade numa
+área nova ou queda de motivação. **Sobrecarregado**: WIP alto, plantão concentrado em poucas
+pessoas, dívida técnica que transforma toda mudança em projeto. **Não colabora**: silos por área,
+revisão de código usada como portão em vez de ensino, conflito antigo nunca resolvido. **Conflito
+entre pessoas**: atrito que já deixou de ser sobre a ideia e virou sobre quem a propõe.
+
+O método é o mesmo para os quatro. Comece pelos **sinais nos dados** (fluxo, plantão, revisões),
+que você enxerga sem ouvir ninguém. Depois use o **1:1** para o que os dados não mostram ("o que
+mais te atrapalhou nas últimas duas semanas?", "se você pudesse mudar uma coisa no jeito como o time
+trabalha, o que seria?"). Escreva **ao menos duas hipóteses concorrentes**, cada uma com a
+evidência a favor e contra, porque a primeira hipótese costuma ser a que confirma o que você já
+achava. E termine numa **primeira ação reversível**, com critério de reversão declarado: "limitar
+o WIP a quatro por duas semanas; se o tempo de ciclo não cair, a hipótese estava errada". Hipótese
+que descreve **caráter** ("o time está acomodado", "fulano não se importa") não é diagnóstico, é
+conclusão sem evidência, e reprova pelo mesmo motivo que reprova no feedback SBI.
+
+Diagnosticar também exige decidir o que o time ouve. **Proteger o time** é filtrar ruído: a
+mudança de prioridade que ainda não foi decidida, a briga de orçamento entre diretores. **Esconder**
+é outra coisa: uma reorganização decidida, um risco ao emprego, uma meta que mudou. O primeiro
+evita ansiedade inútil; o segundo destrói a confiança no dia em que o time descobre por outro
+caminho.
+
 ## Fator-ônibus e distribuição de conhecimento
 
 "Fator-ônibus" — quantas pessoas precisariam ser atropeladas por um ônibus (ou, mais realisticamente,
@@ -106,8 +132,10 @@ por pressão individual.
 
 *Evidência.* [E] segurança psicológica vem de pesquisa consolidada sobre times de alto desempenho
 (Edmondson e replicações). [P] níveis de delegação e o modelo SBI são prática consolidada de
-praticantes, não resultado de estudo controlado. [O] como equilibrar tempo de mentoria com entrega
-própria depende do contexto e da fase do time.
+praticantes, não resultado de estudo controlado. [P] os padrões de disfunção de time por sintoma
+vêm de relatos de praticantes, entre eles *The Manager's Path*, de Camille Fournier. [O] como
+equilibrar tempo de mentoria com entrega própria depende do contexto e da fase do time, e a ordem
+em que testar as hipóteses de um diagnóstico é julgamento, não regra.
 
 ## Exemplo numa fintech
 
@@ -116,10 +144,20 @@ entende o código. Em vez de esperar o problema acontecer, você monta um plano 
 rodízio ao longo do trimestre, com meta mensurável de redução da concentração medida por área do
 código, não por quem "sabe mais" sobre a pessoa.
 
+No trimestre seguinte, o diretor comenta que o Time Pix "parou de entregar". A primeira hipótese
+que circula é falta de empenho. Os dados contam outra história: o WIP dobrou em seis semanas, e o
+plantão se concentrou na área de devoluções, que concentra metade dos incidentes. Nos 1:1s, duas
+pessoas dizem que passam a manhã apagando alertas. A hipótese "empenho" fica sem evidência; a
+hipótese "sobrecarga por WIP e plantão" tem três sinais independentes. A primeira ação é limitar o
+WIP por duas semanas, com critério de reversão: se o tempo de ciclo não cair, volta-se ao
+diagnóstico.
+
 ## Hands-on
 
 **Tutorial.** Rode `modelos/fatoronibus` do `fin-leadkit` sobre o histórico sintético de *commits*
-do Time Pix, agregado **por área** do código.
+do Time Pix, agregado **por área** do código. Depois, abra os quatro cenários de
+`casos/disfuncao/` (não entrega, sobrecarregado, não colabora, conflito entre pessoas) e escreva o
+diagnóstico de um deles: sintoma observado, hipóteses, evidência por hipótese e primeira ação.
 
 **Desafio.** Escreva um plano de mentoria de 90 dias para uma pessoa sênior fictícia e um feedback
 SBI para uma situação real (anonimizada) da sua experiência.
@@ -143,6 +181,15 @@ SBI para uma situação real (anonimizada) da sua experiência.
    um plano sem nível declarado é reprovado.
 7. `lint 1a1` exige **pauta do liderado, compromissos com data e retomada dos compromissos
    anteriores** — uma pauta sem retomada dos compromissos da última conversa é sinalizada.
+8. `lint diagnostico-time` **reprova** um diagnóstico sem **sintoma observado**, sem **ao menos
+   duas hipóteses**, sem **evidência por hipótese** ou sem **primeira ação com critério de
+   reversão** — cada ausência listada separadamente.
+9. `modelos/fluxo` identifica, em cada um dos quatro cenários de `casos/disfuncao/`, o padrão
+   esperado no gabarito (ex.: WIP acima do P85 histórico no cenário "sobrecarregado").
+10. O *lint* **sinaliza** hipótese que atribui **traço de caráter** ("o time está acomodado"),
+    com o mesmo léxico configurável do `lint feedback`.
+11. **Teste de ausência:** nenhum dos cenários de `casos/disfuncao/` (dados de fluxo e trechos
+    fictícios de 1:1) contém nome próprio de pessoa real.
 
 **Complemento.** Planeje a primeira conversa de mentoria real que você vai ter, com objetivo
 específico. Mantenha no dossiê privado.
@@ -176,5 +223,7 @@ específico. Mantenha no dossiê privado.
   não é.
 - Fator-ônibus mede concentração de conhecimento por área do código, nunca por pessoa — a métrica
   nunca vira vigilância individual.
+- Diagnóstico de time parte do sintoma, testa ao menos duas hipóteses contra os dados e termina
+  numa primeira ação reversível, nunca num traço de caráter.
 - Segurança psicológica e padrão alto andam juntos; um sem o outro não produz o resultado que a
   pesquisa descreve.

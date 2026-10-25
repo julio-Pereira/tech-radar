@@ -18,9 +18,19 @@ Seis partes: `leadkit/` (CLI em Go), `lint/` (regras de estrutura por tipo de ar
 equidade de plantão, WSJF, taxa de ação de *post-mortem*), `fixtures/` (o **Time Pix**
 sintético: 12 meses de tarefas, *deploys*, incidentes, *commits*, plantões e decisões),
 `modelos-de-doc/` (ADR, RFC, estratégia, *post-mortem*, registro de riscos, RACI/DACI, registro
-de exceção, relatório de status, rubrica de entrevista, plano de mentoria) e `casos/` (casos
-situacionais com rubrica e gabarito). O **dossiê** (`dossie/`) é um diretório **ignorado pelo
+de exceção, relatório de status, rubrica de entrevista, plano de mentoria, nota para cima,
+catálogo de processos) e `casos/` (casos situacionais com rubrica e gabarito, incluindo os quatro
+cenários de `casos/disfuncao/` e o caso "Pessoa B"). O **dossiê** (`dossie/`) é um diretório **ignorado pelo
 Git** para o seu uso real.
+
+## Fronteira
+
+| Tema | Dono | O que a trilha faz |
+| --- | --- | --- |
+| Gerir para cima (relação com o próprio gestor) | `lideranca-tecnica/01` | **Entra** |
+| Gestão de gestores, *skip-level*, liderança de várias equipes via gestores | — | **Fora.** O caminho é TL → Staff/gestão técnica de um time |
+| Nível VP/CTO (organização, orçamento, conselho) | — | **Fora.** Só a ponte estratégia ↔ negócio (03, 12) |
+| Cultura e valores de time | `lideranca-tecnica/08` | **Entra** como processo proporcional e valores que escolhem lado |
 
 ## Contratos com os vizinhos (todos simuláveis com stub)
 
@@ -41,7 +51,8 @@ com personagens fictícios.
 **Salvaguarda ética (inegociável).** As métricas do `leadkit` são do **sistema** (time, fluxo,
 plantão). A trilha ensina por que métricas por pessoa (linhas, *commits*, tickets) são
 perigosas e o `fin-leadkit` **não** as calcula; o modelo de fator-ônibus trabalha por **área do
-código**, não por pessoa nomeada. A avaliação de desempenho que a trilha ensina usa **evidência
+código**, não por pessoa nomeada, e o caminho crítico marca tarefas por **papel** (`lider`,
+`time`, `externo`), nunca por pessoa. A avaliação de desempenho que a trilha ensina usa **evidência
 de resultado e de comportamento observado**, nunca telemetria de atividade.
 
 **Pré-requisitos.** Go (toolchain atual); `git`; `make`. **Não precisa:** nuvem, ferramenta
@@ -51,19 +62,19 @@ paga, dado real. Confirmar versões na Fase 0 (ainda não executada).
 
 | Marco | Entrega | Como você prova que funciona |
 | --- | --- | --- |
-| 01 | Mapa de escopo e matriz de arquétipos (artefato) | `leadkit lint escopo` exige 3 sistemas, 3 partes interessadas e "o que eu não faço" |
+| 01 | Mapa de escopo (com "Acordo com o gestor"), matriz de arquétipos e nota para cima | `leadkit lint escopo` exige 3 sistemas, 3 partes interessadas, "o que eu não faço" e o acordo com o gestor; `lint nota-para-cima` exige problema, ≥2 opções, recomendação e pedido |
 | 02 | `modelos/fluxo` e `modelos/dora` sobre o Time Pix | Cycle time, WIP, throughput e DORA reproduzem os valores esperados do gabarito |
 | 03 | Estratégia técnica do `fin-platform` (artefato) | `lint estrategia` reprova "lista de metas": exige diagnóstico, política guia e ações coordenadas com dono e critério |
 | 04 | `modelos/previsao` (Monte Carlo) e plano de entrega | Percentis monotônicos; reduzir escopo antecipa a data; semente fixa reproduz |
-| 05 | `modelos/caminhocritico`, registro de riscos, RACI, proposta de divisão de time | CPM correto no grafo-gabarito; RACI com um único "A"; risco sem dono reprovado; divisão sem fronteira/interface reprovada |
+| 05 | `modelos/caminhocritico` (com `papel` por tarefa), registro de riscos, RACI, proposta de divisão de time | CPM correto no grafo-gabarito; `papel: lider` no caminho crítico sinalizado; RACI com um único "A"; risco sem dono reprovado; divisão sem fronteira/interface reprovada |
 | 06 | `modelos/calibracao` + registro de decisões | Brier score reproduz o gabarito; decisão sem gatilho de reversão reprovada |
-| 07 | Plano de mentoria, pauta de 1:1 e `modelos/fatoronibus` por área | Concentração por área detectada no repositório sintético; 1:1 sem compromissos datados reprovado |
-| 08 | RFC/one-pager lintados + custo de reunião | `lint rfc` reprova sem alternativas; um doc ruim passa no *linter* (demonstração) |
-| 09 | Rubrica de entrevista, `modelos/concordancia`, avaliação por evidência e plano de melhoria | Kappa reproduz o gabarito; avaliação sem evidência datada reprovada; nota por evidência invariante à ordem |
+| 07 | Plano de mentoria, pauta de 1:1, `modelos/fatoronibus` por área e diagnóstico de time (`casos/disfuncao/`) | Concentração por área detectada no repositório sintético; 1:1 sem compromissos datados reprovado; `lint diagnostico-time` reprova diagnóstico sem ≥2 hipóteses com evidência |
+| 08 | RFC/one-pager lintados + custo de reunião + catálogo de processos | `lint rfc` reprova sem alternativas; um doc ruim passa no *linter* (demonstração); `lint processo` reprova sem problema/dono/revisão, e a revisão vencida é sinalizada com relógio falso |
+| 09 | Rubrica de entrevista, `modelos/concordancia`, avaliação por evidência e plano de melhoria | Kappa reproduz o gabarito; avaliação sem evidência datada, ou sem as duas dimensões (resultado e comportamento), reprovada; nota por evidência invariante à ordem |
 | 10 | `lint postmortem`, `modelos/plantao`, taxa de ação concluída | Gini de plantão reproduz; ação sem dono/prazo reprovada; *postmortem* com linguagem de culpa sinalizado |
 | 11 | `lint excecao`/`risco-aceito` com relógio falso | Exceção vencida sinalizada; risco aceito sem controle compensatório reprovado |
 | 12 | `modelos/wsjf` e custo de atraso | Ordenação reproduz o gabarito; mudança de custo de atraso muda a ordem como previsto |
-| 13 | Dossiê (modelo) + `make dossie` + plano de 90 dias | Todos os artefatos presentes e lintados; narrativa de impacto com evidência |
+| 13 | Dossiê (modelo) + `make dossie` + plano de 90 dias | Todos os artefatos presentes e lintados; narrativa de impacto com evidência; plano com `caminho: gestao` sem objetivo de contato técnico gera aviso |
 
 ## Definição de pronto (capstone)
 
@@ -105,7 +116,7 @@ uma página — inclusive quando acertar.
 
 ## Regra do tempo declarado
 
-`estimatedHours` ≈ 2 × Σ `estimatedMinutes`: 810 min de leitura viram ~27h porque o hands-on é
+`estimatedHours` ≈ 2 × Σ `estimatedMinutes`: 850 min de leitura viram ~28h porque o hands-on é
 escrever os artefatos, rodar os modelos sobre os dados e decidir os casos antes de ver o
 gabarito.
 

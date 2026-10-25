@@ -1,33 +1,33 @@
 questions:
   - question: "Um RACI de programa tem duas pessoas marcadas como 'A' (aprovador) na mesma linha de decisão, porque os dois times queriam ter poder de veto. Segundo este marco, por que isso é pior do que não ter RACI nenhum?"
     options:
-      - "Porque a regra central do RACI é um único aprovador por decisão — dois 'A's reproduz exatamente a ambiguidade que o RACI deveria eliminar, mas agora com a aparência de estar resolvida"
+      - "Porque a regra é um único aprovador; dois 'A's mantêm a ambiguidade com cara de resolvida"
       - "Não é pior — ter dois aprovadores sempre aumenta a qualidade da decisão por trazer mais perspectivas"
       - "O problema só existiria se fossem três ou mais aprovadores; dois é o número ideal segundo este marco"
-      - "RACI nunca deveria ter apenas um aprovador; a prática recomendada é sempre ter pelo menos dois"
+      - "RACI deveria ter sempre pelo menos dois aprovadores por decisão"
     answer: 0
     explanation: "O marco é explícito: a regra central é um único 'A' por decisão, e dois aprovadores na mesma linha reproduz a ambiguidade original escondida atrás de um documento que parece resolver o problema. Múltiplos aprovadores não aumentam qualidade automaticamente (geram paralisia ou reversão), o número não é 'três ou mais', e a recomendação do marco é exatamente o oposto de 'sempre pelo menos dois'."
-  - question: "Um programa reporta status 'verde' toda semana, mas a previsão P85 (calculada no marco 04) já ultrapassou a data comprometida há duas semanas. Segundo este marco, o que esse relatório de status revela?"
+  - question: "No grafo de um programa, a integração com o ledger está no caminho crítico com `papel: lider`. Segundo este marco, por que o modelo de caminho crítico sinaliza essa tarefa?"
     options:
-      - "Uma inconsistência detectável, porque o critério objetivo para a cor (previsão P85 versus data comprometida) não bate com a cor reportada"
-      - "Nada de errado — a cor do status é uma questão de sentimento geral da equipe, não precisa bater com a previsão numérica"
-      - "Um erro no cálculo da previsão do marco 04, já que o status verde é sempre a fonte de verdade mais confiável"
-      - "Um problema exclusivamente de comunicação, sem relação com os critérios objetivos discutidos neste marco"
+      - "Porque o tempo do líder é o mais interrompível do time, e o atraso dele vira o atraso do programa"
+      - "Porque o Tech Lead não deveria programar em nenhuma circunstância, nem em protótipo ou ferramenta fora do grafo"
+      - "Porque tarefas do líder sempre demoram mais, já que ele costuma escrever código de qualidade inferior à do time"
+      - "Porque o atributo `papel` deveria guardar o nome da pessoa responsável, e `lider` é genérico demais para o modelo"
     answer: 0
-    explanation: "O marco propõe exatamente esse tipo de critério objetivo (vermelho = P85 ultrapassou a data comprometida) para que o status deixe de ser sentimento e vire algo verificável — uma discrepância como essa é uma inconsistência detectável, não uma questão de interpretação. O status não é a 'fonte de verdade' que sobrepõe a previsão numérica; é o contrário, o status deveria refletir a previsão."
+    explanation: "O marco defende que o líder continue programando para manter contexto e credibilidade, mas fora do caminho crítico: incidentes, reuniões com outras equipes e pedidos da diretoria interrompem primeiro o líder, e uma tarefa crítica nas mãos dele atrasa o programa inteiro. Não se trata de proibir o líder de programar nem de qualidade do código dele, e o atributo `papel` usa valores fechados justamente para nunca registrar o nome de uma pessoa."
   - question: "Ao mapear o grafo de dependências de um programa, o modelo de caminho crítico encontra um ciclo (A depende de B, que depende de C, que depende de A). Segundo este marco, qual deveria ser o comportamento esperado?"
     options:
       - "O modelo recusa calcular e lista os nós que formam o ciclo, em vez de produzir um resultado silenciosamente incorreto"
       - "O modelo ignora uma das dependências do ciclo automaticamente e calcula o caminho crítico normalmente"
-      - "Ciclos são impossíveis de ocorrer em grafos de dependência de programas reais, então esse caso nunca precisa ser tratado"
+      - "Ciclos não ocorrem em grafos de programas reais, então esse caso não precisa ser tratado"
       - "O modelo deveria retornar a duração mais curta possível entre as três tarefas envolvidas no ciclo"
     answer: 0
     explanation: "O marco lista como invariante que um ciclo introduzido no grafo é recusado, com a lista de nós do ciclo — nunca um resultado silenciosamente incorreto. Ignorar uma dependência automaticamente ou escolher uma duração arbitrária esconderia um erro real de modelagem; e ciclos, embora indesejáveis, são um erro de planejamento que de fato acontece e precisa ser detectado, não assumido como impossível."
   - question: "Segundo este marco, o que o 'Conway reverso' propõe fazer de diferente em relação à observação original da Lei de Conway (vista no marco 02)?"
     options:
-      - "Desenhar deliberadamente a estrutura de equipes para produzir a arquitetura desejada, em vez de só observar que a arquitetura espelha a comunicação existente"
+      - "Desenhar de propósito a estrutura de equipes para produzir a arquitetura desejada"
       - "Provar que a Lei de Conway está incorreta e que a estrutura de comunicação não influencia a arquitetura de forma alguma"
-      - "Reorganizar equipes a cada trimestre, independentemente de qualquer objetivo arquitetural específico"
+      - "Reorganizar equipes a cada trimestre, sem objetivo arquitetural"
       - "Eliminar completamente a necessidade de qualquer estrutura de equipes, deixando a arquitetura evoluir sem influência organizacional"
     answer: 0
     explanation: "O marco descreve o Conway reverso exatamente assim: inverter a observação original (arquitetura espelha comunicação) para uma ferramenta deliberada (desenhar comunicação/estrutura de equipes para produzir a arquitetura desejada). Não é uma refutação da lei original, não prescreve reorganização recorrente sem propósito, e não elimina a influência organizacional — pelo contrário, a usa intencionalmente."

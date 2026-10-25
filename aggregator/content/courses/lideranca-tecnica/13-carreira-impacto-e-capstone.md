@@ -2,7 +2,7 @@
 id: carreira-impacto-e-capstone
 title: "Carreira, impacto e capstone"
 summary: "Impacto que vira evidência: narrativa, patrocínio e pacote de promoção. A escolha entre IC e gestão técnica. E o capstone que consolida todo o fin-leadkit no Dossiê de liderança técnica."
-estimatedMinutes: 70
+estimatedMinutes: 75
 competencies: [carreira]
 references:
   - title: "StaffEng — Staff archetypes (Will Larson)"
@@ -61,6 +61,19 @@ gestão e volta para IC, ou o contrário, mais de uma vez na carreira, e cada mo
 válida, não um recuo. O critério mais honesto é "qual trabalho me dá energia e onde tenho mais
 alavanca agora", revisitado periodicamente, não decidido uma única vez e para sempre.
 
+## Manter-se técnico na gestão
+
+Quem vai para a gestão perde primeiro, e sem perceber, três coisas: o **contexto do código** (que
+módulo está frágil, que mudança é barata), a **intuição de estimativa** (quanto custa de fato
+"só adicionar um campo") e, com o tempo, a **credibilidade técnica** diante do time. Nenhuma delas
+volta com leitura de relatório. Conservar o suficiente exige prática deliberada e de pouco tempo:
+participar das revisões de design, pegar protótipos e ferramentas fora do caminho crítico (o marco
+05 explica por que fora), entrar no rodízio de plantão de vez em quando e ler os *post-mortems* com
+atenção ao mecanismo, não só às ações. Isso também reduz o custo do pêndulo: voltar para IC depois
+de anos na gestão custa meses de reaprendizado, e esse custo é menor para quem nunca se afastou de
+todo. O critério não é programar tanto quanto antes, é continuar capaz de julgar uma decisão
+técnica do time com os próprios olhos.
+
 ## Energia e sustentabilidade
 
 Carreira de Staff tem um risco específico de sustentabilidade: a mesma pessoa de confiança é
@@ -102,7 +115,8 @@ impacto visível com evidência, e cuidar da própria sustentabilidade — o res
 ensinável.
 
 *Evidência.* [P] narrativas de promoção, pacotes de evidência e o pêndulo IC/gestão vêm de relatos
-consolidados de praticantes (StaffEng e equivalentes). [O] todo o resto deste marco — como balancear
+consolidados de praticantes (StaffEng e equivalentes); as práticas para manter-se técnico na
+gestão também, entre elas as de *The Manager's Path*, de Camille Fournier. [O] todo o resto deste marco — como balancear
 energia, quando mudar de organização, o papel da sorte — depende de contexto pessoal; a trilha
 declara isso em vez de disfarçar opinião de regra.
 
@@ -136,6 +150,9 @@ evidência e fonte para cada afirmação de resultado.
    nos mesmos termos que qualquer outro artefato com prazo desta trilha.
 5. A revisão espaçada da plataforma está configurada para os verbetes do `GLOSSARIO.md` e os quizzes
    da trilha (verificação de integração, não de conteúdo novo).
+6. `lint plano` **sinaliza** (aviso, não reprovação) um plano de 90 dias com `caminho: gestao`
+   que não tenha ao menos **um objetivo de contato técnico observável** (ex.: "revisar o desenho
+   das duas RFCs do trimestre", "um turno de plantão por mês").
 
 **Complemento.** Escreva o seu plano de carreira de 12 meses, mantendo o conteúdo privado.
 
@@ -167,6 +184,8 @@ evidência e fonte para cada afirmação de resultado.
 - Visibilidade legítima difere de autopromoção, frequentemente, em quem mais se beneficia da
   narrativa contada.
 - A escolha entre IC e gestão técnica é um pêndulo revisitável, não uma decisão única e permanente.
+- Quem vai para a gestão conserva contato técnico de propósito (revisão de design, protótipo fora
+  do caminho crítico, plantão ocasional), ou perde o julgamento técnico sem perceber.
 - Sorte e contexto de mercado são reais e não são ensináveis — esta trilha ensina a parte que está
   sob seu controle.
 
@@ -180,7 +199,8 @@ consolidando os artefatos de todos os blocos com os capstones das trilhas anteri
 
 **Entrega**
 
-- [ ] `escopo.md` e a matriz de arquétipos do marco 01, com `lint escopo` passando
+- [ ] `escopo.md` (com o acordo com o gestor), a matriz de arquétipos e uma nota para cima do
+      marco 01, com `lint escopo` e `lint nota-para-cima` passando
 - [ ] `modelos/fluxo` e `modelos/dora` do marco 02 sobre os 12 meses do Time Pix
 - [ ] Estratégia técnica do `fin-platform` (marco 03), com diagnóstico, política orientadora e
       ações coordenadas
@@ -188,8 +208,10 @@ consolidando os artefatos de todos os blocos com os capstones das trilhas anteri
 - [ ] `modelos/caminhocritico`, registro de riscos, RACI/DACI e a proposta de divisão de time
       (marco 05)
 - [ ] `modelos/calibracao` e o registro de decisões com gatilho de reversão (marco 06)
-- [ ] Plano de mentoria, pauta de 1:1 e `modelos/fatoronibus` por área (marco 07)
-- [ ] RFC e *one-pager* lintados, com calculadora de custo de reunião (marco 08)
+- [ ] Plano de mentoria, pauta de 1:1, `modelos/fatoronibus` por área e o diagnóstico de um
+      cenário de `casos/disfuncao/` (marco 07)
+- [ ] RFC e *one-pager* lintados, com calculadora de custo de reunião e o catálogo de processos
+      com data de revisão (marco 08)
 - [ ] Rubrica de entrevista, `modelos/concordancia`, avaliação por evidência e plano de melhoria
       (marco 09)
 - [ ] `lint postmortem`, `modelos/plantao` e taxa de ação concluída (marco 10)

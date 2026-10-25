@@ -5,10 +5,12 @@ category: "Liderança e carreira"
 tags: [lideranca-tecnica, tech-lead, staff-engineer, gestao-tecnica, estrategia, previsao, decisao, mentoria, desempenho, incidentes, regulacao, carreira, fintech]
 level: advanced
 lang: pt-BR
-# 13 marcos, Σ 810 min (regra ~2x -> 27h). Escrita por bloco, por
+# 13 marcos, Σ 850 min. A regra é ~2x a soma dos estimatedMinutes:
+# 850 x 2 / 60 = 28,3 -> 28h. Escrita por bloco, por
 # PLANO-trilha-lideranca-tecnica.md §4/§10 — todos os 13 marcos (Blocos
-# A-E) têm conteúdo completo.
-estimatedHours: 27
+# A-E) têm conteúdo completo; o adendo The Manager's Path (+40 min) aprofunda
+# os marcos 01, 05, 07, 08, 09 e 13 sem mudar nenhum id.
+estimatedHours: 28
 glossary: GLOSSARIO.md
 prerequisites: [arquitetura-de-solucoes, system-design]
 sources:
@@ -22,6 +24,9 @@ sources:
   - { title: "Google SRE Workbook — Incident Response", url: https://sre.google/workbook/incident-response/ }
   - { title: "Amy Edmondson — Psychological safety", url: https://amycedmondson.com/psychological-safety/ }
   - { title: "Google re:Work — Guides (contratação, gestão)", url: https://rework.withgoogle.com/ }
+  # Só o link: nenhum trecho, lista ou estrutura de capítulo do livro é
+  # reproduzido nos marcos. Edição em português (Alta Books): conferir título.
+  - { title: "Camille Fournier — The Manager's Path (O'Reilly)", url: https://www.oreilly.com/library/view/the-managers-path/9781491973882/ }
 milestones:
   - 01-papel-escopo-e-arquetipos.md
   - 02-diagnostico-da-organizacao-tecnica.md

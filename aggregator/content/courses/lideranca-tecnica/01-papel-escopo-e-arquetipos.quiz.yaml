@@ -1,7 +1,7 @@
 questions:
   - question: "Um Tech Lead aceita 'ser responsável' pela iniciativa de conciliação sem negociar escopo, e três meses depois toda decisão da área passa por ele. Segundo este marco, qual é a causa raiz?"
     options:
-      - "O escopo nunca foi escrito — na ausência de um documento explícito, ele virou o que a última pessoa que pediu algo decidiu que era"
+      - "O escopo nunca foi escrito, e virou o que a última pessoa que pediu algo decidiu que era"
       - "A pessoa aceitou trabalho demais; a solução é recusar pedidos da organização no futuro"
       - "O problema é falta de autoridade formal; a solução é pedir o título de gerente"
       - "Isso é normal e esperado em qualquer papel de liderança técnica, não indica um problema de escopo"
@@ -17,17 +17,17 @@ questions:
     explanation: "O marco afirma que os quatro arquétipos são legítimos e que o erro comum é tentar ser os quatro ao mesmo tempo (ou escolher pelo prestígio) em vez de escolher pelo que a organização precisa agora. Não há um arquétipo 'padrão' mais comum que deva vencer por default, os arquétipos não são intercambiáveis automaticamente, e a escolha não é arbitrária — depende da necessidade real."
   - question: "Um Staff tem a agenda cheia de reuniões de 30 minutos espalhadas ao longo do dia, mas o total de horas livres na semana é igual ao de antes. Por que, segundo este marco, isso ainda prejudica o trabalho de criação (código, estratégia, desenho)?"
     options:
-      - "Porque trabalho de criação exige blocos longos e contínuos; o custo aparece como 'nunca sobra um bloco de meio dia', não como horas livres totais"
+      - "Porque criação exige blocos longos; a fragmentação acaba com eles, mesmo com as mesmas horas livres"
       - "Não prejudica — se o total de horas livres é igual, a produtividade de criação também é igual"
       - "Porque reuniões de 30 minutos são sempre improdutivas, independentemente de como estão distribuídas na agenda"
       - "O problema descrito neste marco é exclusivamente sobre gestores, não se aplica a quem ainda escreve código"
     answer: 0
     explanation: "O marco distingue explicitamente agenda de criador (blocos longos e contínuos) de agenda de gestor (fragmentada por design) — o dano da fragmentação não aparece nas horas totais livres, aparece na ausência de blocos longos. Horas totais iguais não significam produtividade de criação igual; o problema não é a duração das reuniões em si, é a fragmentação; e o marco trata isso como relevante para qualquer Staff que ainda precise de tempo de criação, não só gestores."
-  - question: "Segundo este marco, por que 'Staff' não deveria ser tratado como 'gerente sem o título'?"
+  - question: "A previsão mostra que a fase 3 vai estourar a data em duas semanas, e o diretor ainda não sabe. Segundo este marco, o que o Tech Lead deveria levar ao próprio gestor?"
     options:
-      - "Porque gestão de pessoas é uma disciplina própria, não um prêmio de consolação por não virar gestor formal"
-      - "Porque Staffs nunca gerenciam pessoas, enquanto gerentes gerenciam exclusivamente pessoas"
-      - "Porque o título de Staff é hierarquicamente superior ao de gerente em qualquer organização"
-      - "A distinção não importa na prática — os dois papéis exigem exatamente as mesmas habilidades"
+      - "Uma nota com o problema, duas opções reais, a recomendação e a decisão que precisa dele até uma data"
+      - "Nada por enquanto: é melhor esperar o diretor perguntar, para não parecer que o time perdeu o controle do programa"
+      - "O problema descrito em detalhe, deixando que o gestor escolha a saída, já que decidir o rumo do programa é papel dele"
+      - "Uma escalada direta ao diretor, sem passar pelo gestor, pela urgência do prazo"
     answer: 0
-    explanation: "O marco é direto: gestão de pessoas é uma disciplina própria, e tratar Staff como consolação por não ter virado gestor é um erro de entendimento do papel — não é sobre quem gerencia pessoas ou não (um Staff pode liderar pessoas sem cargo formal, tema dos marcos seguintes), não é uma questão de hierarquia entre títulos, e os dois papéis exigem conjuntos de habilidades parcialmente distintos, não idênticos."
+    explanation: "O marco descreve gerir para cima como prática contínua: o gestor fica sabendo sem precisar perguntar do que muda o plano dele, e o problema chega com opções, recomendação e um pedido explícito com prazo. Esperar o diretor perguntar faz o gestor descobrir pela boca de outra pessoa; levar só o problema devolve a ele o trabalho de pensar a saída; e escalar sem avisar queima a confiança que a relação levou meses para construir."

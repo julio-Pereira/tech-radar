@@ -82,6 +82,24 @@ o comitê de promoção usa.
 promoção é negada.
 **Onde na prática:** marco 01, retomado no 13.
 
+### Gerir para cima
+**Em uma frase:** tratar a relação com o próprio gestor como prática contínua: ele sabe sem
+perguntar do que muda o plano, e problema chega com opções, recomendação e pedido.
+**No fin-platform:** o `escopo.md` do Tech Lead do Time Pix tem a seção "Acordo com o gestor":
+cadência, o que é informado sem pergunta, como se escala e o que o gestor espera.
+**Erro comum:** esperar que o gestor pergunte, ou escalar por cima dele sem avisar quando a relação
+não funciona.
+**Onde na prática:** marco 01; o formato de comunicar para cima está no 08.
+
+### Nota para cima
+**Em uma frase:** documento de uma página que leva ao gestor um problema com ao menos duas opções,
+a recomendação e o pedido explícito (o que se espera dele e até quando).
+**No fin-platform:** a nota sobre a fase 3 que vai estourar: cortar devoluções ou adiar duas
+semanas, recomendação de cortar, decisão pedida até quinta.
+**Erro comum:** incluir uma opção inviável por construção só para a recomendação parecer razoável;
+a nota passa no `lint nota-para-cima` e continua desonesta.
+**Onde na prática:** marco 01.
+
 ## Diagnóstico
 
 ### Lei de Conway
@@ -343,6 +361,15 @@ ausência de incidente crítico aberto.
 **Erro comum:** definir o critério de go/no-go na própria reunião de decisão, sob pressão.
 **Onde na prática:** marco 05.
 
+### Líder fora do caminho crítico
+**Em uma frase:** o líder continua programando para manter contexto e credibilidade, mas em
+tarefas com folga, porque o tempo dele é o mais interrompível do time.
+**No fin-platform:** `modelos/caminhocritico` sinaliza tarefa com `papel: lider` no caminho
+crítico; o líder do Time Pix fica com o protótipo do relatório de conciliação, que tem folga.
+**Erro comum:** o líder reservar para si a tarefa mais importante do programa, que é justamente a
+que não pode atrasar.
+**Onde na prática:** marco 05, retomado no 13.
+
 ## Times
 
 ### Conway reverso
@@ -388,6 +415,22 @@ vez de reduzi-las.
 produtividade até as novas equipes se estabilizarem.
 **Erro comum:** tratar reorganização como mudança "de graça" que só traz benefício, sem custo.
 **Onde na prática:** marco 05.
+
+### Processo com data de revisão
+**Em uma frase:** processo de time escrito com o problema que resolve, um dono e uma data em que se
+pergunta se o problema ainda existe; se não existe, o processo sai.
+**No fin-platform:** o catálogo `processos.md` do Time Pix; a "sincronização com risco" sai quando
+ninguém consegue escrever o problema atual que ela resolve.
+**Erro comum:** herdar rituais de um time maior, ou de outra época, sem critério de remoção.
+**Onde na prática:** marco 08.
+
+### Valores de time
+**Em uma frase:** comportamentos que o time escolhe no formato "preferimos X a Y", escolhendo um
+lado de um conflito real.
+**No fin-platform:** "preferimos perguntar no canal do time a resolver sozinho em silêncio".
+**Erro comum:** escrever valores com que ninguém discordaria ("qualidade", "colaboração"), que não
+orientam decisão nenhuma.
+**Onde na prática:** marco 08, no mesmo formato dos princípios do 03.
 
 ## Decisão
 
@@ -580,6 +623,24 @@ apenas pronta para ele em teoria.
 impacto no escopo do próximo nível.
 **Erro comum:** apresentar evidência só do nível atual, sem demonstrar escopo do nível seguinte.
 **Onde na prática:** marco 09, retomado no 13.
+
+### Disfunção de time
+**Em uma frase:** padrão de sintoma de um time (não entrega, sobrecarregado, não colabora, conflito
+entre pessoas), diagnosticado com dados, 1:1, hipóteses concorrentes e uma primeira ação reversível.
+**No fin-platform:** "o Time Pix parou de entregar" vira, nos dados, WIP dobrado e plantão
+concentrado numa área; a primeira ação é limitar o WIP por duas semanas.
+**Erro comum:** parar na primeira hipótese, em geral um traço de caráter ("o time está acomodado"),
+sem evidência a favor nem contra.
+**Onde na prática:** marco 07; o diagnóstico da organização inteira está no 02.
+
+### Colega brilhante e corrosivo
+**Em uma frase:** pessoa de alto resultado individual cujo comportamento reduz o resultado do time
+em volta.
+**No fin-platform:** o caso sintético "Pessoa B": a melhor entrega do time, revisões humilhantes e
+uma área do código que só ele altera.
+**Erro comum:** deixar o resultado compensar o comportamento, em vez de avaliar as duas dimensões
+separadamente, cada uma com evidência datada.
+**Onde na prática:** marco 09, com o SBI e a segurança psicológica do 07.
 
 ## Operar
 

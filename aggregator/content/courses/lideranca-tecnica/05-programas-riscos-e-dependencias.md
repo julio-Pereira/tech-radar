@@ -2,7 +2,7 @@
 id: programas-riscos-e-dependencias
 title: "Programas, riscos, dependências e fronteiras de times"
 summary: "Em iniciativas entre equipes, o caminho crítico é feito de gente e de dependências — e quem o nomeia cedo ganha as semanas que os outros perdem."
-estimatedMinutes: 65
+estimatedMinutes: 70
 competencies: [execucao, decisao]
 references:
   - title: "Team Topologies"
@@ -32,6 +32,18 @@ Mapear as dependências entre as partes de um programa como um **grafo** permite
 inteiro — e a **folga** de cada tarefa fora dele (quanto ela pode atrasar sem afetar a data final).
 Tarefas no caminho crítico merecem atenção de gestão de risco desproporcional; tarefas com folga
 grande não merecem a mesma urgência, mesmo que pareçam importantes isoladamente.
+
+## O líder fora do caminho crítico
+
+Quanto o Tech Lead deve programar? O suficiente para manter **contexto e credibilidade**: quem para
+de tocar o código perde a intuição de quanto custa uma mudança e passa a revisar desenho de longe.
+Mas não em tarefa do **caminho crítico**. O tempo do líder é o mais interrompível do time: é ele
+quem atende o incidente, a reunião com a outra equipe, a dúvida do diretor e a pessoa travada. Uma
+tarefa de três dias no caminho crítico, nas mãos de quem é interrompido o tempo todo, vira uma
+tarefa de cinco, e o programa inteiro atrasa junto. O que o líder pega é o que tem **folga** ou
+fica fora do grafo: um protótipo que reduz a incerteza de uma decisão, uma ferramenta que poupa
+horas do time, uma investigação de desempenho, a correção de um defeito que não bloqueia ninguém.
+A regra não é "o líder não programa", é "o atraso do líder não pode virar o atraso do programa".
 
 ## Registro de riscos
 
@@ -108,8 +120,11 @@ decidir dividir um time exige pesar esse custo contra o ganho esperado, não ass
 
 *Evidência.* [P] caminho crítico, registro de riscos e as topologias de equipe de Team Topologies
 vêm de prática consolidada de gestão de programas e de desenho organizacional, não de estudo
-controlado. [O] o formato exato de relatório de status, os critérios de escalonamento e o tamanho
-ideal de uma equipe dependem fortemente da cultura e do domínio da organização.
+controlado. [P] manter o líder programando,
+mas fora do caminho crítico, vem de relatos de praticantes, entre eles *The Manager's Path*, de
+Camille Fournier. [O] o formato exato de relatório de status, os critérios de escalonamento, o
+tamanho ideal de uma equipe e a proporção de código que cabe ao líder (que diminui conforme o time
+cresce) dependem fortemente da cultura e do domínio da organização.
 
 ## Exemplo numa fintech
 
@@ -117,12 +132,16 @@ A funcionalidade de iniciação de pagamento depende de três equipes: a do gate
 risco (validação de limite) e a de segurança (certificado mTLS). O caminho crítico, quando mapeado,
 passa pela adequação de certificado da equipe de segurança — uma dependência que ninguém tinha
 colocado no cronograma inicial, porque "certificado" parecia um detalhe, não um item de caminho
-crítico.
+crítico. No mesmo grafo, a integração com o ledger estava com `papel: lider`: o Tech Lead tinha
+reservado a tarefa para si. Numa semana com dois incidentes e a revisão trimestral, a tarefa
+andou um dia em cinco. Ela passou para o time, e o líder ficou com o protótipo do relatório de
+conciliação, que tinha três semanas de folga.
 
 ## Hands-on
 
 **Tutorial.** Rode `modelos/caminhocritico` do `fin-leadkit` sobre o grafo do programa fictício de
-conciliação, e preencha o `registro-de-riscos.md`.
+conciliação, e preencha o `registro-de-riscos.md`. Marque cada tarefa do grafo com o atributo
+`papel` (valores fechados: `lider`, `time`, `externo` — **nunca** o nome de uma pessoa).
 
 **Desafio.** Escreva um relatório de status verdadeiro para um programa fictício em atraso —
 incluindo a cor correta segundo o critério objetivo, mesmo que seja desconfortável.
@@ -145,6 +164,13 @@ incluindo a cor correta segundo o critério objetivo, mesmo que seja desconfort�
    resultantes e carga cognitiva estimada** para cada um; comparando duas propostas sobre o mesmo
    grafo de dependências, a que ignora o fluxo real produz **mais dependências cruzadas** entre os
    times resultantes.
+8. `modelos/caminhocritico` **sinaliza** toda tarefa com `papel: lider` que esteja no caminho
+   crítico; o atributo `papel` só aceita os três valores fechados, e um nome de pessoa no campo é
+   rejeitado.
+9. Mover essa tarefa para `papel: time`, com a mesma duração, **não** altera a data; com o
+   **fator de interrupção do líder** declarado (ex.: duração × 1,5 quando `papel: lider`), o
+   modelo mostra o atraso que a tarefa causa no caminho crítico, e nenhum atraso quando ela está
+   dentro da folga — propriedade verificada por uma tabela de casos.
 
 **Desafio adicional.** Proponha a divisão do Time Pix fictício em dois times, com fronteira de
 propriedade e interface explícitas.
@@ -176,5 +202,7 @@ específico da sua instituição no repositório.
   atrasada importa igualmente.
 - Um risco sem dono, gatilho e mitigação é, na prática, uma lista de surpresas futuras.
 - Status "verde" só significa algo quando tem critério objetivo definido antes, não depois.
+- O líder continua programando, mas fora do caminho crítico: o tempo dele é o mais interrompível
+  do time.
 - Conway reverso desenha a estrutura de equipes deliberadamente para produzir a arquitetura
   desejada; reorganizar sempre tem custo real.

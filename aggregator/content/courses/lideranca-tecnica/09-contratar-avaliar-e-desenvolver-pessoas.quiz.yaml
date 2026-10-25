@@ -1,23 +1,23 @@
 questions:
   - question: "Em um processo seletivo, cada entrevistador conversa informalmente com o candidato e só discute suas impressões em grupo, sem registrar nenhuma nota antes dessa conversa. Segundo este marco, qual é o principal risco desse formato?"
     options:
-      - "A opinião registrada primeiro ou com mais confiança tende a ancorar o julgamento do grupo, perdendo a vantagem de notas independentes registradas antes do debrief"
+      - "A primeira opinião, ou a mais confiante, ancora o grupo e tira a independência das notas"
       - "Não há risco real — conversar em grupo antes de registrar sempre produz uma decisão mais informada"
-      - "O risco só existe se os entrevistadores tiverem níveis hierárquicos diferentes entre si"
+      - "O risco só existe entre entrevistadores de níveis diferentes"
       - "Esse é exatamente o formato recomendado por este marco para garantir avaliação estruturada"
     answer: 0
     explanation: "O marco recomenda notas registradas independentemente, antes do debrief em grupo, exatamente para evitar que a discussão coletiva ancore o julgamento antes de cada pessoa formar sua própria avaliação. O formato descrito na pergunta é o oposto do recomendado, não há isenção de risco por hierarquia igual, e esse formato não é o que o marco chama de entrevista estruturada."
   - question: "Um avaliador lembra vividamente de um projeto difícil que um engenheiro entregou com atraso nas últimas três semanas do período de avaliação, e essa lembrança domina a nota final, apesar de seis meses de entregas consistentes antes disso. Qual viés este marco associa a esse padrão, e qual é a defesa recomendada?"
     options:
-      - "Viés de recência — a defesa é o registro contínuo de evidência distribuída ao longo de todo o período, não reconstruída de memória no fim"
+      - "Viés de recência — a defesa é o registro contínuo de evidência ao longo do período"
       - "Viés de halo — a defesa é evitar qualquer menção a projetos específicos durante a avaliação"
-      - "Viés de semelhança — a defesa é garantir que avaliador e avaliado tenham formação idêntica"
+      - "Viés de semelhança — a defesa é formação idêntica entre avaliador e avaliado"
       - "Este marco não reconhece esse padrão como um viés, apenas como julgamento razoável do avaliador"
     answer: 0
     explanation: "O marco nomeia exatamente esse padrão como viés de recência — as últimas semanas pesando desproporcionalmente — e aponta o registro contínuo de evidência datada e distribuída como defesa estrutural. Não é viés de halo (que é sobre uma dimensão contaminando outras) nem de semelhança (sobre favorecer quem se parece com o avaliador), e o marco trata isso explicitamente como viés a ser corrigido, não como julgamento legítimo."
   - question: "Um engenheiro está entregando abaixo do esperado, e o gestor, antes de qualquer plano formal, investiga se o problema é falta de clareza sobre expectativas, falta de habilidade, obstáculo de contexto, ou falta de motivação. Segundo este marco, por que esse diagnóstico prévio importa?"
     options:
-      - "Porque cada causa pede uma resposta diferente, e tratar toda queda de desempenho como 'falta de esforço' é um erro comum e injusto"
+      - "Porque cada causa pede uma resposta diferente; tratar tudo como 'falta de esforço' é injusto"
       - "O diagnóstico é apenas uma formalidade burocrática sem efeito real na resposta que será dada"
       - "Porque, segundo este marco, a única causa possível de baixo desempenho é falta de motivação"
       - "O diagnóstico só é necessário quando a pessoa avaliada é recém-contratada, não para quem já está no time há anos"
@@ -25,23 +25,23 @@ questions:
     explanation: "O marco é explícito: cada causa (clareza, habilidade, contexto, motivação) pede uma resposta diferente, e o erro comum é tratar tudo como falta de esforço. O diagnóstico não é burocracia vazia — ele determina a resposta certa; o marco não afirma que motivação é a única causa possível (é uma entre quatro); e não há distinção baseada em tempo de casa mencionada para dispensar esse diagnóstico."
   - question: "Um pacote de promoção para o próximo nível apresenta evidências sólidas de que a pessoa já domina completamente as responsabilidades do nível atual. Segundo este marco, por que isso pode não ser suficiente para a promoção?"
     options:
-      - "Porque o lint promocao exige evidência de que a pessoa já está operando no escopo do nível seguinte, não apenas pronta para ele em teoria ou excelente no nível atual"
+      - "Porque precisa mostrar que a pessoa já opera no escopo do nível seguinte, não só no atual"
       - "Porque promoções, segundo este marco, dependem exclusivamente do tempo de casa da pessoa na empresa"
       - "Não há problema — dominar completamente o nível atual é o único critério necessário para qualquer promoção"
-      - "Porque este marco recomenda que promoções sejam decididas sem nenhuma evidência documentada"
+      - "Porque promoção deveria dispensar evidência documentada"
     answer: 0
     explanation: "O marco é específico: a exigência é evidência do escopo do nível SEGUINTE, não apenas excelência no nível atual — dominar o papel atual não demonstra automaticamente capacidade no próximo. Tempo de casa não é mencionado como critério, dominar o nível atual sozinho não basta segundo o marco, e evidência documentada é exatamente o que o marco exige (o oposto de decidir sem ela)."
-  - question: "Durante a escrita deste marco, toda menção a faixas de remuneração específicas ou regras detalhadas de desligamento é marcada como 'conferir' em vez de apresentada como orientação definitiva. Por que este marco adota essa postura?"
+  - question: "'Pessoa B' tem a melhor entrega individual do time, mas suas revisões de código humilham colegas, e uma área do código passou a ser alterada só por ele. Segundo este marco, como essa pessoa deveria ser avaliada?"
     options:
-      - "Porque remuneração e desligamento envolvem política específica de cada instituição e obrigações legais que variam — o marco ensina o conceito, não substitui a consulta a RH e jurídico"
-      - "Porque este marco considera que remuneração e desligamento são temas irrelevantes para liderança técnica"
-      - "Porque 'conferir' é apenas uma formalidade estilística, sem implicação real sobre a validade do conteúdo apresentado"
-      - "Porque a trilha pretende, em uma versão futura, substituir completamente a necessidade de consultar RH e jurídico"
+      - "Em duas dimensões separadas, resultado e comportamento, cada uma com evidência datada própria"
+      - "Pelo resultado, que é o que a organização remunera; o comportamento é questão de estilo pessoal e não entra na nota"
+      - "Pela média entre as duas dimensões, de forma que a entrega excepcional compense as revisões mais duras"
+      - "Com desligamento imediato, sem conversa prévia, para proteger a segurança psicológica do resto do time"
     answer: 0
-    explanation: "O marco é explícito sobre essa escolha: remuneração e desligamento têm especificidades legais e institucionais que variam, e tratar isso como conceito geral (não como regra aplicável a qualquer contexto) evita passar orientação jurídica indevida. Os temas são tratados como relevantes (entram no escopo do marco), 'conferir' não é estilística vazia — é um sinalizador funcional de que a aplicação real exige consulta — e não há intenção de substituir RH/jurídico."
+    explanation: "O marco separa resultado e comportamento como dimensões independentes, cada uma com evidência datada, porque o custo do comportamento corrosivo aparece no resultado dos outros (menos ideias propostas, fator-ônibus da área caindo para um), não na entrega dessa pessoa. Avaliar só o resultado ou fazer a média esconde esse custo; e o caminho é a conversa direta em SBI e, se o padrão se repetir, um plano de melhoria, nunca um desligamento sem conversa (e toda regra de desligamento é 'conferir' com RH e jurídico)."
   - question: "Uma avaliação de desempenho tem todos os campos formalmente corretos: evidências com data, linguagem sobre comportamento (não caráter), e distribuição ao longo do período sem concentração de recência. Ainda assim, o marco descreve um cenário em que essa avaliação pode ser injusta. Qual é esse cenário?"
     options:
-      - "Quando as evidências registradas foram escolhidas a dedo (viés de seleção do que foi documentado), mesmo estando formalmente corretas e bem distribuídas"
+      - "Quando as evidências foram escolhidas a dedo, ainda que formalmente corretas e distribuídas"
       - "Esse cenário não existe — uma avaliação com todos os campos corretos é, por definição, sempre justa segundo este marco"
       - "Quando a avaliação é feita por mais de um avaliador, o que sempre introduz injustiça segundo este marco"
       - "Quando o período de avaliação é maior que seis meses, tornando qualquer registro contínuo inválido"

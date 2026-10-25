@@ -1,7 +1,7 @@
 questions:
   - question: "Um líder técnico aplica o mesmo processo pesado de revisão e aprovação a uma mudança de nome de uma variável interna e a uma migração irreversível de banco de dados. Segundo este marco, qual é o erro aqui?"
     options:
-      - "Tratar uma porta de ida e volta (reversível, baixo custo de desfazer) com o mesmo processo de uma porta sem volta, pagando lentidão onde não era necessária"
+      - "Tratar uma porta de ida e volta com o processo de uma porta sem volta, pagando lentidão à toa"
       - "Nenhum erro — todo processo de decisão técnica deveria ser igualmente rigoroso, independentemente da reversibilidade"
       - "O erro é usar processo pesado na migração de banco de dados, que deveria ser decidida rapidamente, sem revisão"
       - "O erro está em classificar a mudança de nome de variável como uma decisão, quando na verdade não é uma decisão real"
@@ -9,15 +9,15 @@ questions:
     explanation: "O marco é explícito: o erro mais caro é tratar portas de ida e volta com o processo pesado de portas sem volta — aplicar rigor uniforme ignora que o custo de errar e a necessidade de deliberação são completamente diferentes nos dois casos. Decisões irreversíveis merecem mais cautela, não menos, e renomear uma variável é, sim, uma decisão (reversível e de baixo custo), só que não precisa do mesmo processo."
   - question: "Uma pessoa prevê '50% de chance' para praticamente todas as suas decisões ao longo de um ano, e seu Brier score fica em torno de 0,25. Segundo este marco, o que esse padrão revela?"
     options:
-      - "Que as previsões são pouco informativas — prever sempre 50% evita estar 'muito errado', mas também nunca comunica convicção real"
-      - "Que a pessoa está excepcionalmente bem calibrada, já que 0,25 é o melhor Brier score possível"
+      - "Que as previsões informam pouco: 50% evita errar feio, mas nunca comunica convicção"
+      - "Que a pessoa está muito bem calibrada, já que 0,25 é o melhor Brier possível"
       - "Que o Brier score não deveria ser usado para avaliar previsões de 50%, apenas previsões mais extremas"
       - "Que a pessoa deveria parar de registrar previsões, já que o resultado mostra que o método não funciona"
     answer: 0
     explanation: "O marco trata esse padrão explicitamente como sinal de previsão não informativa, não como boa calibração — 0,25 não é o melhor score possível (previsões corretas e confiantes score mais perto de zero), é apenas o que se obtém sempre apostando no meio. O Brier score se aplica a qualquer probabilidade, não só extremas, e o padrão indica um problema de informatividade, não uma falha do método de medição em si."
   - question: "Depois de uma reunião difícil, duas pessoas seniores concordam em 'disagree and commit' sobre uma decisão de arquitetura. Segundo este marco, qual é a condição necessária para que isso funcione de verdade, e não vire apenas uma forma de calar a discordância?"
     options:
-      - "A discordância precisa ter sido genuinamente ouvida antes do compromisso — sem isso, vira só uma forma educada de silenciar quem discorda"
+      - "A discordância precisa ter sido de fato ouvida e considerada antes do compromisso com a decisão"
       - "A pessoa que discorda precisa concordar publicamente que estava errada antes de se comprometer com a decisão"
       - "Não há nenhuma condição necessária — disagree and commit funciona automaticamente sempre que é declarado em voz alta"
       - "A condição é que a decisão seja tomada por consentimento unânime, nunca por uma pessoa só"
@@ -25,7 +25,7 @@ questions:
     explanation: "O marco é direto sobre essa condição: a discordância precisa ter sido genuinamente ouvida antes — caso contrário, o 'disagree and commit' é só uma forma mais educada de calar quem discorda, sem o benefício real de ter considerado a objeção. Não é necessário admitir estar errado, não há garantia automática só por ser declarado, e a condição não exige unanimidade (que aliás contradiria a própria ideia de 'disagree')."
   - question: "Um registro de decisão de seis meses atrás nunca foi revisado, mesmo tendo um gatilho de reversão declarado que, olhando em retrospecto, já havia disparado há semanas. Segundo este marco, o que esse cenário ilustra?"
     options:
-      - "Risco silencioso acumulado — decisões registradas e nunca revisadas continuam valendo mesmo quando ninguém mais as defenderia ativamente"
+      - "Risco silencioso: a decisão segue valendo mesmo sem ninguém que a defenda hoje"
       - "Um exemplo de disagree and commit funcionando corretamente, já que a decisão original permaneceu em vigor"
       - "Prova de que registrar gatilhos de reversão é inútil, porque eles raramente são respeitados na prática"
       - "Um caso normal e esperado — decisões de arquitetura não precisam de revisão periódica uma vez tomadas"
@@ -33,7 +33,7 @@ questions:
     explanation: "O marco descreve exatamente esse padrão como 'risco silencioso': um gatilho que dispara sem que ninguém volte a olhar o registro mantém em vigor um compromisso que talvez ninguém mais defenda. Isso não tem relação com disagree and commit (que é sobre comprometer-se na decisão original, não sobre revisão), não prova que gatilhos são inúteis (o problema foi a ausência de revisão, não o gatilho em si), e o marco trata a ausência de revisão periódica como falha, não como normal."
   - question: "Numa reunião de decisão em grupo, a pessoa mais sênior fala primeiro e propõe uma solução; a discussão que se segue converge rapidamente para essa mesma proposta. Segundo este marco, que prática reduziria a distorção desse padrão?"
     options:
-      - "Pedir que cada pessoa registre sua posição antes da discussão em grupo começar, reduzindo o efeito de ancoragem na opinião sênior"
+      - "Pedir que cada pessoa registre sua posição antes da discussão, reduzindo a ancoragem"
       - "Proibir a pessoa mais sênior de participar da reunião de decisão inteiramente"
       - "Sempre aceitar a proposta da pessoa mais sênior, já que presume-se que ela tem mais contexto"
       - "Substituir a reunião por uma votação anônima sem qualquer discussão prévia entre os participantes"
@@ -41,8 +41,8 @@ questions:
     explanation: "O marco propõe exatamente essa prática — registrar posições individuais antes da discussão — para reduzir ancoragem e revelar discordância real que a conversa em grupo esconderia. Excluir a pessoa sênior não é a recomendação (ela pode ter contexto valioso), aceitar automaticamente a proposta sênior é o próprio viés que a prática busca mitigar, e substituir por votação sem qualquer discussão elimina a troca de informação que a reunião deveria proporcionar."
   - question: "Um time decide 'sempre pagar toda dívida técnica assim que ela é identificada', tratando isso como princípio moral inegociável. Segundo este marco, por que essa abordagem tende a produzir decisões piores do que tratar dívida como decisão financeira?"
     options:
-      - "Porque ignora a comparação entre o custo de atraso que a dívida gera e o custo de pagá-la agora — a mesma lógica de qualquer alocação de recurso escasso"
-      - "Porque dívida técnica, segundo este marco, nunca deveria ser paga em nenhuma circunstância"
+      - "Porque ignora a comparação entre o custo de atraso da dívida e o custo de pagá-la agora"
+      - "Porque dívida técnica nunca deveria ser paga"
       - "Porque tratar dívida como decisão financeira elimina a necessidade de qualquer registro ou rastreamento dela"
       - "Não há diferença prática entre as duas abordagens — este marco as trata como equivalentes"
     answer: 0

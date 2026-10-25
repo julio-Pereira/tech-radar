@@ -1,15 +1,15 @@
 questions:
   - question: "Durante um incidente grande, a mesma pessoa tenta coordenar a resposta e, ao mesmo tempo, mergulhar no diagnóstico técnico detalhado do problema. Segundo este marco, por que isso tende a degradar as duas atividades?"
     options:
-      - "Porque coordenar exige visão geral e priorização, enquanto diagnosticar exige foco profundo em detalhe técnico — os papéis deveriam ser separados, especialmente em incidentes grandes"
-      - "Não há problema real — a pessoa mais sênior deveria sempre acumular todos os papéis de um incidente"
+      - "Coordenar pede visão geral e diagnosticar pede foco no detalhe; os papéis deveriam ser separados"
+      - "Não há problema — a pessoa mais sênior deveria acumular todos os papéis do incidente"
       - "O problema só existe se a pessoa não tiver experiência técnica suficiente no sistema afetado"
       - "Separar papéis é recomendado apenas para incidentes que duram mais de 24 horas"
     answer: 0
     explanation: "O marco explica que comandar (coordenar, priorizar, visão geral) e diagnosticar/mitigar (foco técnico profundo) são atividades com demandas cognitivas diferentes — acumular as duas numa pessoa só degrada ambas, especialmente em incidentes grandes (em incidentes pequenos, uma pessoa acumular papéis é aceitável). Não é sobre senioridade nem sobre duração mínima do incidente."
   - question: "Durante um incidente ativo, a equipe descobre um rollback simples que resolveria o sintoma imediatamente, mas decide investigar a causa raiz completa primeiro, mantendo o sistema fora do ar por mais tempo. Segundo este marco, o que está errado nessa escolha?"
     options:
-      - "A prioridade durante um incidente ativo deveria ser mitigar primeiro (parar o sangramento); a investigação completa da causa raiz pertence ao post-mortem, feito depois, com menos pressão"
+      - "Mitigar primeiro e deixar a investigação da causa raiz para o post-mortem"
       - "Não há nada errado — investigar a causa raiz completa é sempre preferível a qualquer mitigação temporária"
       - "O erro é usar rollback como solução, já que este marco recomenda sempre corrigir o código na origem durante o incidente"
       - "A escolha certa depende exclusivamente de quanto tempo o sistema já está fora do ar, não da disponibilidade de uma mitigação"
@@ -17,7 +17,7 @@ questions:
     explanation: "O marco é direto: mitigar antes de diagnosticar é a prioridade correta, e investigação de causa raiz completa pertence ao post-mortem, feito com menos pressão de tempo. Preferir sempre investigação completa durante a crise contraria essa prioridade; rollback é tratado como mitigação legítima e até preferível quando disponível; e a decisão não depende só do tempo decorrido, mas da disponibilidade de uma mitigação rápida."
   - question: "Um post-mortem usa a frase 'o incidente ocorreu por descuido do engenheiro responsável pelo deploy'. Segundo este marco, o que o lexicão de linguagem de culpa faz com essa frase, e por quê?"
     options:
-      - "Sinaliza a frase para revisão humana, sem bloqueá-la automaticamente, porque às vezes a frase aparece em contexto legítimo e o sinal serve como alerta, não veredito"
+      - "Sinaliza a frase para revisão humana, sem bloquear: o sinal é alerta, não veredito"
       - "Bloqueia automaticamente a publicação do post-mortem até que a frase seja removida"
       - "Ignora completamente a frase, já que o lexicão de culpa só se aplica a nomes próprios, nunca a palavras como 'descuido'"
       - "Reescreve automaticamente a frase para remover qualquer menção a pessoas"
@@ -25,15 +25,15 @@ questions:
     explanation: "O marco explica que o lexicão sinaliza, não bloqueia — é um alerta configurável para revisão humana, porque a frase pode, em casos raros, aparecer em contexto legítimo. Bloqueio automático não é o comportamento descrito; 'descuido' é exatamente o tipo de termo que o lexicão captura (não só nomes próprios); e não há reescrita automática do texto."
   - question: "Uma equipe de plantão afirma que a carga é 'distribuída igualmente, todo mundo reclama na mesma proporção', mas o índice de Gini calculado sobre o histórico real de acionamentos mostra desigualdade significativa. Segundo este marco, o que esse caso ilustra?"
     options:
-      - "Que a percepção subjetiva da equipe pode não capturar desigualdade real — medir formalmente (com um índice como Gini) revela padrões que o sentimento geral esconde"
+      - "Que a percepção da equipe pode esconder uma desigualdade real, que um índice como Gini revela"
       - "Que o índice de Gini está incorretamente calculado, já que a percepção da equipe deveria sempre prevalecer"
-      - "Que desigualdade de carga de plantão nunca é um problema real, apenas uma questão de percepção"
+      - "Que desigualdade de plantão é só questão de percepção"
       - "Que esse tipo de medição só é válida para equipes com mais de 20 pessoas no rodízio de plantão"
     answer: 0
     explanation: "O marco usa exatamente esse tipo de contraste para argumentar que medir formalmente revela desigualdade que a percepção subjetiva às vezes não captura — 'todo mundo reclama igual' não equivale a 'a carga é distribuída igual'. O índice não está errado por divergir da percepção (é o ponto do exemplo); desigualdade de plantão é tratada como risco real de saúde e retenção, não como mera percepção; e não há restrição de tamanho mínimo de equipe mencionada."
   - question: "Um orçamento de erro do trimestre cai abaixo do limite configurado, e a política acordada previamente com o produto determina 'congelar lançamentos não críticos'. Segundo este marco, por que ter essa política definida com antecedência é melhor do que negociar a resposta no momento?"
     options:
-      - "Porque decidir sob pressão, durante um trimestre ruim, tende a favorecer sempre o lançamento sobre a estabilidade — a política prévia remove essa negociação ad-hoc"
+      - "Porque decidir sob pressão favorece o lançamento; a política prévia evita a negociação ad hoc"
       - "Porque políticas de orçamento de erro, uma vez definidas, nunca podem ser revisadas ou ajustadas depois"
       - "Não há vantagem real — negociar caso a caso sempre produz uma decisão mais adequada ao contexto específico"
       - "Porque a política substitui completamente a necessidade de qualquer orçamento de erro ser calculado"
@@ -41,7 +41,7 @@ questions:
     explanation: "O marco argumenta que a política acordada previamente evita a negociação ad-hoc sob pressão, que tende a favorecer sempre lançar sobre estabilizar. Isso não significa que a política seja imutável (pode ser revisada fora do calor do momento), não é verdade que negociar caso a caso sob pressão produza decisões melhores (é exatamente o viés que a política evita), e a política não substitui o cálculo do orçamento — ela usa esse cálculo como gatilho."
   - question: "Um sistema sofre incidentes recorrentes que são sempre resolvidos rapidamente pela mesma pessoa sênior, que 'sempre sabe o que fazer'. Segundo este marco, por que depender dessa pessoa repetidamente é um sinal de problema, não de força da equipe?"
     options:
-      - "Porque um sistema que depende de uma pessoa específica para ser resolvido é frágil com um ponto único de falha humana — o papel do líder inclui tornar esse 'herói' desnecessário"
+      - "Porque depender de uma pessoa é um ponto único de falha humana; o líder deve tornar o 'herói' desnecessário"
       - "Não é um problema — ter uma pessoa especialista capaz de resolver qualquer incidente rapidamente é o objetivo ideal de uma equipe de operação"
       - "O problema só existiria se essa pessoa cometesse um erro durante a resolução de algum incidente"
       - "Esse padrão é tratado neste marco como irrelevante para a saúde operacional do sistema, apenas uma questão de sorte"

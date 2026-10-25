@@ -2,7 +2,7 @@
 id: papel-escopo-e-arquetipos
 title: "Papel, escopo e arquétipos"
 summary: "\"Staff\" não é um tamanho de código, é um tamanho de problema — e o papel só funciona quando está escrito o que você faz, o que não faz e quem decide."
-estimatedMinutes: 60
+estimatedMinutes: 70
 competencies: [estrategia, execucao]
 references:
   - title: "StaffEng — Staff archetypes (Will Larson)"
@@ -107,10 +107,37 @@ por escrito, o escopo vira o que a última pessoa que pediu alguma coisa decidiu
 primeiro sinal de que o contrato está errado é sempre "por que ninguém me falou que eu tinha que
 decidir isso", depois do fato, nunca antes.
 
+## Gerir para cima: a relação com o próprio gestor
+
+O contrato de papel é o ponto de partida; a relação com quem avalia você é uma **prática contínua**,
+não um documento assinado uma vez. Três hábitos sustentam essa relação. Primeiro, o gestor fica
+sabendo **sem precisar perguntar** do que muda o plano dele: um risco que subiu, uma data que vai
+mudar, um conflito entre times que vai chegar à mesa dele de qualquer jeito. Ele não deveria
+descobrir isso pela boca de outra pessoa. Segundo, problema chega **com opções e recomendação**:
+"a data vai estourar" devolve ao gestor o trabalho de pensar a saída; "a data vai estourar, temos
+duas saídas, recomendo a primeira e preciso da sua decisão até quinta" pede só a parte que de fato
+é dele. Terceiro, **peça o que você precisa**: contexto que você não tem, patrocínio para uma
+conversa difícil com outra área, uma decisão que está fora do seu escopo. Gestor não lê mente, e
+"ele devia saber" não funciona como plano.
+
+A sua carreira também entra nessa relação, e a responsabilidade por ela é sua: chegar à conversa
+de desenvolvimento com o que você quer, a evidência do que já fez e um pedido concreto, em vez de
+esperar que o gestor monte o seu caminho. Quando o gestor é **ausente ou desalinhado** (cancela os
+1:1s, muda prioridade sem avisar, discorda de você sobre o que importa), a saída não é passar por
+cima dele. Primeiro, nomeie a lacuna na conversa direta ("preciso de quinze minutos por semana para
+decidir X; sem isso, a decisão cai no time sem dono"). Se nada mudar, escale avisando antes ("vou
+levar isso ao diretor na revisão de quinta; quero que você saiba antes e venha junto"). Escalar sem
+avisar queima em uma conversa a confiança que levou meses para construir. A fronteira com o marco
+08 é esta: lá se trata o **formato** de comunicar para cima (resultado, risco e pedido em três
+linhas); aqui se trata a **relação** que dá a esse formato onde aterrissar.
+
 *Evidência.* [P] os quatro arquétipos de Staff e o fenômeno de *glue work* vêm de relatos
-consolidados de praticantes (StaffEng e equivalentes), não de um estudo controlado. [O] a divisão
-ideal de tempo entre os cinco modos de operação depende da organização e do momento — não existe
-proporção universal correta.
+consolidados de praticantes (StaffEng e equivalentes), não de um estudo controlado. [P] gerir para cima como
+prática contínua (informar sem esperar a pergunta, levar opções com recomendação, ser dono da
+própria carreira) também vem de relatos de praticantes, entre eles *The Manager's Path*, de Camille
+Fournier. [O] a divisão ideal de tempo entre os cinco modos de operação, assim como a cadência
+certa da conversa com o gestor, depende da organização e do momento — não existe proporção
+universal correta.
 
 ## Exemplo numa fintech
 
@@ -121,11 +148,21 @@ sobre conciliação passa por você — inclusive as que deveriam ser do time de
 mais sabe que você **não** é dono disso. Você virou o gargalo de uma área que nunca foi formalmente
 sua.
 
+Meses depois, já com o escopo da conciliação escrito, a previsão mostra que a fase 3 vai estourar
+a data combinada. Antes de o diretor perguntar, você manda ao seu gestor uma nota de uma página: o
+problema (a P85 passou da data em duas semanas, por causa da dependência de certificado), duas
+opções (cortar a conciliação de devoluções da fase 3 ou adiar a data em duas semanas), a
+recomendação (cortar o escopo, porque devoluções têm volume baixo e contorno manual) e o pedido
+("preciso da sua decisão até quinta para avisar o time de risco"). O gestor chega à reunião com o
+diretor com a decisão tomada, não com a surpresa.
+
 ## Hands-on
 
 **Tutorial.** Preencha o `escopo.md` (modelo do `fin-leadkit`) para o seu papel no Time Pix
 fictício: sistemas, partes interessadas, decisões que são suas, decisões que não são, e o que você
-explicitamente não faz.
+explicitamente não faz. Inclua a seção **Acordo com o gestor**: a cadência da conversa, o que você
+informa sem esperar a pergunta, como você escala e o que ele espera de você. Depois, escreva uma
+nota para cima a partir de `modelos-de-doc/nota-para-cima.md` para o caso da fase 3 do exemplo.
 
 **Desafio.** Escreva o "contrato de papel" de um Staff recém-chegado a uma área nova do
 `fin-platform` — a área de conciliação do exemplo acima.
@@ -147,6 +184,14 @@ explicitamente não faz.
    passa por padrão.
 5. Rodar `leadkit lint escopo` duas vezes sobre o mesmo arquivo produz o mesmo resultado
    (determinismo) — nenhuma parte do *lint* depende de hora do sistema ou de ordem de execução.
+6. `leadkit lint escopo` **reprova** um escopo sem a seção **Acordo com o gestor** com os quatro
+   campos (cadência, o que eu informo proativamente, como escalo, o que ele espera de mim) — cada
+   campo ausente listado separadamente.
+7. `lint nota-para-cima` **reprova** uma nota sem **problema**, sem **ao menos duas opções**, sem
+   **recomendação** ou sem **pedido explícito** (o que se espera do gestor e até quando).
+8. **Demonstração do limite:** uma nota que passa no *linter* com uma das duas opções falsa,
+   inviável por construção ("adiar seis meses"), só para a recomendação parecer razoável — a
+   estrutura verifica que as opções existem, não que são reais.
 
 **Complemento.** Em uma página, descreva o escopo do papel que você quer ocupar daqui a 18 meses —
 sistemas, equipes, horizonte. Mantenha no seu dossiê privado, fora do repositório.
@@ -175,3 +220,5 @@ sistemas, equipes, horizonte. Mantenha no seu dossiê privado, fora do repositó
 - Escopo tem três eixos (sistema, equipe, tempo) e precisa estar escrito, não implícito.
 - *Glue work* é necessário, mas vira risco de carreira quando é o único trabalho e não é declarado.
 - Um contrato de papel explícito evita que o escopo vire "o que a última pessoa pediu".
+- Gerir para cima é prática contínua: o gestor sabe sem perguntar do que muda o plano dele, e
+  problema chega com opções, recomendação e pedido.
