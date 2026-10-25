@@ -62,3 +62,75 @@ mostra e o que muda nas fases seguintes.
 "Usar, não reensinar" (§7) está no `README.md`, em *Authoring a track* → *Cross-track concepts*.
 Não há `PROJETO.md` geral no repositório; cada trilha tem o seu, e os próximos planos de trilha
 citam a seção do README.
+
+---
+
+# Fase 5 — auditoria final
+
+Sobre o `main` depois do PR #78 (semente de 25 conceitos), com o build real.
+
+## Relatório (`go test ./internal/course -run TestRelatorioConceitos -v`)
+
+- **310 links de conceito** em 251 marcos; **nenhum cortado** pelo teto de 8.
+- Por marco: 89 sem link, 78 com 1, 44 com 2, 24 com 3, 9 com 4, 3 com 5, 3 com 6, 1 com 7.
+- Mais citados: idempotência 66, ADR 43, SLO 37, SLA 22, outbox 17, mTLS 14, saga 14.
+- Candidatos ainda fora do registro, no topo: TTL, "Autorização", "Fase", "Janela", "Taxa",
+  "Token", "Política", PAN — o ruído excluído de propósito (§6) e o PAN (achado editorial
+  da Fase 4). A curadoria se sustenta: o que sobrou no topo é o que não deve entrar.
+
+## Precisão (sigla com outro sentido)
+
+Lidos no contexto todos os links dos conceitos de risco:
+
+- **CDC** (12): todos *Change Data Capture*; nenhum Código de Defesa do Consumidor,
+  embora a trilha de crédito exista.
+- **saga** (14, inclusive minúscula): todos o padrão técnico.
+- **PAR** (3) e **DORA** (4): todos corretos (DORA = métricas de entrega, não o regulamento).
+- **RFC** (3): nenhuma citação de norma ("RFC 8705") ligada — `naoSeguidoDe` funciona.
+
+## Revisão manual: 10 marcos, 10 trilhas
+
+| Marco | Links | Leitura |
+| --- | --- | --- |
+| `credito-e-risco/03` | saga, idempotência | Ajuda: quem lê crédito não necessariamente fez eventos |
+| `engenharia-de-dados/01` | idempotência | Ajuda: o verbete local existe, o link leva a quem ensina |
+| `go-fintech/04` | JWT, `Idempotency-Key` | Ajuda: dois termos citados de passagem numa lista |
+| `kafka/08` | outbox, CDC, saga | Ajuda; **e mostrou o ruído corrigido abaixo** ("idempotente (marco 05)") |
+| `kubernetes/10` | JWT | Ajuda: "decodifique o JWT" sem explicar o que é |
+| `lideranca-tecnica/02` | métricas DORA, SLOs | Ajuda |
+| `open-finance-brasil/03` | PAR, `private_key_jwt`, mTLS, PKCE, JWT, FAPI | Denso (6), mas cada termo é central ali e tem dono em outra trilha |
+| `spring-boot/09` | JWT, JWKS, FAPI, mTLS, `private_key_jwt` | É o caso do pedido; ajuda |
+| `system-design/09` | ADRs, idempotência, saga | Ajuda |
+| `dados-distribuidos/06` | CDC | Ajuda: "por CDC (marco 14)" vira clicável |
+
+## Ruído encontrado e corrigido: a referência do autor prevalece
+
+Em 7 dos 314 links, o termo vinha **logo seguido** de uma referência do autor para **outro**
+marco — "consumidor ser idempotente (marco 05)", "`Idempotency-Key` (`spring-boot/06`)" — e
+a página oferecia dois destinos para a mesma palavra. Regra nova no ligador: essa ocorrência
+não liga e **não conta** como a primeira (uma menção seguinte ainda liga); se a referência
+aponta para o **próprio dono**, o link fica. Vale para texto e para *code span*. Depois:
+**0 de 310** links conflitam com uma referência do autor; os 2 que apontam para o dono
+continuam ligados.
+
+## Critérios de aceite (§10)
+
+- [x] `go test ./...` verde; suíte Playwright verde (130 e2e) e unitários (7)
+- [x] `TestConceitosResolve`: ids, donos, `tambem`, colisão de apelidos, `resumo`/glossário, dono contém apelido
+- [x] Ligador: fronteira Unicode, apelido mais longo, primeira ocorrência, teto de 8, supressões, `CodeSpan` exato
+- [x] Conservação do texto e determinismo nos 251 marcos
+- [x] bluemonday preserva só `class="conceito"` e `data-conceito` (o `id` já era permitido — Fase 0, achado 3)
+- [x] `spring-boot/09` liga `jwt`, `private-key-jwt`, `fapi` e `mtls`
+- [x] E2E: prévia por *hover*, foco e toque; clique leva ao dono expandido; retorno ao elemento exato com foco e anúncio; Voltar do navegador; desvio aninhado de 2 níveis; "×"; movimento reduzido; *refresh* mantém a faixa
+- [x] E2E: o "Continuar" da trilha de origem não muda depois de um desvio
+- [x] axe sem violações sérias na prévia e na faixa; nenhum *handler* inline (CSP inalterada)
+- [x] `conceitos.json` carregado só na primeira interação (verificado por rede)
+- [x] Convenção "usar, não reensinar" no `README.md` — não há `PROJETO.md` geral (Fase 0)
+
+## Fora desta entrega (registrado para decisão)
+
+- **PAN**: entra quando `pagamentos-e-liquidacao/04` nomear o termo.
+- **JOSE, JWE, DPoP, CIBA**: entram quando forem citados fora do próprio marco dono.
+- **Pontes em tabela** continuam sem link (Fase 0, achado 2); o ligador de conceitos já trata
+  tabelas, o de pontes não foi alterado.
+- **Dono por seção** (âncora de `##`) segue para a v2, como decidido no plano.

@@ -628,3 +628,35 @@ func TestConceitosReverseLinks(t *testing.T) {
 		t.Errorf("seguranca-aplicacao/04 usadoEm should include spring-boot/09, got %+v", usado)
 	}
 }
+
+// ── Fase 5: the author's own pointer wins ───────────────────────────────────
+
+func TestLinkerAuthorPointerWins(t *testing.T) {
+	set := fixtureSet(t, basicConceitos)
+
+	t.Run("(marco NN) para outro marco não liga e não consome", func(t *testing.T) {
+		html := linkedHTML(t, set, "leitor", "01", "marco-leitor",
+			"O consumidor é idempotente (marco 02) por desenho.\n\nMais adiante, a idempotência volta.\n")
+		if conceitoLinkCount(html, "idempotencia") != 1 || !strings.Contains(html, `>idempotência</a> volta`) {
+			t.Errorf("the occurrence next to the author's pointer must stay plain, and a later one link:\n%s", html)
+		}
+	})
+	t.Run("ponte para outro marco logo depois", func(t *testing.T) {
+		html := linkedHTML(t, set, "leitor", "01", "marco-leitor", "Use o JWS (`leitor/02`) aqui.\n")
+		if conceitoLinkCount(html, "jws") != 0 {
+			t.Errorf("concept linked right before a bridge to another marco:\n%s", html)
+		}
+	})
+	t.Run("code span seguido de ponte para outro marco", func(t *testing.T) {
+		html := linkedHTML(t, set, "leitor", "01", "marco-leitor", "Assine com `private_key_jwt` (`leitor/02`).\n")
+		if conceitoLinkCount(html, "private-key-jwt") != 0 {
+			t.Errorf("code span linked right before a bridge to another marco:\n%s", html)
+		}
+	})
+	t.Run("(marco NN) que é o próprio dono mantém o link", func(t *testing.T) {
+		html := linkedHTML(t, set, "dono", "02", "outro-dono", "O JWS (marco 01) assina.\n")
+		if conceitoLinkCount(html, "jws") != 1 {
+			t.Errorf("a pointer to the owner itself must not suppress the link:\n%s", html)
+		}
+	})
+}
