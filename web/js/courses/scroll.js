@@ -12,10 +12,14 @@ import { cssEscape } from '../dom-helpers.js';
 export function scrollToMilestone(timeline, id, { expand = false } = {}) {
   const node = timeline.querySelector(`.timeline-node[data-id="${cssEscape(id)}"]`);
   if (!node) return;
-  if (expand) {
-    const toggle = node.querySelector('.node-toggle');
-    if (toggle && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
-  }
+  if (expand) expandMilestone(timeline, id);
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   node.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+}
+
+/** Opens a milestone without scrolling — for callers that scroll to something inside it. */
+export function expandMilestone(timeline, id) {
+  const node = timeline.querySelector(`.timeline-node[data-id="${cssEscape(id)}"]`);
+  const toggle = node && node.querySelector('.node-toggle');
+  if (toggle && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
 }

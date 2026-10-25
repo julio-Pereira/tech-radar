@@ -190,8 +190,10 @@ owner registry is `aggregator/content/conceitos.yaml` (concept id, owner as `slu
 exact aliases), and the compiler links each cited term to its owner, with a preview and a
 way back. *Status: the registry, the linker (Fase 1, with two seed concepts) and the preview
 (Fase 2: hover 300 ms, keyboard focus, or first tap on touch; `conceitos.json` is fetched
-on the first interaction) are in; the detour/return and the curated seed arrive in
-Fases 3–4.*
+on the first interaction) and the detour/return (Fase 3: following a concept rewrites the
+current history entry to `#/learn/<slug>/<marco>/<conceito>`, so Back and a refresh land
+on the exact term; a return banner and "Terminou? Voltar" bring the reader back; a detour
+never moves "Continuar de onde parou") are in; the curated seed arrives in Fase 4.*
 
 The linker links only the **first occurrence** of each concept per milestone, at most
 **8** concept links per milestone, never in the owner milestone, headings, code or links,

@@ -4,7 +4,8 @@ import { buildBadge, buildLoading, levelLabel, percent, buildProgressBar } from 
 import { getProgress, setLastCourse, getLastVisited, clearProgress } from '../storage.js';
 import { buildTimelineNode } from './timeline-node.js';
 import { buildGlossaryBlock, buildSourcesBlock } from './content-blocks.js';
-import { scrollToMilestone } from './scroll.js';
+import { scrollToMilestone, expandMilestone } from './scroll.js';
+import { inDesvio, arriveAt, buildReturnBanner, addEndOfOwnerReturn, returnToPoint, announce } from './desvio.js';
 
 /** @typedef {import('../types.js').Course} Course */
 /** @typedef {import('../types.js').Milestone} Milestone */
@@ -17,8 +18,14 @@ import { scrollToMilestone } from './scroll.js';
  *   milestone instead of the usual "continue reading" target. Trilha-as-page
  *   stays trilha-as-page: this is an anchor into the one course fetch, not a
  *   second route or a second request.
+ * @param {string} [conceitoId] a concept detour's return point
+ *   (#/learn/<slug>/<marco-id>/<conceito-id>): lands on that term, not just
+ *   on the marco.
  */
-export async function renderCourse(slug, isFirstNavigation, marcoId) {
+export async function renderCourse(slug, isFirstNavigation, marcoId, conceitoId) {
+  // Arriving at a return point closes the detour that started there —
+  // before anything below asks whether a detour is open.
+  if (conceitoId) arriveAt(window.location.hash);
   const view = document.getElementById('view-learn');
   view.innerHTML = '';
   view.appendChild(buildLoading('Carregando trilha…'));
@@ -36,7 +43,7 @@ export async function renderCourse(slug, isFirstNavigation, marcoId) {
   }
 
   view.innerHTML = '';
-  view.appendChild(buildCourseView(course, marcoId));
+  view.appendChild(buildCourseView(course, marcoId, conceitoId));
   announceRoute(course.title, isFirstNavigation);
 }
 
@@ -58,12 +65,20 @@ function buildCourseNotFound() {
 /**
  * @param {Course} course
  * @param {string} [marcoId] see renderCourse
+ * @param {string} [conceitoId] see renderCourse
  */
-function buildCourseView(course, marcoId) {
-  setLastCourse(course.slug);
+function buildCourseView(course, marcoId, conceitoId) {
+  // A course reached through a concept detour is not the reader's "last
+  // course": "Continuar de onde parou" keeps pointing at the origin.
+  if (!inDesvio()) setLastCourse(course.slug);
 
   const root = document.createElement('div');
   root.className = 'course-view';
+
+  const banner = buildReturnBanner(course.slug, marcoId, () => {
+    root.querySelectorAll('.desvio-fim').forEach((el) => el.remove());
+  });
+  if (banner) root.appendChild(banner);
 
   const completed = getProgress(course.slug);
   const total = course.milestones.length;
@@ -191,7 +206,15 @@ function buildCourseView(course, marcoId) {
   // the usual default instead of landing on an empty page.
   const deepLinkMilestone = marcoId && course.milestones.find((m) => m.id === marcoId);
   requestAnimationFrame(() => {
+    addEndOfOwnerReturn(timeline, course.slug);
     if (deepLinkMilestone) {
+      if (conceitoId) {
+        expandMilestone(timeline, deepLinkMilestone.id);
+        if (returnToPoint(timeline, deepLinkMilestone.id, conceitoId)) {
+          announce(`De volta a ${course.title}, marco ${String(deepLinkMilestone.order).padStart(2, '0')}`);
+          return;
+        }
+      }
       scrollToMilestone(timeline, deepLinkMilestone.id, { expand: true });
       return;
     }
