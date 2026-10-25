@@ -181,6 +181,26 @@ by `##`. It is **only compiled when the manifest declares it**:
 glossary: GLOSSARIO.md           # without this key the file is silently ignored
 ```
 
+### Cross-track concepts: usar, não reensinar
+
+The same concept shows up in many tracks (ADR, SLO, idempotência, mTLS, FAPI...). Each
+transversal concept has **one owner milestone**, the one that actually teaches it; every
+other track **uses** the term and explains only the **delta** for its own context. The
+owner registry is `aggregator/content/conceitos.yaml` (concept id, owner as `slug/NN`,
+exact aliases), and the compiler links each cited term to its owner, with a preview and a
+way back. *Status: convention in force now; the registry and the linker arrive with the
+"conceitos transversais" plan, Fase 1. Until then, use an explicit bridge.*
+
+- **Use, don't re-teach.** If a concept has an owner, cite the term and write only what
+  your context adds; the link and the preview carry the definition.
+- **Explicit bridges stay.** A `` `slug/NN` `` bridge ("Reencontro — `slug/NN`") is still
+  how an author highlights a relationship on purpose; the concept linker never adds a
+  second link to the same owner in a paragraph that already has the bridge.
+- **A new transversal concept enters the registry in the same PR as its owner track.**
+- **Common words never become concepts.** "Taxa", "Fase", "Política", "Estado", "Token"
+  and other everyday Portuguese words, and ambiguous acronyms (TTL), only enter with a
+  compound, unambiguous alias.
+
 ### Compiling
 
 The same `go run .` that builds the feed also compiles tracks: it renders each
