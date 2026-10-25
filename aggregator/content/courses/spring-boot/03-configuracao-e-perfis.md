@@ -30,7 +30,18 @@ public record PspProperties(
 ```
 
 Ativada com `@EnableConfigurationProperties(PspProperties.class)` (ou
-`@ConfigurationPropertiesScan`). Ganhos: o `@Validated` faz o **contexto falhar no
+`@ConfigurationPropertiesScan`). As anotações `@NotBlank`/`@Positive` vêm do Bean
+Validation, que **não** está no projeto gerado no marco 01 — sem a dependência abaixo, o
+código nem compila (`jakarta.validation.constraints` não existe):
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-validation</artifactId>
+</dependency>
+```
+
+Ganhos: o `@Validated` faz o **contexto falhar no
 boot** se `pix.psp.base-url` estiver ausente — erro no deploy, não numa transação às
 23h59. E o **relaxed binding** aceita `PIX_PSP_BASE_URL` (env), `pix.psp.base-url`
 (yaml) e `pix.psp.baseUrl` como a mesma chave, então a mesma classe serve para todos
@@ -84,8 +95,11 @@ O **pix-gateway** promove **a mesma imagem** de homologação para produção �
 byte a byte idêntica. Homologação aponta para o *sandbox* do PSP e produção para o
 endpoint real, mas isso é só `PIX_PSP_BASE_URL` diferente injetada pelo cluster. Quando
 o PSP faz **rotação de credencial**, o operador atualiza o *Secret*; com
-`spring.config.import=configtree`, uma reinicialização (ou `@RefreshScope`) pega a nova
-chave — **sem redeploy e sem rebuild**. A superfície de auditoria fica limpa: o binário
+`spring.config.import=configtree`, uma reinicialização do pod pega a nova chave — **sem
+redeploy e sem rebuild**. (Recarregar *sem* reiniciar, com `@RefreshScope`, não é do
+Spring Boot: é do **Spring Cloud** (`spring-cloud-context`), outra dependência com
+outro ciclo de versões. Para a maioria dos serviços, reiniciar o pod é mais simples e
+mais previsível.) A superfície de auditoria fica limpa: o binário
 é sempre o mesmo; só o ambiente muda.
 
 ## Mão na massa
@@ -99,16 +113,32 @@ que muda (`pix.psp.base-url` apontando para sandbox em `dev`, para o endpoint re
 mvn -DskipTests package
 ```
 
+Para enxergar qual valor venceu, não use `/actuator/env`: desde o Boot 3 ele **mascara**
+todos os valores por padrão (`"value": "******"`) — justamente para não vazar segredo.
+Crie um endpoint de diagnóstico que devolve só esta propriedade, que não é sensível:
+
+```java
+@RestController
+class PspDiagnosticsController {
+    private final PspProperties psp;
+    PspDiagnosticsController(PspProperties psp) { this.psp = psp; }
+
+    // diagnóstico do exercício: expõe só a URL do PSP, nunca credenciais
+    @GetMapping("/diag/psp-base-url")
+    String baseUrl() { return psp.baseUrl(); }
+}
+```
+
 Suba os dois perfis a partir do **mesmo** jar, sem recompilar entre um e outro:
 
 ```bash
 java -jar target/pix-gateway-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev &
-curl localhost:8080/actuator/env/pix.psp.base-url    # mostra o valor de dev
+curl localhost:8080/diag/psp-base-url    # mostra o valor de dev
 
 # derrube o processo dev, suba prod
 kill %1
 java -jar target/pix-gateway-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod &
-curl localhost:8080/actuator/env/pix.psp.base-url    # mostra o valor de prod, mesmo jar
+curl localhost:8080/diag/psp-base-url    # mostra o valor de prod, mesmo jar
 ```
 
 **Invariante testável.** Sobrescreva um valor por variável de ambiente, sem tocar em
@@ -117,12 +147,24 @@ nenhum `.yaml`, e prove que ela vence o perfil (a ordem de precedência do marco
 ```bash
 PIX_PSP_BASE_URL=http://override.local \
   java -jar target/pix-gateway-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
-curl localhost:8080/actuator/env/pix.psp.base-url    # http://override.local, não o de prod.yaml
+curl localhost:8080/diag/psp-base-url    # http://override.local, não o de prod.yaml
 ```
 
-(Ative `management.endpoints.web.exposure.include=env` em `application.yaml` para o
-`curl .../actuator/env/...` funcionar — ou troque por um endpoint próprio que devolva
-a propriedade, se preferir não expor `env` nem em dev.)
+E a validação do início do marco: suba sem nenhum perfil, com `pix.psp.base-url` ausente,
+e veja o contexto recusar o boot — `APPLICATION FAILED TO START`, com a mensagem
+`must not be blank` apontando para `pix.psp.baseUrl`.
+
+A mesma validação vale nos testes: o `@SpringBootTest` do marco 01 roda sem perfil e
+passa a falhar no boot. Dê aos testes um valor próprio em
+`src/test/resources/application.properties`:
+
+```properties
+pix.psp.base-url=http://localhost:9999
+```
+
+O nome diferente é proposital: no classpath de teste, esse arquivo é lido **junto** com o
+`application.yaml` de `src/main/resources` (que continua fornecendo os timeouts). Um
+`src/test/resources/application.yaml` esconderia o principal.
 
 **Checagem.** (a) Por que a mesma imagem promovida de homolog para prod é mais
 auditável que builds separados por ambiente? (b) O que muda se você usar `@Profile`

@@ -51,7 +51,7 @@ retry dela. Retry cego em operação de escrita é uma fábrica de débito dupli
 ## Circuit breaker e bulkhead
 
 Quando uma dependência está *consistentemente* falhando, continuar tentando (mesmo com
-timeout) desperdília recursos e piora a saturação. O **circuit breaker** monitora a taxa
+timeout) desperdiça recursos e piora a saturação. O **circuit breaker** monitora a taxa
 de falha; ao ultrapassar um limite, ele **abre** e passa a **falhar rápido** por um
 tempo, sem nem chamar o serviço morto — dando a ele espaço para se recuperar. Depois,
 entra em *half-open* e testa com poucas chamadas antes de fechar de novo.
@@ -60,18 +60,70 @@ O **bulkhead** isola recursos: um pool de concorrência separado por dependênci
 que o PSP-A lento não consuma todas as threads e afunde também as chamadas ao PSP-B. É
 o anteparo estanque de um navio — um compartimento inunda, o barco não afunda.
 
-Com Resilience4j (integração idiomática no Boot), é declarativo:
+Com Resilience4j (integração idiomática no Boot), é declarativo. As anotações são
+aplicadas por AOP, então o projeto precisa do starter de aspectos além do módulo do
+Resilience4j para o Boot 4:
+
+```xml
+<dependency>
+  <groupId>io.github.resilience4j</groupId>
+  <artifactId>resilience4j-spring-boot4</artifactId>
+  <version>2.4.0</version>
+</dependency>
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-aspectj</artifactId>
+</dependency>
+```
 
 ```java
-@CircuitBreaker(name = "psp", fallbackMethod = "queueForLater")
-@Retry(name = "psp")   // configurado só para chamadas idempotentes
-public PaymentResult route(PaymentRequest req) {
-    return pspClient.post().body(req).retrieve().body(PaymentResult.class);
+@CircuitBreaker(name = "psp")
+@Retry(name = "psp", fallbackMethod = "queueForLater")
+public PaymentResult route(String idemKey, PaymentRequest req) {
+    return pspClient.post()
+            .header("Idempotency-Key", idemKey)   // é isto que torna o retry do POST seguro
+            .body(req)
+            .retrieve().body(PaymentResult.class);
 }
 
-private PaymentResult queueForLater(PaymentRequest req, Throwable t) {
-    return PaymentResult.accepted(outbox.enqueue(req)); // honesto: "aceito, vou processar"
+private PaymentResult queueForLater(String idemKey, PaymentRequest req, Throwable t) {
+    return PaymentResult.accepted(outbox.enqueue(idemKey, req)); // honesto: "aceito, vou processar"
 }
+```
+
+Três decisões estão nesse trecho, e cada uma tem motivo:
+
+- **O retry de um `POST` só é aceitável porque a chamada leva `Idempotency-Key`.** O PSP
+  que honra a chave (marco 06, agora do lado dele) trata a segunda tentativa como
+  repetição da primeira. Sem a chave, este `@Retry` seria exatamente a fábrica de débito
+  duplicado da seção anterior.
+- **O fallback fica no `@Retry`, não no `@CircuitBreaker`.** O Resilience4j aplica os
+  aspectos numa ordem fixa: o `Retry` embrulha o `CircuitBreaker`, que embrulha a chamada.
+  Um fallback no `@CircuitBreaker` captura a primeira falha *por dentro* do retry, que
+  então nunca vê erro algum e nunca repete — o `503` transitório vira fallback na
+  primeira tentativa. No `@Retry`, o fallback só roda depois de esgotadas as tentativas
+  ou com o circuito aberto.
+- **Circuito aberto não se repete.** Com o circuito aberto, a chamada falha com
+  `CallNotPermittedException`; repeti-la só adiaria o fallback. Diga isso ao retry:
+
+```yaml
+resilience4j:
+  retry:
+    instances:
+      psp:
+        max-attempts: 3
+        wait-duration: 200ms
+        enable-exponential-backoff: true
+        enable-randomized-wait: true          # o jitter
+        ignore-exceptions:
+          - io.github.resilience4j.circuitbreaker.CallNotPermittedException
+  circuitbreaker:
+    instances:
+      psp:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
 ```
 
 ## Fallbacks honestos
@@ -102,17 +154,22 @@ simulando: (a) latência acima do read timeout, (b) `503` transitório que o ret
 recupera, (c) falhas contínuas que abrem o circuito — e verifique que, com o circuito
 aberto, o fallback responde `202` sem chamar o PSP.
 
-Um stub de cada cenário. O projeto migrou de `com.github.tomakehurst:wiremock-jre8`
-para o grupo `org.wiremock`; a dependência de teste atual é:
+Um teste por cenário, cada um com seu stub. O projeto migrou de
+`com.github.tomakehurst:wiremock-jre8` para o grupo `org.wiremock`. Use o artefato
+`wiremock-standalone`, que embute o próprio Jetty: o `wiremock` comum depende do Jetty 11,
+e o Boot 4 gerencia o Jetty 12 — o teste nem sobe (`Jetty 11 is not present`).
 
 ```xml
 <dependency>
   <groupId>org.wiremock</groupId>
-  <artifactId>wiremock</artifactId>
+  <artifactId>wiremock-standalone</artifactId>
   <version>3.13.1</version>
   <scope>test</scope>
 </dependency>
 ```
+
+O `RestClient.Builder` usado no `pspClient` vem do `spring-boot-starter-restclient` (marco
+07).
 
 ```java
 @RegisterExtension
@@ -129,18 +186,36 @@ wm.stubFor(post("/psp").inScenario("retry")
         .willSetStateTo("segunda"));
 wm.stubFor(post("/psp").inScenario("retry")
         .whenScenarioStateIs("segunda")
-        .willReturn(aResponse().withStatus(200)));
+        .willReturn(aResponse().withStatus(503))
+        .willSetStateTo("terceira"));
+wm.stubFor(post("/psp").inScenario("retry")
+        .whenScenarioStateIs("terceira")
+        .willReturn(okJson("{\"status\":\"CONFIRMED\"}")));
 
 // (c) falhas contínuas que abrem o circuito
 wm.stubFor(post("/psp").willReturn(aResponse().withStatus(500)));
 ```
+
+Entre os testes, zere o estado compartilhado: `wm.resetAll()` e
+`circuitBreakerRegistry.circuitBreaker("psp").reset()` num `@BeforeEach`.
+
+**Invariantes testáveis.** Com a configuração acima e um read timeout menor que o atraso
+do stub (a):
+
+- (a) três tentativas, todas estouram o timeout (`ResourceAccessException`), e o
+  fallback responde `ACCEPTED`.
+- (b) o resultado é `CONFIRMED` e o WireMock registra **exatamente 3** chamadas.
+- (c) o circuito chega a `OPEN` depois de 5 chamadas; a chamada seguinte responde
+  `ACCEPTED` e o WireMock registra **zero** chamadas novas — o PSP nem é tocado.
 
 ## Principais aprendizados
 
 - **Timeout primeiro**: connect + read explícitos em todo client (inclusive
   `RestClient`). Default costuma ser infinito.
 - **Retry só no idempotente**, com backoff + jitter; retry cego em escrita = débito
-  duplicado.
+  duplicado. Um `POST` só entra no retry levando `Idempotency-Key`.
+- Com Resilience4j, o **fallback vai no `@Retry`** (o aspecto mais externo) — no
+  `@CircuitBreaker`, ele anula o retry.
 - **Circuit breaker** para falhar rápido e poupar o serviço caído; **bulkhead** para
   isolar dependências.
 - **Fallback honesto**: degradar rotulado ou enfileirar (`202`), **nunca** fingir

@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 185, "desafio": 226, "invariantes": 216, "complemento": 207, "checagem": 225,
+		"tutorial": 185, "desafio": 227, "invariantes": 222, "complemento": 207, "checagem": 226,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -417,7 +417,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		}
 	}
 
-	wantNoLabel := []string{"kafka/share-groups-e-alternativas", "spring-boot/runtime-web-e-virtual-threads"}
+	wantNoLabel := []string{"kafka/share-groups-e-alternativas"}
 	if !equalStrings(noLabel, wantNoLabel) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}

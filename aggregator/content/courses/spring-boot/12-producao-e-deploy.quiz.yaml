@@ -33,4 +33,4 @@ questions:
       - "Porque a liveness precisa responder sem I/O para caber no timeout padrão da probe"
       - "Porque a dependência externa só deve ser verificada no startup probe, antes de o pod servir"
     answer: 1
-    explanation: "Cada probe leva a uma decisão diferente: liveness reinicia, readiness tira do balanceador. Ligar a primeira a um serviço de terceiro faz a frota inteira reiniciar quando ele oscila, transformando degradação em indisponibilidade. Dependência crítica pertence à readiness — o pod para de receber tráfego e continua vivo."
+    explanation: "Cada probe leva a uma decisão diferente: liveness reinicia, readiness tira do balanceador. Ligar a primeira a um serviço de terceiro faz a frota inteira reiniciar quando ele oscila, transformando degradação em indisponibilidade. Na readiness, uma dependência compartilhada também cobra caro: todos os pods saem do balanceador juntos. Por isso ela fica no health agregado, com circuit breaker, e não em nenhuma das duas probes."

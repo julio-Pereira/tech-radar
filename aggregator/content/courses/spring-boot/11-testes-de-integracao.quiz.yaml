@@ -3,10 +3,10 @@ questions:
     options:
       - "Porque o H2 não suporta migrations do Flyway, exigindo um schema paralelo só para teste"
       - "Porque o H2 roda em memória e perde o estado entre métodos de teste da mesma classe"
-      - "Porque o comportamento de `FOR UPDATE`, tipos e constraints difere: o verde esconde bug de produção"
+      - "Porque tipos, DDL e conversões divergem do Postgres: o verde esconde bug de produção"
       - "Porque o H2 não aceita conexões concorrentes suficientes para um teste de contenção realista"
     answer: 2
-    explanation: "H2 não é Postgres, e a diferença aparece exatamente onde dói — locking, isolamento, tipos, constraints. Um teste de débito concorrente pode passar no H2 e falhar em produção, que é o pior tipo de bug. Testcontainers com `@ServiceConnection` sobe o banco real e o Spring aponta o `DataSource` para ele sem configuração manual."
+    explanation: "H2 não é Postgres, nem no modo PostgreSQL. Às vezes ele recusa o DDL real (`TIMESTAMPTZ`), às vezes aceita e grava outra coisa — um `'...'::jsonb` vira uma string JSON em vez do objeto. O teste passa e o bug fica para produção, que é o pior tipo de bug. Testcontainers com `@ServiceConnection` sobe o banco real e o Spring aponta o `DataSource` para ele sem configuração manual."
 
   - question: "Qual é a regra sobre o que mockar num teste?"
     options:

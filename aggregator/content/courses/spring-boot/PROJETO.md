@@ -29,7 +29,7 @@ compose — o contrato (`payments.initiated`, chave `accountId`) é o que import
 
 | Marco | Entrega | Como você prova que funciona |
 | --- | --- | --- |
-| 01 | Repo + `POST /payments` retornando 201, com teste | `mvn test` verde e `curl` respondendo |
+| 01 | Repo + `POST /payments` respondendo `501 Not Implemented`, com teste | `mvn test` verde e `curl` respondendo `501` |
 | 02 | Uma auto-configuração própria, com `@ConditionalOnProperty` | Desligar por propriedade e ver o bean sumir do contexto |
 | 03 | Perfis `dev`/`prod`, segredo fora do jar, config externalizada | Subir os dois perfis sem recompilar |
 | 04 | Fronteiras de proxy entendidas: `@Transactional` que de fato aplica | Teste que prova que a chamada interna **não** abre transação |

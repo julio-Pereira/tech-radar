@@ -17,7 +17,15 @@ references:
 Numa trilha "para fintech", segurança não é apêndice — é o requisito nº 1 do Open
 Finance. O Spring Security 7 (que acompanha o Boot 4) consolidou o modelo baseado em
 **componentes**: nada de `WebSecurityConfigurerAdapter` (removido), tudo via beans
-`SecurityFilterChain` e a lambda DSL:
+`SecurityFilterChain` e a lambda DSL. No Boot 4, o starter do resource server tem nome
+novo:
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+</dependency>
+```
 
 ```java
 @Configuration
@@ -27,16 +35,30 @@ class SecurityConfig {
     SecurityFilterChain api(HttpSecurity http) throws Exception {
         return http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/health/**", "/actuator/prometheus").permitAll() // marco 10
                 .requestMatchers(HttpMethod.POST, "/payments").hasAuthority("SCOPE_payments:write")
                 .anyRequest().authenticated())
             .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()))
-            .csrf(csrf -> csrf.disable())   // API stateless com JWT; ver marco de segurança
+            .csrf(csrf -> csrf.disable())   // seguro aqui: o token vai no header, não em cookie
             .sessionManagement(s -> s.sessionCreationPolicy(STATELESS))
             .build();
     }
 }
 ```
+
+Desligar CSRF assusta, então vale o porquê. O ataque de CSRF depende de o **navegador
+anexar sozinho** a credencial a uma requisição forjada por outro site — e o navegador só
+faz isso com cookies. O pix-gateway não usa cookie nem sessão: a credencial é um
+`Authorization: Bearer` que o cliente precisa colocar explicitamente em cada chamada, e
+que um site malicioso não consegue anexar. Sem credencial automática, não há o que
+forjar. No dia em que a API aceitar sessão por cookie, o CSRF volta a ser obrigatório.
+
+As duas URLs liberadas no `permitAll` são as que o Kubernetes (probes) e o Prometheus
+(coleta) chamam sem token — o marco 10 as usa. O `/**` importa: só
+`"/actuator/health"` deixaria `/actuator/health/liveness` e `/readiness` atrás de
+autenticação, e as probes receberiam `401`. Liberar `/actuator/prometheus` sem token só
+é aceitável se ele não for alcançável de fora do cluster: o ingress publica apenas as
+rotas da API (ou o Actuator vai para uma `management.server.port` que não é publicada).
 
 ## Resource server: o gateway valida, não emite
 
@@ -54,7 +76,10 @@ spring:
 ```
 
 O Boot busca o JWKS do issuer, valida assinatura, expiração e `issuer`, e transforma os
-*scopes* do token em `authorities`. A partir daí, autorização é declarativa.
+*scopes* do token em `authorities`. A partir daí, autorização é declarativa. A busca é
+preguiçosa — acontece na primeira requisição com token, não no boot —, mas a
+propriedade é obrigatória: sem ela (ou outra fonte de chaves), o contexto não sobe por
+falta de um bean `JwtDecoder`.
 
 ## Method security: autorização perto da regra
 
@@ -66,7 +91,10 @@ regra de negócio, imune a alguém adicionar um novo controller que esqueceu a r
 public PaymentResponse initiate(PaymentRequest req) { ... }
 ```
 
-Habilite com `@EnableMethodSecurity`. Defesa em profundidade: URL **e** método.
+Habilite com `@EnableMethodSecurity`. Defesa em profundidade: URL **e** método. O
+`#req.amount` funciona com o `record` e o `BigDecimal` do pix-gateway: a SpEL lê o
+componente do record e compara o `BigDecimal` numericamente (`50000.00` passa,
+`50000.01` é negado com `AuthorizationDeniedException`).
 
 ## O degrau Open Finance: FAPI
 
@@ -119,39 +147,78 @@ conexão é mTLS e o access token é certificate-bound — o gateway rejeita um 
 **Tutorial — proteger o gateway.** Configure o pix-gateway como resource server JWT,
 com regras por escopo (`payments:write` no `POST`, `payments:read` nas consultas) e
 `@PreAuthorize` na camada de serviço. Escreva testes simulando o JWT com o
-`RequestPostProcessor` `jwt()` do `spring-security-test` (a mesma dependência já usada
-em `spring-boot-starter-test` + segurança — nada de lib de terceiros) verificando: 401
-sem token, 403 com escopo errado, 200 com o escopo certo, e que um usuário não acessa o
-pagamento de outro.
+`RequestPostProcessor` `jwt()` do `spring-security-test` — nada de lib de terceiros; no
+Boot 4 ele chega pelo starter de teste da segurança:
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-security-test</artifactId>
+  <scope>test</scope>
+</dependency>
+```
+
+Verifique: 401 sem token, 403 com escopo errado, 201 com o escopo certo (o status que o
+controller devolve desde o marco 06), e que um usuário não acessa o pagamento de outro.
+Um teste de fatia basta — `@WebMvcTest` sobe só o controller e a segurança, com o
+service trocado por um mock:
 
 ```java
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
-@Test
-void initiate_withCorrectScope_returns200() throws Exception {
-    mvc.perform(post("/payments")
-            .with(jwt().jwt(j -> j.claim("scope", "payments:write")))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(paymentJson))
-        .andExpect(status().isOk());
-}
+@WebMvcTest(PaymentController.class)   // org.springframework.boot.webmvc.test.autoconfigure
+@Import(SecurityConfig.class)
+class PaymentSecurityTest {
+    @Autowired MockMvc mvc;
+    @MockitoBean PaymentInitiationService service;
+    String paymentJson = "{\"amount\": 100.00}";
 
-@Test
-void initiate_withoutScope_returns403() throws Exception {
-    mvc.perform(post("/payments")
-            .with(jwt())   // token válido, sem o claim de escopo
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(paymentJson))
-        .andExpect(status().isForbidden());
-}
+    @Test
+    void initiate_withCorrectScope_returns201() throws Exception {
+        when(service.initiate(any(), any())).thenReturn(new PaymentResponse(UUID.randomUUID(), "INITIATED"));
+        mvc.perform(post("/payments")
+                .header("Idempotency-Key", UUID.randomUUID().toString())
+                .with(jwt().jwt(j -> j.claim("scope", "payments:write")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(paymentJson))
+            .andExpect(status().isCreated());
+    }
 
-@Test
-void initiate_withoutToken_returns401() throws Exception {
-    mvc.perform(post("/payments")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(paymentJson))
-        .andExpect(status().isUnauthorized());
+    @Test
+    void initiate_withWrongScope_returns403() throws Exception {
+        mvc.perform(post("/payments")
+                .header("Idempotency-Key", UUID.randomUUID().toString())
+                .with(jwt())   // token válido, mas o jwt() padrão só traz o escopo "read"
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(paymentJson))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void initiate_withoutToken_returns401() throws Exception {
+        mvc.perform(post("/payments")
+                .header("Idempotency-Key", UUID.randomUUID().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(paymentJson))
+            .andExpect(status().isUnauthorized());
+    }
 }
+```
+
+Com a segurança ligada, os testes `@SpringBootTest` dos marcos anteriores que chamam
+`/payments` sem token passam a receber `401`. O de correlação do marco 02 continua verde
+— o filtro roda antes da segurança, e a resposta `401` também sai com o header. Os que
+precisam chegar ao controller ganham `.with(jwt().jwt(j -> j.claim("scope",
+"payments:write")))`.
+
+O `@PreAuthorize` também alcança quem chama o service **direto**, como o teste de replay
+do marco 06: sem autenticação, ele falha com `AuthenticationCredentialsNotFoundException`.
+Anote o teste com `@WithMockUser(authorities = "SCOPE_payments:write")` e, como ele
+dispara as chamadas em outras threads, leve o contexto junto — o `SecurityContext` é
+guardado por thread:
+
+```java
+pool.submit(new DelegatingSecurityContextCallable<>(call));
 ```
 
 ## Principais aprendizados

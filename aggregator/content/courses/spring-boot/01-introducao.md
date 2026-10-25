@@ -22,7 +22,7 @@ pronto para rodar em qualquer lugar com uma JVM.
 
 Três pilares sustentam a produtividade:
 
-- **Starters** — dependências agrupadas por capacidade (`spring-boot-starter-web`,
+- **Starters** — dependências agrupadas por capacidade (`spring-boot-starter-webmvc`,
   `-data-jpa`, `-security`), com versões já testadas em conjunto.
 - **Auto-configuração** — o Boot inspeciona o classpath e configura beans sozinho.
 - **Actuator** — endpoints de produção (health, métricas) prontos de fábrica.
@@ -42,8 +42,15 @@ Isso você já sabe. O que separa o uso senior do uso "copiei do tutorial" é en
    registram *definições* de beans (ainda não instâncias).
 4. **Refresh do contexto** — instancia os *singletons*, resolve dependências, aplica
    os `BeanPostProcessor`s e cria os proxies de `@Transactional`/`@Async` (marco 04).
+   No fim do refresh o Tomcat embarcado **sobe e abre a porta**.
 5. **Dispara os `ApplicationRunner`/`CommandLineRunner`** e publica
-   `ApplicationReadyEvent`. Só então o Tomcat aceita tráfego.
+   `ApplicationReadyEvent`. Só depois disso o estado de *readiness* passa a
+   `ACCEPTING_TRAFFIC`.
+
+Repare na ordem dos passos 4 e 5: a porta já está aberta enquanto os runners rodam, mas a
+aplicação ainda se declara *não pronta* (`REFUSING_TRAFFIC`). "Porta aberta" não quer
+dizer "pronta para atender" — é por isso que o Kubernetes pergunta à *readiness probe*
+(marcos 10 e 12) e não apenas se a porta responde.
 
 Guarde esta linha: **o contexto é montado uma vez, no boot**. Erros de configuração
 falham rápido, no startup, não no meio de uma transação em produção — uma propriedade
@@ -62,7 +69,12 @@ que aparecem ao longo dos marcos — não decore, só saiba que o chão mudou:
 - **JSpecify** para *null-safety* anotada, ajudando ferramentas a pegar NPE em compile
   time.
 - **API versioning** nativo no Spring MVC e **split das auto-configurações** em JARs
-  por módulo — o classpath ficou mais explícito (marco 02).
+  por módulo — o classpath ficou mais explícito (marco 02). Na prática, os starters
+  ficaram mais granulares: `spring-boot-starter-web` cedeu lugar a
+  `spring-boot-starter-webmvc`, cada tecnologia tem seu starter de teste
+  (`spring-boot-starter-webmvc-test` traz o `MockMvc`) e capacidades que antes vinham
+  "de carona" pedem starter próprio (`-restclient`, `-flyway`, `-aspectj`).
+  `@MockBean` foi removido — o substituto é `@MockitoBean` (marco 11).
 
 ## O produto do curso: pix-gateway
 
@@ -97,22 +109,32 @@ binding de propriedades. Simples na superfície; nos próximos marcos abrimos a 
 
 **Tutorial — nascer o pix-gateway.**
 
-1. Gere o projeto em [start.spring.io](https://start.spring.io) com Boot 4.1, Java 21 e
-   os starters `web` e `test`.
+1. Gere o projeto em [start.spring.io](https://start.spring.io) com Boot 4.1 e Java 21.
 
    ```bash
    curl https://start.spring.io/starter.zip \
      -d type=maven-project -d language=java -d bootVersion=4.1.0 \
      -d baseDir=pix-gateway -d groupId=com.fintech -d artifactId=pix-gateway \
      -d name=pix-gateway -d packageName=com.fintech.pixgateway \
-     -d javaVersion=17 -d dependencies=web \
+     -d javaVersion=21 -d dependencies=web \
      -o pix-gateway.zip && unzip pix-gateway.zip -d pix-gateway
    ```
 
-   (`dependencies=web` só — pedir `test` ao Initializr falha, porque
-   `spring-boot-starter-test` já vem por padrão em todo projeto gerado.
-   `javaVersion=17` aqui é só o nível de bytecode do `pom.xml`; o JDK que você usa
-   para compilar/rodar continua sendo 21, como o resto do marco pede.)
+   (`dependencies=web` só — pedir `test` ao Initializr falha, porque o suporte a teste
+   já vem por padrão em todo projeto gerado.)
+
+   Confira o `pom.xml` gerado: no Boot 4 ele deve trazer `spring-boot-starter-webmvc` e
+   `spring-boot-starter-webmvc-test` (escopo `test`). É o segundo que fornece o
+   `MockMvc` do passo 3 — com só `spring-boot-starter-test`, o teste não encontra o bean
+   `MockMvc` e falha. Se faltar, adicione:
+
+   ```xml
+   <dependency>
+     <groupId>org.springframework.boot</groupId>
+     <artifactId>spring-boot-starter-webmvc-test</artifactId>
+     <scope>test</scope>
+   </dependency>
+   ```
 2. Crie o endpoint mínimo, deliberadamente **não implementado** — sinceridade de API
    vale mais que um `200` mentiroso:
 
@@ -130,6 +152,15 @@ binding de propriedades. Simples na superfície; nos próximos marcos abrimos a 
 3. Prove com um teste de contexto real:
 
    ```java
+   import org.junit.jupiter.api.Test;
+   import org.springframework.beans.factory.annotation.Autowired;
+   import org.springframework.boot.test.context.SpringBootTest;
+   import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc; // pacote novo no Boot 4
+   import org.springframework.test.web.servlet.MockMvc;
+
+   import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+   import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
    @SpringBootTest
    @AutoConfigureMockMvc
    class PaymentControllerTest {
@@ -158,7 +189,8 @@ curl -i -X POST http://localhost:8080/payments   # HTTP/1.1 501
 - Spring Boot troca configuração explícita por **convenção + override**; o valor senior
   está em saber o que ele faz por baixo.
 - `SpringApplication.run` tem um ciclo determinístico: environment → definições de
-  beans → refresh → *ready*. O contexto sobe uma vez, no boot.
+  beans → refresh → *ready*. O contexto sobe uma vez, no boot; a porta abre antes de a
+  aplicação se declarar pronta.
 - Boot 4.x = Framework 7, Jakarta EE 11, Jackson 3, JSpecify, Java 17+.
 - O **pix-gateway** é o fio-condutor; auditoria, LGPD, idempotência e `BigDecimal`
   entram desde a primeira linha, não como reforma posterior.

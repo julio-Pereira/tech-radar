@@ -43,8 +43,12 @@ não-repetível, phantom) ao custo de contenção e de possíveis erros de seria
 você **tem** que tratar com retry. Não suba isolation por reflexo; suba quando a anomalia
 for real para o seu caso — e meça.
 
-`@Transactional(readOnly = true)` em consultas não é decoração: sinaliza ao provider
-(sem *dirty checking*) e a réplicas de leitura, e documenta a intenção.
+`@Transactional(readOnly = true)` em consultas não é decoração: o Hibernate deixa de
+fazer *dirty checking* (não compara as entidades carregadas para decidir o que gravar),
+o driver recebe a conexão marcada como somente-leitura, e o código documenta a intenção.
+O que ele **não** faz sozinho é mandar a consulta para uma réplica de leitura: isso só
+acontece se você configurar um `AbstractRoutingDataSource` que escolha o `DataSource`
+pela flag `readOnly` da transação corrente. Sem esse roteador, tudo vai para o primário.
 
 ## Vazamento de conexão e a hierarquia de timeouts
 
@@ -85,8 +89,35 @@ queries e falhar o build se um endpoint passar de um teto. Latência é feature.
 
 O schema do banco é **fonte de verdade versionada**, não um `ddl-auto=update` mágico.
 `ddl-auto` fica em `validate` (ou `none`) em produção; as mudanças vêm de migrações
-Flyway (`V1__create_payments.sql`, `V2__add_idempotency.sql`), aplicadas no startup, na
-mesma ordem, em todo ambiente — auditável e reproduzível, exatamente o que o BACEN pede.
+Flyway (`V1__create_payments.sql`, `V2__idempotency_and_outbox.sql`), aplicadas no
+startup, na mesma ordem, em todo ambiente — auditável e reproduzível, exatamente o que o
+BACEN pede.
+
+No Boot 4, a auto-configuração do Flyway mora no seu próprio starter. Com só o
+`flyway-core` no classpath, **nenhuma migração roda e nada avisa** — a aplicação sobe
+com o schema vazio:
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-flyway</artifactId>
+</dependency>
+<dependency>
+  <groupId>org.flywaydb</groupId>
+  <artifactId>flyway-database-postgresql</artifactId>
+</dependency>
+```
+
+A primeira migração do pix-gateway cria a tabela que os próximos marcos usam:
+
+```sql
+-- src/main/resources/db/migration/V1__create_payments.sql
+CREATE TABLE payments (
+    id     UUID PRIMARY KEY,
+    amount NUMERIC(19,4) NOT NULL,
+    status TEXT NOT NULL
+);
+```
 
 ## A decisão do ledger: locking otimista vs pessimista
 
@@ -139,15 +170,17 @@ transação, depois do lock — impossível de furar por corrida.
    a conta com `FOR UPDATE`, valida saldo suficiente e debita.
 
    O teste do passo 2 usa Testcontainers antes de o marco 11 ensinar a ferramenta em
-   detalhe — por ora, este é o esqueleto mínimo para rodar o teste de concorrência:
+   detalhe — por ora, este é o esqueleto mínimo para rodar o teste de concorrência (as
+   dependências de teste são as do marco 04):
 
    ```java
-   @SpringBootTest
+   // V1 (Flyway) cria payments; a tabela de exercício account vem do Hibernate no teste
+   @SpringBootTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
    @Testcontainers
    class DebitServiceConcurrencyIT {
 
        @Container @ServiceConnection
-       static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+       static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
 
        @Autowired DebitService debitService;
 
