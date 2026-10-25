@@ -1162,6 +1162,69 @@
   .course-title { font-size: 1.35rem; }
 }
 
+/* ── Concept links and preview (conceitos.js) ────────────────────────────── */
+/* A dotted underline sets a concept apart from an ordinary link: it opens a
+   preview first, and only then leads to another trilha. */
+.milestone-body a.conceito {
+  text-decoration-style: dotted;
+  text-underline-offset: 0.2em;
+}
+
+.conceito-preview {
+  position: fixed;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 22rem;
+  max-width: calc(100vw - 32px);
+  padding: 0.85rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.conceito-preview > span { display: block; }
+.conceito-preview-termo { font-size: 0.95rem; }
+.conceito-preview-dono,
+.conceito-preview-tambem { color: var(--text-muted); }
+.conceito-preview-feito { color: var(--eng); white-space: nowrap; }
+
+.conceito-preview a {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.conceito-preview-acoes {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+}
+
+/* Touch targets: at least 44px tall, whatever the font size. */
+.conceito-preview-acoes a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.conceito-preview-ir { font-weight: 600; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .conceito-preview { animation: conceito-preview-in 120ms ease-out; }
+}
+
+@keyframes conceito-preview-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: none; }
+}
+
 /* ── Reduced motion ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .progress-bar,
