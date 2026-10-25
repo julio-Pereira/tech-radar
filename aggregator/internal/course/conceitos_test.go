@@ -306,7 +306,7 @@ func TestConceitosResolve(t *testing.T) {
 		t.Errorf("conceitos.yaml: %v", e)
 	}
 	for _, e := range entries {
-		if e.Resumo == "" || e.Dono.Titulo == "" || e.Dono.Minutos == 0 {
+		if e.Resumo == "" || e.Glossario == "" || e.Dono.Titulo == "" || e.Dono.Minutos == 0 {
 			t.Errorf("conceito %q: catálogo incompleto: %+v", e.ID, e)
 		}
 		if len(e.CitadoEm) == 0 {

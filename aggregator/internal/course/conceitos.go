@@ -484,12 +484,15 @@ type ConceitoMarco struct {
 
 // ConceitoEntry is one concept in web/data/conceitos.json.
 type ConceitoEntry struct {
-	ID       string          `json:"id"`
-	Termo    string          `json:"termo"`
-	Resumo   string          `json:"resumo"`
-	Dono     ConceitoMarco   `json:"dono"`
-	Tambem   []ConceitoMarco `json:"tambem,omitempty"`
-	CitadoEm []ConceitoMarco `json:"citadoEm"`
+	ID     string `json:"id"`
+	Termo  string `json:"termo"`
+	Resumo string `json:"resumo"`
+	// Glossario is the owner trilha's glossary anchor for this concept
+	// (#/glossario/<anchor>), when one matches an alias.
+	Glossario string          `json:"glossario,omitempty"`
+	Dono      ConceitoMarco   `json:"dono"`
+	Tambem    []ConceitoMarco `json:"tambem,omitempty"`
+	CitadoEm  []ConceitoMarco `json:"citadoEm"`
 }
 
 // ConceitoCatalog is web/data/conceitos.json.
@@ -533,8 +536,9 @@ func buildConceitosCatalog(set *conceitoSet, courses map[string]CompiledCourse, 
 		}
 
 		resumo := strings.TrimSpace(rc.Resumo)
+		g, hasGlossary := glossaryFor(rc, glossary)
 		if resumo == "" {
-			if g, ok := glossaryFor(rc, glossary); ok {
+			if hasGlossary {
 				resumo = g.Summary
 			} else {
 				errs = append(errs, fmt.Errorf("conceito %q: resumo vazio e nenhum verbete do glossário de %s casa com um apelido", rc.ID, rc.dono.Slug))
@@ -542,6 +546,9 @@ func buildConceitosCatalog(set *conceitoSet, courses map[string]CompiledCourse, 
 		}
 
 		entry := ConceitoEntry{ID: rc.ID, Termo: rc.Termo, Resumo: resumo, Dono: dono, CitadoEm: []ConceitoMarco{}}
+		if hasGlossary {
+			entry.Glossario = g.Anchor
+		}
 		for _, r := range rc.tambem {
 			t, _ := marco(r)
 			entry.Tambem = append(entry.Tambem, t)
