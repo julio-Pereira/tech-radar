@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 185, "desafio": 227, "invariantes": 223, "complemento": 207, "checagem": 226, "gabarito": 4,
+		"tutorial": 185, "desafio": 227, "invariantes": 224, "complemento": 209, "checagem": 226, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {

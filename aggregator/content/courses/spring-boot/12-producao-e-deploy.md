@@ -1,7 +1,7 @@
 ---
 id: producao-e-deploy
 title: "Produção: imagem, startup e shutdown"
-summary: "Buildpacks vs Dockerfile em camadas, CDS e GraalVM native com trade-offs reais, graceful shutdown e liveness vs readiness bem usados no Kubernetes."
+summary: "Buildpacks vs Dockerfile em camadas, AOT cache do Java 25 e GraalVM native com trade-offs reais, graceful shutdown e liveness vs readiness bem usados no Kubernetes."
 estimatedMinutes: 35
 references:
   - title: "Spring Boot Reference — Container Images"
@@ -10,6 +10,8 @@ references:
     url: https://docs.spring.io/spring-boot/reference/native-image/index.html
   - title: "Spring Boot Reference — Graceful Shutdown"
     url: https://docs.spring.io/spring-boot/reference/web/graceful-shutdown.html
+  - title: "Spring Framework — JVM AOT Cache"
+    url: https://docs.spring.io/spring-framework/reference/integration/aot-cache.html
 ---
 
 ## A imagem: buildpacks vs Dockerfile em camadas
@@ -31,17 +33,18 @@ Duas formas melhores:
   (raramente mudam) ficam numa camada cacheável; só a camada da aplicação reconstrói a
   cada commit.
 
-## Startup rápido: CDS e GraalVM native
+## Startup rápido: AOT cache e GraalVM native
 
 Tempo de startup vira requisito quando você escala sob demanda ou reinicia numa janela de
 incidente. Dois caminhos, com trade-offs bem diferentes:
 
-- O **CDS / AppCDS** (*Class Data Sharing*) arquiva num arquivo as classes já carregadas
-  e verificadas, e a JVM mapeia esse arquivo na subida em vez de carregá-las de novo. O
-  ganho de startup é **moderado**, o custo é **baixo** e não há **nenhuma** mudança no
-  modelo de execução: continua uma JVM normal, com JIT
-  e todo o ecossistema. O Boot 4 integra isso de forma quase transparente. É o ganho
-  barato — comece por ele.
+- O **AOT cache** (JEP 483, desde o Java 24) é a evolução do antigo CDS (*Class Data
+  Sharing*): uma execução de **treino** grava num arquivo as classes já carregadas **e
+  linkadas**, e a JVM mapeia esse arquivo na subida em vez de refazer o trabalho. No
+  Java 25, o treino é um comando só (JEP 514) e o cache passa a guardar também o perfil
+  dos métodos (JEP 515), o que ajuda o JIT a esquentar mais cedo. Não há **nenhuma**
+  mudança no modelo de execução: continua uma JVM normal, com JIT e todo o ecossistema.
+  É o ganho barato — comece por ele.
 - A **GraalVM native image** compila a aplicação **ahead-of-time** (antes de rodar, e não
   durante, como o JIT da JVM) para um binário nativo. Startup em
   **dezenas de milissegundos** e consumo de memória muito menor — ótimo para serverless e
@@ -52,9 +55,48 @@ incidente. Dois caminhos, com trade-offs bem diferentes:
   performance que se injeta na JVM) **não funcionam**; e o **tempo de build é
   muito maior**. Não é "ligar uma flag" — é uma decisão de arquitetura.
 
-A regra: **CDS** dá 80% do ganho de startup por 5% do custo; vá de **native** só quando o
-startup ultra-rápido/baixa memória for requisito concreto e você aceitar o custo de build
-e as restrições de reflexão.
+A regra: comece pelo **AOT cache**, que não muda nada no modelo de execução; vá de
+**native** só quando o startup ultrarrápido ou a memória baixa forem requisito concreto e
+você aceitar o custo de build e as restrições de reflexão.
+
+### AOT cache na prática
+
+O treino roda a aplicação até o fim do *refresh* do contexto e sai; a execução normal
+aponta para o cache:
+
+```bash
+java -Djarmode=tools -jar target/pix-gateway-0.0.1-SNAPSHOT.jar extract --destination app
+cd app
+java -XX:AOTCacheOutput=app.aot -Dspring.context.exit=onRefresh -jar pix-gateway-0.0.1-SNAPSHOT.jar
+java -XX:AOTCache=app.aot -jar pix-gateway-0.0.1-SNAPSHOT.jar
+```
+
+As restrições são o que quebra em produção:
+
+- **A mesma JVM e as mesmas flags** no treino e no uso. Um cache treinado sem
+  `-XX:+UseCompactObjectHeaders` é recusado por uma JVM que sobe com a flag: ela avisa
+  `Unable to use AOT cache` e sobe **sem** o cache, em silêncio para quem não lê o log.
+- **O classpath como lista de JARs, na mesma ordem** — por isso o `extract`. Com o jar
+  executável sem extrair, as classes que vêm de dentro dele quase não entram no cache: na
+  verificação deste marco, só 4 549 das 6 216 classes do Spring vieram do cache, contra
+  6 884 de 6 945 com o jar extraído.
+- **O treino precisa subir o contexto** — e o contexto do pix-gateway conecta no banco
+  (o Flyway roda no *refresh*). Sem banco acessível, o treino falha.
+
+`-Dspring.context.exit=onRefresh` otimiza só o **startup**. Com o perfil de métodos do
+Java 25, a documentação do Spring sugere treinar com uma carga parecida com a de
+produção: o cache fica melhor, e o pipeline de build fica mais complexo. É um trade-off
+real, não uma configuração óbvia.
+
+Os buildpacks fazem o treino por você com `BP_JVM_AOTCACHE_ENABLED=true`, e a imagem
+passa a subir com `-XX:AOTCache` sozinha. Mas o treino acontece **durante o build**: sem
+banco acessível ali, o build falha com `Failed to configure a DataSource`. Ou o ambiente
+de build alcança os serviços de que o contexto precisa, ou o treino é feito fora dos
+buildpacks, sobre o jar extraído, como acima.
+
+> **Se você está no Java 21:** o AOT cache não existe; use o CDS, que é o mesmo princípio
+> com ganho menor — `-XX:ArchiveClassesAtExit=app.jsa` no treino e
+> `-XX:SharedArchiveFile=app.jsa` no uso.
 
 ## Graceful shutdown
 
@@ -100,7 +142,7 @@ para de mandar tráfego **antes** do graceful shutdown drenar as requisições e
 ## Exemplo numa fintech
 
 O **pix-gateway** roda de imagem construída por buildpacks (não-root, camadas cacheadas),
-com CDS ligado para reiniciar rápido numa janela de incidente. No rollout, readiness sai
+com AOT cache para reiniciar rápido numa janela de incidente. No rollout, readiness sai
 primeiro, o graceful shutdown drena as iniciações em andamento em até 30s, e só então o
 pod antigo morre — **nenhuma transação Pix é cortada no meio**, requisito não-negociável
 para quem move dinheiro.
@@ -231,6 +273,27 @@ a consulta mostra duas linhas: uma com `channel = app`, outra com `channel` vazi
 que "expand/contract" garante: a coluna nova é nullable, e a `v1` simplesmente não a
 usa.
 
+4. **AOT cache medido.** Com o Postgres do passo 2 no ar, extraia o jar, faça o treino da
+   seção "AOT cache na prática" e suba a aplicação três vezes sem o cache e três com ele,
+   anotando o `Started PixGatewayApplication in X seconds` de cada uma. Depois rode uma
+   vez com o cache e o log de carga de classes:
+
+   ```bash
+   java -XX:AOTCache=app.aot -Xlog:class+load:file=classes.log \
+     -Dspring.context.exit=onRefresh -jar pix-gateway-0.0.1-SNAPSHOT.jar
+   grep -c "source: shared objects file" classes.log
+   ```
+
+**Invariante testável.** O cache é **usado**: a maior parte das classes do log aparece com
+`source: shared objects file` (na verificação, 20 335 de 21 016). O ganho de startup varia
+com a máquina e não é o invariante — na verificação, a mediana caiu de 6,3 s para 2,9 s.
+
+**Complemento — Compact Object Headers.** No Java 25, `-XX:+UseCompactObjectHeaders`
+(JEP 519) reduz o cabeçalho de cada objeto de 12 para 8 bytes; é opcional no 25 e vira o
+padrão no 27. Para um serviço com muitos objetos pequenos (eventos, DTOs), isso diminui o
+heap. Compare o heap usado depois de uma carga fixa, com e sem a flag — e lembre de
+treinar um cache novo com a flag, ou a JVM recusa o antigo.
+
 **Checagem.** (a) O que quebraria no passo 3 se `V3` tivesse `NOT NULL` sem default?
 (b) Por que buildpacks já resolve "sem root" por padrão, e o que isso evita?
 
@@ -249,7 +312,8 @@ nó.
 
 - **Buildpacks** (`bootBuildImage`) é o default de menor atrito; Dockerfile em **camadas**
   quando precisa de controle — dependências numa camada cacheável.
-- **CDS** dá o ganho de startup barato; **GraalVM native** dá startup ultrarrápido/baixa
+- O **AOT cache** (Java 25) dá o ganho de startup barato, desde que treino e uso tenham a
+  mesma JVM, as mesmas flags e o jar extraído; **GraalVM native** dá startup ultrarrápido/baixa
   memória ao custo de build e restrições de reflexão — decisão de arquitetura, não flag.
 - **Graceful shutdown** (`server.shutdown=graceful`) não corta transação em voo.
 - **Liveness** reinicia (use só para estado irrecuperável); **readiness** tira do

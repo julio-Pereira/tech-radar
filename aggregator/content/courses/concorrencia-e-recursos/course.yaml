@@ -11,7 +11,7 @@ estimatedHours: 20
 glossary: GLOSSARIO.md
 sources:
   - title: "Java Language Specification — Chapter 17: Threads and Locks (memory model)"
-    url: https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html
+    url: https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html
   - title: "The Go Memory Model"
     url: https://go.dev/ref/mem
   - title: "Java Concurrency in Practice"

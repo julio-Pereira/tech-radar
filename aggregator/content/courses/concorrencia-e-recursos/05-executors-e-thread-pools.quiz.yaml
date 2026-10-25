@@ -1,11 +1,11 @@
 questions:
   - question: "Um pool atende chamadas com 80 ms de espera de rede para 5 ms de processamento local, numa máquina de 8 núcleos. Pela fórmula `núcleos × (1 + espera/computação)`, qual é o tamanho útil aproximado?"
     options:
-      - "8 threads, porque a fórmula não vale para trabalho I/O-bound"
       - "Cerca de 136 threads, pela razão espera/computação de 16:1"
+      - "8 threads, porque a fórmula não vale para trabalho I/O-bound"
       - "16 threads, ignorando o número de núcleos"
       - "800 threads, multiplicando núcleos pela espera em milissegundos"
-    answer: 1
+    answer: 0
     explanation: "A razão espera/computação é 80/5 = 16. A fórmula dá 8 × (1 + 16) = 8 × 17 = 136. A fórmula existe exatamente para trabalho I/O-bound — é ali que ela se aplica, porque a thread fica ociosa esperando a resposta de rede em vez de consumir CPU. Ignorar os núcleos ou multiplicar a espera em milissegundos diretamente não corresponde à fórmula nem ao raciocínio por trás dela."
 
   - question: "Por que `newFixedThreadPool`, com fila padrão ilimitada, é um antipadrão de produção, apesar de muito citado em tutoriais?"
@@ -20,19 +20,19 @@ questions:
   - question: "O que `CallerRunsPolicy` faz quando a fila de um executor está cheia, e por que isso cria contrapressão?"
     options:
       - "Descarta a tarefa silenciosamente, sem notificar quem a submeteu originalmente"
-      - "A thread que submeteu a tarefa a executa, sentindo o custo diretamente"
       - "Lança uma exceção imediata, interrompendo a thread que submeteu a tarefa"
+      - "A thread que submeteu a tarefa a executa, sentindo o custo diretamente"
       - "Enfileira a tarefa numa fila secundária ilimitada, só adiando o problema real"
-    answer: 1
+    answer: 2
     explanation: "`CallerRunsPolicy` faz a thread chamadora (a que tentou submeter) executar a tarefa rejeitada sincronamente, em vez de descartá-la ou falhar. Isso cria contrapressão real: enquanto a thread chamadora está ocupada rodando essa tarefa, ela não pode submeter mais trabalho — o produtor sente diretamente o custo da sobrecarga, o que tende a desacelerar a taxa de submissão sem precisar de nenhum mecanismo externo. `AbortPolicy` é quem lança exceção; descartar silenciosamente e enfileirar numa fila secundária não são políticas padrão do `ThreadPoolExecutor`."
 
   - question: "Por que uma tarefa bloqueante submetida ao `commonPool` pode degradar um `parallelStream` completamente independente, rodando ao mesmo tempo?"
     options:
-      - "Porque `commonPool` é compartilhado pela JVM inteira, dimensionado para núcleos-1"
+      - "Porque o JIT desliga o paralelismo ao detectar qualquer chamada bloqueante no código"
       - "Porque `parallelStream` sempre lança exceção quando duas instâncias rodam juntas"
       - "Porque isso só acontece se as duas acessarem a mesma variável compartilhada em memória"
-      - "Porque o JIT desliga o paralelismo ao detectar qualquer chamada bloqueante no código"
-    answer: 0
+      - "Porque `commonPool` é compartilhado pela JVM inteira, dimensionado para núcleos-1"
+    answer: 3
     explanation: "O `commonPool` é compartilhado por toda a JVM — inclusive por bibliotecas internas que usam parallelStream sem o desenvolvedor saber. Uma tarefa bloqueante ocupando uma das threads limitadas desse pool reduz a capacidade disponível para qualquer outro uso concorrente de parallelStream, mesmo sem nenhuma relação lógica ou variável compartilhada entre os dois usos — é contenção por um recurso compartilhado invisível, não um bug de dados."
 
   - question: "Por que, em Go, é mais comum \"limitar a concorrência\" (`errgroup.SetLimit`, semáforo por channel) do que \"dimensionar um pool de goroutines\"?"

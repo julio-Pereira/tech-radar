@@ -63,11 +63,12 @@ que você vai aprender a explorar.
 
 ## Panorama Spring Boot 4.x
 
-Este curso tem baseline **Spring Boot 4.1 / Java 21**. O salto 3.x → 4.x traz mudanças
+Este curso tem baseline **Spring Boot 4.1 / Java 25**. O salto 3.x → 4.x traz mudanças
 que aparecem ao longo dos marcos — não decore, só saiba que o chão mudou:
 
-- Por baixo roda o **Spring Framework 7**, que exige **Java 17+**. Usamos o 21 pelas
-  *virtual threads* (marco 07).
+- Por baixo roda o **Spring Framework 7**, que exige **Java 17+**. Usamos o 25, o LTS
+  atual: virtual threads sem pinning em `synchronized`, `ScopedValue` final e AOT cache
+  para o startup (marcos 07 e 12).
 - O **Jakarta EE 11** consolida os pacotes `jakarta.*`; não sobra nenhum `javax.*`.
 - O **Jackson 3** é o padrão de JSON, agora no namespace `tools.jackson` — relevante
   quando você customiza a serialização de valores monetários.
@@ -118,18 +119,18 @@ binding de propriedades. Simples na superfície; nos próximos marcos abrimos a 
 
 ## Mão na massa
 
-**Pré-requisito do estado do pix-gateway:** nenhum — o projeto nasce aqui. Basta JDK 21 e Maven.
+**Pré-requisito do estado do pix-gateway:** nenhum — o projeto nasce aqui. Basta JDK 25 e Maven.
 
 **Tutorial — nascer o pix-gateway.**
 
-1. Gere o projeto em [start.spring.io](https://start.spring.io) com Boot 4.1 e Java 21.
+1. Gere o projeto em [start.spring.io](https://start.spring.io) com Boot 4.1 e Java 25.
 
    ```bash
    curl https://start.spring.io/starter.zip \
      -d type=maven-project -d language=java -d bootVersion=4.1.0 \
      -d baseDir=pix-gateway -d groupId=com.fintech -d artifactId=pix-gateway \
      -d name=pix-gateway -d packageName=com.fintech.pixgateway \
-     -d javaVersion=21 -d dependencies=web \
+     -d javaVersion=25 -d dependencies=web \
      -o pix-gateway.zip && unzip pix-gateway.zip -d pix-gateway
    ```
 
@@ -204,6 +205,6 @@ curl -i -X POST http://localhost:8080/payments   # HTTP/1.1 501
 - `SpringApplication.run` tem um ciclo determinístico: environment → definições de
   beans → refresh → *ready*. O contexto sobe uma vez, no boot; a porta abre antes de a
   aplicação se declarar pronta.
-- Boot 4.x = Framework 7, Jakarta EE 11, Jackson 3, JSpecify, Java 17+.
+- Boot 4.x = Framework 7, Jakarta EE 11, Jackson 3, JSpecify, Java 17+ (trilha em 25).
 - O **pix-gateway** é o fio-condutor; auditoria, LGPD, idempotência e `BigDecimal`
   entram desde a primeira linha, não como reforma posterior.

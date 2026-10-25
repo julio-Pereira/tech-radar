@@ -17,14 +17,14 @@ questions:
     answer: 1
     explanation: "Virtual threads já resolvem fan-out e I/O-bound sem exigir stack reativo. O que só o modelo reativo entrega é back-pressure de verdade e um punhado de threads sustentando conexões ociosas. Com JPA e JDBC, aliás, WebFlux não ajuda — o driver bloqueante é justamente o que ele não pode ter."
 
-  - question: "O que é pinning no contexto de virtual threads?"
+  - question: "No Java 25, uma virtual thread bloqueia em I/O dentro de um bloco `synchronized`. O que acontece com a carrier?"
     options:
-      - "A afinidade de uma virtual thread com o núcleo de CPU em que foi criada"
-      - "A retenção do `ThreadLocal` depois que a virtual thread termina, causando vazamento"
-      - "O bloqueio dentro de `synchronized`, que impede o desmonte e prende a carrier thread"
-      - "A fixação do número de carrier threads disponíveis pelo valor de `GOMAXPROCS` equivalente da JVM"
-    answer: 2
-    explanation: "O ganho depende de a JVM desmontar a virtual thread da carrier quando ela bloqueia. Dentro de um bloco `synchronized`, o desmonte não acontece e a carrier fica presa — o benefício some. No Java 21 isso ainda acontece; o Java 24 (JEP 491) passou a desmontar dentro de `synchronized`. Até lá, prefira `ReentrantLock` e use o evento `jdk.VirtualThreadPinned` do JFR para achar o pinning nas bibliotecas."
+      - "Fica presa até o bloqueio acabar, e por isso todo `synchronized` deve virar `ReentrantLock`"
+      - "Fica livre: desde o Java 24, a virtual thread desmonta também dentro de `synchronized`"
+      - "Fica presa, mas a JVM cria outra carrier para compensar e o throughput se mantém"
+      - "Fica livre só se a aplicação rodar com `-Djdk.tracePinnedThreads` ligado em produção"
+    answer: 1
+    explanation: "O JEP 491, final desde o Java 24, fez a virtual thread desmontar dentro de `synchronized` e de `Object.wait()`. O pinning que resta vem de código nativo que bloqueia, e o evento `jdk.VirtualThreadPinned` do JFR mostra onde. Trocar todo `synchronized` por `ReentrantLock` era a mitigação do Java 21, e `-Djdk.tracePinnedThreads` não faz mais nada desde o 24."
 
   - question: "Você ligou `spring.threads.virtual.enabled=true` e a latência do endpoint que grava no banco não melhorou. Por quê?"
     options:

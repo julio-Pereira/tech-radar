@@ -123,7 +123,8 @@ dinheiro alheio.
 
 > **Reencontro adiante — `seguranca-aplicacao/07`.** Os requisitos do FAPI que mais pegam na prática, o token *sender-constrained* e o
 > mTLS de verdade, do lado de quem configura o servidor de autorização. Os fluxos OAuth2 e
-> OIDC por baixo estão em `seguranca-aplicacao/05`.
+> OIDC por baixo estão em `seguranca-aplicacao/05`, e a cripto-agilidade — inclusive a
+> transição para algoritmos pós-quânticos — em `seguranca-aplicacao/09`.
 
 ## Actuator como superfície de ataque
 

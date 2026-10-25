@@ -112,6 +112,12 @@ antifraude → conciliação num único trace, e os **logs** já saem com o mesm
 `traceId` de uma requisição real daquele balde. Você vê o pico de p99 no Grafana e pula
 direto para o trace que o causou — fim do "o gráfico subiu, e agora?".
 
+> **Reencontro adiante — `observabilidade/11`.** O Java 25 trouxe para o JFR a medição
+> de tempo de métodos sem mudar código (`jdk.MethodTiming` e `jdk.MethodTrace`, JEP 520) e,
+> como experimento no Linux, o *profiling* por tempo de CPU (`jdk.CPUTimeSample`, JEP 509).
+> Profiling contínuo em produção é o assunto desse marco; aqui fica só o aviso de que a
+> JVM passou a medir mais sozinha.
+
 ## SLO e alerta por burn rate
 
 O salto final é *no que* alertar. "CPU alta" é um alerta que acorda o time à toa: CPU

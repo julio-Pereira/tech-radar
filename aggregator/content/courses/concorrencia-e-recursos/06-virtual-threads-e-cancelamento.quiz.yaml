@@ -2,28 +2,28 @@ questions:
   - question: "Com 10 mil virtual threads precisando acessar um pool de só 20 conexões de banco, qual é a ferramenta certa para limitar quantas tocam o banco ao mesmo tempo?"
     options:
       - "Criar um segundo pool de virtual threads com exatamente 20 threads dedicadas"
-      - "Um `Semaphore(20)`, já que o gargalo é o pool de conexões, não as threads"
       - "Aumentar o número de virtual threads até o JDK limitar o acesso sozinho"
+      - "Um `Semaphore(20)`, já que o gargalo é o pool de conexões, não as threads"
       - "Trocar as virtual threads por threads de plataforma, que têm limite nativo"
-    answer: 1
+    answer: 2
     explanation: "Virtual threads são baratas — o problema nunca foi quantas existem, e sim quanta concorrência o recurso de destino (o pool de 20 conexões) consegue absorver. Um `Semaphore(20)` limita exatamente isso, deixando as virtual threads livres para existir aos milhões enquanto só 20 por vez de fato seguram uma conexão. Criar outro pool de threads não resolve o gargalo (que é o pool de conexões, não de threads), e trocar por threads de plataforma reintroduziria o próprio problema que virtual threads resolvem."
 
   - question: "No JDK 21, uma virtual thread bloqueia dentro de um bloco `synchronized`. O que acontece com a thread de plataforma que a carrega?"
     options:
       - "Nada: desde o JDK 21, `synchronized` nunca fixa a thread de plataforma"
-      - "Fica presa (pinning) a ela, porque JEP 491 só é GA a partir do JDK 24"
-      - "A JVM substitui o `synchronized` por `ReentrantLock` em tempo de execução"
       - "A virtual thread é promovida a thread de plataforma permanentemente"
-    answer: 1
+      - "A JVM substitui o `synchronized` por `ReentrantLock` em tempo de execução"
+      - "Fica presa (pinning) a ela, porque JEP 491 só é GA a partir do JDK 24"
+    answer: 3
     explanation: "JEP 491 (Synchronize Virtual Threads without Pinning) só se tornou GA no JDK 24. Em JDK 21, uma virtual thread que bloqueia dentro de synchronized ainda fixa sua thread de plataforma carregadora, que fica indisponível para outras virtual threads enquanto isso — anulando parte do ganho de escalabilidade. A mitigação em JDK 21 é trocar o synchronized problemático por ReentrantLock, não esperar que a JVM faça isso sozinha."
 
   - question: "O que \"cancelamento cooperativo\" significa, tanto para `interrupt()` em Java quanto para `context.Done()` em Go?"
     options:
-      - "A JVM/runtime param a thread/goroutine de imediato, sem ação do código"
       - "O sinal apenas marca um estado; o código precisa checá-lo e reagir"
+      - "A JVM/runtime param a thread/goroutine de imediato, sem ação do código"
       - "Só funciona se duas threads/goroutines concordarem em parar juntas"
       - "Só chamadas de rede podem ser canceladas; computação pura, nunca"
-    answer: 1
+    answer: 0
     explanation: "Em nenhuma das duas linguagens o cancelamento é preemptivo por padrão: `interrupt()` marca um flag que o código precisa checar (ou estar numa chamada que responde a interrupção); `context.Done()` fecha um canal que o código precisa observar, tipicamente num `select`. Se o código nunca checa, a execução simplesmente continua — por isso vazamento de goroutine e thread presa mesmo após \"cancelamento\" são bugs reais e comuns, não exceções."
 
   - question: "Qual é um exemplo clássico de vazamento de goroutine, e por que ele é definitivo?"
@@ -34,3 +34,21 @@ questions:
       - "Uma goroutine que falha com panic e é recuperada por `recover()` no código"
     answer: 1
     explanation: "Enviar para um channel sem nenhum receptor bloqueia a goroutine remetente indefinidamente — não há timeout implícito, não há liberação automática. Essa goroutine fica viva para sempre, consumindo memória e, eventualmente, acumulando junto com outras do mesmo bug. Uma goroutine lenta ainda termina; uma variável local é coletada normalmente pelo GC assim que a goroutine termina; um panic recuperado também termina a execução normalmente — nenhum desses é vazamento."
+
+  - question: "No JDK 25, o JFR registrou eventos `jdk.VirtualThreadPinned` num serviço em virtual threads. Onde olhar primeiro?"
+    options:
+      - "Nos blocos `synchronized` com I/O, que voltaram a prender a carrier no 25"
+      - "No pool de conexões, porque o Hikari fixa a virtual thread enquanto empresta a conexão"
+      - "Numa chamada nativa (JNI ou FFM) que volta para Java e bloqueia, comum em drivers"
+      - "No `ThreadLocal`, que prende a virtual thread à carrier enquanto guarda algum valor"
+    answer: 2
+    explanation: "Desde o JDK 24 (JEP 491), `synchronized` e `Object.wait()` desmontam a virtual thread normalmente, então o evento no 25 aponta para os casos residuais — principalmente código nativo que volta para Java e bloqueia, comum em drivers e bibliotecas com JNI. Pool de conexões e `ThreadLocal` não causam pinning: o primeiro faz esperar, o segundo só custa memória."
+
+  - question: "Um tutorial manda ligar `-Djdk.tracePinnedThreads=full` para achar pinning num serviço em JDK 25. O que acontece?"
+    options:
+      - "Ele imprime a pilha de cada virtual thread presa, como fazia no JDK 21"
+      - "A JVM recusa a opção e não sobe, porque ela foi substituída pelo evento do JFR"
+      - "Ele passa a registrar os eventos `jdk.VirtualThreadPinned` também no log da aplicação"
+      - "Nada: a opção não tem efeito desde o JDK 24, e a ausência de saída não prova nada"
+    answer: 3
+    explanation: "A propriedade foi removida no JDK 24 junto com o JEP 491: a JVM aceita a opção e simplesmente não faz nada. Quem conclui \"não há pinning\" pela falta de saída se engana. O diagnóstico atual é o evento JFR `jdk.VirtualThreadPinned`, de preferência com o limiar zerado para pegar bloqueios curtos."

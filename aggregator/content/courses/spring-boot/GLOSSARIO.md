@@ -138,8 +138,14 @@ os marcos usam estes termos sem redefini-los a cada vez.
 
 ### Pinning
 **Em uma frase:** a virtual thread que bloqueia sem conseguir desmontar e, por isso, prende a carrier até o bloqueio acabar.
-**No fin-platform:** no Java 21, um `synchronized` em volta de uma chamada ao PSP prende a carrier; o Java 24 resolveu esse caso (JEP 491).
-**Erro comum:** procurar pinning sem medir — o evento `jdk.VirtualThreadPinned` do JFR mostra exatamente onde ele acontece.
+**No fin-platform:** no Java 25, um `synchronized` em volta de uma chamada ao PSP não prende mais a carrier (JEP 491, desde o 24); o que ainda prende é código nativo que bloqueia. No Java 21, o `synchronized` prende.
+**Erro comum:** seguir conselho antigo — trocar todo `synchronized` por `ReentrantLock` ou ligar `-Djdk.tracePinnedThreads` — num JDK 24+, onde nenhum dos dois faz sentido; o evento `jdk.VirtualThreadPinned` do JFR mostra o pinning que de fato resta.
+**Onde na prática:** marco 07.
+
+### ScopedValue
+**Em uma frase:** um valor imutável ligado a uma chamada (`ScopedValue.where(...).call(...)`), visível em tudo abaixo dela e descartado sozinho ao sair — final no Java 25.
+**No fin-platform:** o `tenantId` da instituição participante, ligado no controller e lido no service sem passar parâmetro.
+**Erro comum:** tentar usá-lo como `ThreadLocal` mutável, ou esperar que o contexto do Spring (transação, segurança, MDC) migre para ele — o framework ainda usa `ThreadLocal`.
 **Onde na prática:** marco 07.
 
 ### Pool de conexões
@@ -246,6 +252,12 @@ os marcos usam estes termos sem redefini-los a cada vez.
 **Em uma frase:** mudar o schema em duas etapas — primeiro só acrescentar (coluna nova nullable), depois de todas as versões migrarem, remover o antigo.
 **No fin-platform:** a coluna `channel` entra na V3; a v1 continua funcionando com ela no banco, e o rollback não exige reverter a migração.
 **Erro comum:** acrescentar a coluna já `NOT NULL` sem default — a versão anterior quebra no primeiro `INSERT`.
+**Onde na prática:** marco 12.
+
+### AOT cache
+**Em uma frase:** o arquivo gerado por uma execução de treino com as classes já carregadas e linkadas (e, no Java 25, o perfil dos métodos), que a JVM mapeia no startup em vez de refazer o trabalho.
+**No fin-platform:** com o cache, o startup do gateway caiu de ~6,3 s para ~2,9 s na verificação do marco 12.
+**Erro comum:** treinar com uma JVM, um classpath ou flags diferentes dos de produção — a JVM recusa o cache e sobe sem ele.
 **Onde na prática:** marco 12.
 
 ### Native image

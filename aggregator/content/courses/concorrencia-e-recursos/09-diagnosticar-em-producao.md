@@ -22,13 +22,38 @@ simplesmente ter, de antemão, como responder cada uma rapidamente.
 
 ## As ferramentas, lado a lado
 
-**Em Java**: `jcmd <pid> Thread.print` (ou `jstack`) tira um dump de todas as threads, incluindo
-virtual threads desde o suporte correspondente no JDK — e ler um dump é reconhecer os estados:
+**Em Java**: `jcmd <pid> Thread.print` (ou `jstack`) tira um dump das threads de
+**plataforma** — e ler um dump é reconhecer os estados:
 `BLOCKED` (esperando entrar num monitor que outra thread segura), `WAITING`/`TIMED_WAITING`
 (esperando uma condição, um `join()`, ou um timeout). Um dump com muitas threads em `BLOCKED` no
 mesmo monitor aponta direto para o lock disputado. **JFR** (Java Flight Recorder) vai além do
 instantâneo do dump: grava eventos de contenção de monitor e de `park` ao longo do tempo, com
 overhead baixo o bastante para rodar continuamente em produção.
+
+**Virtual threads ficam de fora do `Thread.print`.** Num serviço em virtual threads, o dump
+tradicional mostra as carriers e esconde as dezenas de milhares de threads que importam — na
+verificação deste marco, com mil virtual threads dormindo, o `Thread.print` listou 28 threads de
+plataforma e nenhuma delas. O dump que as inclui é outro comando, introduzido com o JEP 444:
+
+```bash
+jcmd <pid> Thread.dump_to_file -format=json /tmp/threads.json
+```
+
+O JSON agrupa as threads por *container* — o executor ou o scope que as criou —, o que já
+diz de onde veio cada grupo:
+
+```json
+{ "container": "java.util.concurrent.ThreadPerTaskExecutor@5974f134",
+  "parent": "<root>", "threadCount": "1000",
+  "threads": [ { "tid": "27", "virtual": true, "state": "TIMED_WAITING",
+                 "stack": [ "java.base/java.lang.VirtualThread.parkNanos(VirtualThread.java:787)", "..." ] } ] }
+```
+
+No JDK 25, o pinning por `synchronized` saiu da lista do que se procura no JFR — ele não existe
+mais (marco 06). Entraram duas coisas que valem uma menção: medir o tempo de um método sem
+mudar código (`jdk.MethodTiming` e `jdk.MethodTrace`, JEP 520, final) e o *profiling* por tempo
+de CPU (`jdk.CPUTimeSample`, JEP 509, experimental e só no Linux). Profiling contínuo é assunto
+de `observabilidade/11`; aqui basta saber que o JFR passou a medir mais sozinho.
 
 **Em Go**: o `pprof` tem perfis específicos para cada pergunta — perfil de **goroutine** (quantas
 existem e onde estão bloqueadas, o equivalente ao dump de thread), perfil de **mutex**
@@ -77,7 +102,9 @@ olhado o painel certo.
 
 **Tutorial.** O `fin-contention` do marco 10 expõe três falhas injetáveis sob demanda: deadlock,
 esgotamento de pool, vazamento de goroutine/thread (executor saturado). Diagnosticar cada uma
-usando **só** dump e profile — sem olhar o código fonte da falha injetada.
+usando **só** dump e profile — sem olhar o código fonte da falha injetada. Para o lado Java em
+virtual threads, tire os dois dumps de cada falha — `Thread.print` e
+`Thread.dump_to_file -format=json` — e anote o que só o segundo mostra.
 
 **Desafio.** Escrever o runbook de cada falha (comando exato, assinatura esperada, ação) e uma
 regra de alerta de saturação testada com `promtool`.
@@ -111,7 +138,8 @@ ele mostra com o dump manual tirado no mesmo instante.
 - "CPU baixa, latência alta" significa espera; a pergunta certa é sempre "esperando o quê?" — lock,
   pool, I/O, ou fila — e isso guia a ferramenta a usar, antes de qualquer outra investigação.
 - `jstack`/`jcmd Thread.print` e o perfil de goroutine do `pprof` são o mesmo tipo de instantâneo,
-  com vocabulário diferente; JFR e `runtime/trace` capturam a linha do tempo, não só o instante.
+  com vocabulário diferente — mas o `Thread.print` não mostra virtual threads; para elas, use
+  `jcmd <pid> Thread.dump_to_file -format=json`; JFR e `runtime/trace` capturam a linha do tempo, não só o instante.
 - Perfis de mutex e block no `pprof` respondem diretamente "onde o programa espera por
   sincronização" — a pergunta que um profile de CPU não responde.
 - Alertar em sintoma de saturação (pool pendente, fila crescendo, goroutines acima da linha de

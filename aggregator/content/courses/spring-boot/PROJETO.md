@@ -20,7 +20,7 @@ do marco 06 publica) é o que importa.
 
 ## Pré-requisitos
 
-- JDK 21+ e Maven ou Gradle
+- JDK 25 e Maven ou Gradle (JDK 21 funciona com os avisos indicados nos marcos 07 e 12)
 - Docker (Testcontainers sobe Postgres e Kafka nos testes; o marco 12 roda a imagem com um
   Postgres em container)
 - ~6 GB de RAM livres
