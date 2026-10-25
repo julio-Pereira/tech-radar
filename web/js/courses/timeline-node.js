@@ -83,6 +83,9 @@ export function buildTimelineNode(slug, milestone, completed, onToggle, prevMile
 
   const article = buildMilestoneBody(slug, milestone);
   body.appendChild(article);
+  if (milestone.usadoEm && milestone.usadoEm.length > 0) {
+    body.appendChild(buildUsadoEm(milestone.usadoEm));
+  }
 
   // Complete control — built before the quiz so `completion: quiz` can unlock it.
   const hasQuiz = milestone.quiz && milestone.quiz.length > 0;
@@ -172,4 +175,43 @@ export function buildTimelineNode(slug, milestone, completed, onToggle, prevMile
   });
 
   return node;
+}
+
+/**
+ * "Usado em": the reverse of a concept link, on the milestone that owns the
+ * concept — where else in the catalog this marco's concepts are cited.
+ * @param {import('../types.js').ConceitoMarco[]} usos
+ */
+function buildUsadoEm(usos) {
+  const p = document.createElement('p');
+  p.className = 'conceito-usado-em';
+  const label = document.createElement('strong');
+  label.textContent = 'Usado em:';
+  p.appendChild(label);
+  p.appendChild(document.createTextNode(' '));
+  // Grouped by trilha: titles are long, and "Open Finance … › 02, 03, 10"
+  // reads far better than the same title three times. Each number is a link
+  // whose accessible name still says the whole thing.
+  /** @type {Map<string, import('../types.js').ConceitoMarco[]>} */
+  const byTrilha = new Map();
+  for (const u of usos) {
+    if (!byTrilha.has(u.trilha)) byTrilha.set(u.trilha, []);
+    byTrilha.get(u.trilha).push(u);
+  }
+  let first = true;
+  for (const [trilha, marcos] of byTrilha) {
+    if (!first) p.appendChild(document.createTextNode(' · '));
+    first = false;
+    p.appendChild(document.createTextNode(`${trilha} › `));
+    marcos.forEach((u, i) => {
+      if (i > 0) p.appendChild(document.createTextNode(', '));
+      const a = document.createElement('a');
+      a.href = `#/learn/${u.slug}/${u.marcoId}`;
+      a.textContent = u.nn;
+      a.setAttribute('aria-label', `${trilha} › ${u.nn} · ${u.titulo}`);
+      a.title = u.titulo;
+      p.appendChild(a);
+    });
+  }
+  return p;
 }

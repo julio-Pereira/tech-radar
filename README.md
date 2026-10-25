@@ -188,12 +188,15 @@ transversal concept has **one owner milestone**, the one that actually teaches i
 other track **uses** the term and explains only the **delta** for its own context. The
 owner registry is `aggregator/content/conceitos.yaml` (concept id, owner as `slug/NN`,
 exact aliases), and the compiler links each cited term to its owner, with a preview and a
-way back. *Status: the registry, the linker (Fase 1, with two seed concepts) and the preview
+way back. *Status: the registry, the linker (Fase 1; curated seed of 25 concepts in Fase 4) and the preview
 (Fase 2: hover 300 ms, keyboard focus, or first tap on touch; `conceitos.json` is fetched
 on the first interaction) and the detour/return (Fase 3: following a concept rewrites the
 current history entry to `#/learn/<slug>/<marco>/<conceito>`, so Back and a refresh land
 on the exact term; a return banner and "Terminou? Voltar" bring the reader back; a detour
-never moves "Continuar de onde parou") are in; the curated seed arrives in Fase 4.*
+never moves "Continuar de onde parou") are in. Reverse links (Fase 4): the owner milestone
+lists where its concepts are used ("Usado em"), and the glossary marks the owner's
+definition as the principal one — or, when the owner trilha has no entry for the term,
+says where it is taught.*
 
 The linker links only the **first occurrence** of each concept per milestone, at most
 **8** concept links per milestone, never in the owner milestone, headings, code or links,

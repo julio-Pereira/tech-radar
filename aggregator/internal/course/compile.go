@@ -122,12 +122,22 @@ func Compile(contentDir, outDir string) (Index, error) {
 		log.Printf("WARN compiling glossary: %v", err)
 		glossary = nil
 	}
-	if err := writeGlossary(glossary, dataDir); err != nil {
-		log.Printf("WARN writing glossary.json: %v", err)
-	}
+	// Concepts need the compiled courses and the glossary, and feed back
+	// into both: the glossary learns which definition is the principal one,
+	// and owner milestones learn where they are used ("Usado em") — so the
+	// owner courses' JSON is written again, after the fact.
 	conceitoEntries, conceitoErrs := buildConceitosCatalog(conceitos, compiledCourses, glossary)
 	for _, e := range conceitoErrs {
 		log.Printf("WARN conceitos.yaml: %v", e)
+	}
+	markGlossaryConceitos(conceitos, conceitoEntries, glossary)
+	for _, slug := range applyUsadoEm(conceitoEntries, compiledCourses) {
+		if err := writeJSON(filepath.Join(outDir, slug+".json"), compiledCourses[slug]); err != nil {
+			log.Printf("WARN could not rewrite course %s with usadoEm: %v", slug, err)
+		}
+	}
+	if err := writeGlossary(glossary, dataDir); err != nil {
+		log.Printf("WARN writing glossary.json: %v", err)
 	}
 	if err := writeConceitos(conceitoEntries, dataDir); err != nil {
 		log.Printf("WARN writing conceitos.json: %v", err)

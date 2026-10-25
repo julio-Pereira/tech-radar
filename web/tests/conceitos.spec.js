@@ -157,3 +157,34 @@ test.describe('reduced motion', () => {
     expect(await preview.evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
   });
 });
+
+test.describe('reverse links (Fase 4)', () => {
+  test('the owner milestone lists where its concepts are used', async ({ page }) => {
+    await page.goto('/#/learn/seguranca-aplicacao/jose-por-dentro');
+    const usado = page.locator('.timeline-node[data-id="jose-por-dentro"] .conceito-usado-em');
+    await expect(usado).toContainText('Usado em:');
+    const sb = usado.locator('a[href="#/learn/spring-boot/seguranca-oauth2-fapi"]');
+    await expect(sb).toHaveText('09');
+    await expect(sb).toHaveAccessibleName(/^Spring Boot para Fintech › 09 · /);
+    // Grouped by trilha: a trilha with several citing marcos appears once.
+    await expect(usado).toContainText('Open Finance Brasil por Dentro');
+    expect((await usado.textContent()).split('Open Finance Brasil por Dentro').length - 1).toBe(1);
+  });
+
+  test("the glossary lists the owner's definition first, marked principal", async ({ page }) => {
+    await page.goto('/#/glossario/mtls');
+    const first = page.locator('.glossario-definition').first();
+    await expect(first).toHaveClass(/principal/);
+    await expect(first.locator('.glossario-principal')).toHaveText('definição principal');
+    await expect(first.locator('.glossario-definition-track')).toContainText('Segurança de Aplicação');
+    // The entry now points at the marco that teaches mTLS (07, not 06).
+    await expect(first.locator('.glossario-definition-link')).toHaveAttribute('href', '#/learn/seguranca-aplicacao/fapi-mtls-e-ciba');
+  });
+
+  test('a term defined outside its owner trilha says where it is taught', async ({ page }) => {
+    await page.goto('/#/glossario/idempotencia');
+    const note = page.locator('.glossario-conceito-dono');
+    await expect(note).toContainText('Ensinado principalmente em');
+    await expect(note.locator('a')).toHaveAttribute('href', '#/learn/arquitetura-eventos/outbox-inbox-idempotencia');
+  });
+});

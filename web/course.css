@@ -964,6 +964,38 @@
 
 .glossario-definition-link:hover { text-decoration: underline; }
 
+.glossario-definition.principal { border-color: var(--accent); }
+
+.glossario-principal {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+
+.glossario-conceito-dono {
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.glossario-conceito-dono a { color: var(--accent-hover); }
+
+/* "Usado em" on a concept's owner milestone. */
+.conceito-usado-em {
+  margin: 1rem 0 0;
+  padding: 0.7rem 0.9rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+.conceito-usado-em strong { color: var(--text); }
+.conceito-usado-em a { color: var(--accent-hover); }
+
 /* ── Competências (#/skills — UX platform melhoria 2) ─────────────────────── */
 .skills-coverage {
   font-size: 0.82rem;

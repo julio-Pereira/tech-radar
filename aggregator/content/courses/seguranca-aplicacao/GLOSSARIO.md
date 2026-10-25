@@ -213,7 +213,7 @@ mitigação lado a lado.
 **Em uma frase:** TLS mútuo — cliente e servidor se autenticam por certificado, não só o servidor.
 **No fin-platform:** autentica o `pix-gateway` perante o `fin-idp`, e sustenta o token sender-constrained do marco 07.
 **Erro comum:** confiar no header de certificado repassado por um gateway sem sanitizá-lo na borda — qualquer requisição externa pode injetar o mesmo header.
-**Onde na prática:** marco 06.
+**Onde na prática:** marco 07, citado antes no 06.
 
 ### CIBA
 **Em uma frase:** Client-Initiated Backchannel Authentication — o cliente inicia a autorização, e o titular aprova em outro dispositivo, via `auth_req_id`.

@@ -161,9 +161,26 @@ function buildTermView(definitions) {
     : `${definitions.length} definições — uma por trilha, sem fusão automática.`;
   root.appendChild(count);
 
+  // A transversal concept (conceitos.yaml) has one owner: its trilha's
+  // definition is the principal one and comes first. When the owner trilha
+  // has no entry for this term, say where it is taught anyway.
+  const ordered = [...definitions].sort((a, b) => Number(!!b.principal) - Number(!!a.principal));
+  const owner = definitions.find((d) => d.conceitoDono)?.conceitoDono;
+  if (owner && !definitions.some((d) => d.principal)) {
+    const note = document.createElement('p');
+    note.className = 'glossario-conceito-dono';
+    note.append('Ensinado principalmente em ');
+    const a = document.createElement('a');
+    a.href = `#/learn/${owner.slug}/${owner.marcoId}`;
+    a.textContent = `${owner.trilha} › ${owner.nn} · ${owner.titulo}`;
+    note.appendChild(a);
+    note.append('.');
+    root.appendChild(note);
+  }
+
   const list = document.createElement('div');
   list.className = 'glossario-definitions';
-  for (const def of definitions) {
+  for (const def of ordered) {
     list.appendChild(buildDefinitionCard(def));
   }
   root.appendChild(list);
@@ -179,6 +196,14 @@ function buildDefinitionCard(def) {
   const track = document.createElement('p');
   track.className = 'glossario-definition-track';
   track.textContent = def.track;
+  if (def.principal) {
+    card.classList.add('principal');
+    const badge = document.createElement('span');
+    badge.className = 'glossario-principal';
+    badge.textContent = 'definição principal';
+    track.appendChild(document.createTextNode(' '));
+    track.appendChild(badge);
+  }
   card.appendChild(track);
 
   const summary = document.createElement('p');

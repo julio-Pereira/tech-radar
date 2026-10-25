@@ -41,6 +41,10 @@ type Conceito struct {
 	Tambem       []string `yaml:"tambem"`
 	IgnorarCaixa bool     `yaml:"ignorarCaixa"`
 	IgnorarEm    []string `yaml:"ignorarEm"`
+	// NaoSeguidoDe: regexes for text right after an alias that make the
+	// occurrence not count ("RFC 8705" is a standard, not a decision
+	// document). Each is anchored at the end of the alias.
+	NaoSeguidoDe []string `yaml:"naoSeguidoDe"`
 }
 
 // marcoRef is a slug/NN reference resolved against the bridge index.
@@ -56,9 +60,10 @@ func (r marcoRef) href() string { return "#/learn/" + r.Slug + "/" + r.ID }
 // resolved to real milestones, ignorarEm turned into a lookup set.
 type conceitoResolvido struct {
 	Conceito
-	dono      marcoRef
-	tambem    []marcoRef
-	ignorarEm map[string]bool // "slug/id"
+	dono         marcoRef
+	tambem       []marcoRef
+	ignorarEm    map[string]bool // "slug/id"
+	naoSeguidoDe []*regexp.Regexp
 }
 
 // conceitoCitacao records one milestone where a concept was linked (or would
@@ -153,6 +158,14 @@ func resolveConceitos(list []Conceito, index bridgeIndex) (*conceitoSet, []error
 			if r, ok := resolve(c, "ignorarEm", ref); ok {
 				rc.ignorarEm[r.Slug+"/"+r.ID] = true
 			}
+		}
+		for _, expr := range c.NaoSeguidoDe {
+			re, err := regexp.Compile(`^(?:` + expr + `)`)
+			if err != nil {
+				errs = append(errs, fmt.Errorf("conceito %q: naoSeguidoDe %q inválido: %v", c.ID, expr, err))
+				continue
+			}
+			rc.naoSeguidoDe = append(rc.naoSeguidoDe, re)
 		}
 
 		for _, a := range c.Apelidos {
@@ -425,7 +438,7 @@ func (l *conceitoLinker) nextMatch(s string, pos int) (int, *conceitoAlias) {
 			if best >= 0 && at >= best {
 				break // can't beat the current best (a longer alias already won ties)
 			}
-			if wordBoundary(s, at, at+len(a.text)) {
+			if wordBoundary(s, at, at+len(a.text)) && !followedByExcluded(s[at+len(a.text):], a.conceito) {
 				best, bestAlias = at, a
 				break
 			}
@@ -434,6 +447,15 @@ func (l *conceitoLinker) nextMatch(s string, pos int) (int, *conceitoAlias) {
 		}
 	}
 	return best, bestAlias
+}
+
+func followedByExcluded(rest string, rc *conceitoResolvido) bool {
+	for _, re := range rc.naoSeguidoDe {
+		if re.MatchString(rest) {
+			return true
+		}
+	}
+	return false
 }
 
 func indexAlias(s string, a *conceitoAlias) int {
@@ -609,12 +631,8 @@ func glossaryFor(rc *conceitoResolvido, glossary []GlossaryEntry) (GlossaryEntry
 		if g.Slug != rc.dono.Slug {
 			continue
 		}
-		for _, cand := range termVariants(g.Term) {
-			for _, a := range rc.Apelidos {
-				if cand == a || (rc.IgnorarCaixa && strings.EqualFold(cand, a)) {
-					return g, true
-				}
-			}
+		if termMatchesAlias(g.Term, rc) {
+			return g, true
 		}
 	}
 	return GlossaryEntry{}, false
@@ -628,6 +646,91 @@ func termVariants(term string) []string {
 		return []string{term, strings.TrimSpace(m[1]), strings.TrimSpace(m[2])}
 	}
 	return []string{term}
+}
+
+// markGlossaryConceitos ties glossary entries to concepts: every entry whose
+// term matches an alias gets the concept id and its owner, and the one from
+// the owner's trilha is the principal definition. A trilha that defines the
+// term but doesn't teach it (the "Idempotência" case found in the plan's
+// audit) is then shown with the real owner next to it.
+func markGlossaryConceitos(set *conceitoSet, entries []ConceitoEntry, glossary []GlossaryEntry) {
+	if set == nil {
+		return
+	}
+	donos := map[string]ConceitoMarco{}
+	for _, e := range entries {
+		donos[e.ID] = e.Dono
+	}
+	for i := range glossary {
+		g := &glossary[i]
+		for _, rc := range set.conceitos {
+			if !termMatchesAlias(g.Term, rc) {
+				continue
+			}
+			dono := donos[rc.ID]
+			g.Conceito = rc.ID
+			g.Principal = g.Slug == rc.dono.Slug
+			g.ConceitoDono = &dono
+			break
+		}
+	}
+}
+
+func termMatchesAlias(term string, rc *conceitoResolvido) bool {
+	for _, cand := range termVariants(term) {
+		for _, a := range rc.Apelidos {
+			if cand == a || (rc.IgnorarCaixa && strings.EqualFold(cand, a)) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// applyUsadoEm fills each owner milestone's UsadoEm (unique citing
+// milestones, all its concepts together) and returns the slugs of the
+// courses it changed, so the caller rewrites only those course files.
+func applyUsadoEm(entries []ConceitoEntry, courses map[string]CompiledCourse) []string {
+	type key struct{ slug, marco string }
+	uses := map[key][]ConceitoMarco{}
+	seen := map[key]map[string]bool{}
+	for _, e := range entries {
+		k := key{e.Dono.Slug, e.Dono.MarcoID}
+		if seen[k] == nil {
+			seen[k] = map[string]bool{}
+		}
+		for _, c := range e.CitadoEm {
+			id := c.Slug + "/" + c.MarcoID
+			if seen[k][id] {
+				continue
+			}
+			seen[k][id] = true
+			uses[k] = append(uses[k], c)
+		}
+	}
+	var changed []string
+	for slug, course := range courses {
+		touched := false
+		for i := range course.Milestones {
+			m := &course.Milestones[i]
+			if u := uses[key{slug, m.ID}]; len(u) > 0 {
+				sort.Slice(u, func(a, b int) bool {
+					if u[a].Slug != u[b].Slug {
+						return u[a].Slug < u[b].Slug
+					}
+					return u[a].NN < u[b].NN
+				})
+				m.UsadoEm = u
+				touched = true
+			}
+		}
+		if touched {
+			courses[slug] = course
+			changed = append(changed, slug)
+		}
+	}
+	sort.Strings(changed)
+	return changed
 }
 
 var htmlTagRe = regexp.MustCompile(`<[^>]*>`)
