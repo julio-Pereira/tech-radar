@@ -188,8 +188,14 @@ transversal concept has **one owner milestone**, the one that actually teaches i
 other track **uses** the term and explains only the **delta** for its own context. The
 owner registry is `aggregator/content/conceitos.yaml` (concept id, owner as `slug/NN`,
 exact aliases), and the compiler links each cited term to its owner, with a preview and a
-way back. *Status: convention in force now; the registry and the linker arrive with the
-"conceitos transversais" plan, Fase 1. Until then, use an explicit bridge.*
+way back. *Status: the registry and the linker are in (Fase 1, with two seed concepts);
+the preview, the detour/return and the curated seed arrive in Fases 2–4.*
+
+The linker links only the **first occurrence** of each concept per milestone, at most
+**8** concept links per milestone, never in the owner milestone, headings, code or links,
+and never in a block that already bridges to the same owner (that occurrence still counts
+as the first). It writes `web/data/conceitos.json` (owner, summary, "tambem", "citadoEm")
+next to `glossary.json`.
 
 - **Use, don't re-teach.** If a concept has an owner, cite the term and write only what
   your context adds; the link and the preview carry the definition.
@@ -217,7 +223,11 @@ skipped or came out with zero milestones, `TestQuizNotGameable` enforces the len
 above across every quiz in the repo, `TestShuffleIsStableAndKeepsTheAnswer` guards that
 the shuffle stays deterministic and never loses the correct answer, and
 `TestGlossaryIsDeclared` catches a `GLOSSARIO.md` that no manifest declares — which would
-otherwise compile in silence and never render.
+otherwise compile in silence and never render. `TestConceitosResolve` fails on an invalid
+`conceitos.yaml` (ids, owners, alias collisions, an owner that never mentions its own
+concept, an empty `resumo` with no glossary entry to fall back on), and
+`go test ./internal/course -run TestRelatorioConceitos -v` prints the non-blocking curation
+report: links per concept, links cut by the cap, and the candidate terms not yet registered.
 
 ## Running locally
 

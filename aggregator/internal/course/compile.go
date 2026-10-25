@@ -39,6 +39,21 @@ func Compile(contentDir, outDir string) (Index, error) {
 		return Index{}, fmt.Errorf("load competency vocabulary: %w", err)
 	}
 
+	// Concept registry (conceitos.go): structurally invalid means no
+	// linking at all this build — never a half-applied registry.
+	// TestConceitosResolve is what makes an invalid registry fail CI.
+	var conceitos *conceitoSet
+	conceitoList, err := loadConceitos(filepath.Join(filepath.Dir(contentDir), "conceitos.yaml"))
+	if err != nil {
+		log.Printf("WARN loading conceitos.yaml: %v", err)
+	} else {
+		var errs []error
+		conceitos, errs = resolveConceitos(conceitoList, bridgeIdx)
+		for _, e := range errs {
+			log.Printf("WARN conceitos.yaml: %v", e)
+		}
+	}
+
 	index := Index{GeneratedAt: time.Now().UTC().Format(time.RFC3339)}
 	seenSlugs := make(map[string]string) // slug -> source dir, for duplicate detection
 	compiledCourses := make(map[string]CompiledCourse)
@@ -49,7 +64,7 @@ func Compile(contentDir, outDir string) (Index, error) {
 		}
 		courseDir := filepath.Join(contentDir, entry.Name())
 
-		compiled, broken, cerr := compileCourse(courseDir, bridgeIdx, planned, vocab)
+		compiled, broken, cerr := compileCourse(courseDir, bridgeIdx, planned, vocab, conceitos)
 		if cerr != nil {
 			log.Printf("WARN skipping course %s: %v", entry.Name(), cerr)
 			continue
@@ -110,6 +125,13 @@ func Compile(contentDir, outDir string) (Index, error) {
 	if err := writeGlossary(glossary, dataDir); err != nil {
 		log.Printf("WARN writing glossary.json: %v", err)
 	}
+	conceitoEntries, conceitoErrs := buildConceitosCatalog(conceitos, compiledCourses, glossary)
+	for _, e := range conceitoErrs {
+		log.Printf("WARN conceitos.yaml: %v", e)
+	}
+	if err := writeConceitos(conceitoEntries, dataDir); err != nil {
+		log.Printf("WARN writing conceitos.json: %v", err)
+	}
 	if err := writeSearchIndex(buildSearchIndex(compiledCourses, glossary), dataDir); err != nil {
 		log.Printf("WARN writing search-index.json: %v", err)
 	}
@@ -138,7 +160,7 @@ func Compile(contentDir, outDir string) (Index, error) {
 // course's milestones cited but couldn't resolve (and weren't in `planned`)
 // — never fatal, same as every other best-effort degradation in this file;
 // TestBridgesResolve is what turns an entry here into a hard failure.
-func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab map[string]CompetencyDef) (CompiledCourse, []string, error) {
+func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab map[string]CompetencyDef, conceitos *conceitoSet) (CompiledCourse, []string, error) {
 	manifest, err := ParseManifest(filepath.Join(dir, manifestName))
 	if err != nil {
 		return CompiledCourse{}, nil, err
@@ -155,7 +177,7 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 	var allBroken []string
 
 	for i, file := range manifest.Milestones {
-		fm, html, sections, broken, err := ParseMilestone(filepath.Join(dir, file), index, planned)
+		fm, html, sections, broken, err := parseMilestone(filepath.Join(dir, file), index, planned, conceitos, manifest.Slug)
 		if err != nil {
 			return CompiledCourse{}, nil, err
 		}

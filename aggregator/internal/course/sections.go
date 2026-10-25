@@ -72,8 +72,22 @@ func isHandsOnTitle(title string) bool {
 // section.go's own top-level H2 groups, since bridges live inside prose
 // (including inside blockquotes), not just at the top of a section.
 func splitSections(source []byte, index bridgeIndex, planned map[string]bool) ([]Section, []string, error) {
+	return splitSectionsWith(source, index, planned, nil)
+}
+
+// conceitoCtx is what concept linking needs to know about the milestone
+// being split; nil means "no concept linking".
+type conceitoCtx struct {
+	set               *conceitoSet
+	slug, nn, marcoID string
+}
+
+func splitSectionsWith(source []byte, index bridgeIndex, planned map[string]bool, cc *conceitoCtx) ([]Section, []string, error) {
 	doc := markdown.Parser().Parse(text.NewReader(source))
 	broken := linkifyBridges(doc, source, index, planned)
+	if cc != nil {
+		linkifyConceitos(doc, source, cc.set, cc.slug, cc.nn, cc.marcoID)
+	}
 
 	var sections []Section
 	used := map[string]int{}

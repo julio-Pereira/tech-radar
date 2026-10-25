@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -34,6 +35,11 @@ func newBodyPolicy() *bluemonday.Policy {
 	p.AddTargetBlankToFullyQualifiedLinks(true)
 	// GFM tables.
 	p.AllowElements("table", "thead", "tbody", "tr", "th", "td")
+	// Concept links (conceitos.go): exactly class="conceito" and a
+	// kebab-case data-conceito, nothing broader. `id` needs no rule here:
+	// UGCPolicy already keeps it on every element.
+	p.AllowAttrs("class").Matching(regexp.MustCompile(`^conceito$`)).OnElements("a")
+	p.AllowAttrs("data-conceito").Matching(conceitoIDRe).OnElements("a")
 	return p
 }
 
@@ -65,6 +71,13 @@ func ParseManifest(path string) (Manifest, error) {
 // before this feature existed. TestBridgesResolve is what turns that list
 // into a hard failure.
 func ParseMilestone(path string, index bridgeIndex, planned map[string]bool) (MilestoneFrontmatter, string, []Section, []string, error) {
+	return parseMilestone(path, index, planned, nil, "")
+}
+
+// parseMilestone is ParseMilestone plus concept linking: with a non-nil set,
+// cited concepts become links to their owner milestone, in sections only —
+// the same place bridges are linked, and for the same reason.
+func parseMilestone(path string, index bridgeIndex, planned map[string]bool, set *conceitoSet, slug string) (MilestoneFrontmatter, string, []Section, []string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return MilestoneFrontmatter{}, "", nil, nil, fmt.Errorf("read milestone %s: %w", path, err)
@@ -85,7 +98,15 @@ func ParseMilestone(path string, index bridgeIndex, planned map[string]bool) (Mi
 		return MilestoneFrontmatter{}, "", nil, nil, fmt.Errorf("render markdown %s: %w", path, err)
 	}
 
-	sections, broken, err := splitSections(match[2], index, planned)
+	var cc *conceitoCtx
+	if set != nil {
+		nn := ""
+		if m := filePrefixRe.FindStringSubmatch(filepath.Base(path)); m != nil {
+			nn = m[1]
+		}
+		cc = &conceitoCtx{set: set, slug: slug, nn: nn, marcoID: fm.ID}
+	}
+	sections, broken, err := splitSectionsWith(match[2], index, planned, cc)
 	if err != nil {
 		return MilestoneFrontmatter{}, "", nil, nil, fmt.Errorf("split sections %s: %w", path, err)
 	}
