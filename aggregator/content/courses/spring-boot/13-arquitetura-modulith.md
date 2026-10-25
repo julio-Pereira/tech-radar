@@ -75,12 +75,12 @@ documentação de arquitetura é **gerada do código**, sempre atualizada.
 ## Comunicação entre módulos: eventos internos
 
 Módulos não devem se chamar direto como serviços acoplados. O Modulith incentiva
-**eventos de aplicação**: `payments` publica `PaymentConfirmed`; `antifraud` e `audit`
+**eventos de aplicação**: `payments` publica `PaymentInitiated`; `antifraud` e `audit`
 **escutam**, sem `payments` conhecê-los.
 
 ```java
 @ApplicationModuleListener
-void on(PaymentConfirmed event) { ... }
+void on(PaymentInitiated event) { ... }
 ```
 
 `@ApplicationModuleListener` não é mágica: é a soma de três anotações do Spring que você
@@ -146,6 +146,9 @@ overengineering. Aplique a inversão onde a fronteira **importa** (integrações
 regra de negócio central); no resto, um service direto basta. Arquitetura é sobre onde
 gastar complexidade, não sobre gastá-la em tudo.
 
+> **Reencontro adiante — `arquitetura-de-software/04`.** Portas e adaptadores a fundo: onde ficam DTOs e transações, a camada
+> anticorrupção como adaptador e o teste de contrato que todo adaptador da porta precisa passar.
+
 ## Quando quebrar em microservices
 
 Extraia um serviço quando houver uma razão **concreta**, não estética:
@@ -177,6 +180,8 @@ a integração. (Ponte com o marco *java-vs-go* da trilha `go-fintech` e com o s
 visualizações de arquitetura.)
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 12: migrações até a `V3__add_channel_column.sql` e a imagem gerada por buildpacks.
 
 **Desafio — fronteira verificada.** Estruture o pix-gateway em três módulos Spring
 Modulith e escreva o teste `ApplicationModules.verify()`. Depois, introduza de propósito
@@ -235,14 +240,21 @@ O `pix-gateway` é o seu componente do `fin-platform` — a especificação comp
 
 **Critérios de pronto — cada um deve ser provado por um teste ou por um comando**
 
-- [ ] A mesma requisição enviada 100 vezes em paralelo gera **um** pagamento e **um** evento
-- [ ] Nenhum dual-write: derrubar o broker não produz pagamento sem evento nem o contrário
-- [ ] Um `import` de classe interna de outro módulo faz o build falhar
-- [ ] Token sem o escopo correto recebe 403, e a negativa aparece em log auditável
-- [ ] Com o PSP devolvendo 100% de erro, o circuit breaker abre antes de o pool esgotar
+- [ ] A mesma requisição enviada 100 vezes em paralelo gera **um** pagamento e **um**
+  evento, e todas as respostas são iguais (marco 06)
+- [ ] Nenhum dual-write: com o broker fora, o pagamento é gravado e o evento espera no
+  outbox; quando o broker volta, o relay o publica (marco 06)
+- [ ] Um `import` de classe interna de outro módulo faz o build falhar (marco 13)
+- [ ] Token sem o escopo correto recebe 403, e a negativa aparece no log `AUDIT` com o id
+  de correlação (marco 09)
+- [ ] Com o PSP devolvendo 100% de erro, o circuito abre e as iniciações seguintes
+  respondem `202` sem nenhuma chamada nova ao PSP (marco 08)
 - [ ] A versão anterior da aplicação continua funcionando com o schema já migrado
-- [ ] `mvn verify` roda do zero em máquina limpa, sem serviço pré-instalado
-- [ ] Uma ADR por bloco: fronteira transacional, idempotência, resiliência, segurança
+  (marco 12)
+- [ ] `mvn verify` roda do zero em máquina limpa, só com Docker, incluindo os `*IT` pelo
+  Failsafe (marcos 04 e 11)
+- [ ] Uma ADR por bloco: fronteira transacional, idempotência, resiliência, segurança —
+  no formato de `arquitetura-de-software/07`
 
 **Antes de fechar**, rode o game day do `PROJETO.md` e escreva um post-mortem de uma
 página — inclusive se nada tiver quebrado.

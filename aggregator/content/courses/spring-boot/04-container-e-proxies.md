@@ -154,6 +154,8 @@ segundo lançamento, expõe o rollback que nunca aconteceu.
 
 ## Mão na massa
 
+**Pré-requisito do estado do pix-gateway:** o do marco 03 (`PspProperties` validada, perfis `dev`/`prod`, `src/test/resources/application.properties`). A partir daqui, Docker rodando para o Testcontainers.
+
 **Tutorial — reproduzir e provar o bug de self-invocation.**
 
 1. Escreva `RefundService` com `processRefund` chamando `this.applyRefund` (anotado
@@ -229,6 +231,26 @@ segundo lançamento, expõe o rollback que nunca aconteceu.
    ```bash
    mvn test -Dtest=RefundServiceIT
    ```
+
+   O `-Dtest` é necessário: por convenção, testes com sufixo `IT` são de integração e
+   **não** rodam no `mvn test` — o Surefire só pega `*Test` e `*Tests`. Quem os executa é
+   o Failsafe, na fase `verify`. O `spring-boot-starter-parent` já configura o plugin,
+   mas ele só entra no build quando declarado:
+
+   ```xml
+   <build>
+     <plugins>
+       <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-failsafe-plugin</artifactId>
+       </plugin>
+       <!-- o spring-boot-maven-plugin continua aqui -->
+     </plugins>
+   </build>
+   ```
+
+   A partir daqui, `mvn verify` roda as duas suítes: unitários e fatias primeiro, depois
+   os `*IT`. Sem o Failsafe, um `*IT` vermelho nunca derruba o build.
 
 ## Principais aprendizados
 

@@ -20,11 +20,11 @@ questions:
   - question: "Por que a comunicação entre módulos por eventos facilita uma extração futura?"
     options:
       - "Porque o listener assíncrono já roda em outra thread, o que aproxima o comportamento de rede"
-      - "Porque o desenho é o mesmo do outbox: trocar o barramento in-process por Kafka mal afeta os listeners"
+      - "Porque o evento já é o contrato entre os módulos: trocar o barramento in-process por Kafka mal afeta os listeners"
       - "Porque eventos são serializados em JSON desde o início, dispensando mudança de contrato"
-      - "Porque o Modulith replica os eventos numa tabela, permitindo reprocessar após a extração"
+      - "Porque o Modulith já publica todo evento num tópico Kafka por padrão, sem configuração"
     answer: 1
-    explanation: "Quando `payments` publica e `antifraud` escuta sem que o primeiro conheça o segundo, a dependência já está invertida. No dia da extração muda o transporte, não o desenho — que é exatamente o que o outbox do marco 06 faz, uma camada acima. Assincronia e serialização são detalhes que não sustentam sozinhos essa propriedade."
+    explanation: "Quando `payments` publica e `antifraud` escuta sem que o primeiro conheça o segundo, a dependência já está invertida. No dia da extração muda o transporte, não o desenho. Publicar no Kafka exige configurar isso explicitamente, e a garantia de entrega vem do Event Publication Registry, não do listener sozinho; assincronia e serialização são detalhes que não sustentam essa propriedade."
 
   - question: "Qual razão justifica extrair um módulo para microservice?"
     options:

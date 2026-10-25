@@ -34,3 +34,21 @@ questions:
       - "Os dois combinados: `@Version` para detectar e `FOR UPDATE` para serializar o retry"
     answer: 0
     explanation: "A regra é conflito raro para otimista, conflito frequente para pessimista. Numa conta quente, a versão muda o tempo todo, então quase toda transação falha e repete — e o retry vira tempestade. `FOR UPDATE` serializa quem toca aquela linha, que é exatamente o comportamento desejado ali."
+
+  - question: "Você anotou as consultas com `@Transactional(readOnly = true)`. Elas passam a ir para a réplica de leitura?"
+    options:
+      - "Não sozinhas: só com um `AbstractRoutingDataSource` que escolha o `DataSource` pela flag `readOnly`"
+      - "Sim: o Spring detecta a flag e o HikariCP abre a conexão na réplica configurada no `application.yaml`"
+      - "Sim, mas só no Postgres, que redireciona transações somente-leitura para o standby de forma nativa"
+      - "Não: a flag existe apenas como documentação e não muda nada no Hibernate nem no driver JDBC"
+    answer: 0
+    explanation: "A flag desliga o dirty checking do Hibernate e marca a conexão como somente-leitura, mas não escolhe banco nenhum. O roteamento para a réplica é uma decisão sua, implementada num `AbstractRoutingDataSource` que lê a flag da transação corrente. Sem ele, todas as consultas continuam indo para o primário."
+
+  - question: "Duas transações em `READ_COMMITTED` leem saldo 100 e debitam 80 cada uma. O que acontece sem nenhum lock?"
+    options:
+      - "A segunda falha com erro de serialização, porque o Postgres detecta a escrita concorrente"
+      - "A segunda espera a primeira comitar e então relê o saldo atualizado antes de debitar"
+      - "O banco rejeita o segundo `UPDATE` por violar a restrição de saldo não negativo da coluna"
+      - "As duas gravam 20: o segundo débito apaga o primeiro e saem 160 de uma conta que tinha 100"
+    answer: 3
+    explanation: "É o lost update: cada transação calculou em cima do valor que leu, e a última gravação vence. `READ_COMMITTED` não detecta isso, e nenhuma restrição foi violada, porque 20 é um saldo válido. A defesa é travar a linha na leitura (`SELECT ... FOR UPDATE`) ou detectar o conflito com `@Version`."

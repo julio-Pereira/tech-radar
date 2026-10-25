@@ -112,6 +112,12 @@ antifraude → conciliação num único trace, e os **logs** já saem com o mesm
 `traceId` de uma requisição real daquele balde. Você vê o pico de p99 no Grafana e pula
 direto para o trace que o causou — fim do "o gráfico subiu, e agora?".
 
+> **Reencontro adiante — `observabilidade/11`.** O Java 25 trouxe para o JFR a medição
+> de tempo de métodos sem mudar código (`jdk.MethodTiming` e `jdk.MethodTrace`, JEP 520) e,
+> como experimento no Linux, o *profiling* por tempo de CPU (`jdk.CPUTimeSample`, JEP 509).
+> Profiling contínuo em produção é o assunto desse marco; aqui fica só o aviso de que a
+> JVM passou a medir mais sozinha.
+
 ## SLO e alerta por burn rate
 
 O salto final é *no que* alertar. "CPU alta" é um alerta que acorda o time à toa: CPU
@@ -120,6 +126,9 @@ alta com latência boa e zero erro não é incidente. O senior alerta sobre o qu
 mês). O **error budget** é o 0,1% restante; o alerta dispara por **burn rate** — a
 velocidade com que você queima o budget. Queima rápida (vai estourar o mês em horas)
 acorda alguém; queima lenta vira um ticket. Menos ruído, mais sinal.
+
+> **Reencontro adiante — `observabilidade/12`.** Escolher o SLI que reflete a experiência do cliente, as recording rules que o
+> calculam e o que fazer com a dependência que você não controla — o PSP.
 
 ## Segurança: exponha o mínimo
 
@@ -143,6 +152,8 @@ error budget de latência da iniciação rápido demais", que aponta para o PSP 
 antes que o cliente reclame.
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 09: resource server JWT com `SecurityConfig` liberando `/actuator/health/**` e `/actuator/prometheus`, e os testes antigos ajustados à segurança.
 
 **Tutorial — Actuator e a Observation API no `pix-gateway`.**
 
@@ -208,6 +219,18 @@ pods ao mesmo tempo se você escolher a outra.
 em vez da readiness? (b) Com três pods e o antifraude fora, quantos endpoints o Service
 tem em cada linha da tabela? (c) Por que `paymentId` nunca deve virar
 `lowCardinalityKeyValue`?
+
+**Gabarito.** (a) Liveness falhando faz o Kubernetes **reiniciar** o pod. Com o antifraude
+fora, todos os pods reiniciam em sequência, sobem, acham o antifraude ainda fora e
+reiniciam de novo — um *restart loop* que derruba o gateway inteiro por causa de um
+serviço alheio, e que nenhum reinício conserta. (b) Na configuração padrão, os três pods
+continuam prontos: o Service tem 3 endpoints, e cada requisição recebe um fallback
+honesto. Com o `include`, os três ficam *not ready* juntos e o Service fica com **zero**
+endpoints: o cliente recebe erro de conexão em vez de uma resposta. (c) Cada valor
+distinto de um label de métrica cria uma série nova no Prometheus. `paymentId` tem um
+valor por pagamento, então seriam milhões de séries, cada uma com um ponto só —
+armazenamento e consultas explodem. No span, onde cada requisição já é um registro
+próprio, o `paymentId` é exatamente o que você quer.
 
 ## Principais aprendizados
 

@@ -8,14 +8,14 @@ questions:
     answer: 1
     explanation: "Num JAR fat copiado inteiro, mudar uma linha de código invalida a camada com todas as dependências. Separando por estabilidade — dependências, loader, snapshots, aplicação —, o build reaproveita o que não mudou. Buildpacks fazem isso sozinhos e ainda entregam usuário não-root; layertools é a saída quando você quer controle fino."
 
-  - question: "Quando GraalVM native image se justifica em vez de CDS?"
+  - question: "Quando GraalVM native image se justifica em vez do AOT cache do Java 25?"
     options:
       - "Sempre que o serviço roda em contêiner, já que o binário nativo dispensa a JVM na imagem"
       - "Quando o build precisa ser mais rápido, porque a compilação AOT elimina o passo de empacotamento"
       - "Quando o time quer eliminar a reflexão do código, exigência que o AOT verifica no build"
       - "Quando startup em dezenas de milissegundos e baixa memória são requisito concreto assumido"
     answer: 3
-    explanation: "CDS entrega a maior parte do ganho de startup por uma fração do custo, sem mudar o modelo de execução. Native muda: reflexão e proxies precisam ser conhecidos em build time, agentes e parte do ferramental de APM param de funcionar, e o build fica muito mais lento. É decisão de arquitetura, não ajuste de flag."
+    explanation: "O AOT cache entrega boa parte do ganho de startup por uma fração do custo, sem mudar o modelo de execução. Native muda: reflexão e proxies precisam ser conhecidos em build time, agentes e parte do ferramental de APM param de funcionar, e o build fica muito mais lento. É decisão de arquitetura, não ajuste de flag."
 
   - question: "Qual encadeamento garante que nenhuma transação seja cortada durante um rollout?"
     options:

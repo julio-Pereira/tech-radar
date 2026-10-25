@@ -56,6 +56,10 @@ do banco que só atende leituras): isso só acontece se você configurar um
 `AbstractRoutingDataSource` que escolha o `DataSource` pela flag `readOnly` da transação
 corrente. Sem esse roteador, tudo vai para o primário, o banco que recebe as escritas.
 
+> **Reencontro adiante — `dados-distribuidos/04`.** Os níveis de isolamento pelas anomalias que cada um permite, e o *write skew* que
+> passa despercebido em `READ COMMITTED` mesmo com todas as linhas certas — o vocabulário
+> completo por trás desta seção.
+
 ## Vazamento de conexão e a hierarquia de timeouts
 
 Uma conexão emprestada do Hikari e nunca devolvida — um caminho de erro que escapa do
@@ -190,6 +194,8 @@ quente, e a regra "saldo nunca fica negativo" vira uma verificação **dentro** 
 transação, depois do lock — impossível de furar por corrida.
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 04: JPA, driver do Postgres, `TestcontainersConfiguration` importada nos testes antigos, Failsafe declarado no `pom.xml` e o `RefundServiceIT` verde depois do refactor.
 
 **Desafio — débito concorrente que nunca deixa saldo negativo.**
 

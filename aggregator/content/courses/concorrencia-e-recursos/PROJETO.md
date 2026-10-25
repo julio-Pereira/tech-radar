@@ -34,7 +34,8 @@ cluster.
 
 ## Pré-requisitos
 
-- JDK 21 e Maven ou Gradle (callouts no texto para o que muda em 24/25); Go 1.22+
+- JDK 25 e Maven ou Gradle (callouts para quem está no 21; o Complemento do marco 06 usa
+  `--enable-preview`); Go 1.22+
   (1.25+ nos marcos 05, 06 e 08, com fallback documentado para 1.22)
 - Docker para Postgres 16+ (duas sessões `psql` lado a lado em parte dos marcos 04 e 07)
 - jcstress (`org.openjdk.jcstress`, versão 0.16), Awaitility (4.3.x), `goleak`

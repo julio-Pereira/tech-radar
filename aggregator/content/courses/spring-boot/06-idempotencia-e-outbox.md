@@ -175,6 +175,10 @@ Duas verdades para internalizar:
   cair, os eventos acumulam no banco e drenam quando ele voltar. Sua API não fica refém
   da fila.
 
+> **Reencontro adiante — `arquitetura-eventos/08`.** Este marco garante que o evento sai; o outro lado — o *inbox* no consumidor, a
+> diferença entre idempotência técnica e de negócio, e o que fazer com evento fora de ordem —
+> é o assunto desse marco.
+
 ## Exemplo numa fintech
 
 O **pix-gateway** recebe o webhook de confirmação do PSP. A `Idempotency-Key` do webhook
@@ -185,6 +189,8 @@ reentregas. Nenhum crédito duplicado, nenhum evento perdido. É o mesmo conceit
 idempotência do quiz da trilha `go-fintech`, agora sobre JPA + Kafka.
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 05: Flyway com a `V1__create_payments.sql` e o teste de débito concorrente verde.
 
 **Tutorial — outbox mínimo.** Adicione o Kafka ao pix-gateway (o Jackson já vem com o
 starter web):

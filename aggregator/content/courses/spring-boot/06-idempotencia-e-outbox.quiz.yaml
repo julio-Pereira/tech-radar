@@ -3,10 +3,10 @@ questions:
     options:
       - "A verificação de existência da chave antes de processar, feita no início do método transacional"
       - "A unique constraint do banco: só uma inserção passa, a outra colide e reentrega a resposta gravada"
-      - "O lock pessimista sobre a linha da chave, que faz a segunda requisição esperar a primeira"
+      - "Um `SELECT ... FOR UPDATE` na linha da chave, feito antes de processar a requisição"
       - "A serialização das requisições pelo pool de conexões, que atende uma de cada vez por chave"
     answer: 1
-    explanation: "Um `if` que consulta antes de inserir tem uma janela entre a consulta e a escrita, e sob concorrência as duas passam. A garantia precisa vir do banco: a constraint deixa uma inserção acontecer, a outra recebe violação, faz rollback e devolve a resposta já persistida. Idempotência de verdade se apoia numa garantia de banco, não em código."
+    explanation: "Um `if` que consulta antes de inserir tem uma janela entre a consulta e a escrita, e sob concorrência as duas passam — e um `FOR UPDATE` não ajuda, porque a linha ainda não existe para ser travada. A garantia precisa vir do banco: a constraint deixa uma inserção acontecer, a outra espera, recebe violação, faz rollback e devolve a resposta já persistida. Idempotência de verdade se apoia numa garantia de banco, não em código."
 
   - question: "Por que gravar no banco e publicar no Kafka em sequência é um problema?"
     options:
@@ -34,3 +34,21 @@ questions:
       - "Permite reprocessar eventos antigos, porque a tabela guarda o histórico completo publicado"
     answer: 2
     explanation: "Com o broker indisponível, a transação de negócio continua funcionando e os eventos ficam na tabela até o relay conseguir entregar — a API não fica refém da fila. Ganho de latência é consequência secundária, ordem depende de como o relay lê e da chave de partição, e retenção do histórico é decisão sua sobre a limpeza da tabela."
+
+  - question: "Por que o serviço insere a `Idempotency-Key` antes de processar, em vez de consultar se ela existe?"
+    options:
+      - "Porque a colisão acontece antes do efeito: a segunda requisição espera no `INSERT` e nada processa"
+      - "Porque o `INSERT` é mais rápido que o `SELECT` numa tabela com chave primária de texto"
+      - "Porque a consulta prévia exigiria isolamento `SERIALIZABLE` para funcionar sob concorrência"
+      - "Porque a resposta só pode ser gravada na mesma instrução que reserva a chave na tabela"
+    answer: 0
+    explanation: "Consultando primeiro, as duas requisições simultâneas não acham nada e as duas chamam o PSP; a colisão só aparece na gravação, tarde demais. Inserindo primeiro, o `INSERT` da segunda espera a transação da primeira: se ela comitou, a segunda recebe `DuplicateKeyException` sem ter processado nada e devolve a resposta gravada."
+
+  - question: "Por que o relay do outbox chama `.get()` no resultado de `kafka.send` antes de marcar o evento como publicado?"
+    options:
+      - "Porque o `KafkaTemplate` só serializa a mensagem quando alguém consome o `CompletableFuture`"
+      - "Porque sem o `get` o envio roda fora da transação e o evento pode ser publicado duas vezes"
+      - "Porque o `get` reserva a partição no broker e garante a ordem entre eventos do mesmo agregado"
+      - "Porque o envio é assíncrono: sem esperar o ack, uma recusa do broker passaria como publicada"
+    answer: 3
+    explanation: "`send` devolve um `CompletableFuture` antes de o broker confirmar. Marcar como publicado sem esperar o ack perde o evento em silêncio quando o broker recusa. Com o `get`, a falha vira exceção, o lote para e o evento fica pendente para a próxima rodada — at-least-once, nunca zero."

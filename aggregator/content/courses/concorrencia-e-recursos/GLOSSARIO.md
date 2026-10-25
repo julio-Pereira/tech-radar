@@ -275,14 +275,32 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 
 ### Pinning
 **Em uma frase:** quando uma virtual thread bloqueada prende sua thread de plataforma carregadora, em vez de liberá-la.
-**No fin-platform:** uma virtual thread bloqueada dentro de `synchronized` em JDK 21, antes do JEP 491.
-**Erro comum:** assumir que pinning foi eliminado em qualquer versão do JDK, sem checar: só é GA a partir do JDK 24.
+**No fin-platform:** no JDK 25, um `synchronized` em volta de uma chamada lenta não prende mais (JEP 491, desde o 24); o que ainda prende é uma chamada nativa que volta para Java e bloqueia. No JDK 21, o `synchronized` prende.
+**Erro comum:** seguir conselho antigo — trocar todo `synchronized` por `ReentrantLock` ou ligar `-Djdk.tracePinnedThreads` — em JDK 24+, onde nenhum dos dois faz sentido.
 **Onde na prática:** marco 06.
 
 ### ScopedValue
-**Em uma frase:** dado imutável compartilhado com uma árvore de tarefas, com escopo bem definido — alternativa mais barata a `ThreadLocal` (JEP 506).
-**No fin-platform:** o id de correlação de uma requisição, propagado para todas as chamadas filhas sem um mapa por thread.
-**Erro comum:** usar em JDK 21 sem `--enable-preview`, ou assumir que já é final em toda versão 21-24.
+**Em uma frase:** dado imutável compartilhado com uma árvore de tarefas, com escopo bem definido — alternativa mais barata a `ThreadLocal` (JEP 506, final no JDK 25).
+**No fin-platform:** o id de correlação de uma requisição, herdado pelas três subtarefas do extrato sem passar parâmetro.
+**Erro comum:** tentar usá-lo como `ThreadLocal` mutável, ou esperar que o contexto do Spring (transação, segurança, MDC) migre para ele — o framework ainda usa `ThreadLocal`.
+**Onde na prática:** marco 06.
+
+### Carrier thread
+**Em uma frase:** a thread de plataforma sobre a qual a JVM monta uma virtual thread para executá-la; quando a virtual thread bloqueia, ela desmonta e a carrier fica livre para outra.
+**No fin-platform:** poucas carriers executam as milhares de virtual threads das requisições ao gateway.
+**Erro comum:** ler um `jcmd Thread.print` num serviço em virtual threads e achar que as carriers são todas as threads que existem — as virtual threads só aparecem no `Thread.dump_to_file`.
+**Onde na prática:** marcos 06, 09.
+
+### StructuredTaskScope
+**Em uma frase:** a API de *structured concurrency* que amarra o tempo de vida das subtarefas a um bloco: uma falha cancela as irmãs, e nenhuma sobrevive ao fim do bloco (JEP 505).
+**No fin-platform:** as três chamadas do extrato num `StructuredTaskScope.open(...)`, canceladas juntas quando uma falha.
+**Erro comum:** colocá-la em código de produção — segue em preview no JDK 25 e no 27, e mudou de forma no 25 (`open()` com `Joiner` no lugar de `ShutdownOnFailure`).
+**Onde na prática:** marco 06 (Complemento).
+
+### Preview feature
+**Em uma frase:** uma API ou recurso de linguagem completo, mas ainda sujeito a mudança, que só compila e roda com `--enable-preview` na release exata do JDK.
+**No fin-platform:** `StructuredTaskScope` no JDK 25; `ScopedValue` foi preview do 21 ao 24 e virou final no 25.
+**Erro comum:** esquecer que código de preview fica preso à release: um `.class` compilado com preview no 25 não roda no 27.
 **Onde na prática:** marco 06.
 
 ### Vazamento de goroutine

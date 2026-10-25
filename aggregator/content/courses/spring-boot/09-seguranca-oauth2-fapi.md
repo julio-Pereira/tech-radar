@@ -121,6 +121,11 @@ e repassar o certificado do cliente; o essencial é entender **por que** cada pe
 — roubo de token e falsificação de identidade são o modelo de ameaça de quem move
 dinheiro alheio.
 
+> **Reencontro adiante — `seguranca-aplicacao/07`.** Os requisitos do FAPI que mais pegam na prática, o token *sender-constrained* e o
+> mTLS de verdade, do lado de quem configura o servidor de autorização. Os fluxos OAuth2 e
+> OIDC por baixo estão em `seguranca-aplicacao/05`, e a cripto-agilidade — inclusive a
+> transição para algoritmos pós-quânticos — em `seguranca-aplicacao/09`.
+
 ## Actuator como superfície de ataque
 
 Ligar o marco 10 (observabilidade) com este: os endpoints do Actuator são **poderosos** e
@@ -145,6 +150,38 @@ Mapeie os riscos ao produto, um por um, como perguntas concretas sobre o gateway
   bulkhead do marco 08 protege as dependências, não a sua porta de entrada.
 - **Security Misconfiguration**: o Actuator está exposto como na seção acima?
 
+## A negativa também deixa rastro
+
+Uma auditoria não pergunta só "quem pagou"; pergunta também "quem **tentou** e foi barrado".
+O Spring Security publica um evento a cada negativa, e um listener transforma isso num
+log de auditoria com o id de correlação do marco 02 — que já está no MDC, porque o filtro
+de correlação roda antes da segurança:
+
+```java
+@Component
+class SecurityAuditListener {
+    private static final Logger audit = LoggerFactory.getLogger("AUDIT");
+
+    @EventListener
+    void denied(AuthorizationDeniedEvent<?> event) {      // 401 sem token, 403 com escopo errado
+        audit.warn("acesso negado principal={} correlationId={}",
+                event.getAuthentication().get().getName(), MDC.get("correlationId"));
+    }
+
+    @EventListener
+    void authenticationFailed(AbstractAuthenticationFailureEvent event) {   // token inválido ou expirado
+        audit.warn("autenticação falhou motivo=\"{}\" correlationId={}",
+                event.getException().getMessage(), MDC.get("correlationId"));
+    }
+}
+```
+
+São dois eventos porque são duas falhas diferentes. Um token **inválido ou expirado** nem
+chega a virar identidade: é uma falha de autenticação. Uma requisição **sem token** ou com
+**escopo errado** tem identidade (anônima, no primeiro caso) e é negada na autorização.
+Um logger dedicado (`AUDIT`) permite mandar esse fluxo para um destino separado e
+retido por mais tempo que o log da aplicação.
+
 ## Exemplo numa fintech
 
 O **pix-gateway** vira resource server: `POST /payments` exige `SCOPE_payments:write`,
@@ -154,6 +191,8 @@ conexão é mTLS e o access token é certificate-bound — o gateway rejeita um 
 `cnf` não bate com o certificado apresentado.
 
 ## Mão na massa
+
+**Pré-requisito do estado do pix-gateway:** o do marco 08: cliente do PSP com timeout, `@Retry` com fallback e `@CircuitBreaker`.
 
 **Tutorial — proteger o gateway.** Configure o pix-gateway como resource server JWT,
 com regras por escopo (`payments:write` no `POST`, `payments:read` nas consultas) e
@@ -232,6 +271,18 @@ guardado por thread:
 pool.submit(new DelegatingSecurityContextCallable<>(call));
 ```
 
+**Invariantes testáveis.** Com o `SecurityAuditListener` registrado, um teste
+`@SpringBootTest` com `MockMvc` e um `JwtDecoder` de teste (chave RSA gerada no próprio
+teste, como o `DrillJwtConfig` do marco 12) envia três requisições a `POST /payments`:
+
+| Requisição | Status | Linha no logger `AUDIT` |
+| --- | --- | --- |
+| sem token | `401` | `acesso negado principal=anonymousUser correlationId=...` |
+| token com `payments:read` | `403` | `acesso negado principal=<sub do token> correlationId=...` |
+| token expirado | `401` | `autenticação falhou motivo="... Jwt expired at ..." correlationId=...` |
+
+Cada linha traz o mesmo id de correlação que voltou no header da resposta.
+
 ## Principais aprendizados
 
 - Spring Security 7 usa **`SecurityFilterChain`** (sem `WebSecurityConfigurerAdapter`);
@@ -240,5 +291,8 @@ pool.submit(new DelegatingSecurityContextCallable<>(call));
   profundidade.
 - **FAPI** = mTLS + **certificate-bound tokens** + `private_key_jwt`: entenda o modelo de
   ameaça (roubo de token, falsificação de identidade); o Spring faz o trabalho pesado.
+- Toda negativa vira evento: `AuthorizationDeniedEvent` (sem token, escopo errado) e
+  `AbstractAuthenticationFailureEvent` (token inválido ou expirado). Um listener as leva
+  para um log de auditoria com o id de correlação.
 - **Actuator é superfície de ataque**: exponha o mínimo. Percorra o **OWASP API Top 10**
   contra o produto, começando por BOLA/ownership.
