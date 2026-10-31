@@ -1,0 +1,23 @@
+id: kafka-transacao-e-psp
+tipo: sequencia
+titulo: "A transação do Kafka cobre ler e escrever; a cobrança no PSP fica fora"
+descricao: >
+  O processador lê payments.initiated e abre uma transação. Dentro dela, escreve o
+  resultado em payments.authorized e registra o offset lido com sendOffsetsToTransaction;
+  o commit torna as duas coisas visíveis juntas para quem lê com read_committed. A
+  chamada ao PSP, que cobra o cartão, acontece no meio e não faz parte da transação: se o
+  processo morre depois dela e antes do commit, o Kafka aborta tudo e o cartão continua
+  cobrado. No replay, cobra de novo.
+participantes:
+  - { id: origem, rotulo: "payments.initiated" }
+  - { id: proc, rotulo: "processador", papel: destaque }
+  - { id: psp, rotulo: "PSP", papel: fora-da-transacao }
+  - { id: destino, rotulo: "payments.authorized" }
+mensagens:
+  - { de: proc, para: origem, rotulo: "poll" }
+  - { de: proc, para: proc, rotulo: "beginTransaction" }
+  - { de: proc, para: psp, rotulo: "cobrar cartão", nota: "fora da transação" }
+  - { de: psp, para: proc, rotulo: "cobrado", tipo: reply }
+  - { de: proc, para: destino, rotulo: "send(resultado)" }
+  - { de: proc, para: origem, rotulo: "sendOffsetsToTransaction" }
+  - { de: proc, para: proc, rotulo: "commitTransaction", nota: "crash antes daqui: aborta, mas cobrou" }

@@ -212,7 +212,8 @@ export function addEndOfOwnerReturn(timeline, slug) {
  */
 export function returnToPoint(timeline, marcoId, conceito) {
   const target = timeline.querySelector(`#${CSS.escape(`c-${marcoId}-${conceito}`)}`);
-  if (!(target instanceof HTMLElement)) return false;
+  // A concept can also be a node of a diagram (diagram.js): an SVG link.
+  if (!(target instanceof HTMLElement || target instanceof SVGElement)) return false;
 
   // A term inside a closed hands-on block (<details>) must be revealed first.
   for (let el = target.parentElement; el && el !== timeline; el = el.parentElement) {

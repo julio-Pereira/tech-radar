@@ -40,6 +40,13 @@ func newBodyPolicy() *bluemonday.Policy {
 	// UGCPolicy already keeps it on every element.
 	p.AllowAttrs("class").Matching(regexp.MustCompile(`^conceito$`)).OnElements("a")
 	p.AllowAttrs("data-conceito").Matching(conceitoIDRe).OnElements("a")
+	// Diagram figures (diagrams.go): the figure, its caption and the
+	// collapsible textual description, plus the slug/id the front end draws
+	// from. No SVG element is ever allowed here — the browser builds it.
+	p.AllowAttrs("data-diagrama").Matching(regexp.MustCompile(`^[a-z0-9-]+/[a-z0-9-]+$`)).OnElements("figure")
+	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagrama$`)).OnElements("figure")
+	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagrama-descricao$`)).OnElements("details")
+	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagramas-lado-a-lado$`)).OnElements("div")
 	return p
 }
 
@@ -93,7 +100,8 @@ func parseMilestone(path string, index bridgeIndex, planned map[string]bool, set
 		return MilestoneFrontmatter{}, "", nil, nil, fmt.Errorf("parse frontmatter %s: %w", path, err)
 	}
 
-	html, err := renderMarkdown(match[2])
+	body := markDiagramaFences(match[2])
+	html, err := renderMarkdown(body)
 	if err != nil {
 		return MilestoneFrontmatter{}, "", nil, nil, fmt.Errorf("render markdown %s: %w", path, err)
 	}
@@ -106,7 +114,7 @@ func parseMilestone(path string, index bridgeIndex, planned map[string]bool, set
 		}
 		cc = &conceitoCtx{set: set, slug: slug, nn: nn, marcoID: fm.ID}
 	}
-	sections, broken, err := splitSectionsWith(match[2], index, planned, cc)
+	sections, broken, err := splitSectionsWith(body, index, planned, cc)
 	if err != nil {
 		return MilestoneFrontmatter{}, "", nil, nil, fmt.Errorf("split sections %s: %w", path, err)
 	}

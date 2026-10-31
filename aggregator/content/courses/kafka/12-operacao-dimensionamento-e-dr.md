@@ -96,6 +96,10 @@ O MirrorMaker 2 mantém um mapeamento (`RemoteClusterUtils` / checkpoints de off
 traduz de um para o outro. Se o seu plano de failover não usa esse mapeamento, o resultado
 é reprocessar horas de eventos ou pular horas — e num ledger, os dois são incidentes.
 
+```diagrama
+kafka-dr-mirrormaker
+```
+
 Os números a definir com o negócio:
 
 - **RPO** — quanto dado você aceita perder. Com replicação assíncrona, é o lag do

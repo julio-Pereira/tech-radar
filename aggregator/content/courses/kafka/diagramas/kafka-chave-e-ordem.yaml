@@ -1,0 +1,23 @@
+id: kafka-chave-e-ordem
+tipo: fluxo
+titulo: "A chave accountId leva cada conta sempre à mesma partição"
+descricao: >
+  O producer publica os eventos de pagamento com accountId como chave. O particionador
+  calcula hash da chave módulo o número de partições, então todos os eventos da conta
+  4711 caem na mesma partição, e os da conta 9001 em outra. Dentro de cada partição a
+  ordem é garantida, e cada uma é lida por um único consumidor do grupo: o débito chega
+  antes do estorno da mesma conta. Aumentar o número de partições muda o módulo e quebra
+  essa garantia por um período.
+passos:
+  - { id: producer, rotulo: "producer (chave accountId)", col: 0, row: 0 }
+  - { id: hash, rotulo: "hash(chave) % partições", col: 1, row: 0, papel: destaque }
+  - { id: p2, rotulo: "partição 2: conta 4711", col: 2, row: 0 }
+  - { id: p5, rotulo: "partição 5: conta 9001", col: 2, row: 1 }
+  - { id: c1, rotulo: "consumidor A", col: 3, row: 0 }
+  - { id: c2, rotulo: "consumidor B", col: 3, row: 1 }
+arestas:
+  - { de: producer, para: hash }
+  - { de: hash, para: p2, rotulo: "4711" }
+  - { de: hash, para: p5, rotulo: "9001" }
+  - { de: p2, para: c1, rotulo: "em ordem" }
+  - { de: p5, para: c2, rotulo: "em ordem" }

@@ -93,15 +93,17 @@ O meio-termo prático — e o mais usado hoje — é **CDC lendo a tabela outbox
 aplicação escreve a outbox (contrato explícito, seu), e o Debezium a publica (sem relay
 para você operar). É o *Outbox Event Router* do Debezium, e junta o melhor dos dois.
 
+```diagrama
+kafka-outbox-com-cdc
+```
+
 ## Saga: consistência sem transação distribuída
 
 Um fluxo que atravessa serviços não tem transação. A saga o divide em passos locais,
 cada um com sua **compensação**:
 
-```
-reservar saldo  →  autorizar no PSP  →  lançar no ledger
-      ↓ falhou          ↓ falhou
-liberar reserva ←  liberar reserva
+```diagrama
+kafka-saga-pagamento
 ```
 
 **Coreografia** — cada serviço reage a eventos e emite o próximo. Simples com 3 passos,
@@ -132,8 +134,8 @@ de novo.
 **Retry escalonado com tópicos separados** é o padrão: em vez de bloquear o consumidor
 principal esperando, mande a mensagem para um tópico de retry com atraso crescente.
 
-```
-payments.authorized  →  falhou  →  retry.5s  →  retry.1m  →  retry.10m  →  DLQ
+```diagrama
+kafka-retry-e-dlq
 ```
 
 Cada tópico de retry tem seu consumidor, que espera o atraso e reprocessa. O consumidor

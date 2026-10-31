@@ -1,0 +1,21 @@
+id: exemplo-sequencia
+tipo: sequencia
+titulo: "O traceparent atravessa os três serviços do pagamento"
+descricao: >
+  O cliente chama o pix-gateway, que cria o trace e envia o cabeçalho traceparent na
+  chamada síncrona ao ledger-core. O ledger-core responde com o lançamento, e o
+  pix-gateway publica o evento no pix-stream de forma assíncrona, com o mesmo
+  traceparent nos headers da mensagem. O resultado é um único trace, do clique ao
+  consumidor do evento.
+participantes:
+  - { id: cliente, rotulo: "cliente", papel: externo }
+  - { id: gateway, rotulo: "pix-gateway", papel: destaque }
+  - { id: ledger, rotulo: "ledger-core" }
+  - { id: stream, rotulo: "pix-stream" }
+mensagens:
+  - { de: cliente, para: gateway, rotulo: "POST /payments" }
+  - { de: gateway, para: gateway, rotulo: "inicia o trace", nota: "trace-id novo" }
+  - { de: gateway, para: ledger, rotulo: "lançar (traceparent)" }
+  - { de: ledger, para: gateway, rotulo: "lançamento ok", tipo: reply }
+  - { de: gateway, para: stream, rotulo: "PaymentInitiated", tipo: async, nota: "traceparent nos headers" }
+  - { de: gateway, para: cliente, rotulo: "201 Created", tipo: reply }

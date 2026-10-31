@@ -1,0 +1,29 @@
+id: obs-otel-ponta-a-ponta
+tipo: topologia
+titulo: "A aplicação só conhece o OTLP; trocar de backend é trocar um exporter"
+descricao: >
+  O pix-gateway e o ledger-core são instrumentados com a API do OpenTelemetry, e o SDK
+  de cada um amostra, agrupa e exporta pelo protocolo OTLP para o Collector. O Collector
+  recebe, transforma e reexporta: traces para o Tempo, métricas para o Prometheus e logs
+  para o Loki, todos consultados no Grafana. Nenhum serviço fala diretamente com um
+  backend, então trocar o Tempo por outro armazenamento de traces muda um exporter no
+  Collector, não o código das aplicações.
+grupos:
+  - { id: backends, rotulo: "backends", col: 2, row: 0, cols: 1, rows: 3 }
+nos:
+  - { id: gateway, rotulo: "pix-gateway (SDK)", col: 0, row: 0 }
+  - { id: ledger, rotulo: "ledger-core (SDK)", col: 0, row: 2 }
+  - { id: collector, rotulo: "Collector", col: 1, row: 1, papel: destaque }
+  - { id: tempo, rotulo: "Tempo (traces)", grupo: backends, col: 2, row: 0 }
+  - { id: prometheus, rotulo: "Prometheus (métricas)", grupo: backends, col: 2, row: 1 }
+  - { id: loki, rotulo: "Loki (logs)", grupo: backends, col: 2, row: 2 }
+  - { id: grafana, rotulo: "Grafana", col: 3, row: 1 }
+arestas:
+  - { de: gateway, para: collector, rotulo: "OTLP" }
+  - { de: ledger, para: collector, rotulo: "OTLP" }
+  - { de: collector, para: tempo }
+  - { de: collector, para: prometheus }
+  - { de: collector, para: loki }
+  - { de: grafana, para: tempo, estilo: tracejada }
+  - { de: grafana, para: prometheus, rotulo: "consulta", estilo: tracejada }
+  - { de: grafana, para: loki, estilo: tracejada }

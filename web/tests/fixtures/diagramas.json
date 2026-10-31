@@ -1,0 +1,276 @@
+{
+  "diagramas": {
+    "slug": "kafka",
+    "diagramas": {
+      "exemplo-estados": {
+        "id": "exemplo-estados",
+        "tipo": "estados",
+        "titulo": "Um alerta só dispara depois de ficar pendente pelo tempo do for",
+        "descricao": "Toda regra de alerta começa inativa. Quando a expressão fica verdadeira, o alerta passa a pendente e só vai para disparado se continuar verdadeiro durante todo o tempo do for. Se a expressão volta a ser falsa enquanto pendente, ele volta a inativo sem notificar ninguém. Disparado, ele é resolvido quando a expressão deixa de ser verdadeira, e a regra volta a ficar inativa.",
+        "nos": [
+          {
+            "id": "inactive",
+            "rotulo": "inactive",
+            "col": 0,
+            "row": 0
+          },
+          {
+            "id": "pending",
+            "rotulo": "pending",
+            "col": 1,
+            "row": 0
+          },
+          {
+            "id": "firing",
+            "rotulo": "firing",
+            "col": 2,
+            "row": 0,
+            "papel": "destaque"
+          },
+          {
+            "id": "resolved",
+            "rotulo": "resolved",
+            "col": 2,
+            "row": 1
+          }
+        ],
+        "arestas": [
+          {
+            "de": "inactive",
+            "para": "pending",
+            "rotulo": "expr verdadeira"
+          },
+          {
+            "de": "pending",
+            "para": "inactive",
+            "rotulo": "expr falsa"
+          },
+          {
+            "de": "pending",
+            "para": "firing",
+            "rotulo": "dura o for [5m]"
+          },
+          {
+            "de": "firing",
+            "para": "resolved",
+            "rotulo": "expr falsa"
+          }
+        ],
+        "inicial": "inactive",
+        "finais": [
+          "resolved"
+        ]
+      },
+      "exemplo-fluxo": {
+        "id": "exemplo-fluxo",
+        "tipo": "fluxo",
+        "titulo": "A saga desfaz o que já reservou quando o PSP recusa",
+        "descricao": "A saga do pagamento reserva o saldo no ledger-core, pede a autorização ao PSP e, autorizado, lança o débito definitivo. Se o PSP recusa, o passo de autorização falha e a saga executa a compensação: libera a reserva de saldo feita no primeiro passo. Nenhum passo desfaz o que outro serviço fez diretamente; cada um expõe a sua própria operação de compensação.",
+        "nos": [
+          {
+            "id": "reservar",
+            "rotulo": "reservar saldo",
+            "col": 0,
+            "row": 0
+          },
+          {
+            "id": "autorizar",
+            "rotulo": "autorizar no PSP",
+            "col": 1,
+            "row": 0,
+            "papel": "externo"
+          },
+          {
+            "id": "lancar",
+            "rotulo": "lançar débito",
+            "col": 2,
+            "row": 0,
+            "papel": "destaque"
+          },
+          {
+            "id": "recusado",
+            "rotulo": "PSP recusou",
+            "col": 1,
+            "row": 1
+          },
+          {
+            "id": "liberar",
+            "rotulo": "liberar reserva",
+            "col": 0,
+            "row": 1
+          }
+        ],
+        "arestas": [
+          {
+            "de": "reservar",
+            "para": "autorizar"
+          },
+          {
+            "de": "autorizar",
+            "para": "lancar",
+            "rotulo": "autorizado"
+          },
+          {
+            "de": "autorizar",
+            "para": "recusado",
+            "rotulo": "recusa",
+            "estilo": "falha"
+          },
+          {
+            "de": "recusado",
+            "para": "liberar",
+            "rotulo": "compensar",
+            "estilo": "compensacao"
+          }
+        ]
+      },
+      "exemplo-sequencia": {
+        "id": "exemplo-sequencia",
+        "tipo": "sequencia",
+        "titulo": "O traceparent atravessa os três serviços do pagamento",
+        "descricao": "O cliente chama o pix-gateway, que cria o trace e envia o cabeçalho traceparent na chamada síncrona ao ledger-core. O ledger-core responde com o lançamento, e o pix-gateway publica o evento no pix-stream de forma assíncrona, com o mesmo traceparent nos headers da mensagem. O resultado é um único trace, do clique ao consumidor do evento.",
+        "participantes": [
+          {
+            "id": "cliente",
+            "rotulo": "cliente",
+            "papel": "externo"
+          },
+          {
+            "id": "gateway",
+            "rotulo": "pix-gateway",
+            "papel": "destaque"
+          },
+          {
+            "id": "ledger",
+            "rotulo": "ledger-core"
+          },
+          {
+            "id": "stream",
+            "rotulo": "pix-stream"
+          }
+        ],
+        "mensagens": [
+          {
+            "de": "cliente",
+            "para": "gateway",
+            "rotulo": "POST /payments",
+            "tipo": "sync"
+          },
+          {
+            "de": "gateway",
+            "para": "gateway",
+            "rotulo": "inicia o trace",
+            "tipo": "sync",
+            "nota": "trace-id novo"
+          },
+          {
+            "de": "gateway",
+            "para": "ledger",
+            "rotulo": "lançar (traceparent)",
+            "tipo": "sync"
+          },
+          {
+            "de": "ledger",
+            "para": "gateway",
+            "rotulo": "lançamento ok",
+            "tipo": "reply"
+          },
+          {
+            "de": "gateway",
+            "para": "stream",
+            "rotulo": "PaymentInitiated",
+            "tipo": "async",
+            "nota": "traceparent nos headers"
+          },
+          {
+            "de": "gateway",
+            "para": "cliente",
+            "rotulo": "201 Created",
+            "tipo": "reply"
+          }
+        ]
+      },
+      "exemplo-topologia": {
+        "id": "exemplo-topologia",
+        "tipo": "topologia",
+        "titulo": "O evento sai do outbox, nunca direto do pix-gateway",
+        "descricao": "O pix-gateway grava o pagamento na tabela payments e o evento PaymentInitiated na tabela outbox, as duas no mesmo Postgres e na mesma transação. O relay lê o outbox depois do commit e publica no tópico payments.initiated do Kafka, de onde o antifraude consome. O pix-gateway nunca fala com o Kafka diretamente.",
+        "grupos": [
+          {
+            "id": "postgres",
+            "rotulo": "Postgres",
+            "col": 1,
+            "row": 0,
+            "cols": 1,
+            "rows": 2
+          }
+        ],
+        "nos": [
+          {
+            "id": "gateway",
+            "rotulo": "pix-gateway",
+            "col": 0,
+            "row": 0,
+            "papel": "destaque"
+          },
+          {
+            "id": "payments",
+            "rotulo": "payments",
+            "col": 1,
+            "row": 0
+          },
+          {
+            "id": "outbox",
+            "rotulo": "outbox",
+            "col": 1,
+            "row": 1,
+            "conceito": "outbox",
+            "href": "#/learn/arquitetura-eventos/outbox-inbox-idempotencia"
+          },
+          {
+            "id": "kafka",
+            "rotulo": "payments.initiated",
+            "col": 2,
+            "row": 1,
+            "papel": "externo"
+          },
+          {
+            "id": "antifraude",
+            "rotulo": "antifraude",
+            "col": 2,
+            "row": 0
+          }
+        ],
+        "arestas": [
+          {
+            "de": "gateway",
+            "para": "payments",
+            "rotulo": "INSERT"
+          },
+          {
+            "de": "gateway",
+            "para": "outbox",
+            "rotulo": "INSERT, mesma tx"
+          },
+          {
+            "de": "outbox",
+            "para": "kafka",
+            "rotulo": "relay",
+            "estilo": "tracejada"
+          },
+          {
+            "de": "antifraude",
+            "para": "kafka",
+            "rotulo": "consome"
+          }
+        ]
+      }
+    }
+  },
+  "figures": {
+    "exemplo-estados": "\u003cfigure class=\"diagrama\" data-diagrama=\"kafka/exemplo-estados\"\u003e\u003cfigcaption\u003eUm alerta só dispara depois de ficar pendente pelo tempo do for\u003c/figcaption\u003e\u003cdetails class=\"diagrama-descricao\"\u003e\u003csummary\u003eDescrição textual\u003c/summary\u003e\u003cp\u003eToda regra de alerta começa inativa. Quando a expressão fica verdadeira, o alerta passa a pendente e só vai para disparado se continuar verdadeiro durante todo o tempo do for. Se a expressão volta a ser falsa enquanto pendente, ele volta a inativo sem notificar ninguém. Disparado, ele é resolvido quando a expressão deixa de ser verdadeira, e a regra volta a ficar inativa.\u003c/p\u003e\u003c/details\u003e\u003c/figure\u003e",
+    "exemplo-fluxo": "\u003cfigure class=\"diagrama\" data-diagrama=\"kafka/exemplo-fluxo\"\u003e\u003cfigcaption\u003eA saga desfaz o que já reservou quando o PSP recusa\u003c/figcaption\u003e\u003cdetails class=\"diagrama-descricao\"\u003e\u003csummary\u003eDescrição textual\u003c/summary\u003e\u003cp\u003eA saga do pagamento reserva o saldo no ledger-core, pede a autorização ao PSP e, autorizado, lança o débito definitivo. Se o PSP recusa, o passo de autorização falha e a saga executa a compensação: libera a reserva de saldo feita no primeiro passo. Nenhum passo desfaz o que outro serviço fez diretamente; cada um expõe a sua própria operação de compensação.\u003c/p\u003e\u003c/details\u003e\u003c/figure\u003e",
+    "exemplo-sequencia": "\u003cfigure class=\"diagrama\" data-diagrama=\"kafka/exemplo-sequencia\"\u003e\u003cfigcaption\u003eO traceparent atravessa os três serviços do pagamento\u003c/figcaption\u003e\u003cdetails class=\"diagrama-descricao\"\u003e\u003csummary\u003eDescrição textual\u003c/summary\u003e\u003cp\u003eO cliente chama o pix-gateway, que cria o trace e envia o cabeçalho traceparent na chamada síncrona ao ledger-core. O ledger-core responde com o lançamento, e o pix-gateway publica o evento no pix-stream de forma assíncrona, com o mesmo traceparent nos headers da mensagem. O resultado é um único trace, do clique ao consumidor do evento.\u003c/p\u003e\u003c/details\u003e\u003c/figure\u003e",
+    "exemplo-topologia": "\u003cfigure class=\"diagrama\" data-diagrama=\"kafka/exemplo-topologia\"\u003e\u003cfigcaption\u003eO evento sai do outbox, nunca direto do pix-gateway\u003c/figcaption\u003e\u003cdetails class=\"diagrama-descricao\"\u003e\u003csummary\u003eDescrição textual\u003c/summary\u003e\u003cp\u003eO pix-gateway grava o pagamento na tabela payments e o evento PaymentInitiated na tabela outbox, as duas no mesmo Postgres e na mesma transação. O relay lê o outbox depois do commit e publica no tópico payments.initiated do Kafka, de onde o antifraude consome. O pix-gateway nunca fala com o Kafka diretamente.\u003c/p\u003e\u003c/details\u003e\u003c/figure\u003e"
+  }
+}

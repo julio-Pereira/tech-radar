@@ -1,0 +1,21 @@
+id: exemplo-topologia
+tipo: topologia
+titulo: "O evento sai do outbox, nunca direto do pix-gateway"
+descricao: >
+  O pix-gateway grava o pagamento na tabela payments e o evento PaymentInitiated
+  na tabela outbox, as duas no mesmo Postgres e na mesma transação. O relay lê o
+  outbox depois do commit e publica no tópico payments.initiated do Kafka, de onde
+  o antifraude consome. O pix-gateway nunca fala com o Kafka diretamente.
+grupos:
+  - { id: postgres, rotulo: "Postgres", col: 1, row: 0, cols: 1, rows: 2 }
+nos:
+  - { id: gateway, rotulo: "pix-gateway", col: 0, row: 0, papel: destaque }
+  - { id: payments, rotulo: "payments", grupo: postgres, col: 1, row: 0 }
+  - { id: outbox, rotulo: "outbox", grupo: postgres, col: 1, row: 1, conceito: outbox }
+  - { id: kafka, rotulo: "payments.initiated", col: 2, row: 1, papel: externo }
+  - { id: antifraude, rotulo: "antifraude", col: 2, row: 0 }
+arestas:
+  - { de: gateway, para: payments, rotulo: "INSERT" }
+  - { de: gateway, para: outbox, rotulo: "INSERT, mesma tx" }
+  - { de: outbox, para: kafka, rotulo: "relay", estilo: tracejada }
+  - { de: antifraude, para: kafka, rotulo: "consome" }

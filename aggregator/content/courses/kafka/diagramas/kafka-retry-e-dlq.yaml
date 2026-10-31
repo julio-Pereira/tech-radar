@@ -1,0 +1,23 @@
+id: kafka-retry-e-dlq
+tipo: fluxo
+titulo: "Retry escalonado em tópicos separados, e a DLQ no fim"
+descricao: >
+  Quando o processamento de uma mensagem de payments.authorized falha, o consumidor
+  principal não bloqueia: ele envia a mensagem para um tópico de retry com atraso de
+  cinco segundos, depois um minuto, depois dez minutos. Cada tópico de retry tem seu
+  consumidor, que espera o atraso e tenta de novo. Se a última tentativa também falha, a
+  mensagem vai para a DLQ, de onde só sai por decisão humana. Uma tentativa que dá certo
+  em qualquer ponto encerra o fluxo.
+passos:
+  - { id: principal, rotulo: "payments.authorized", col: 0, row: 0, papel: destaque }
+  - { id: r5s, rotulo: "retry.5s", col: 1, row: 0 }
+  - { id: r1m, rotulo: "retry.1m", col: 2, row: 0 }
+  - { id: r10m, rotulo: "retry.10m", col: 3, row: 0 }
+  - { id: dlq, rotulo: "DLQ", col: 3, row: 1, papel: externo }
+  - { id: ok, rotulo: "processado", col: 1, row: 1 }
+arestas:
+  - { de: principal, para: r5s, rotulo: "falhou", tipo: falha }
+  - { de: r5s, para: r1m, rotulo: "falhou", tipo: falha }
+  - { de: r1m, para: r10m, rotulo: "falhou", tipo: falha }
+  - { de: r10m, para: dlq, rotulo: "falhou", tipo: falha }
+  - { de: r5s, para: ok, rotulo: "deu certo" }

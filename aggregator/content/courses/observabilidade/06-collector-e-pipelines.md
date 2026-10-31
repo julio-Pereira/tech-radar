@@ -80,6 +80,10 @@ service:
 - **`batch` por último.** Agrupar reduz drasticamente as chamadas ao backend. Qualquer
   processor depois dele opera sobre lotes já formados e o efeito muda.
 
+```diagrama
+obs-pipeline-do-collector
+```
+
 O `attributes` processor é o que atende à **cardinalidade** do marco 04 e ao **PII** do
 marco 17: apagar `Authorization`, apagar o texto da query, remover o atributo de alta
 cardinalidade que ninguém consulta. Cada atributo removido aqui é dinheiro que não é
@@ -90,15 +94,8 @@ existe.
 
 A topologia que escala:
 
-```
-app ──┐
-app ──┼──► Collector agent (DaemonSet, um por nó)
-app ──┘            │  enriquece com k8s.*, tira PII, lote inicial
-                   ▼
-           Collector gateway (Deployment, com HPA)
-                   │  tail sampling, roteamento, agregação
-                   ▼
-              Tempo / Prometheus / Loki
+```diagrama
+obs-agent-e-gateway
 ```
 
 - **Agent** (DaemonSet) — perto da app, salto de rede curto. É onde o

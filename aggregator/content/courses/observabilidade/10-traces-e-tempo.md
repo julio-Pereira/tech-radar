@@ -106,16 +106,8 @@ serviço B, torcer para os relógios estarem sincronizados. Com isso, é uma con
 
 O `fin-platform` instrumentado ponta a ponta:
 
-```
-POST /payments (pix-gateway)
-├── span: validação
-├── span: consulta de limite (postgres)
-├── span: antifraude (gRPC → ledger-core)
-│   └── span: consulta de histórico (postgres)
-├── span: chamada ao PSP (http, atributo fin.psp)
-└── span: publicação em payments.initiated (kafka)
-        ⇢ link ⇢ span: consumo (ledger-core), 40s depois
-                 └── span: lançamento no ledger (postgres)
+```diagrama
+obs-trace-de-um-pagamento
 ```
 
 Atributos que fazem a diferença na investigação: `fin.psp`, `fin.payment.method`,

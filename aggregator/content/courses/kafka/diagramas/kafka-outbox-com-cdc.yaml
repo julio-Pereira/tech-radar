@@ -1,0 +1,23 @@
+id: kafka-outbox-com-cdc
+tipo: topologia
+titulo: "Outbox lido por CDC: o contrato é seu, o relay é do Debezium"
+descricao: >
+  O pix-gateway grava o pagamento e o evento na tabela outbox na mesma transação do
+  Postgres, então os dois existem ou nenhum existe. O Debezium lê o log de replicação do
+  banco, filtrando a tabela outbox, e publica cada evento no tópico payments.initiated,
+  com accountId como chave para preservar a ordem por conta. Ninguém precisa operar um
+  relay próprio, e o formato do evento continua sendo um contrato explícito, não o
+  formato interno da tabela de pagamentos.
+grupos:
+  - { id: postgres, rotulo: "Postgres", col: 1, row: 0, cols: 1, rows: 2 }
+nos:
+  - { id: gateway, rotulo: "pix-gateway", col: 0, row: 0, papel: destaque }
+  - { id: pagamentos, rotulo: "pagamentos", grupo: postgres, col: 1, row: 0 }
+  - { id: outbox, rotulo: "outbox", grupo: postgres, col: 1, row: 1, conceito: outbox }
+  - { id: debezium, rotulo: "Debezium (WAL)", col: 2, row: 1 }
+  - { id: topico, rotulo: "payments.initiated", col: 3, row: 1, papel: externo }
+arestas:
+  - { de: gateway, para: pagamentos, rotulo: "mesma tx" }
+  - { de: gateway, para: outbox, rotulo: "mesma tx" }
+  - { de: outbox, para: debezium, rotulo: "lê o log", estilo: tracejada }
+  - { de: debezium, para: topico, rotulo: "publica" }

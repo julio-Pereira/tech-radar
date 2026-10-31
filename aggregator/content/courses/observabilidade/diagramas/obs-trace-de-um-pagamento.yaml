@@ -1,0 +1,28 @@
+id: obs-trace-de-um-pagamento
+tipo: sequencia
+titulo: "Um pagamento, um trace: o consumo no Kafka entra por span link"
+descricao: >
+  O POST /payments chega ao pix-gateway, que valida, consulta o limite no Postgres, pede
+  a análise de antifraude ao ledger-core por gRPC, que consulta o histórico, e chama o
+  PSP, cada passo um span do
+  mesmo trace, propagado pelo cabeçalho traceparent. Por fim publica em
+  payments.initiated com o contexto nos headers da mensagem. O ledger-core consome o
+  evento minutos depois: o span de consumo é raiz da própria árvore e carrega um link
+  para o span de produção, sem fingir que foi uma chamada síncrona, e o lançamento no
+  ledger é filho dele.
+participantes:
+  - { id: gateway, rotulo: "pix-gateway", papel: destaque }
+  - { id: postgres, rotulo: "Postgres" }
+  - { id: ledger, rotulo: "ledger-core" }
+  - { id: psp, rotulo: "PSP", papel: externo }
+  - { id: topico, rotulo: "payments.initiated" }
+mensagens:
+  - { de: gateway, para: gateway, rotulo: "validação" }
+  - { de: gateway, para: postgres, rotulo: "consulta de limite" }
+  - { de: gateway, para: ledger, rotulo: "antifraude (gRPC)", nota: "traceparent no cabeçalho" }
+  - { de: ledger, para: postgres, rotulo: "consulta de histórico" }
+  - { de: ledger, para: gateway, rotulo: "decisão", tipo: reply }
+  - { de: gateway, para: psp, rotulo: "chamada ao PSP", nota: "atributo fin.psp" }
+  - { de: gateway, para: topico, rotulo: "publica o evento", tipo: async, nota: "contexto nos headers" }
+  - { de: topico, para: ledger, rotulo: "consumo, 40s depois", tipo: async, nota: "span link para a produção" }
+  - { de: ledger, para: postgres, rotulo: "lançamento no ledger" }

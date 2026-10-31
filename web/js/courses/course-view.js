@@ -6,6 +6,7 @@ import { buildTimelineNode } from './timeline-node.js';
 import { buildGlossaryBlock, buildSourcesBlock } from './content-blocks.js';
 import { scrollToMilestone, expandMilestone } from './scroll.js';
 import { inDesvio, arriveAt, buildReturnBanner, addEndOfOwnerReturn, returnToPoint, announce } from './desvio.js';
+import { addMiniMap } from './minimap.js';
 
 /** @typedef {import('../types.js').Course} Course */
 /** @typedef {import('../types.js').Milestone} Milestone */
@@ -110,6 +111,12 @@ function buildCourseView(course, marcoId, conceitoId) {
     subtitle.textContent = course.subtitle;
     header.appendChild(subtitle);
   }
+
+  // "Você está aqui" no fin-platform — arrives async; tracks without a
+  // capstone component get nothing.
+  const miniMapSlot = document.createElement('div');
+  header.appendChild(miniMapSlot);
+  addMiniMap(miniMapSlot, course.slug);
 
   // Progress block (live-updated as milestones toggle) -------------------------
   const doneCount = countDone(completed, course.milestones);

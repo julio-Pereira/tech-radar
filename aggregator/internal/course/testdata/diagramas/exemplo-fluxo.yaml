@@ -1,0 +1,20 @@
+id: exemplo-fluxo
+tipo: fluxo
+titulo: "A saga desfaz o que já reservou quando o PSP recusa"
+descricao: >
+  A saga do pagamento reserva o saldo no ledger-core, pede a autorização ao PSP e,
+  autorizado, lança o débito definitivo. Se o PSP recusa, o passo de autorização
+  falha e a saga executa a compensação: libera a reserva de saldo feita no primeiro
+  passo. Nenhum passo desfaz o que outro serviço fez diretamente; cada um expõe a
+  sua própria operação de compensação.
+passos:
+  - { id: reservar, rotulo: "reservar saldo", col: 0, row: 0 }
+  - { id: autorizar, rotulo: "autorizar no PSP", col: 1, row: 0, papel: externo }
+  - { id: lancar, rotulo: "lançar débito", col: 2, row: 0, papel: destaque }
+  - { id: recusado, rotulo: "PSP recusou", col: 1, row: 1 }
+  - { id: liberar, rotulo: "liberar reserva", col: 0, row: 1 }
+arestas:
+  - { de: reservar, para: autorizar }
+  - { de: autorizar, para: lancar, rotulo: "autorizado" }
+  - { de: autorizar, para: recusado, rotulo: "recusa", tipo: falha }
+  - { de: recusado, para: liberar, rotulo: "compensar", tipo: compensacao }

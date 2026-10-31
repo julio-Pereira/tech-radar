@@ -32,6 +32,10 @@ retorna. Entender esses cinco passos explica quase toda config do producer:
 O ponto que muda o desenho do seu código: **o resultado real chega depois**. Um
 `send()` que "funcionou" não significa nada.
 
+```diagrama
+kafka-producer-por-dentro
+```
+
 ## Os botões que importam
 
 ### Durabilidade

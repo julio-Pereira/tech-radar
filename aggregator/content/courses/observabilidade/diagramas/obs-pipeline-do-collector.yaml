@@ -1,0 +1,28 @@
+id: obs-pipeline-do-collector
+tipo: fluxo
+titulo: "A ordem dos processors é a ordem de execução: memory_limiter antes, batch depois"
+descricao: >
+  O receiver otlp recebe traces e métricas. No pipeline de traces, o memory_limiter vem
+  primeiro, para descartar antes de o Collector morrer por falta de memória; depois o
+  attributes apaga o header Authorization e o texto das queries, o resource marca o
+  ambiente, e o batch, por último, agrupa antes do exporter para o Tempo. O pipeline de
+  métricas passa só por memory_limiter e batch, e sai pelo exporter do Prometheus.
+passos:
+  - { id: otlp, rotulo: "otlp (receiver)", col: 0, row: 0 }
+  - { id: ml, rotulo: "memory_limiter", col: 1, row: 0, papel: destaque }
+  - { id: attr, rotulo: "attributes/limpeza", col: 2, row: 0 }
+  - { id: res, rotulo: "resource", col: 3, row: 0 }
+  - { id: batch, rotulo: "batch", col: 4, row: 0 }
+  - { id: tempo, rotulo: "otlphttp/tempo", col: 5, row: 0, papel: externo }
+  - { id: ml2, rotulo: "memory_limiter", col: 1, row: 1 }
+  - { id: batch2, rotulo: "batch", col: 4, row: 1 }
+  - { id: prom, rotulo: "prometheus", col: 5, row: 1, papel: externo }
+arestas:
+  - { de: otlp, para: ml, rotulo: "traces" }
+  - { de: ml, para: attr }
+  - { de: attr, para: res }
+  - { de: res, para: batch }
+  - { de: batch, para: tempo }
+  - { de: otlp, para: ml2, rotulo: "métricas" }
+  - { de: ml2, para: batch2 }
+  - { de: batch2, para: prom }

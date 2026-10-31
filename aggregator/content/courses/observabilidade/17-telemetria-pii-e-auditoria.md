@@ -68,6 +68,10 @@ Duas observações honestas sobre isso:
 E o processador precisa rodar **no agente do nó**, não no gateway — para que o dado
 sensível não trafegue pela rede nem chegue a um segundo processo.
 
+```diagrama
+obs-pii-no-caminho
+```
+
 ## Telemetria ≠ trilha de auditoria
 
 A distinção do marco 09, agora com as consequências completas:
