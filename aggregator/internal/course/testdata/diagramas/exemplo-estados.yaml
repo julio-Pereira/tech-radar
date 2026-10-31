@@ -1,0 +1,21 @@
+id: exemplo-estados
+tipo: estados
+titulo: "Um alerta só dispara depois de ficar pendente pelo tempo do for"
+descricao: >
+  Toda regra de alerta começa inativa. Quando a expressão fica verdadeira, o alerta
+  passa a pendente e só vai para disparado se continuar verdadeiro durante todo o
+  tempo do for. Se a expressão volta a ser falsa enquanto pendente, ele volta a
+  inativo sem notificar ninguém. Disparado, ele é resolvido quando a expressão
+  deixa de ser verdadeira, e a regra volta a ficar inativa.
+estados:
+  - { id: inactive, rotulo: "inactive", col: 0, row: 0 }
+  - { id: pending, rotulo: "pending", col: 1, row: 0 }
+  - { id: firing, rotulo: "firing", col: 2, row: 0, papel: destaque }
+  - { id: resolved, rotulo: "resolved", col: 2, row: 1 }
+inicial: inactive
+finais: [resolved]
+transicoes:
+  - { de: inactive, para: pending, evento: "expr verdadeira" }
+  - { de: pending, para: inactive, evento: "expr falsa" }
+  - { de: pending, para: firing, evento: "dura o for", guarda: "5m" }
+  - { de: firing, para: resolved, evento: "expr falsa" }

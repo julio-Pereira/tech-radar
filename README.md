@@ -216,6 +216,79 @@ next to `glossary.json`.
   and other everyday Portuguese words, and ambiguous acronyms (TTL), only enter with a
   compound, unambiguous alias.
 
+### Diagrams: typed data, not pictures
+
+A diagram is **content of the first class, like a quiz**: a typed YAML file, validated by
+the compiler, drawn by the browser as plain SVG (`web/js/courses/diagram.js`, no
+library, no inline style — the CSP is `style-src 'self'`). One file per diagram, in
+`content/courses/<trilha>/diagramas/<id>.yaml`, referenced from a milestone by a fenced
+block (two ids, one per line, draw them side by side):
+
+````markdown
+```diagrama
+kafka-particoes-e-isr
+```
+````
+
+The compiler replaces the block with a `<figure data-diagrama="<slug>/<id>">` holding the
+title and the full textual description (readable without JavaScript), and writes the
+specs to `web/data/diagramas/<slug>.json`, which the front end fetches only when a
+milestone on screen has a diagram. No SVG element is ever allowed by the sanitizer.
+
+Four types, and only four: **`topologia`** (components and connections — `grupos`, `nos`,
+`arestas` with `estilo: normal|tracejada`), **`fluxo`** (steps with branches —
+`passos`, `arestas` with `tipo: normal|falha|compensacao`), **`estados`** (a life cycle —
+`estados`, `transicoes` with `evento` and optional `guarda`, `inicial`, `finais`) and
+**`sequencia`** (messages over time — `participantes`, `mensagens` with
+`tipo: sync|async|reply` and an optional `nota`). Grid types place every element with
+`col`/`row` (and groups with `cols`/`rows`): the layout is declared by the author, there
+is no layout engine. Presentation is semantic — `papel: destaque|externo|fora-da-transacao`
+on a node — and becomes a CSS class; colors never go in the YAML. A node or participant
+with `conceito: <id>` (from `conceitos.yaml`) is a link to the concept's owner milestone,
+with the same detour and return as a concept in the prose.
+
+```yaml
+id: exemplo-topologia
+tipo: topologia
+titulo: "O evento sai do outbox, nunca direto do pix-gateway"   # an assertion, not a label
+descricao: >   # mandatory, at least 40 words: what a screen reader reads
+  O pix-gateway grava o pagamento na tabela payments e o evento PaymentInitiated ...
+grupos:
+  - { id: postgres, rotulo: "Postgres", col: 1, row: 0, cols: 1, rows: 2 }
+nos:
+  - { id: gateway, rotulo: "pix-gateway", col: 0, row: 0, papel: destaque }
+  - { id: outbox, rotulo: "outbox", grupo: postgres, col: 1, row: 1, conceito: outbox }
+arestas:
+  - { de: gateway, para: outbox, rotulo: "INSERT, mesma tx" }
+```
+
+The build fails (the track is skipped, and `TestCompileRealContent` fails CI) when: the
+`id` differs from the file name; a key is unknown or belongs to another type; an edge,
+message or transition points at something not declared; two elements share a grid cell,
+or a node lies outside its group; the title passes 90 characters or a label 28; the
+description has fewer than 40 words; there are more than 12 elements (6 participants and
+14 messages in a sequence) — split the diagram; a `conceito` is not in `conceitos.yaml`;
+a `diagrama` block names an id that doesn't exist. A diagram file no milestone references
+is a warning. Examples of each type live in `aggregator/internal/course/testdata/diagramas/`.
+
+**When to draw.** A milestone gets a diagram when its prose describes **3 or more
+components interacting**, an **order of messages**, the **states of a life cycle** or a
+**pipeline with branches or compensation**. One diagram, one idea; the title is an
+assertion ("o PSP fica fora da transação"), not a label ("Transações"). Use the domain's
+names — `pix-gateway`, `ledger-core`, `pix-stream`, real topics and events — never
+`Service A`. The diagram complements the prose: the text stays self-sufficient, and the
+diagram never states a fact the text doesn't support. **New ASCII diagrams are not
+allowed**: the compiler warns about fenced blocks with box-drawing characters or arrows.
+
+**Illustrations** (what isn't a graph — the anatomy of a log record, say) are authored
+images in `content/courses/<trilha>/assets/` (`svg`, `png` or `webp`, at most 200 KB),
+referenced as `![alt text](assets/file.svg)` with a non-empty alt. Remote images and
+hotlinks fail the build; the files are copied to `web/data/assets/<slug>/`.
+
+Each track with a capstone component also opens with a **"você está aqui"** mini-map:
+its component on the fin-platform map, between what it uses and what uses it, linking to
+`#/fin-platform` (drawn from `capstones.json` with the same SVG primitives).
+
 ### Compiling
 
 The same `go run .` that builds the feed also compiles tracks: it renders each

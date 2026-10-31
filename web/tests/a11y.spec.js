@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
+const { injectDiagramas } = require('./helpers/diagramas');
 
 // Baseline per the UX plan: zero violations of serious/critical impact.
 // Moderate/minor findings are allowed for now and tracked in web/docs/ux-baseline.md
@@ -16,6 +17,17 @@ function describe(violations) {
 }
 
 test.describe('Accessibility (axe-core)', () => {
+  test('milestone with diagrams has no serious/critical violations', async ({ page }) => {
+    await injectDiagramas(page);
+    await page.goto('/#/learn/kafka');
+    const node = page.locator('.timeline-node').first();
+    await node.locator('.node-toggle').click();
+    await expect(node.locator('figure.diagrama svg')).toHaveCount(4);
+    const results = await new AxeBuilder({ page }).include('body').analyze();
+    const serious = seriousViolations(results);
+    expect(serious, describe(serious)).toHaveLength(0);
+  });
+
   test('radar view (#/) has no serious/critical violations', async ({ page }) => {
     await page.goto('/#/');
     await expect(page.locator('#articles .card').first()).toBeVisible();

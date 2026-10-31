@@ -4,8 +4,8 @@
 // equivalent accessible table and the artifact list per component.
 import { announceRoute } from '../announce.js';
 import { buildLoading, buildError, buildEmpty } from '../dom-helpers.js';
+import { el, label, rect, arrowDefs, edgeBetween } from './diagram-svg.js';
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
 const BOX_W = 148;
 const BOX_H = 54;
 const COL_GAP = 28;
@@ -110,28 +110,12 @@ function buildMap(components) {
   });
 
   const height = rows.length * ROW_H;
-  const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${maxRowWidth} ${height}`);
-  svg.setAttribute('class', 'capstone-map');
+  const svg = el('svg', { viewBox: `0 0 ${maxRowWidth} ${height}`, class: 'capstone-map' });
   // Decorative — the table right below carries the identical component/
   // dependency data in accessible markup.
   svg.setAttribute('aria-hidden', 'true');
   svg.setAttribute('focusable', 'false');
-
-  const defs = document.createElementNS(SVG_NS, 'defs');
-  const marker = document.createElementNS(SVG_NS, 'marker');
-  marker.setAttribute('id', 'capstone-arrow');
-  marker.setAttribute('markerWidth', '8');
-  marker.setAttribute('markerHeight', '8');
-  marker.setAttribute('refX', '6');
-  marker.setAttribute('refY', '4');
-  marker.setAttribute('orient', 'auto');
-  const arrowPath = document.createElementNS(SVG_NS, 'path');
-  arrowPath.setAttribute('d', 'M0,0 L8,4 L0,8 Z');
-  arrowPath.setAttribute('class', 'capstone-arrowhead');
-  marker.appendChild(arrowPath);
-  defs.appendChild(marker);
-  svg.appendChild(defs);
+  svg.appendChild(arrowDefs('capstone', ['seta']));
 
   // Edges drawn before boxes, so each line's clipped endpoint disappears
   // cleanly under the box it touches instead of needing pixel-perfect math.
@@ -141,61 +125,22 @@ function buildMap(components) {
     for (const dep of c.dependsOn) {
       const to = positions.get(dep);
       if (!to) continue;
-      const start = clipToBoxEdge(from.cx, from.cy, to.cx - from.cx, to.cy - from.cy);
-      const end = clipToBoxEdge(to.cx, to.cy, from.cx - to.cx, from.cy - to.cy);
-      const line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('x1', String(start.x));
-      line.setAttribute('y1', String(start.y));
-      line.setAttribute('x2', String(end.x));
-      line.setAttribute('y2', String(end.y));
-      line.setAttribute('class', 'capstone-edge');
-      line.setAttribute('marker-end', 'url(#capstone-arrow)');
-      svg.appendChild(line);
+      const s = edgeBetween({ ...from, w: BOX_W, h: BOX_H }, { ...to, w: BOX_W, h: BOX_H });
+      svg.appendChild(el('line', { ...s, class: 'capstone-edge', 'marker-end': 'url(#capstone-seta)' }));
     }
   }
 
   for (const c of components) {
     const pos = positions.get(c.component);
     if (!pos) continue;
-    const g = document.createElementNS(SVG_NS, 'g');
-
-    const rect = document.createElementNS(SVG_NS, 'rect');
-    rect.setAttribute('x', String(pos.x));
-    rect.setAttribute('y', String(pos.y));
-    rect.setAttribute('width', String(BOX_W));
-    rect.setAttribute('height', String(BOX_H));
-    rect.setAttribute('rx', '8');
-    rect.setAttribute('class', 'capstone-box');
-    g.appendChild(rect);
-
-    const label = document.createElementNS(SVG_NS, 'text');
-    label.setAttribute('x', String(pos.cx));
-    label.setAttribute('y', String(pos.cy - 4));
-    label.setAttribute('class', 'capstone-box-label');
-    label.textContent = c.component;
-    g.appendChild(label);
-
-    const track = document.createElementNS(SVG_NS, 'text');
-    track.setAttribute('x', String(pos.cx));
-    track.setAttribute('y', String(pos.cy + 14));
-    track.setAttribute('class', 'capstone-box-track');
-    track.textContent = c.track;
-    g.appendChild(track);
-
+    const g = el('g');
+    g.appendChild(rect({ x: pos.x, y: pos.y, w: BOX_W, h: BOX_H }, 'capstone-box'));
+    g.appendChild(label(pos.cx, pos.cy - 4, c.component, 'capstone-box-label'));
+    g.appendChild(label(pos.cx, pos.cy + 14, c.track, 'capstone-box-track'));
     svg.appendChild(g);
   }
 
   return svg;
-}
-
-/** Clips a line from (cx,cy) in direction (dx,dy) to the edge of a BOX_W×BOX_H box centered at (cx,cy). */
-function clipToBoxEdge(cx, cy, dx, dy) {
-  const halfW = BOX_W / 2;
-  const halfH = BOX_H / 2;
-  const scaleX = dx !== 0 ? halfW / Math.abs(dx) : Infinity;
-  const scaleY = dy !== 0 ? halfH / Math.abs(dy) : Infinity;
-  const scale = Math.min(scaleX, scaleY);
-  return { x: cx + dx * scale, y: cy + dy * scale };
 }
 
 function buildTable(components) {

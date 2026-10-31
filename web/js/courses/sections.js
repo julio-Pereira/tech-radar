@@ -32,6 +32,7 @@ export function buildMilestoneBody(slug, milestone) {
   if (!milestone.sections || milestone.sections.length === 0) {
     article.innerHTML = milestone.html; // pre-sanitized at build time (bluemonday)
     addCopyButtons(article);
+    hydrateDiagrams(article);
     return article;
   }
 
@@ -55,7 +56,18 @@ export function buildMilestoneBody(slug, milestone) {
   // One pass over the whole assembled body, same as the fallback path —
   // finds every <pre> regardless of which section/block it ended up in.
   addCopyButtons(article);
+  hydrateDiagrams(article);
   return article;
+}
+
+/**
+ * The diagram renderer is only downloaded for a milestone that has a
+ * diagram; the figure already carries its title and textual description.
+ * @param {HTMLElement} article
+ */
+function hydrateDiagrams(article) {
+  if (!article.querySelector('figure.diagrama[data-diagrama]')) return;
+  import('./diagram.js').then((m) => m.renderDiagrams(article)).catch(() => {});
 }
 
 function buildHandsonSection(slug, milestoneId, section) {

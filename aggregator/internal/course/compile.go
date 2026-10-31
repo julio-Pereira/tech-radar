@@ -82,6 +82,12 @@ func Compile(contentDir, outDir string) (Index, error) {
 			log.Printf("WARN could not write course %s: %v", compiled.Slug, err)
 			continue
 		}
+		if err := writeDiagramas(filepath.Dir(outDir), compiled.Slug, compiled.diagramas); err != nil {
+			log.Printf("WARN could not write diagramas for %s: %v", compiled.Slug, err)
+		}
+		if err := copyAssets(courseDir, compiled.Slug, filepath.Dir(outDir), compiled.assets); err != nil {
+			log.Printf("WARN could not copy assets for %s: %v", compiled.Slug, err)
+		}
 		compiledCourses[compiled.Slug] = compiled
 
 		index.Courses = append(index.Courses, IndexEntry{
@@ -182,6 +188,13 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 		return CompiledCourse{}, nil, fmt.Errorf("course %q has no milestones", manifest.Slug)
 	}
 
+	diagramas, err := loadDiagramas(dir, conceitos)
+	if err != nil {
+		return CompiledCourse{}, nil, err
+	}
+	usedDiagramas := map[string]bool{}
+	var assets []string
+
 	milestones := make([]CompiledMilestone, 0, len(manifest.Milestones))
 	seenIDs := make(map[string]struct{}, len(manifest.Milestones))
 	var allBroken []string
@@ -192,6 +205,27 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 			return CompiledCourse{}, nil, err
 		}
 		allBroken = append(allBroken, broken...)
+		if missing := applyDiagramas(&html, sections, manifest.Slug, diagramas, usedDiagramas); len(missing) > 0 {
+			return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %s", file, strings.Join(missing, "; "))
+		}
+		if source, rerr := os.ReadFile(filepath.Join(dir, file)); rerr == nil {
+			names, aerr := validateAssets(source, dir)
+			if aerr != nil {
+				return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %w", file, aerr)
+			}
+			if len(names) > 0 {
+				assets = append(assets, names...)
+				html = rewriteAssetSrc(html, manifest.Slug)
+				for si := range sections {
+					sections[si].HTML = rewriteAssetSrc(sections[si].HTML, manifest.Slug)
+					sections[si].Intro = rewriteAssetSrc(sections[si].Intro, manifest.Slug)
+					for bi := range sections[si].Blocks {
+						sections[si].Blocks[bi].HTML = rewriteAssetSrc(sections[si].Blocks[bi].HTML, manifest.Slug)
+					}
+				}
+			}
+			warnASCIIDiagrams(source, manifest.Slug+"/"+file)
+		}
 		if fm.ID == "" {
 			return CompiledCourse{}, nil, fmt.Errorf("milestone %s is missing id", file)
 		}
@@ -250,6 +284,12 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 		})
 	}
 
+	for id := range diagramas {
+		if !usedDiagramas[id] {
+			log.Printf("WARN %s: diagramas/%s.yaml não é referenciado por nenhum marco", manifest.Slug, id)
+		}
+	}
+
 	var glossary string
 	if manifest.Glossary != "" {
 		glossary, err = ParseGlossary(filepath.Join(dir, manifest.Glossary))
@@ -271,6 +311,8 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 		Milestones:     milestones,
 		Glossary:       glossary,
 		Prerequisites:  manifest.Prerequisites,
+		diagramas:      diagramas,
+		assets:         assets,
 	}, allBroken, nil
 }
 
