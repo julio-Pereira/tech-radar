@@ -1378,8 +1378,23 @@
 
 /* Scroll horizontal dentro da figura, nunca da página. */
 .diagrama-area { overflow-x: auto; overflow-y: hidden; }
-.diagrama-svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
-.diagrama-svg.diagrama-largo { width: 100%; max-width: none; min-width: 560px; }
+/* Width classes set by diagram.js: never wider than the natural size,
+   never narrower than 80% of it (then the figure scrolls). */
+.diagrama-svg { display: block; width: 100%; height: auto; margin: 0 auto; }
+.diagrama-l3 { max-width: 300px; min-width: 240px; }
+.diagrama-l4 { max-width: 400px; min-width: 320px; }
+.diagrama-l5 { max-width: 500px; min-width: 400px; }
+.diagrama-l6 { max-width: 600px; min-width: 480px; }
+.diagrama-l7 { max-width: 700px; min-width: 560px; }
+.diagrama-l8 { max-width: 800px; min-width: 640px; }
+.diagrama-l9 { max-width: 900px; min-width: 720px; }
+.diagrama-l10 { max-width: 1000px; min-width: 800px; }
+.diagrama-l11 { max-width: 1100px; min-width: 880px; }
+.diagrama-l12 { max-width: 1200px; min-width: 960px; }
+.diagrama-l13 { max-width: 1300px; min-width: 1040px; }
+.diagrama-l14 { max-width: 1400px; min-width: 1120px; }
+.diagrama-l15 { max-width: 1500px; min-width: 1200px; }
+.diagrama-l16 { max-width: 1600px; min-width: 1280px; }
 
 .diagramas-lado-a-lado {
   display: grid;

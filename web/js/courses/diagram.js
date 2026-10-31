@@ -10,8 +10,10 @@
 import { el, label, rect, arrowDefs, edgeBetween } from './diagram-svg.js';
 import { startDesvio, returnToPoint } from './desvio.js';
 
-const CELL_W = 200;
+const CELL_W_MIN = 140;
+const CELL_W_MAX = 200;
 const CELL_H = 48;
+const NODE_CHAR_W = 7.4; // average width of a 13px node-label character
 const GAP_X_MIN = 56;
 const GAP_X_MAX = 210;
 const CHAR_W = 6.8; // average width of a 12px label character
@@ -71,10 +73,12 @@ function drawInto(figure, spec) {
   svg.setAttribute('role', 'group');
   if (caption) svg.setAttribute('aria-labelledby', caption.id);
   if (desc) svg.setAttribute('aria-describedby', desc.id);
-  // Wide drawings fill the figure down to a legible minimum and then scroll
-  // inside it (never the page); narrow ones keep their natural size.
-  const wide = Number(svg.getAttribute('width')) > 560;
-  svg.setAttribute('class', `diagrama-svg diagrama-${spec.tipo}${wide ? ' diagrama-largo' : ''}`);
+  // The drawing shrinks with the figure down to 80% of its natural width
+  // and then scrolls inside it (never the page): text never gets smaller
+  // than ~10px. The bounds come from a width class (course.css), not from a
+  // style attribute.
+  const bucket = Math.min(16, Math.max(3, Math.ceil(Number(svg.getAttribute('width')) / 100)));
+  svg.setAttribute('class', `diagrama-svg diagrama-${spec.tipo} diagrama-l${bucket}`);
 
   const scroller = document.createElement('div');
   scroller.className = 'diagrama-area';
@@ -94,8 +98,14 @@ function hidden(/** @type {SVGElement} */ node) {
 
 // ── topologia, fluxo, estados: boxes on the author's grid ──────────────────
 
-/** @param {number} col @param {number} gapX */
-const colX = (col, gapX) => MARGIN + col * (CELL_W + gapX);
+/** @param {number} col @param {number} gapX @param {number} cellW */
+const colX = (col, gapX, cellW) => MARGIN + col * (cellW + gapX);
+
+/** Boxes as wide as the longest node label of the diagram needs. */
+function cellWidthFor(/** @type {any} */ spec) {
+  const longest = Math.max(0, ...(spec.nos || []).map((/** @type {any} */ n) => n.rotulo.length));
+  return Math.max(CELL_W_MIN, Math.min(CELL_W_MAX, Math.ceil(longest * NODE_CHAR_W + 28)));
+}
 
 /**
  * The horizontal gap is sized to the longest label of an edge between two
@@ -127,15 +137,16 @@ function drawGraph(spec, prefix) {
     maxRow = Math.max(maxRow, c.row + (c.rows || 1) - 1);
   }
   const gapX = gapFor(spec);
-  const width = colX(maxCol, gapX) + CELL_W + MARGIN;
+  const cellW = cellWidthFor(spec);
+  const width = colX(maxCol, gapX, cellW) + cellW + MARGIN;
   const height = rowY(maxRow) + CELL_H + MARGIN;
   const svg = el('svg', { viewBox: `0 0 ${width} ${height}`, width, height });
   svg.appendChild(arrowDefs(prefix, ['seta']));
 
   for (const g of grupos) {
-    const x = colX(g.col, gapX) - GROUP_PAD;
+    const x = colX(g.col, gapX, cellW) - GROUP_PAD;
     const y = rowY(g.row) - GROUP_PAD - GROUP_LABEL;
-    const w = g.cols * CELL_W + (g.cols - 1) * gapX + 2 * GROUP_PAD;
+    const w = g.cols * cellW + (g.cols - 1) * gapX + 2 * GROUP_PAD;
     const h = g.rows * CELL_H + (g.rows - 1) * GAP_Y + 2 * GROUP_PAD + GROUP_LABEL;
     svg.appendChild(hidden(rect({ x, y, w, h }, 'diagrama-grupo', 10)));
     svg.appendChild(hidden(label(x + 10, y + 16, g.rotulo, 'diagrama-grupo-rotulo')));
@@ -144,9 +155,9 @@ function drawGraph(spec, prefix) {
   /** @type {Map<string, {cx: number, cy: number, w: number, h: number, x: number, y: number}>} */
   const pos = new Map();
   for (const no of nos) {
-    const x = colX(no.col, gapX);
+    const x = colX(no.col, gapX, cellW);
     const y = rowY(no.row);
-    pos.set(no.id, { x, y, w: CELL_W, h: CELL_H, cx: x + CELL_W / 2, cy: y + CELL_H / 2 });
+    pos.set(no.id, { x, y, w: cellW, h: CELL_H, cx: x + cellW / 2, cy: y + CELL_H / 2 });
   }
 
   const pairs = new Set((spec.arestas || []).map((/** @type {any} */ a) => `${a.de}>${a.para}`));

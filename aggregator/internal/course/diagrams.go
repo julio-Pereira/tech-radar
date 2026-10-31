@@ -629,7 +629,9 @@ func applyDiagramas(htmlBody *string, sections []Section, slug string, diagramas
 func warnASCIIDiagrams(body []byte, where string) int {
 	n := 0
 	for _, m := range fencedRe.FindAllSubmatch(body, -1) {
-		if string(m[1]) == "diagrama" {
+		// ASCII diagrams live in fences without a language (or "text"); an
+		// arrow inside a sql or java comment is code, not a drawing.
+		if lang := string(m[1]); lang != "" && lang != "text" {
 			continue
 		}
 		if asciiDiagramRe.Match(m[2]) {
