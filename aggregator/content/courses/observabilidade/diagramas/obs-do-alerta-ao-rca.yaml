@@ -12,10 +12,10 @@ passos:
   - { id: alerta, rotulo: "alerta", col: 0, row: 0, papel: externo }
   - { id: impacto, rotulo: "1. avaliar impacto", col: 1, row: 0 }
   - { id: mitigar, rotulo: "2. mitigar", col: 2, row: 0, papel: destaque }
-  - { id: diagnosticar, rotulo: "3. diagnosticar", col: 3, row: 0 }
-  - { id: hipotese, rotulo: "nova hipótese", col: 3, row: 1 }
-  - { id: comunicar, rotulo: "4. comunicar (durante)", col: 1, row: 1 }
-  - { id: postmortem, rotulo: "post-mortem blameless", col: 4, row: 0 }
+  - { id: comunicar, rotulo: "4. comunicar (durante)", col: 0, row: 1 }
+  - { id: hipotese, rotulo: "nova hipótese", col: 1, row: 1 }
+  - { id: diagnosticar, rotulo: "3. diagnosticar", col: 2, row: 1 }
+  - { id: postmortem, rotulo: "post-mortem blameless", col: 2, row: 2 }
 arestas:
   - { de: alerta, para: impacto }
   - { de: impacto, para: mitigar }

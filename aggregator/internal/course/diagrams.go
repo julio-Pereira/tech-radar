@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -51,7 +52,7 @@ var (
 	asciiDiagramRe = regexp.MustCompile(`[┌└┐┘│─├┤▶◀→←↓↑]|-->`)
 )
 
-var diagramaTipos = map[string]bool{"topologia": true, "sequencia": true, "estados": true, "fluxo": true}
+var diagramaTipos = map[string]bool{"topologia": true, "sequencia": true, "estados": true, "fluxo": true, "grafico": true}
 
 var diagramaPapeis = map[string]bool{"": true, "destaque": true, "externo": true, "fora-da-transacao": true}
 
@@ -85,18 +86,27 @@ type diagramaNo struct {
 }
 
 type diagramaAresta struct {
-	De     string `yaml:"de"`
-	Para   string `yaml:"para"`
-	Rotulo string `yaml:"rotulo"`
-	Estilo string `yaml:"estilo"` // topologia
-	Tipo   string `yaml:"tipo"`   // fluxo
+	De     string          `yaml:"de"`
+	Para   string          `yaml:"para"`
+	Rotulo string          `yaml:"rotulo"`
+	Estilo string          `yaml:"estilo"` // topologia
+	Tipo   string          `yaml:"tipo"`   // fluxo
+	Via    []diagramaPonto `yaml:"via"`
+}
+
+// diagramaPonto is a bend of an edge on the author's grid. Half steps are
+// allowed: row 0.5 is the lane between rows 0 and 1.
+type diagramaPonto struct {
+	Col float64 `yaml:"col" json:"col"`
+	Row float64 `yaml:"row" json:"row"`
 }
 
 type diagramaTransicao struct {
-	De     string `yaml:"de"`
-	Para   string `yaml:"para"`
-	Evento string `yaml:"evento"`
-	Guarda string `yaml:"guarda"`
+	De     string          `yaml:"de"`
+	Para   string          `yaml:"para"`
+	Evento string          `yaml:"evento"`
+	Guarda string          `yaml:"guarda"`
+	Via    []diagramaPonto `yaml:"via"`
 }
 
 type diagramaParticipante struct {
@@ -129,6 +139,13 @@ type diagramaSpec struct {
 	Finais        []string               `yaml:"finais"`
 	Participantes []diagramaParticipante `yaml:"participantes"`
 	Mensagens     []diagramaMensagem     `yaml:"mensagens"`
+	// grafico (D-G)
+	Forma     string                `yaml:"forma"`
+	EixoX     *graficoEixoSpec      `yaml:"eixo_x"`
+	EixoY     *graficoEixoSpec      `yaml:"eixo_y"`
+	Series    []graficoSerieSpec    `yaml:"series"`
+	Anotacoes []graficoAnotacaoSpec `yaml:"anotacoes"`
+	Fonte     string                `yaml:"fonte"`
 }
 
 // Compiled schema (JSON): one normalized graph shape for topologia, fluxo
@@ -155,10 +172,11 @@ type DiagramaNo struct {
 }
 
 type DiagramaAresta struct {
-	De     string `json:"de"`
-	Para   string `json:"para"`
-	Rotulo string `json:"rotulo,omitempty"`
-	Estilo string `json:"estilo,omitempty"`
+	De     string          `json:"de"`
+	Para   string          `json:"para"`
+	Rotulo string          `json:"rotulo,omitempty"`
+	Estilo string          `json:"estilo,omitempty"`
+	Via    []diagramaPonto `json:"via,omitempty"`
 }
 
 type DiagramaParticipante struct {
@@ -190,6 +208,13 @@ type Diagrama struct {
 	Finais        []string               `json:"finais,omitempty"`
 	Participantes []DiagramaParticipante `json:"participantes,omitempty"`
 	Mensagens     []DiagramaMensagem     `json:"mensagens,omitempty"`
+	Forma         string                 `json:"forma,omitempty"`
+	EixoX         *GraficoEixo           `json:"eixo_x,omitempty"`
+	EixoY         *GraficoEixo           `json:"eixo_y,omitempty"`
+	Categorias    []string               `json:"categorias,omitempty"`
+	Series        []GraficoSerie         `json:"series,omitempty"`
+	Anotacoes     []GraficoAnotacao      `json:"anotacoes,omitempty"`
+	Fonte         string                 `json:"fonte,omitempty"`
 }
 
 // DiagramasFile is data/diagramas/<slug>.json.
@@ -224,6 +249,9 @@ func loadDiagramas(courseDir string, conceitos *conceitoSet) (map[string]Diagram
 		if err != nil {
 			return nil, fmt.Errorf("diagrama %s: %w", path, err)
 		}
+		if w := diagramaLarguraNatural(d); w > diagramaLarguraMax {
+			log.Printf("WARN %s: largura natural de %.0f px (máximo %.0f): use até 4 colunas ou divida o diagrama", path, w, diagramaLarguraMax)
+		}
 		out[d.ID] = d
 	}
 	return out, nil
@@ -247,7 +275,7 @@ func parseDiagrama(data []byte, fileID string, conceitos *conceitoSet) (Diagrama
 		v.fail("id %q diferente do nome do arquivo %q", s.ID, fileID)
 	}
 	if !diagramaTipos[s.Tipo] {
-		v.fail("tipo %q desconhecido (topologia, sequencia, estados ou fluxo)", s.Tipo)
+		v.fail("tipo %q desconhecido (topologia, sequencia, estados, fluxo ou grafico)", s.Tipo)
 	}
 	if strings.TrimSpace(s.Titulo) == "" {
 		v.fail("titulo é obrigatório")
@@ -260,7 +288,27 @@ func parseDiagrama(data []byte, fileID string, conceitos *conceitoSet) (Diagrama
 
 	d := Diagrama{ID: s.ID, Tipo: s.Tipo, Titulo: strings.TrimSpace(s.Titulo), Descricao: strings.Join(strings.Fields(s.Descricao), " ")}
 
+	if s.Tipo != "grafico" {
+		for _, field := range []struct {
+			name string
+			set  bool
+		}{{"forma", s.Forma != ""}, {"eixo_x", s.EixoX != nil}, {"eixo_y", s.EixoY != nil}, {"series", len(s.Series) > 0},
+			{"anotacoes", len(s.Anotacoes) > 0}, {"fonte", s.Fonte != ""}} {
+			v.forbid(s.Tipo, field.name, field.set)
+		}
+	}
+
 	switch s.Tipo {
+	case "grafico":
+		for _, field := range []struct {
+			name string
+			set  bool
+		}{{"grupos", len(s.Grupos) > 0}, {"nos", len(s.Nos) > 0}, {"passos", len(s.Passos) > 0}, {"estados", len(s.Estados) > 0},
+			{"arestas", len(s.Arestas) > 0}, {"transicoes", len(s.Transicoes) > 0}, {"inicial", s.Inicial != ""}, {"finais", len(s.Finais) > 0},
+			{"participantes", len(s.Participantes) > 0}, {"mensagens", len(s.Mensagens) > 0}} {
+			v.forbid(s.Tipo, field.name, field.set)
+		}
+		v.grafico(s, &d)
 	case "topologia", "fluxo", "estados":
 		v.forbid(s.Tipo, "participantes", len(s.Participantes) > 0)
 		v.forbid(s.Tipo, "mensagens", len(s.Mensagens) > 0)
@@ -312,7 +360,8 @@ func parseDiagrama(data []byte, fileID string, conceitos *conceitoSet) (Diagrama
 					v.fail("transicoes[%d] precisa de evento", i)
 				}
 				v.rotulo(fmt.Sprintf("transicoes[%d]", i), rotulo)
-				d.Arestas = append(d.Arestas, DiagramaAresta{De: t.De, Para: t.Para, Rotulo: rotulo})
+				v.via(fmt.Sprintf("transicoes[%d]", i), t.Via, d.Nos)
+				d.Arestas = append(d.Arestas, DiagramaAresta{De: t.De, Para: t.Para, Rotulo: rotulo, Via: t.Via})
 			}
 		} else {
 			estilos := diagramaEstilos[s.Tipo]
@@ -337,7 +386,13 @@ func parseDiagrama(data []byte, fileID string, conceitos *conceitoSet) (Diagrama
 				if a.Rotulo != "" {
 					v.rotulo(fmt.Sprintf("arestas[%d]", i), a.Rotulo)
 				}
-				d.Arestas = append(d.Arestas, DiagramaAresta{De: a.De, Para: a.Para, Rotulo: a.Rotulo, Estilo: estilo})
+				v.via(fmt.Sprintf("arestas[%d]", i), a.Via, d.Nos)
+				d.Arestas = append(d.Arestas, DiagramaAresta{De: a.De, Para: a.Para, Rotulo: a.Rotulo, Estilo: estilo, Via: a.Via})
+			}
+		}
+		if len(v.problems) == 0 {
+			for _, c := range edgeCrossings(d) {
+				v.fail("%s", c)
 			}
 		}
 	case "sequencia":
@@ -459,6 +514,26 @@ func (v *diagramaValidator) conceito(where, id string, set *conceitoSet) string 
 	}
 	v.fail("%s: conceito %q não existe em conceitos.yaml", where, id)
 	return ""
+}
+
+// via validates the bends of one edge (C4): half-step grid points inside
+// the grid, never on a cell taken by a box.
+func (v *diagramaValidator) via(where string, pts []diagramaPonto, nos []DiagramaNo) {
+	taken := map[[2]float64]string{}
+	for _, n := range nos {
+		taken[[2]float64{float64(n.Col), float64(n.Row)}] = n.ID
+	}
+	for i, p := range pts {
+		if p.Col*2 != math.Trunc(p.Col*2) || p.Row*2 != math.Trunc(p.Row*2) {
+			v.fail("%s.via[%d]: col e row em passos de 0,5", where, i)
+		}
+		if p.Col < 0 || p.Row < 0 || p.Col > diagramaGridColunasMax-1 {
+			v.fail("%s.via[%d]: fora do grid", where, i)
+		}
+		if id, ok := taken[[2]float64{p.Col, p.Row}]; ok {
+			v.fail("%s.via[%d]: a célula (col %g, row %g) é de %q", where, i, p.Col, p.Row, id)
+		}
+	}
 }
 
 // grid validates groups and nodes laid out on the author's grid (D5 3, 5).
@@ -587,11 +662,27 @@ func markDiagramaFences(body []byte) []byte {
 	})
 }
 
+// Indented ```diagrama fences — inside a list item or a quote — are not
+// replaced by markDiagramaFences (it only sees column 0) and would ship as a
+// plain code block. An error, so the author moves the block out (C8).
+var diagramaFenceIndentedRe = regexp.MustCompile("(?m)^(?:[ \t]|>|[*+-][ \t]|\\d+[.)][ \t])[ \t>*+\\-]*```diagrama")
+
+func checkDiagramaIndent(body []byte) error {
+	if diagramaFenceIndentedRe.Match(body) {
+		return fmt.Errorf("bloco ```diagrama indentado (em lista ou citação): ele precisa começar na coluna 0")
+	}
+	return nil
+}
+
 func figureHTML(slug string, d Diagrama) string {
+	dados := ""
+	if d.Tipo == "grafico" {
+		dados = graficoDadosHTML(d)
+	}
 	return `<figure class="diagrama" data-diagrama="` + slug + "/" + d.ID + `">` +
 		`<figcaption>` + html.EscapeString(d.Titulo) + `</figcaption>` +
 		`<details class="diagrama-descricao"><summary>Descrição textual</summary><p>` +
-		html.EscapeString(d.Descricao) + `</p></details></figure>`
+		html.EscapeString(d.Descricao) + `</p></details>` + dados + `</figure>`
 }
 
 // applyDiagramas expands diagrams in every rendered fragment of a milestone:

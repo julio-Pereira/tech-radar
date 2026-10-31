@@ -1,0 +1,18 @@
+id: exemplo-grafico
+tipo: grafico
+titulo: "Duas séries: a curva com cache fica abaixo e mais plana"
+descricao: >
+  Latência p99 do pix-gateway, em milissegundos, ao longo de seis horas, com e sem o
+  cache de chaves Pix. Sem cache a latência sobe com o volume e cruza o orçamento do SLO
+  de 300 ms às 12h; com cache ela fica abaixo de 150 ms o dia todo. A faixa marca o
+  horário de pico. Os números são ilustrativos e existem para testar o tipo grafico.
+forma: linha
+eixo_x: { rotulo: "hora do dia", tipo: numero }
+eixo_y: { rotulo: "p99 (ms)", min: 0 }
+series:
+  - { id: sem-cache, rotulo: "sem cache", pontos: [[8, 120], [9, 160], [10, 210], [11, 260], [12, 330], [13, 280]] }
+  - { id: com-cache, rotulo: "com cache", pontos: [[8, 60], [9, 70], [10, 85], [11, 100], [12, 130], [13, 110]] }
+anotacoes:
+  - { tipo: linha-y, valor: 300, rotulo: "SLO 300 ms", papel: destaque }
+  - { tipo: faixa-x, de: 11, ate: 13, rotulo: "pico" }
+fonte: "dados ilustrativos"

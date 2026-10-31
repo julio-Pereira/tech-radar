@@ -1,0 +1,26 @@
+id: obs-red-e-use
+tipo: topologia
+titulo: "RED no serviço detecta; USE no recurso explica"
+descricao: >
+  Na camada de cima ficam os serviços que atendem pedidos, o pix-gateway e o ledger-core,
+  medidos com RED: taxa de requisições, taxa de erros e distribuição de duração, o que o
+  cliente sente. Na camada de baixo ficam os recursos que eles consomem, medidos com USE:
+  utilização, saturação e erros. O ledger-core espera conexão do pool Hikari, que fala com
+  o Postgres; o consumidor do tópico de pagamentos acumula lag. O alerta dispara por RED,
+  no sintoma; a investigação percorre os recursos com USE procurando a fila que cresce,
+  porque é a saturação que antecede o timeout.
+grupos:
+  - { id: red, rotulo: "RED · o que o cliente sente", col: 0, row: 0, cols: 3, rows: 1 }
+  - { id: use, rotulo: "USE · o que está limitando", col: 0, row: 1, cols: 3, rows: 1 }
+nos:
+  - { id: gateway, rotulo: "pix-gateway", grupo: red, col: 0, row: 0, papel: destaque }
+  - { id: ledger, rotulo: "ledger-core", grupo: red, col: 1, row: 0 }
+  - { id: consumidor, rotulo: "consumidor de pagamentos", grupo: red, col: 2, row: 0 }
+  - { id: cpu, rotulo: "CPU do pod", grupo: use, col: 0, row: 1 }
+  - { id: pool, rotulo: "pool Hikari", grupo: use, col: 1, row: 1 }
+  - { id: lag, rotulo: "lag por partição", grupo: use, col: 2, row: 1 }
+arestas:
+  - { de: gateway, para: ledger, rotulo: "débito" }
+  - { de: gateway, para: cpu }
+  - { de: ledger, para: pool, rotulo: "espera conexão" }
+  - { de: consumidor, para: lag, rotulo: "acumula" }

@@ -1,11 +1,12 @@
 id: kafka-particoes-e-isr
 tipo: topologia
-titulo: "payments.initiated: 3 partições, RF=3, cada broker lidera uma"
+titulo: "payments.initiated: 3 partições, RF=3 — cada líder replica para os outros dois brokers"
 descricao: >
   O tópico payments.initiated tem três partições com fator de replicação três. Cada
   partição tem um líder, que atende leitura e escrita, e dois seguidores que copiam o
   log, espalhados pelos três brokers. A partição 0 é liderada no broker 1, a 1 no broker 2
-  e a 2 no broker 3. Só seguidores em dia, no ISR, podem assumir a liderança numa falha;
+  e a 2 no broker 3, e cada líder replica para os outros dois brokers, como mostram as
+  setas tracejadas. Só seguidores em dia, no ISR, podem assumir a liderança numa falha;
   com min.insync.replicas=2, a perda de um broker não para a escrita.
 grupos:
   - { id: b1, rotulo: "broker 1", col: 0, row: 0, cols: 1, rows: 3 }
@@ -22,7 +23,9 @@ nos:
   - { id: p2-s2, rotulo: "P2 · seguidor", grupo: b2, col: 1, row: 2 }
   - { id: p2-l, rotulo: "P2 · líder", grupo: b3, col: 2, row: 2, papel: destaque }
 arestas:
-  - { de: p0-l, para: p0-s2, rotulo: "replica", estilo: tracejada }
-  - { de: p1-l, para: p1-s3, rotulo: "replica", estilo: tracejada }
-  - { de: p1-l, para: p1-s1, rotulo: "replica", estilo: tracejada }
-  - { de: p2-l, para: p2-s2, rotulo: "replica", estilo: tracejada }
+  - { de: p0-l, para: p0-s2, estilo: tracejada }
+  - { de: p0-l, para: p0-s3, estilo: tracejada, via: [{ col: 0, row: 0.5 }, { col: 2, row: 0.5 }] }
+  - { de: p1-l, para: p1-s1, estilo: tracejada }
+  - { de: p1-l, para: p1-s3, estilo: tracejada }
+  - { de: p2-l, para: p2-s2, estilo: tracejada }
+  - { de: p2-l, para: p2-s1, estilo: tracejada, via: [{ col: 2, row: 1.5 }, { col: 0, row: 1.5 }] }

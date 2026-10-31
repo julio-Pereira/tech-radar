@@ -1,0 +1,25 @@
+id: obs-monitorar-e-observar
+tipo: fluxo
+titulo: "Monitorar dispara o pager; observar responde à pergunta que ninguém previu"
+descricao: >
+  O laço começa no sistema, que emite telemetria. O monitoramento compara esse sinal com
+  condições definidas antes, como CPU acima de 80% ou endpoint fora do ar, e dispara o
+  pager quando uma delas sai da faixa: responde só ao que alguém previu. A investigação
+  que segue é observabilidade: fazer uma pergunta nova sobre a produção, agora e sem
+  deploy, fatiando o dado por dimensões arbitrárias até inferir a causa. Com a causa vem
+  a decisão e a ação, cujo efeito é medido no mesmo sinal, e o laço fecha. O incidente
+  sério costuma ser um unknown-unknown, que nenhuma condição prevista pega.
+passos:
+  - { id: sistema, rotulo: "sistema emite telemetria", col: 0, row: 0 }
+  - { id: condicao, rotulo: "condição prevista", col: 1, row: 0 }
+  - { id: pager, rotulo: "pager dispara", col: 2, row: 0 }
+  - { id: pergunta, rotulo: "pergunta nova, sem deploy", col: 2, row: 1, papel: destaque }
+  - { id: acao, rotulo: "decisão e ação", col: 1, row: 1 }
+  - { id: efeito, rotulo: "efeito medido", col: 0, row: 1 }
+arestas:
+  - { de: sistema, para: condicao, rotulo: "monitorar" }
+  - { de: condicao, para: pager, rotulo: "saiu da faixa" }
+  - { de: pager, para: pergunta, rotulo: "observar: investigar" }
+  - { de: pergunta, para: acao, rotulo: "causa inferida" }
+  - { de: acao, para: efeito, rotulo: "mudança" }
+  - { de: efeito, para: sistema, rotulo: "realimenta" }

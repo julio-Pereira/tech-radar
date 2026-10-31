@@ -106,6 +106,14 @@ cada um com sua **compensação**:
 kafka-saga-pagamento
 ```
 
+A compensação desfaz **todos** os passos já concluídos, **em ordem inversa**. Se o
+lançamento no ledger falha depois de o PSP autorizar, liberar a reserva não basta: o
+cliente ficaria com o saldo de volta e uma autorização viva no PSP. Primeiro se cancela a
+autorização, depois se libera a reserva. Isso só funciona porque uma autorização ainda não
+capturada é cancelável. Um passo irreversível, como um Pix já enviado ao SPI, é o *pivot
+step* (`arquitetura-eventos/09`): dali em diante a saga não compensa, só anda para a
+frente, com retentativa até concluir.
+
 **Coreografia** — cada serviço reage a eventos e emite o próximo. Simples com 3 passos,
 ilegível com 8: ninguém consegue responder "onde está esse pagamento agora?" sem ler o
 código de cinco serviços.

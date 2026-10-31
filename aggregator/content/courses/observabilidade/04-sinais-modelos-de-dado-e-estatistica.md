@@ -90,6 +90,10 @@ p99 juntos: a distância entre eles é a informação. p50 de 80ms com p99 de 90
 sistema previsível; p50 de 80ms com p99 de 4s é um sistema com um modo de falha
 escondido.
 
+```diagrama
+obs-media-e-cauda
+```
+
 ### 2. Percentil não soma nem tira média
 
 **A média dos p99 de 10 pods não é o p99 do serviço.** Nem a soma, nem o máximo.

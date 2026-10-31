@@ -9,14 +9,14 @@ descricao: >
   auditoria segue outro caminho: completa, sem amostragem, imutável e retida por anos.
 passos:
   - { id: servico, rotulo: "serviço: não emitir", col: 0, row: 0 }
-  - { id: agent, rotulo: "agent: apaga, hash, máscara", col: 1, row: 0, papel: destaque }
+  - { id: agent, rotulo: "agent: hash, máscara", col: 1, row: 0, papel: destaque }
   - { id: descartado, rotulo: "Authorization, e-mail", col: 1, row: 1 }
   - { id: gateway, rotulo: "gateway: tail sampling", col: 2, row: 0 }
   - { id: telemetria, rotulo: "Tempo / Loki (dias)", col: 3, row: 0 }
-  - { id: auditoria, rotulo: "auditoria (anos, imutável)", col: 0, row: 1, papel: externo }
+  - { id: auditoria, rotulo: "auditoria imutável", col: 0, row: 1, papel: externo }
 arestas:
   - { de: servico, para: agent, rotulo: "OTLP" }
   - { de: agent, para: descartado, rotulo: "delete", tipo: falha }
   - { de: agent, para: gateway, rotulo: "sem PII" }
-  - { de: gateway, para: telemetria, rotulo: "amostrado" }
+  - { de: gateway, para: telemetria, rotulo: "amostra" }
   - { de: servico, para: auditoria, rotulo: "completa, sem amostra" }

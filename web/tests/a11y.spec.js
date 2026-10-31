@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
-const { injectDiagramas } = require('./helpers/diagramas');
+const { injectDiagramas, IDS } = require('./helpers/diagramas');
 
 // Baseline per the UX plan: zero violations of serious/critical impact.
 // Moderate/minor findings are allowed for now and tracked in web/docs/ux-baseline.md
@@ -22,7 +22,7 @@ test.describe('Accessibility (axe-core)', () => {
     await page.goto('/#/learn/kafka');
     const node = page.locator('.timeline-node').first();
     await node.locator('.node-toggle').click();
-    await expect(node.locator('figure.diagrama svg')).toHaveCount(4);
+    await expect(node.locator('figure.diagrama svg')).toHaveCount(IDS.length);
     const results = await new AxeBuilder({ page }).include('body').analyze();
     const serious = seriousViolations(results);
     expect(serious, describe(serious)).toHaveLength(0);

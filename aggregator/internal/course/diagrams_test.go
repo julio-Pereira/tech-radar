@@ -370,7 +370,7 @@ func TestDiagramaFixturesGolden(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fixtures invalid: %v", err)
 	}
-	for _, tipo := range []string{"topologia", "sequencia", "estados", "fluxo"} {
+	for _, tipo := range []string{"topologia", "sequencia", "estados", "fluxo", "grafico"} {
 		if _, ok := diagramas["exemplo-"+tipo]; !ok {
 			t.Fatalf("missing fixture of type %s", tipo)
 		}

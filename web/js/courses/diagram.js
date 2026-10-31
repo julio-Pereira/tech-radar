@@ -1,15 +1,11 @@
-// @ts-check
-// Typed diagrams (PLANO-diagramas). Loaded with import() only when a
-// milestone on screen has a <figure data-diagrama="slug/id">: the compiler
-// already wrote the title and the full textual description into the figure,
-// so without JavaScript the reader still has both. This module fetches
-// data/diagramas/<slug>.json once per track and draws the SVG with
-// createElementNS — four types (topologia, fluxo, estados, sequencia), the
-// layout declared by the author on a grid, presentation only through CSS
-// classes (style-src 'self').
-import { el, label, rect, arrowDefs, edgeBetween } from './diagram-svg.js';
+// Typed diagrams (PLANO-diagramas), imported only when a milestone has a
+// figure.diagrama; title, description and data table are already in it.
+// SVG via createElementNS, CSS classes only (style-src 'self'). Budget: 10 KB
+// gzip with diagram-svg.js, no build step, hence no type annotations.
+import { el, label, rect, arrowDefs, edgeBetween, clipToBox } from './diagram-svg.js';
 import { startDesvio, returnToPoint } from './desvio.js';
 
+// Keep in sync with aggregator/internal/course/diagrams_layout.go.
 const CELL_W_MIN = 140;
 const CELL_W_MAX = 200;
 const CELL_H = 48;
@@ -21,17 +17,23 @@ const GAP_Y = 60;
 const MARGIN = 40;
 const GROUP_PAD = 12;
 const GROUP_LABEL = 20;
+const FIT_PAD = 8; // room kept around labels that stick out of the boxes
 
 const SEQ_COL = 200;
 const SEQ_HEAD = 40;
 const SEQ_STEP = 46;
 const SEQ_NOTE = 18;
 
-/** @type {Map<string, Promise<Record<string, any>>>} */
+const CH_W = 640;
+const CH_H = 360;
+const CH_L = 70;
+const CH_R = 24;
+const CH_T = 34;
+const CH_B = 58;
+
 const catalogs = new Map();
 let seq = 0;
 
-/** @param {string} slug */
 function loadCatalog(slug) {
   if (!catalogs.has(slug)) {
     catalogs.set(slug, fetch(`./data/diagramas/${encodeURIComponent(slug)}.json`)
@@ -39,15 +41,11 @@ function loadCatalog(slug) {
       .then((d) => d.diagramas || {})
       .catch(() => ({})));
   }
-  return /** @type {Promise<Record<string, any>>} */ (catalogs.get(slug));
+  return (catalogs.get(slug));
 }
 
-/**
- * Draws every not-yet-drawn diagram figure inside `root`.
- * @param {HTMLElement} root
- */
 export async function renderDiagrams(root) {
-  const figures = /** @type {HTMLElement[]} */ ([...root.querySelectorAll('figure.diagrama[data-diagrama]')])
+  const figures = ([...root.querySelectorAll('figure.diagrama[data-diagrama]')])
     .filter((f) => !f.querySelector('svg'));
   for (const figure of figures) {
     const [slug, id] = (figure.dataset.diagrama || '').split('/');
@@ -57,64 +55,167 @@ export async function renderDiagrams(root) {
   }
 }
 
-/** @param {HTMLElement} figure @param {any} spec */
+function draw(spec, prefix, links) {
+  const svg = spec.tipo === 'sequencia' ? drawSequence(spec, prefix, links)
+    : spec.tipo === 'grafico' ? drawChart(spec)
+      : drawGraph(spec, prefix, links);
+  // "group", not "img": concept links and chart points are focusable
+  // children; boxes and lines are aria-hidden, the caption names the group.
+  svg.setAttribute('role', 'group');
+  svg.dataset.tipo = spec.tipo;
+  widthClass(svg);
+  return svg;
+}
+
 function drawInto(figure, spec) {
   const n = ++seq;
   const caption = figure.querySelector('figcaption');
+  const title = caption ? caption.textContent || '' : '';
   const desc = figure.querySelector('.diagrama-descricao p');
   if (caption) caption.id = `diagrama-${n}-titulo`;
   if (desc) desc.id = `diagrama-${n}-descricao`;
 
-  const svg = spec.tipo === 'sequencia' ? drawSequence(spec, `dg${n}`) : drawGraph(spec, `dg${n}`);
-  // role="group", not "img": the concept nodes are real links, and the
-  // children of an img are presentational to assistive technology. The
-  // drawing itself is aria-hidden piece by piece; the group is announced by
-  // its caption and the full textual description.
-  svg.setAttribute('role', 'group');
+  const svg = draw(spec, `dg${n}`, true);
   if (caption) svg.setAttribute('aria-labelledby', caption.id);
   if (desc) svg.setAttribute('aria-describedby', desc.id);
-  // The drawing shrinks with the figure down to 80% of its natural width
-  // and then scrolls inside it (never the page): text never gets smaller
-  // than ~10px. The bounds come from a width class (course.css), not from a
-  // style attribute.
-  const bucket = Math.min(16, Math.max(3, Math.ceil(Number(svg.getAttribute('width')) / 100)));
-  svg.setAttribute('class', `diagrama-svg diagrama-${spec.tipo} diagrama-l${bucket}`);
 
-  const scroller = document.createElement('div');
-  scroller.className = 'diagrama-area';
-  scroller.appendChild(svg);
-  figure.insertBefore(scroller, figure.firstChild);
+  // Shrinks to 80%, then scrolls in the figure with a hint; Ampliar on phones.
+  const area = html('div', 'diagrama-area');
+  area.appendChild(svg);
+  const zoom = html('button', 'diagrama-ampliar', 'Ampliar');
+  zoom.setAttribute('aria-label', `Ampliar o diagrama: ${title}`);
+  zoom.addEventListener('click', () => openZoom(spec, title, zoom));
+  const actions = html('div', 'diagrama-acoes');
+  actions.append(html('p', 'diagrama-dica', 'Role para o lado para ver o diagrama inteiro, ou use Ampliar.'), zoom);
+  const frame = html('div', 'diagrama-moldura');
+  frame.appendChild(area);
+  figure.prepend(frame, actions);
   figure.classList.add('diagrama-desenhado');
 
+  const update = () => {
+    if (fitViewBox(svg)) widthClass(svg);
+    const scrolls = area.scrollWidth > area.clientWidth + 1;
+    figure.classList.toggle('diagrama-rola', scrolls);
+    figure.classList.toggle('diagrama-rola-fim', scrolls && area.scrollLeft + area.clientWidth >= area.scrollWidth - 2);
+    // A scrolling region must be reachable by keyboard (WCAG 2.1.1).
+    region(area, scrolls && 'Área do diagrama, role para os lados');
+  };
+  new ResizeObserver(update).observe(area);
+  area.addEventListener('scroll', update, { passive: true });
+  update();
+
   wireConceptLinks(svg);
+  wireChartKeys(svg);
   resumeReturnPoint(figure);
 }
 
-/** Text and shapes are read through the description, not one by one. */
-function hidden(/** @type {SVGElement} */ node) {
+// Width class (course.css): between 80% and 100% of the natural width.
+function widthClass(svg) {
+  const w = Number((svg.getAttribute('viewBox') || '').split(' ')[2]);
+  const bucket = Math.min(16, Math.max(3, Math.ceil(w / 100)));
+  svg.setAttribute('class', `diagrama-svg diagrama-${svg.dataset.tipo} diagrama-l${bucket}`);
+}
+
+// Grows the viewBox to every label drawn (C2), once the figure is displayed.
+function fitViewBox(svg) {
+  if (svg.dataset.ajustado) return false;
+  const b = svg.getBBox();
+  if (!b.width || !b.height) return false;
+  svg.dataset.ajustado = '1';
+  const [vx, vy, vw, vh] = (svg.getAttribute('viewBox') || '0 0 0 0').split(' ').map(Number);
+  const x0 = Math.min(vx, Math.floor(b.x - FIT_PAD));
+  const y0 = Math.min(vy, Math.floor(b.y - FIT_PAD));
+  const x1 = Math.max(vx + vw, Math.ceil(b.x + b.width + FIT_PAD));
+  const y1 = Math.max(vy + vh, Math.ceil(b.y + b.height + FIT_PAD));
+  svg.setAttribute('viewBox', `${x0} ${y0} ${x1 - x0} ${y1 - y0}`);
+  svg.setAttribute('width', String(x1 - x0));
+  svg.setAttribute('height', String(y1 - y0));
+  return true;
+}
+
+// Ampliar: the same drawing in a full-screen modal dialog
+
+let dialog = null;
+
+function html(tag, cls, text = '') {
+  const e = document.createElement(tag);
+  e.className = cls;
+  e.textContent = text;
+  if (tag === 'button') e.setAttribute('type', 'button');
+  return e;
+}
+
+function region(e, label) {
+  for (const [k, v] of [['tabindex', '0'], ['role', 'region'], ['aria-label', label]]) {
+    if (label) e.setAttribute(k, v); else e.removeAttribute(k);
+  }
+}
+
+function zoomDialog() {
+  if (dialog) return dialog;
+  const d = html('dialog', 'diagrama-dialogo');
+  d.setAttribute('aria-labelledby', 'diagrama-dialogo-titulo');
+  const head = html('div', 'diagrama-dialogo-topo');
+  const h = html('h2', '');
+  h.id = 'diagrama-dialogo-titulo';
+  const fit = html('button', 'diagrama-ajustar', 'Ajustar à tela');
+  fit.setAttribute('aria-pressed', 'false');
+  fit.addEventListener('click', () => fit.setAttribute('aria-pressed', String(d.classList.toggle('diagrama-ajustado'))));
+  const close = html('button', 'diagrama-fechar', 'Fechar');
+  close.addEventListener('click', () => d.close());
+  head.append(h, fit, close);
+  const area = html('div', 'diagrama-dialogo-area');
+  region(area, 'Diagrama ampliado, role em qualquer direção');
+  d.append(head, area);
+  // Backdrop click closes, like Esc; Tab wraps inside the dialog.
+  d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+  d.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const f = [...d.querySelectorAll('button, [tabindex="0"]')];
+    const edge = e.shiftKey ? f[0] : f[f.length - 1];
+    if (document.activeElement !== edge) return;
+    e.preventDefault();
+    (e.shiftKey ? f[f.length - 1] : f[0]).focus();
+  });
+  document.body.appendChild(d);
+  dialog = d;
+  return d;
+}
+
+function openZoom(spec, title, opener) {
+  const d = zoomDialog();
+  const h = (d.querySelector('h2'));
+  const area = (d.querySelector('.diagrama-dialogo-area'));
+  h.textContent = title;
+  // Fresh drawing (own marker ids); concept links only in the figure.
+  const svg = draw(spec, `dz${++seq}`, false);
+  svg.setAttribute('aria-labelledby', h.id);
+  area.replaceChildren(svg);
+  d.addEventListener('close', () => {
+    area.replaceChildren();
+    opener.focus();
+  }, { once: true });
+  d.showModal();
+  fitViewBox(svg);
+  widthClass(svg);
+  wireChartKeys(svg);
+  (d.querySelector('.diagrama-fechar')).focus();
+}
+
+function hidden(node) {
   node.setAttribute('aria-hidden', 'true');
   return node;
 }
 
-// ── topologia, fluxo, estados: boxes on the author's grid ──────────────────
+// topologia, fluxo, estados: boxes on the author's grid
 
-/** @param {number} col @param {number} gapX @param {number} cellW */
-const colX = (col, gapX, cellW) => MARGIN + col * (cellW + gapX);
-
-/** Boxes as wide as the longest node label of the diagram needs. */
-function cellWidthFor(/** @type {any} */ spec) {
-  const longest = Math.max(0, ...(spec.nos || []).map((/** @type {any} */ n) => n.rotulo.length));
+function cellWidthFor(spec) {
+  const longest = Math.max(0, ...(spec.nos || []).map((n) => n.rotulo.length));
   return Math.max(CELL_W_MIN, Math.min(CELL_W_MAX, Math.ceil(longest * NODE_CHAR_W + 28)));
 }
 
-/**
- * The horizontal gap is sized to the longest label of an edge between two
- * nodes of the same row, so that label fits between the boxes.
- * @param {any} spec
- */
 function gapFor(spec) {
-  /** @type {Map<string, number>} */
-  const rowOf = new Map((spec.nos || []).map((/** @type {any} */ n) => [n.id, n.row]));
+  const rowOf = new Map((spec.nos || []).map((n) => [n.id, n.row]));
   let longest = 0;
   for (const a of spec.arestas || []) {
     if (a.de !== a.para && rowOf.get(a.de) === rowOf.get(a.para) && a.rotulo) {
@@ -123,11 +224,8 @@ function gapFor(spec) {
   }
   return Math.max(GAP_X_MIN, Math.min(GAP_X_MAX, Math.ceil(longest * CHAR_W + 28)));
 }
-/** @param {number} row */
-const rowY = (row) => MARGIN + GROUP_LABEL + row * (CELL_H + GAP_Y);
 
-/** @param {any} spec @param {string} prefix */
-function drawGraph(spec, prefix) {
+function drawGraph(spec, prefix, links) {
   const nos = spec.nos || [];
   const grupos = spec.grupos || [];
   let maxCol = 0;
@@ -138,13 +236,16 @@ function drawGraph(spec, prefix) {
   }
   const gapX = gapFor(spec);
   const cellW = cellWidthFor(spec);
-  const width = colX(maxCol, gapX, cellW) + cellW + MARGIN;
+  /** Left/top of a grid cell; fractional col/row are the lanes between. */
+  const colX = (col) => MARGIN + col * (cellW + gapX);
+  const rowY = (row) => MARGIN + GROUP_LABEL + row * (CELL_H + GAP_Y);
+  const width = colX(maxCol) + cellW + MARGIN;
   const height = rowY(maxRow) + CELL_H + MARGIN;
   const svg = el('svg', { viewBox: `0 0 ${width} ${height}`, width, height });
   svg.appendChild(arrowDefs(prefix, ['seta']));
 
   for (const g of grupos) {
-    const x = colX(g.col, gapX, cellW) - GROUP_PAD;
+    const x = colX(g.col) - GROUP_PAD;
     const y = rowY(g.row) - GROUP_PAD - GROUP_LABEL;
     const w = g.cols * cellW + (g.cols - 1) * gapX + 2 * GROUP_PAD;
     const h = g.rows * CELL_H + (g.rows - 1) * GAP_Y + 2 * GROUP_PAD + GROUP_LABEL;
@@ -152,26 +253,22 @@ function drawGraph(spec, prefix) {
     svg.appendChild(hidden(label(x + 10, y + 16, g.rotulo, 'diagrama-grupo-rotulo')));
   }
 
-  /** @type {Map<string, {cx: number, cy: number, w: number, h: number, x: number, y: number}>} */
-  const pos = new Map();
-  for (const no of nos) {
-    const x = colX(no.col, gapX, cellW);
-    const y = rowY(no.row);
-    pos.set(no.id, { x, y, w: cellW, h: CELL_H, cx: x + cellW / 2, cy: y + CELL_H / 2 });
-  }
+  const at = (col, row) => ({ x: colX(col), y: rowY(row), w: cellW, h: CELL_H, cx: colX(col) + cellW / 2, cy: rowY(row) + CELL_H / 2 });
+  const pos = new Map(nos.map((no) => [no.id, at(no.col, no.row)]));
 
-  const pairs = new Set((spec.arestas || []).map((/** @type {any} */ a) => `${a.de}>${a.para}`));
+  const pairs = new Set((spec.arestas || []).map((a) => `${a.de}>${a.para}`));
   const edges = el('g', { class: 'diagrama-arestas' });
   for (const a of spec.arestas || []) {
     const from = pos.get(a.de);
     const to = pos.get(a.para);
     if (!from || !to) continue;
-    edges.appendChild(hidden(drawEdge(from, to, a, prefix, pairs.has(`${a.para}>${a.de}`))));
+    const via = (a.via || []).map((p) => at(p.col, p.row));
+    edges.appendChild(hidden(drawEdge(from, to, a, prefix, pairs.has(`${a.para}>${a.de}`), via)));
   }
   svg.appendChild(edges);
 
   if (spec.tipo === 'estados' && spec.inicial && pos.has(spec.inicial)) {
-    const p = /** @type {{x: number, cy: number}} */ (pos.get(spec.inicial));
+    const p = (pos.get(spec.inicial));
     svg.appendChild(hidden(el('circle', { cx: p.x - 26, cy: p.cy, r: 6, class: 'diagrama-inicial' })));
     svg.appendChild(hidden(el('line', {
       x1: p.x - 20, y1: p.cy, x2: p.x - 2, y2: p.cy,
@@ -181,41 +278,44 @@ function drawGraph(spec, prefix) {
 
   const finais = new Set(spec.finais || []);
   for (const no of nos) {
-    svg.appendChild(drawNode(no, /** @type {any} */ (pos.get(no.id)), spec.tipo, finais.has(no.id)));
+    svg.appendChild(drawNode(no, (pos.get(no.id)), spec.tipo, finais.has(no.id), links));
   }
   return svg;
 }
 
-/**
- * @param {any} from @param {any} to @param {any} a @param {string} prefix
- * @param {boolean} hasReverse  an edge in the opposite direction exists
- */
-function drawEdge(from, to, a, prefix, hasReverse) {
+function drawEdge(from, to, a, prefix, hasReverse, via) {
   const g = el('g', { class: `diagrama-aresta-grupo${a.estilo ? ` diagrama-aresta--${a.estilo}` : ''}` });
+  const arrow = { class: 'diagrama-aresta', fill: 'none', 'marker-end': `url(#${prefix}-seta)` };
   if (from === to) {
-    // Self-transition: a loop over the top of the box.
     const x = from.cx;
     const y = from.y;
-    g.appendChild(el('path', {
-      d: `M${x - 24},${y} C${x - 24},${y - 34} ${x + 24},${y - 34} ${x + 24},${y}`,
-      class: 'diagrama-aresta', fill: 'none', 'marker-end': `url(#${prefix}-seta)`,
-    }));
+    g.appendChild(el('path', { d: `M${x - 24},${y} C${x - 24},${y - 34} ${x + 24},${y - 34} ${x + 24},${y}`, ...arrow }));
     if (a.rotulo) g.appendChild(label(x, y - 30, edgeText(a), 'diagrama-aresta-rotulo'));
     return g;
   }
-  const s = edgeBetween(from, to, hasReverse ? 7 : 0);
-  g.appendChild(el('line', {
-    x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2,
-    class: 'diagrama-aresta', 'marker-end': `url(#${prefix}-seta)`,
-  }));
+  let s;
+  if (via.length) {
+    // Through the bends; the label goes on the middle segment.
+    const first = via[0];
+    const last = via[via.length - 1];
+    const p0 = clipToBox(from.cx, from.cy, first.cx - from.cx, first.cy - from.cy, from.w, from.h);
+    const pn = clipToBox(to.cx, to.cy, last.cx - to.cx, last.cy - to.cy, to.w, to.h);
+    const pts = [p0, ...via.map((v) => ({ x: v.cx, y: v.cy })), pn];
+    g.appendChild(el('polyline', { points: pts.map((p) => `${p.x},${p.y}`).join(' '), ...arrow }));
+    const k = Math.floor((pts.length - 1) / 2);
+    s = { x1: pts[k].x, y1: pts[k].y, x2: pts[k + 1].x, y2: pts[k + 1].y };
+    hasReverse = false;
+  } else {
+    s = edgeBetween(from, to, hasReverse ? 7 : 0);
+    g.appendChild(el('line', { x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2, ...arrow }));
+  }
   if (a.rotulo) {
     const mx = (s.x1 + s.x2) / 2;
     const my = (s.y1 + s.y2) / 2;
     const vertical = Math.abs(s.x2 - s.x1) < Math.abs(s.y2 - s.y1);
-    // Beside a vertical edge, above a horizontal one. In a pair of opposite
-    // edges each line is shifted to one side (edgeBetween), and its label
-    // goes on that same side, away from the other line.
-    const side = vertical ? Math.sign(-(to.cy - from.cy)) : Math.sign(to.cx - from.cx);
+    // Beside a vertical edge, above a horizontal one; in an opposite pair
+    // each label goes on its own line's side.
+    const side = vertical ? Math.sign(-(s.y2 - s.y1)) : Math.sign(s.x2 - s.x1);
     const t = vertical
       ? (hasReverse && side < 0
         ? label(mx - 10, my + 4, edgeText(a), 'diagrama-aresta-rotulo diagrama-rotulo-fim')
@@ -226,31 +326,24 @@ function drawEdge(from, to, a, prefix, hasReverse) {
   return g;
 }
 
-/** Failure and compensation are marked in the text too, never by color alone. */
-function edgeText(/** @type {any} */ a) {
+// Failure and compensation: marked in text too, not by color alone.
+function edgeText(a) {
   if (a.estilo === 'falha') return `✕ ${a.rotulo}`;
   if (a.estilo === 'compensacao') return `↩ ${a.rotulo}`;
   return a.rotulo;
 }
 
-/**
- * @param {any} no
- * @param {{x: number, y: number, w: number, h: number, cx: number, cy: number}} p
- * @param {string} tipo
- * @param {boolean} final
- */
-function drawNode(no, p, tipo, final) {
+function drawNode(no, p, tipo, final, links) {
   const radius = tipo === 'estados' ? 22 : tipo === 'fluxo' ? 14 : 6;
   const cls = `diagrama-no${no.papel ? ` diagrama-no--${no.papel}` : ''}`;
   const g = el('g', { class: cls });
   g.appendChild(hidden(rect(p, 'diagrama-no-caixa', radius)));
   if (final) g.appendChild(hidden(rect({ x: p.x + 4, y: p.y + 4, w: p.w - 8, h: p.h - 8 }, 'diagrama-no-final', radius - 4)));
   g.appendChild(hidden(label(p.cx, p.cy + 5, no.rotulo, 'diagrama-no-rotulo')));
-  return no.href ? conceptLink(no, g) : g;
+  return no.href && links ? conceptLink(no, g) : g;
 }
 
-/** A node bound to a transversal concept is a real, focusable link. */
-function conceptLink(/** @type {any} */ item, /** @type {SVGElement} */ g) {
+function conceptLink(item, g) {
   const a = el('a', {
     href: item.href,
     class: 'diagrama-conceito',
@@ -261,17 +354,15 @@ function conceptLink(/** @type {any} */ item, /** @type {SVGElement} */ g) {
   return a;
 }
 
-// ── sequencia: participants as columns, messages as rows ───────────────────
+// sequencia: participants as columns, messages as rows
 
-/** @param {any} spec @param {string} prefix */
-function drawSequence(spec, prefix) {
+function drawSequence(spec, prefix, links) {
   const parts = spec.participantes || [];
   const msgs = spec.mensagens || [];
-  /** @type {Map<string, number>} */
-  const colOf = new Map(parts.map((/** @type {any} */ p, /** @type {number} */ i) => [p.id, MARGIN + i * SEQ_COL + SEQ_COL / 2]));
+  const colOf = new Map(parts.map((p, i) => [p.id, MARGIN + i * SEQ_COL + SEQ_COL / 2]));
 
   let y = MARGIN + SEQ_HEAD + 34;
-  const rows = msgs.map((/** @type {any} */ m) => {
+  const rows = msgs.map((m) => {
     const row = { m, y };
     y += SEQ_STEP + (m.nota ? SEQ_NOTE : 0) + (m.de === m.para ? 16 : 0);
     return row;
@@ -282,18 +373,18 @@ function drawSequence(spec, prefix) {
   svg.appendChild(arrowDefs(prefix, ['seta', 'seta-aberta']));
 
   for (const p of parts) {
-    const cx = /** @type {number} */ (colOf.get(p.id));
+    const cx = (colOf.get(p.id));
     svg.appendChild(hidden(el('line', { x1: cx, y1: MARGIN + SEQ_HEAD, x2: cx, y2: height - MARGIN / 2, class: 'diagrama-linha-vida' })));
     const box = { x: cx - (SEQ_COL - 24) / 2, y: MARGIN, w: SEQ_COL - 24, h: SEQ_HEAD, cx, cy: MARGIN + SEQ_HEAD / 2 };
     const g = el('g', { class: `diagrama-no${p.papel ? ` diagrama-no--${p.papel}` : ''}` });
     g.appendChild(hidden(rect(box, 'diagrama-no-caixa', 6)));
     g.appendChild(hidden(label(cx, box.cy + 5, p.rotulo, 'diagrama-no-rotulo')));
-    svg.appendChild(p.href ? conceptLink(p, g) : g);
+    svg.appendChild(p.href && links ? conceptLink(p, g) : g);
   }
 
   for (const { m, y: my } of rows) {
-    const x1 = /** @type {number} */ (colOf.get(m.de));
-    const x2 = /** @type {number} */ (colOf.get(m.para));
+    const x1 = (colOf.get(m.de));
+    const x2 = (colOf.get(m.para));
     const g = hidden(el('g', { class: `diagrama-mensagem diagrama-mensagem--${m.tipo}` }));
     const marker = m.tipo === 'sync' ? 'seta' : 'seta-aberta';
     if (x1 === x2) {
@@ -317,25 +408,201 @@ function drawSequence(spec, prefix) {
   return svg;
 }
 
-// ── concept links: detour and return, like the links in the prose ─────────
+// grafico: lines, bars or areas over two axes (D-G)
 
-/** @param {SVGElement} svg */
+const fmt = (n) => (typeof n === 'number' ? n.toLocaleString('pt-BR') : String(n));
+
+/** A "round" step for about `span / 5`: 1, 2 or 5 × 10ⁿ. */
+function niceStep(span) {
+  const p = 10 ** Math.floor(Math.log10(span / 5));
+  const m = span / 5 / p;
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p;
+}
+
+// Maps [lo, hi] onto [a, b] in pixels, extended to round ticks.
+function axisScale(lo, hi, log, a, b) {
+  if (log) {
+    const l0 = Math.floor(Math.log10(lo));
+    const l1 = Math.max(l0 + 1, Math.ceil(Math.log10(hi)));
+    const ticks = [];
+    for (let e = l0; e <= l1; e++) {
+      for (const m of l1 - l0 < 2 ? [1, 2, 5] : [1]) if (m * 10 ** e <= 10 ** l1) ticks.push(m * 10 ** e);
+    }
+    return { f: (v) => a + ((Math.log10(v) - l0) / (l1 - l0)) * (b - a), ticks };
+  }
+  const step = niceStep(hi - lo || Math.abs(hi) || 1);
+  const t0 = Math.floor(lo / step) * step;
+  const t1 = Math.max(t0 + step, Math.ceil(hi / step) * step);
+  const ticks = [];
+  for (let t = t0; t <= t1 + step / 2; t += step) ticks.push(Number(t.toPrecision(12)));
+  return { f: (v) => a + ((v - t0) / (t1 - t0)) * (b - a), ticks };
+}
+
+// One marker shape per series: never color alone.
+const MARKS = [
+  (x, y) => el('circle', { cx: x, cy: y, r: 4.5 }),
+  (x, y) => el('rect', { x: x - 4, y: y - 4, width: 8, height: 8 }),
+  (x, y) => el('path', { d: `M${x},${y - 5.5} L${x + 5},${y + 4} L${x - 5},${y + 4} Z` }),
+  (x, y) => el('path', { d: `M${x},${y - 5.5} L${x + 5.5},${y} L${x},${y + 5.5} L${x - 5.5},${y} Z` }),
+];
+
+function drawChart(spec) {
+  const series = spec.series || [];
+  const cat = spec.eixo_x.tipo === 'categoria';
+  const legend = series.length > 1;
+  const left = CH_L;
+  const right = CH_W - CH_R;
+  const top = CH_T + (legend ? 22 : 0);
+  const bottom = CH_H - CH_B;
+  const svg = el('svg', { viewBox: `0 0 ${CH_W} ${CH_H}`, width: CH_W, height: CH_H });
+
+  const ys = series.flatMap((s) => s.pontos.map((p) => p[1]));
+  const yLog = spec.eixo_y.escala === 'log';
+  const yLo = spec.eixo_y.min ?? (spec.forma !== 'linha' && !yLog ? Math.min(0, ...ys) : Math.min(...ys));
+  const Y = axisScale(yLo, spec.eixo_y.max ?? Math.max(...ys), yLog, bottom, top);
+
+  let X;
+  let xTicks;
+  const cats = spec.categorias || [];
+  const band = cat ? (right - left) / cats.length : 0;
+  if (cat) {
+    X = (v) => left + band * (cats.indexOf(String(v)) + 0.5);
+    xTicks = cats.map((c) => [X(c), c]);
+  } else {
+    const xs = series.flatMap((s) => s.pontos.map((p) => p[0]));
+    const sx = axisScale(spec.eixo_x.min ?? Math.min(...xs), spec.eixo_x.max ?? Math.max(...xs), spec.eixo_x.escala === 'log', left, right);
+    X = sx.f;
+    xTicks = sx.ticks.map((t) => [X(t), fmt(t)]);
+  }
+  const base = yLog ? bottom : Y.f(Math.max(Y.ticks[0], Math.min(0, Y.ticks[Y.ticks.length - 1])));
+
+  const axes = hidden(el('g', { class: 'diagrama-eixos' }));
+  for (const t of Y.ticks) {
+    const y = Y.f(t);
+    axes.appendChild(el('line', { x1: left, y1: y, x2: right, y2: y, class: 'diagrama-grade' }));
+    axes.appendChild(label(left - 8, y + 4, fmt(t), 'diagrama-marca diagrama-rotulo-fim'));
+  }
+  for (const [x, text] of xTicks) axes.appendChild(label(x, bottom + 18, text, 'diagrama-marca'));
+  axes.appendChild(el('line', { x1: left, y1: bottom, x2: right, y2: bottom, class: 'diagrama-eixo' }));
+  axes.appendChild(el('line', { x1: left, y1: top, x2: left, y2: bottom, class: 'diagrama-eixo' }));
+  axes.appendChild(label((left + right) / 2, bottom + 42, spec.eixo_x.rotulo, 'diagrama-eixo-rotulo'));
+  const yTitle = label(18, (top + bottom) / 2, spec.eixo_y.rotulo, 'diagrama-eixo-rotulo');
+  yTitle.setAttribute('transform', `rotate(-90 18 ${(top + bottom) / 2})`);
+  axes.appendChild(yTitle);
+  svg.appendChild(axes);
+
+  // Bands behind the data, lines over it.
+  const anots = spec.anotacoes || [];
+  const xEdge = (v, side) => X(v) + (cat ? side * band / 2 : 0);
+  for (const a of anots.filter((a) => a.tipo.startsWith('faixa'))) {
+    const g = hidden(el('g', { class: `diagrama-anotacao diagrama-faixa${a.papel ? ' diagrama-anotacao--destaque' : ''}` }));
+    const box = a.tipo === 'faixa-x'
+      ? { x: xEdge(a.de, -1), y: top, w: xEdge(a.ate, 1) - xEdge(a.de, -1), h: bottom - top }
+      : { x: left, y: Y.f(a.ate), w: right - left, h: Y.f(a.de) - Y.f(a.ate) };
+    g.appendChild(rect(box, 'diagrama-faixa-area', 0));
+    g.appendChild(label(box.x + 6, box.y + 14, a.rotulo, 'diagrama-anotacao-rotulo diagrama-rotulo-inicio'));
+    svg.appendChild(g);
+  }
+
+  series.forEach((s, i) => {
+    const g = el('g', { class: `diagrama-serie diagrama-serie-${i}` });
+    const pts = s.pontos.map((p) => ({ x: X(p[0]), y: Y.f(p[1]), p }));
+    if (spec.forma === 'barra') {
+      const bw = (band * 0.76) / series.length;
+      for (const q of pts) {
+        const x = q.x - band * 0.38 + i * bw;
+        g.appendChild(point(rect({ x, y: Math.min(q.y, base), w: bw - 2, h: Math.abs(base - q.y) }, 'diagrama-barra', 0), spec, s, q.p));
+      }
+    } else {
+      const line = pts.map((q) => `${q.x},${q.y}`).join(' ');
+      if (spec.forma === 'area') {
+        g.appendChild(hidden(el('polygon', { points: `${pts[0].x},${base} ${line} ${pts[pts.length - 1].x},${base}`, class: 'diagrama-serie-area' })));
+      }
+      g.appendChild(hidden(el('polyline', { points: line, class: 'diagrama-serie-linha' })));
+      for (const q of pts) g.appendChild(point(MARKS[i](q.x, q.y), spec, s, q.p));
+    }
+    svg.appendChild(g);
+  });
+
+  for (const a of anots.filter((a) => a.tipo.startsWith('linha'))) {
+    const g = hidden(el('g', { class: `diagrama-anotacao${a.papel ? ' diagrama-anotacao--destaque' : ''}` }));
+    if (a.tipo === 'linha-x') {
+      const x = X(a.valor);
+      g.appendChild(el('line', { x1: x, y1: top - 4, x2: x, y2: bottom, class: 'diagrama-anotacao-linha' }));
+      g.appendChild(label(x, top - 9, a.rotulo, 'diagrama-anotacao-rotulo'));
+    } else {
+      const y = Y.f(a.valor);
+      g.appendChild(el('line', { x1: left, y1: y, x2: right, y2: y, class: 'diagrama-anotacao-linha' }));
+      g.appendChild(label(right - 4, y - 6, a.rotulo, 'diagrama-anotacao-rotulo diagrama-rotulo-fim'));
+    }
+    svg.appendChild(g);
+  }
+
+  if (legend) {
+    const g = hidden(el('g', { class: 'diagrama-legenda' }));
+    series.forEach((s, i) => {
+      const x = left + i * 150;
+      const item = el('g', { class: `diagrama-serie diagrama-serie-${i}` });
+      item.appendChild(el('line', { x1: x, y1: 14, x2: x + 26, y2: 14, class: 'diagrama-serie-linha' }));
+      const m = MARKS[i](x + 13, 14);
+      m.setAttribute('class', 'diagrama-marcador');
+      item.appendChild(m);
+      item.appendChild(label(x + 32, 18, s.rotulo, 'diagrama-marca diagrama-rotulo-inicio'));
+      g.appendChild(item);
+    });
+    svg.appendChild(g);
+  }
+  return svg;
+}
+
+// Focusable point with its values; roving tabindex, arrows move.
+function point(node, spec, s, p) {
+  node.setAttribute('class', `${node.getAttribute('class') || ''} diagrama-ponto`.trim());
+  node.setAttribute('tabindex', '-1');
+  node.setAttribute('role', 'img');
+  node.setAttribute('aria-label', `${s.rotulo} — ${spec.eixo_x.rotulo} ${fmt(p[0])}: ${fmt(p[1])} ${spec.eixo_y.rotulo}`);
+  return node;
+}
+
+function wireChartKeys(svg) {
+  const series = [...svg.querySelectorAll('.diagrama-serie')].map((g) => [...g.querySelectorAll('.diagrama-ponto')]).filter((p) => p.length);
+  if (!series.length) return;
+  series[0][0].setAttribute('tabindex', '0');
+  svg.addEventListener('keydown', (e) => {
+    const ev = (e);
+    const target = (ev.target);
+    const si = series.findIndex((pts) => pts.includes(target));
+    if (si < 0) return;
+    let s = si;
+    let i = series[si].indexOf(target);
+    const moves = { ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowDown: [1, 0], ArrowUp: [-1, 0] };
+    const mv = (moves)[ev.key];
+    if (mv) { s += mv[0]; i += mv[1]; } else if (ev.key === 'Home') i = 0;
+    else if (ev.key === 'End') i = series[si].length - 1;
+    else return;
+    ev.preventDefault();
+    s = Math.max(0, Math.min(series.length - 1, s));
+    i = Math.max(0, Math.min(series[s].length - 1, i));
+    const next = (series[s][i]);
+    target.setAttribute('tabindex', '-1');
+    next.setAttribute('tabindex', '0');
+    next.focus();
+  });
+}
+
+// concept links: detour and return, like the links in the prose
+
 function wireConceptLinks(svg) {
   svg.querySelectorAll('a.diagrama-conceito').forEach((a) => {
     a.addEventListener('click', (e) => {
-      const ev = /** @type {MouseEvent} */ (e);
+      const ev = (e);
       if (ev.button !== 0 || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) return;
-      startDesvio(/** @type {any} */ (a), a.getAttribute('href') || '');
+      startDesvio((a), a.getAttribute('href') || '');
     });
   });
 }
 
-/**
- * The detour's return point (#/learn/<slug>/<marco>/<conceito>) may name a
- * node of a diagram that was drawn after the course view tried to return
- * there. When this figure holds that node, return to it now.
- * @param {HTMLElement} figure
- */
+// The detour's return point may be a node drawn late: return to it now.
 function resumeReturnPoint(figure) {
   const parts = window.location.hash.split('/');
   if (parts.length < 5 || parts[1] !== 'learn') return;
@@ -346,5 +613,5 @@ function resumeReturnPoint(figure) {
   const link = figure.querySelector(`a.diagrama-conceito[data-conceito="${CSS.escape(conceito)}"]`);
   if (!link || document.getElementById(`c-${marcoId}-${conceito}`)) return;
   link.id = `c-${marcoId}-${conceito}`;
-  returnToPoint(/** @type {HTMLElement} */ (timeline), marcoId, conceito);
+  returnToPoint((timeline), marcoId, conceito);
 }

@@ -1,20 +1,23 @@
 id: kafka-saga-pagamento
 tipo: fluxo
-titulo: "A saga do pagamento compensa com uma nova transação, não com rollback"
+titulo: "A saga compensa em ordem inversa, com transações novas, não com rollback"
 descricao: >
   A saga divide o pagamento em três passos locais: reservar o saldo, autorizar no PSP e
-  lançar no ledger. Não há transação entre eles. Se a autorização ou o lançamento falham,
-  a saga executa a compensação, que é liberar a reserva de saldo feita no primeiro
-  passo. A compensação é uma transação nova, com data própria, visível no extrato do
-  cliente, e não apaga o que já aconteceu. Cada passo tem prazo, para nenhuma saga ficar
+  lançar no ledger. Não há transação entre eles. Se o PSP recusa a autorização, a única
+  compensação é liberar a reserva. Se o lançamento no ledger falha depois de o PSP
+  autorizar, a saga desfaz todos os passos concluídos, em ordem inversa: primeiro cancela
+  a autorização no PSP, depois libera a reserva. Cada compensação é uma transação nova,
+  com data própria e visível no extrato, e cada passo tem prazo, para nenhuma saga ficar
   pendurada com o saldo do cliente reservado.
 passos:
   - { id: reservar, rotulo: "reservar saldo", col: 0, row: 0 }
   - { id: autorizar, rotulo: "autorizar no PSP", col: 1, row: 0, papel: externo }
   - { id: lancar, rotulo: "lançar no ledger", col: 2, row: 0, papel: destaque }
-  - { id: liberar, rotulo: "liberar reserva", col: 1, row: 1 }
+  - { id: liberar, rotulo: "liberar reserva", col: 0, row: 1 }
+  - { id: cancelar, rotulo: "cancelar autorização", col: 1, row: 1, papel: externo }
 arestas:
   - { de: reservar, para: autorizar }
   - { de: autorizar, para: lancar, rotulo: "autorizado" }
   - { de: autorizar, para: liberar, rotulo: "recusou", tipo: falha }
-  - { de: lancar, para: liberar, rotulo: "falhou", tipo: compensacao }
+  - { de: lancar, para: cancelar, rotulo: "falhou", tipo: falha }
+  - { de: cancelar, para: liberar, rotulo: "depois", tipo: compensacao }

@@ -50,6 +50,10 @@ prioridade muda para confiabilidade até ele se recompor. Isso é o que uma *err
 policy* escreve (marco 12), e é o que transforma "precisamos ser mais estáveis" numa
 regra em vez de uma opinião.
 
+```diagrama
+obs-sli-slo-sla
+```
+
 > **Erro comum:** tratar error budget como meta a atingir (*"gastamos só 10%, ótimo!"*).
 > Budget sistematicamente não gasto significa SLO conservador demais — você está
 > deixando velocidade na mesa e provavelmente investindo em confiabilidade que ninguém

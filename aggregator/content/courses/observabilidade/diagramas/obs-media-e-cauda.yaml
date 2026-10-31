@@ -1,0 +1,23 @@
+id: obs-media-e-cauda
+tipo: grafico
+titulo: "A média (≈135 ms) não descreve ninguém: o p99 passa de 1 segundo"
+descricao: >
+  Histograma de 10 mil requisições do pix-gateway por faixa de latência. A maior parte
+  cai até 100 ms, e o p50 está na faixa de 50 a 100 ms. A média, perto de 135 ms, cai na
+  faixa de 100 a 200 ms, onde estão só 11% das requisições: ela não descreve a experiência
+  de quase ninguém. O p95 está na faixa de 200 a 500 ms e o p99 na de 1 a 4 segundos,
+  onde está o cliente que reclama de timeout. Reporte a distribuição, p50, p95 e p99
+  juntos, porque a distância entre eles é a informação.
+forma: barra
+eixo_x: { rotulo: "latência (ms)", tipo: categoria }
+eixo_y: { rotulo: "requisições", min: 0 }
+series:
+  - id: requisicoes
+    rotulo: "pix-gateway"
+    pontos: [["0–50", 4200], ["50–100", 3900], ["100–200", 1100], ["200–500", 400], ["500–1000", 200], ["1000–4000", 200]]
+anotacoes:
+  - { tipo: linha-x, valor: "50–100", rotulo: "p50" }
+  - { tipo: linha-x, valor: "100–200", rotulo: "média ≈ 135 ms" }
+  - { tipo: linha-x, valor: "200–500", rotulo: "p95" }
+  - { tipo: linha-x, valor: "1000–4000", rotulo: "p99", papel: destaque }
+fonte: "dados ilustrativos"
