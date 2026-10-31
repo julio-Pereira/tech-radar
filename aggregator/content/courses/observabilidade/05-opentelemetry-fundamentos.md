@@ -42,6 +42,10 @@ instrumentada com a API do OTel sem impor SDK nenhum a quem a usa. Se a aplicaç
 configurar um SDK, a instrumentação da biblioteca custa quase zero. É a razão de ser
 seguro instrumentar código compartilhado.
 
+```diagrama
+obs-otel-ponta-a-ponta
+```
+
 ## Semantic conventions: o que faz a correlação ser possível
 
 Um span chamado `http-request` com o atributo `url` não conversa com um span chamado

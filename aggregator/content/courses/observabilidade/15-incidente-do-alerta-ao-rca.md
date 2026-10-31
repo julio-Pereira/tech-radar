@@ -59,6 +59,10 @@ aumenta o MTTR.
 Em incidente longo, separe os papéis: quem investiga não é quem comunica. Uma pessoa fazendo
 os dois faz mal os dois.
 
+```diagrama
+obs-do-alerta-ao-rca
+```
+
 ## Árvore de decisão por sintoma
 
 | Sintoma | Primeira verificação | Depois |

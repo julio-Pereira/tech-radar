@@ -68,6 +68,10 @@ Migração de cluster 3.x com ZooKeeper para KRaft existe e é documentada, mas 
 operação, não conteúdo de trilha: se você mantém um cluster legado, o caminho é
 `kafka.apache.org/documentation/#kraft` e uma janela de manutenção.
 
+```diagrama
+kafka-kraft-e-pix-stream
+```
+
 ## Quando Kafka é a ferramenta errada
 
 Metade dos incidentes de Kafka em fintech nasce de usá-lo onde não cabia:

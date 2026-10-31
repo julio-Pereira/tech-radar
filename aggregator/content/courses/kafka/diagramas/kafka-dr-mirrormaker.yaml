@@ -1,0 +1,27 @@
+id: kafka-dr-mirrormaker
+tipo: topologia
+titulo: "No failover, o consumidor retoma pelo offset traduzido, não pelo original"
+descricao: >
+  O MirrorMaker 2 replica o tópico payments.authorized do cluster primário para o
+  cluster de DR, de forma assíncrona, e também lê os offsets commitados do grupo
+  ledger-projector. Como a mesma mensagem tem offsets diferentes nos dois clusters, ele
+  grava checkpoints que traduzem um no outro, por exemplo 1000 na origem para 987 no
+  destino. No failover, o ledger-projector retoma no DR pelo offset traduzido; sem esse
+  mapeamento, ele reprocessa ou pula horas de eventos.
+grupos:
+  - { id: primario, rotulo: "cluster primário", col: 0, row: 0, cols: 1, rows: 2 }
+  - { id: dr, rotulo: "cluster de DR", col: 2, row: 0, cols: 1, rows: 2 }
+nos:
+  - { id: topico-p, rotulo: "payments.authorized", grupo: primario, col: 0, row: 0 }
+  - { id: offsets-p, rotulo: "offsets do grupo", grupo: primario, col: 0, row: 1 }
+  - { id: mm2, rotulo: "MirrorMaker 2", col: 1, row: 0, papel: destaque }
+  - { id: topico-dr, rotulo: "payments.authorized", grupo: dr, col: 2, row: 0 }
+  - { id: checkpoints, rotulo: "checkpoints de offset", grupo: dr, col: 2, row: 1 }
+  - { id: consumidor, rotulo: "ledger-projector", col: 3, row: 1, papel: externo }
+arestas:
+  - { de: topico-p, para: mm2, rotulo: "lê" }
+  - { de: offsets-p, para: mm2, rotulo: "lê offsets" }
+  - { de: mm2, para: topico-dr, rotulo: "copia" }
+  - { de: mm2, para: checkpoints, rotulo: "1000 → 987" }
+  - { de: checkpoints, para: consumidor, rotulo: "onde retomar" }
+  - { de: topico-dr, para: consumidor, rotulo: "consome", estilo: tracejada }

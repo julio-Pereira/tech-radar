@@ -1,0 +1,26 @@
+id: obs-do-alerta-ao-rca
+tipo: fluxo
+titulo: "Mitigar antes de entender; comunicar durante, não depois"
+descricao: >
+  Diante do alerta, o primeiro passo é avaliar o impacto, que decide a severidade e se há
+  prazo regulatório. Depois vem mitigar, restaurando o serviço antes de saber a causa,
+  com rollback, feature flag ou PSP secundário. Só então diagnosticar, com hipótese e
+  evidência; uma hipótese refutada leva à próxima. A comunicação acontece em intervalo
+  fixo durante todos os passos. Com o serviço estável, o post-mortem blameless registra
+  causas e ações.
+passos:
+  - { id: alerta, rotulo: "alerta", col: 0, row: 0, papel: externo }
+  - { id: impacto, rotulo: "1. avaliar impacto", col: 1, row: 0 }
+  - { id: mitigar, rotulo: "2. mitigar", col: 2, row: 0, papel: destaque }
+  - { id: diagnosticar, rotulo: "3. diagnosticar", col: 3, row: 0 }
+  - { id: hipotese, rotulo: "nova hipótese", col: 3, row: 1 }
+  - { id: comunicar, rotulo: "4. comunicar (durante)", col: 1, row: 1 }
+  - { id: postmortem, rotulo: "post-mortem blameless", col: 4, row: 0 }
+arestas:
+  - { de: alerta, para: impacto }
+  - { de: impacto, para: mitigar }
+  - { de: mitigar, para: diagnosticar }
+  - { de: diagnosticar, para: hipotese, rotulo: "refutada", tipo: falha }
+  - { de: hipotese, para: diagnosticar }
+  - { de: impacto, para: comunicar, rotulo: "intervalo fixo" }
+  - { de: diagnosticar, para: postmortem, rotulo: "estável" }

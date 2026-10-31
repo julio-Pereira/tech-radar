@@ -63,10 +63,8 @@ como "lag alto sem causa" (`transaction.timeout.ms` é o botão).
 
 **EOS vale dentro do Kafka. O side-effect externo está fora dele.**
 
-```
-consumir  →  chamar o PSP (cobrar cartão)  →  produzir resultado  →  commit
-                        ↑
-              isto não faz parte da transação
+```diagrama
+kafka-transacao-e-psp
 ```
 
 Se o processo morre depois de cobrar o cartão e antes do commit, o Kafka faz seu

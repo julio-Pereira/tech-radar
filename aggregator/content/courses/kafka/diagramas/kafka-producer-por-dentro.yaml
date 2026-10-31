@@ -1,0 +1,25 @@
+id: kafka-producer-por-dentro
+tipo: sequencia
+titulo: "send() só enfileira: o resultado real chega depois, no callback"
+descricao: >
+  A aplicação chama send(), que serializa, escolhe a partição e coloca a mensagem no
+  acumulador em memória, retornando na hora. O lote fecha por batch.size ou por
+  linger.ms, e a thread sender o envia ao líder da partição com acks=all. O líder espera
+  o ISR copiar antes de confirmar. Se a confirmação não chega, o sender reenvia o mesmo
+  lote, com a mesma numeração, e o broker descarta a repetição. Só então o callback
+  informa sucesso ou erro à aplicação.
+participantes:
+  - { id: app, rotulo: "aplicação", papel: destaque }
+  - { id: acumulador, rotulo: "acumulador" }
+  - { id: sender, rotulo: "sender (I/O)" }
+  - { id: lider, rotulo: "líder da partição" }
+  - { id: isr, rotulo: "seguidores (ISR)" }
+mensagens:
+  - { de: app, para: acumulador, rotulo: "send(): enfileira", nota: "retorna na hora" }
+  - { de: acumulador, para: sender, rotulo: "lote fecha", nota: "batch.size ou linger.ms" }
+  - { de: sender, para: lider, rotulo: "produce, acks=all" }
+  - { de: lider, para: isr, rotulo: "replica" }
+  - { de: isr, para: lider, rotulo: "em dia", tipo: reply }
+  - { de: sender, para: lider, rotulo: "retry, mesma numeração", nota: "idempotência: o broker descarta a repetida" }
+  - { de: lider, para: sender, rotulo: "ack", tipo: reply }
+  - { de: sender, para: app, rotulo: "callback: ok ou erro", tipo: async }

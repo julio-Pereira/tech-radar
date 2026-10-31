@@ -1,0 +1,24 @@
+id: kafka-reprocessar-com-sombra
+tipo: fluxo
+titulo: "Reprocessar com tópico sombra: recalcular sem repetir o efeito"
+descricao: >
+  Para reprocessar com segurança, um consumidor novo, com group.id próprio, lê o mesmo
+  tópico desde o início e escreve em tabelas paralelas, sem chamar o PSP. O resultado
+  sombra é comparado com o atual. Só quando os dois batem a versão nova é promovida; se
+  divergem, nada muda em produção e a diferença é investigada. O consumidor original
+  segue funcionando o tempo todo, e nenhum efeito externo é reexecutado.
+passos:
+  - { id: topico, rotulo: "payments.authorized", col: 0, row: 0 }
+  - { id: atual, rotulo: "ledger-projector", col: 1, row: 0 }
+  - { id: sombra, rotulo: "projector sombra", col: 1, row: 1, papel: destaque }
+  - { id: tabelas, rotulo: "tabelas paralelas", col: 2, row: 1 }
+  - { id: comparar, rotulo: "comparar", col: 3, row: 1 }
+  - { id: promover, rotulo: "promover", col: 3, row: 0 }
+  - { id: investigar, rotulo: "investigar", col: 3, row: 2 }
+arestas:
+  - { de: topico, para: atual }
+  - { de: topico, para: sombra, rotulo: "group.id novo" }
+  - { de: sombra, para: tabelas, rotulo: "sem PSP" }
+  - { de: tabelas, para: comparar }
+  - { de: comparar, para: promover, rotulo: "bateu" }
+  - { de: comparar, para: investigar, rotulo: "divergiu", tipo: falha }

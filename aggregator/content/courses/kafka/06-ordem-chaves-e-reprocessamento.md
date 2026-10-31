@@ -40,6 +40,10 @@ partições, sem ordem entre si. Aumentar partição de tópico com ordem por ch
 uma operação de escala, é uma migração. É por isso que o dimensionamento do marco 02
 pede folga de crescimento desde o começo.
 
+```diagrama
+kafka-chave-e-ordem
+```
+
 ## Partição quente
 
 Se um cliente é 30% do volume, uma partição carrega 30% da carga e nenhuma quantidade
@@ -101,6 +105,10 @@ escrevendo em tabelas/tópicos **paralelos**. Compare o resultado com o atual. S
 promova depois de bater. Nenhum efeito externo é reexecutado porque o processador
 sombra não chama o PSP — ele só recalcula. É mais trabalho e é o que você faz quando o
 dado é dinheiro.
+
+```diagrama
+kafka-reprocessar-com-sombra
+```
 
 **2. Reset de offset do grupo existente.** Cirúrgico e perigoso:
 

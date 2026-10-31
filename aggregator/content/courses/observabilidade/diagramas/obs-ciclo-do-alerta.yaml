@@ -1,0 +1,22 @@
+id: obs-ciclo-do-alerta
+tipo: estados
+titulo: "O alerta de burn rate só dispara se a condição durar, e silencia sozinho"
+descricao: >
+  A regra começa inativa. Quando a expressão fica verdadeira, o alerta passa a pendente,
+  e só dispara se a condição se mantiver pelo tempo do for. Se ela voltar a ser falsa
+  antes disso, o alerta volta a inativo sem notificar ninguém. Disparado, ele é resolvido
+  quando a janela curta normaliza, mesmo que a janela longa ainda esteja alta, e é isso
+  que faz o alerta silenciar logo depois que o incidente passa, em vez de continuar
+  tocando.
+estados:
+  - { id: inactive, rotulo: "inactive", col: 0, row: 0 }
+  - { id: pending, rotulo: "pending", col: 1, row: 0 }
+  - { id: firing, rotulo: "firing", col: 2, row: 0, papel: destaque }
+  - { id: resolved, rotulo: "resolved", col: 2, row: 1 }
+inicial: inactive
+transicoes:
+  - { de: inactive, para: pending, evento: "expr verdadeira" }
+  - { de: pending, para: inactive, evento: "expr falsa" }
+  - { de: pending, para: firing, evento: "dura o for" }
+  - { de: firing, para: resolved, evento: "janela curta normal" }
+  - { de: resolved, para: inactive, evento: "esfria" }

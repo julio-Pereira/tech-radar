@@ -75,6 +75,10 @@ O `and` com a janela curta é o que evita o alerta que continua tocando **depois
 incidente passou: a janela longa demora a esfriar, a curta já está normal, e o alerta
 silencia. É a diferença entre um sistema de alerta que o time confia e um que ele silencia.
 
+```diagrama
+obs-ciclo-do-alerta
+```
+
 ## O que todo alerta precisa ter
 
 - **Runbook.** Alerta sem runbook é um susto. O link vai na annotation, não no wiki que

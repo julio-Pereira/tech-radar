@@ -132,6 +132,10 @@ Duas armadilhas: **budget nunca gasto** significa SLO conservador demais (marco 
 está deixando velocidade na mesa. E **budget sempre estourado** significa SLO irreal ou
 sistema que precisa de investimento; manter a meta impossível só ensina o time a ignorá-la.
 
+```diagrama
+obs-slo-e-burn-rate
+```
+
 ## Exemplo numa fintech
 
 O `fin-platform` com três SLOs, e a escolha dos números é deliberada:

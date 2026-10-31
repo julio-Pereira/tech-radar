@@ -56,6 +56,10 @@ O combo `RF=3` + `min.insync=2` tolera a perda de um broker sem parar a escrita 
 perder mensagem confirmada. Com `RF=3` + `min.insync=3`, qualquer broker fora derruba
 a produção — disponibilidade sacrificada sem ganho de durabilidade real.
 
+```diagrama
+kafka-particoes-e-isr
+```
+
 O mesmo par "quantos confirmam, quantos existem" reaparece em todo banco replicado — a
 tabela do `dados-distribuidos/15` traduz este botão para Postgres, MongoDB e Cosmos DB.
 

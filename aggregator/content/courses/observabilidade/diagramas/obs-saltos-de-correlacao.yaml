@@ -1,0 +1,23 @@
+id: obs-saltos-de-correlacao
+tipo: topologia
+titulo: "Cada salto entre sinais é um identificador que viaja junto"
+descricao: >
+  O incidente começa no alerta, que leva ao runbook e ao painel. No painel, o pico do
+  p99 tem um exemplar que abre o trace daquela requisição. Do span com erro, o trace_id
+  leva às linhas de log de todos os serviços, e o caminho inverso também existe: da linha
+  de log colada no chat de volta ao trace. Do span lento cujos filhos não somam o tempo,
+  o salto vai para o flame graph do profile. Cada salto que falta é feito à mão.
+nos:
+  - { id: alerta, rotulo: "alerta", col: 0, row: 0, papel: externo }
+  - { id: runbook, rotulo: "runbook", col: 1, row: 0 }
+  - { id: painel, rotulo: "painel (métrica)", col: 2, row: 0 }
+  - { id: trace, rotulo: "trace", col: 2, row: 1, papel: destaque }
+  - { id: logs, rotulo: "logs", col: 1, row: 2 }
+  - { id: profile, rotulo: "profile", col: 3, row: 2 }
+arestas:
+  - { de: alerta, para: runbook }
+  - { de: runbook, para: painel }
+  - { de: painel, para: trace, rotulo: "exemplar" }
+  - { de: trace, para: logs, rotulo: "trace_id" }
+  - { de: logs, para: trace, rotulo: "trace_id" }
+  - { de: trace, para: profile, rotulo: "span lento" }

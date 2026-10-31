@@ -1,0 +1,27 @@
+id: kafka-kraft-e-pix-stream
+tipo: topologia
+titulo: "Metadados ficam no quórum de controllers; os brokers só carregam o log"
+descricao: >
+  O cluster do pix-stream tem dois papéis. Três controllers formam o quórum KRaft e
+  mantêm o log de metadados, replicado por Raft, com um deles como líder: quais
+  tópicos existem, quem lidera cada partição, as ACLs. Três brokers consomem esse log de
+  metadados e guardam as partições. O pix-gateway produz nos brokers, e o ledger-core
+  consome deles. Nenhum ZooKeeper participa.
+grupos:
+  - { id: quorum, rotulo: "quórum KRaft", col: 0, row: 0, cols: 3, rows: 1 }
+  - { id: brokers, rotulo: "brokers", col: 0, row: 1, cols: 3, rows: 1 }
+nos:
+  - { id: c1, rotulo: "controller 1", grupo: quorum, col: 0, row: 0 }
+  - { id: c2, rotulo: "controller 2 (líder)", grupo: quorum, col: 1, row: 0, papel: destaque }
+  - { id: c3, rotulo: "controller 3", grupo: quorum, col: 2, row: 0 }
+  - { id: b1, rotulo: "broker 1", grupo: brokers, col: 0, row: 1 }
+  - { id: b2, rotulo: "broker 2", grupo: brokers, col: 1, row: 1 }
+  - { id: b3, rotulo: "broker 3", grupo: brokers, col: 2, row: 1 }
+  - { id: gateway, rotulo: "pix-gateway", col: 0, row: 2, papel: externo }
+  - { id: ledger, rotulo: "ledger-core", col: 2, row: 2, papel: externo }
+arestas:
+  - { de: c2, para: c1, rotulo: "Raft" }
+  - { de: c2, para: c3, rotulo: "Raft" }
+  - { de: c2, para: b2, rotulo: "log de metadados" }
+  - { de: gateway, para: b1, rotulo: "produz" }
+  - { de: b3, para: ledger, rotulo: "consome" }

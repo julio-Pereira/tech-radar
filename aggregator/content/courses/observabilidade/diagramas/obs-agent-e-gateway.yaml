@@ -1,0 +1,26 @@
+id: obs-agent-e-gateway
+tipo: topologia
+titulo: "O agent fica perto da app; só o gateway fala com o backend"
+descricao: >
+  Em cada nó do Kubernetes roda um Collector agent, como DaemonSet, que recebe a
+  telemetria das aplicações daquele nó com um salto de rede curto. Ele enriquece os dados
+  com os atributos k8s do pod, retira a PII o mais cedo possível e forma o primeiro lote.
+  Os agents enviam para o Collector gateway, um Deployment escalável que faz o tail
+  sampling, o roteamento e a agregação, e é o único que conversa com Tempo, Prometheus e
+  Loki, reduzindo milhares de conexões a dezenas.
+grupos:
+  - { id: no1, rotulo: "nó 1", col: 0, row: 0, cols: 1, rows: 2 }
+  - { id: no2, rotulo: "nó 2", col: 0, row: 2, cols: 1, rows: 2 }
+nos:
+  - { id: app1, rotulo: "pix-gateway", grupo: no1, col: 0, row: 0 }
+  - { id: agent1, rotulo: "agent (DaemonSet)", grupo: no1, col: 0, row: 1 }
+  - { id: app2, rotulo: "ledger-core", grupo: no2, col: 0, row: 2 }
+  - { id: agent2, rotulo: "agent (DaemonSet)", grupo: no2, col: 0, row: 3 }
+  - { id: gateway, rotulo: "gateway (Deployment)", col: 1, row: 2, papel: destaque }
+  - { id: backends, rotulo: "Tempo, Prometheus, Loki", col: 2, row: 2, papel: externo }
+arestas:
+  - { de: app1, para: agent1, rotulo: "OTLP" }
+  - { de: app2, para: agent2, rotulo: "OTLP" }
+  - { de: agent1, para: gateway, rotulo: "k8s.*, sem PII" }
+  - { de: agent2, para: gateway }
+  - { de: gateway, para: backends, rotulo: "tail sampling" }

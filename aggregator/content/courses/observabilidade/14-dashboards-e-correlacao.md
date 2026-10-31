@@ -76,6 +76,10 @@ Os saltos que importam:
   jornada completa.
 - **Alerta → runbook → painel** (marco 13), que é o começo de tudo às 3h.
 
+```diagrama
+obs-saltos-de-correlacao
+```
+
 Cada salto que não existe é feito à mão, e cada um feito à mão custa minutos de MTTR
 (marco 02). É por isso que a instrumentação consistente dos marcos 05 e 09 — `trace_id` em
 todo log, exemplars nos histogramas — paga exatamente no pior momento.

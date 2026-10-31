@@ -1,0 +1,22 @@
+id: obs-slo-e-burn-rate
+tipo: fluxo
+titulo: "Do SLI ao alerta: o burn rate mede a velocidade de gastar o budget"
+descricao: >
+  O SLI é a razão entre requisições boas e válidas de POST /payments, calculada por
+  recording rules. O SLO fixa a meta e a janela, e o error budget é o que sobra para
+  gastar. O burn rate compara o erro atual com o budget: em 14,4, o budget de 30 dias
+  acaba em dois dias. O alerta exige janela longa e curta acima do limiar ao mesmo tempo,
+  e a error budget policy diz o que muda no time quando o budget se esgota.
+passos:
+  - { id: sli, rotulo: "SLI: bons / válidos", col: 0, row: 0 }
+  - { id: slo, rotulo: "SLO: meta + janela", col: 1, row: 0 }
+  - { id: budget, rotulo: "error budget", col: 2, row: 0 }
+  - { id: burn, rotulo: "burn rate", col: 2, row: 1, papel: destaque }
+  - { id: alerta, rotulo: "alerta: 1h e 5m > 14,4", col: 1, row: 1 }
+  - { id: policy, rotulo: "error budget policy", col: 3, row: 0 }
+arestas:
+  - { de: sli, para: slo }
+  - { de: slo, para: budget, rotulo: "1 - SLO" }
+  - { de: budget, para: burn, rotulo: "velocidade de gasto" }
+  - { de: burn, para: alerta, rotulo: "duas janelas" }
+  - { de: budget, para: policy, rotulo: "consumo" }

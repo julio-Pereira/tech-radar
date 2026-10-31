@@ -1,0 +1,24 @@
+id: kafka-membro-no-rebalance
+tipo: estados
+titulo: "No rebalance cooperativo, o membro só solta as partições que mudam de dono"
+descricao: >
+  Um consumidor entra no grupo, recebe partições e passa a consumir. Num rebalance
+  cooperativo, ele devolve só as partições que precisam mudar de dono e continua
+  processando as outras, sem a pausa geral do protocolo eager. Se o processamento entre
+  dois polls passa de max.poll.interval.ms, o grupo o considera morto e redistribui as
+  partições dele, mesmo que ele ainda esteja processando o lote, o que gera trabalho
+  duplicado. Para voltar, ele entra no grupo de novo.
+estados:
+  - { id: fora, rotulo: "fora do grupo", col: 0, row: 0 }
+  - { id: entrando, rotulo: "entrando no grupo", col: 1, row: 0 }
+  - { id: consumindo, rotulo: "consumindo", col: 2, row: 0, papel: destaque }
+  - { id: revogando, rotulo: "devolvendo algumas", col: 2, row: 1 }
+  - { id: morto, rotulo: "considerado morto", col: 1, row: 1 }
+inicial: fora
+transicoes:
+  - { de: fora, para: entrando, evento: "join" }
+  - { de: entrando, para: consumindo, evento: "recebe partições" }
+  - { de: consumindo, para: revogando, evento: "rebalance" }
+  - { de: revogando, para: consumindo, evento: "segue com as demais" }
+  - { de: consumindo, para: morto, evento: "poll atrasou", guarda: "max.poll" }
+  - { de: morto, para: entrando, evento: "rejoin" }

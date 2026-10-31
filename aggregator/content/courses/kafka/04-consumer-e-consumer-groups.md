@@ -43,6 +43,10 @@ Rebalance é a redistribuição de partições quando alguém entra, sai ou morr
   muito mais rápido e previsível. O protocolo clássico está em depreciação; o conteúdo
   novo assume o novo.
 
+```diagrama
+kafka-membro-no-rebalance
+```
+
 O parâmetro que mais causa dor é `max.poll.interval.ms` (5min por padrão): se o seu
 processamento entre dois polls passar disso, o broker considera o consumidor morto e
 **rebalanceia** — e o consumidor "sumido" pode ainda estar processando o lote, o que
