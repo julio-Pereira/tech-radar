@@ -87,3 +87,12 @@ Provoque cada cenário e escreva um post-mortem de uma página — inclusive qua
 `estimatedHours` ≈ 2 × Σ `estimatedMinutes`: 610 min de leitura viram ~20h porque o hands-on é
 montar o diretório simulado, escrever o caso negativo de cada requisito e rodar o *harness*
 contra as próprias falhas.
+
+## Versão de referência dos diagramas
+
+Os diagramas de consentimento (marco 04) e de iniciação de pagamento (marco 07) usam os status
+`AWAITING_AUTHORISATION`, `AUTHORISED`, `REJECTED` e `CONSUMED`. Esses nomes foram conferidos em
+novembro de 2026 em documentação pública de participantes, não no texto oficial. Antes de
+implementar, **confira** a versão vigente das APIs de consentimento e de pagamentos no portal de
+especificações do Open Finance Brasil. Se ela tiver outros status, como um `EXPIRED` separado,
+atualize os diagramas junto com o código.

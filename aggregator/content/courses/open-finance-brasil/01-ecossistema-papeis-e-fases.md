@@ -21,6 +21,10 @@ cada chamada específica é feita **num** papel — e validar que o chamador rea
 está exercendo é a base de tudo que vem depois. **TPP** (*third-party provider*) é o termo
 genérico para a instituição do lado de fora, não dono dos dados ou da conta em questão.
 
+```diagrama
+of-ecossistema
+```
+
 ## Fases do ecossistema
 
 O ecossistema foi (e continua sendo) implantado em **fases** — dados cadastrais e transacionais

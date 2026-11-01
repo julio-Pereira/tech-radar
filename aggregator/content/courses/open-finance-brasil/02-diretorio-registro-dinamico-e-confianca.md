@@ -34,6 +34,10 @@ SSA válida, se registra como cliente OAuth2 num transmissor — um ciclo de vid
 único, sem suporte a atualização e remoção, falha exatamente no cenário mais comum em produção:
 rotação de chave e mudança de metadados do participante ao longo do tempo.
 
+```diagrama
+of-dcr
+```
+
 ## JWKS: cache, rotação e o problema do *kid*
 
 O **JWKS** (*JSON Web Key Set*) publica as chaves públicas usadas para verificar assinaturas — do
