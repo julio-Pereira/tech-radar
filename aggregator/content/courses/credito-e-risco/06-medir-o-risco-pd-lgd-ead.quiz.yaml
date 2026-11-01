@@ -1,0 +1,49 @@
+questions:
+  - question: "Um contrato tem PD de 4%, LGD de 45% e EAD de R$ 10.000. Outro, idêntico, tem EAD de R$ 20.000. Segundo este marco, qual é a perda esperada dos dois juntos?"
+    options:
+      - "R$ 540,00: R$ 180,00 do primeiro mais R$ 360,00 do segundo, porque a perda esperada é aditiva e linear na EAD"
+      - "R$ 360,00, porque a perda esperada da carteira é a do maior contrato, que concentra o risco dos dois"
+      - "Não dá para somar: perda esperada de contratos diferentes só se combina considerando a correlação de default entre eles"
+      - "R$ 270,00, a média das duas perdas, já que a carteira tem dois contratos com o mesmo perfil de risco"
+    answer: 0
+    explanation: "EL = PD × LGD × EAD = 180 e 360; o marco destaca que a perda esperada é aditiva entre contratos e linear em cada fator. A correlação importa para a perda inesperada (a dispersão), não para a esperada; média e máximo não são a regra."
+  - question: "O time mede a inadimplência de um modelo usando contratos originados nas últimas três semanas, e conclui que o modelo superestima a PD. Segundo este marco, qual é o erro mais provável?"
+    options:
+      - "O modelo foi treinado com dados demais, e por isso promete PDs mais altas do que as que acontecem na carteira"
+      - "Os contratos ainda não passaram pela janela de maturação: não tiveram tempo de inadimplir, e a inadimplência observada sai subestimada"
+      - "A medição deveria ter usado AUC em vez de inadimplência observada, porque PD não se compara com a realidade"
+      - "Três semanas é uma amostra pequena demais em número de contratos, então qualquer conclusão é ruído estatístico puro, independentemente da idade dos contratos medidos"
+    answer: 1
+    explanation: "Default se mede depois da janela de maturação; contratos recém-originados ainda não inadimpliram. AUC mede ordenação, não nível; o problema não é volume de treino; e o ponto central não é o tamanho da amostra, mas a idade dos contratos."
+  - question: "Um modelo tem AUC de 0,82 na carteira, mas a faixa que promete PD de 5% tem 9% de inadimplência observada nas safras maduras. Segundo este marco, para que esse modelo ainda serve?"
+    options:
+      - "Para nada: um modelo com erro de calibração precisa ser desligado imediatamente e substituído pela regra simples de corte, até que um novo modelo seja treinado"
+      - "Para tudo: AUC de 0,82 é alta, e a calibração só importa para modelos com AUC abaixo de 0,7"
+      - "Ele ordena bem, mas está descalibrado: serve para ordenar propostas, não para precificar nem provisionar, que dependem do nível da PD"
+      - "Ele serve para provisionar, porque a provisão usa a ordem dos contratos, e não para aprovar propostas"
+    answer: 2
+    explanation: "Discriminação e calibração são coisas diferentes: AUC alta com calibração ruim é bom para ordenar e ruim para precificar e provisionar. Desligar de imediato ignora a utilidade de ordenação; AUC alta não dispensa calibração; e provisão usa o nível, não a ordem."
+  - question: "O PSI entre a população de referência (30%/40%/30%) e a atual (20%/40%/40%) dá cerca de 0,069. Segundo este marco, como ler esse número?"
+    options:
+      - "O modelo perdeu a validade e precisa ser retreinado, porque qualquer PSI acima de zero indica drift relevante"
+      - "A mudança de população ainda está abaixo dos limiares habituais de alerta; o número não prova que está tudo bem, só que não dispara a revisão"
+      - "O PSI mostra que a inadimplência subiu 6,9% na população atual em relação à de referência, nas três faixas medidas, o que exige revisar a provisão"
+      - "Esse valor é impossível: o PSI só pode ser calculado com dez faixas, e com três o resultado não tem significado"
+    answer: 1
+    explanation: "≈ 0,069 fica abaixo dos limiares habituais (a conferir na política). O PSI mede mudança de distribuição, não inadimplência; PSI > 0 não implica drift relevante; e o número de faixas é uma escolha, não uma condição de validade."
+  - question: "Com um score novo, a AUC subiu de 0,74 para 0,80. O gerente quer baixar o cutoff de aprovação no mesmo dia. Segundo este marco, por que isso não decorre automaticamente?"
+    options:
+      - "Porque a AUC só pode ser comparada entre modelos treinados com o mesmo algoritmo e as mesmas variáveis"
+      - "Porque baixar o cutoff aumenta a AUC artificialmente, e a melhora de 0,74 para 0,80 pode ser só efeito desse ajuste, e não do score novo"
+      - "Porque a melhora de 0,06 na AUC está dentro da margem de erro e não deveria ser considerada em nenhuma decisão"
+      - "Porque o modelo não é a política: o cutoff depende de custo de captação, apetite a risco e capacidade operacional, não só da PD"
+    answer: 3
+    explanation: "O marco separa modelo e política: um modelo melhor não muda o corte sozinho. AUC compara modelos diferentes, sim; mudar o cutoff não altera a AUC (ela independe do corte); e o marco não trata o ganho como ruído."
+  - question: "A carteira inteira mostra inadimplência estável em 3% há um ano, mas o time quer saber se a população nova está pior. Segundo este marco, por que medir por safra ajuda?"
+    options:
+      - "Porque medir por safra separa o efeito da idade dos contratos do efeito da população que entrou; o total estável pode esconder safras novas piores"
+      - "Porque medir por safra reduz o número de contratos analisados, e amostras menores dão resultados mais precisos e mais rápidos de calcular para o comitê de crédito"
+      - "Porque a regulação exige que toda medida de risco seja reportada por safra, e o total da carteira não é aceito"
+      - "Porque a safra mais antiga sempre tem a inadimplência mais alta, e ela precisa ser excluída da média da carteira"
+    answer: 0
+    explanation: "A vintage separa idade de população; um total estável pode misturar safras antigas boas com safras novas piores. Amostras menores não são mais precisas, o marco não afirma exigência regulatória de formato, e safra antiga não é por definição a pior."

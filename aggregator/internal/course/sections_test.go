@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 185, "desafio": 227, "invariantes": 224, "complemento": 209, "checagem": 226, "gabarito": 5,
+		"tutorial": 194, "desafio": 236, "invariantes": 233, "complemento": 218, "checagem": 235, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -422,21 +422,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	wantNoSection := []string{
-		// credito-e-risco is being written block by block (PLANO-
-		// trilha-credito-e-risco.md §4/§10) — these are still
-		// placeholder bodies awaiting their block's content PR.
-		"credito-e-risco/alem-do-credito-liquidez-mercado-e-operacional",
-		"credito-e-risco/cobranca-e-recuperacao",
-		"credito-e-risco/limite-exposicao-e-concentracao",
-		"credito-e-risco/medir-o-risco-pd-lgd-ead",
-		"credito-e-risco/monitoramento-da-carteira",
-		"credito-e-risco/operar-credito-e-capstone",
-		"credito-e-risco/originacao-e-dados-de-entrada",
-		"credito-e-risco/politica-de-credito-e-motor-de-decisao",
-		"credito-e-risco/provisao-e-perda-esperada",
-		"go-fintech/java-vs-go",
-	}
+	wantNoSection := []string{"go-fintech/java-vs-go"}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}

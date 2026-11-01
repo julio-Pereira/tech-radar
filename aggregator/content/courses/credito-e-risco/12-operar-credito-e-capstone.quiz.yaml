@@ -1,0 +1,33 @@
+questions:
+  - question: "Durante 2 horas de bureau fora do ar, o motor do `fin-lend` aplicou a regra de degradação, mas não marcou as decisões no log. Segundo este marco, o que isso impede?"
+    options:
+      - "Impede que o motor volte ao modo normal quando o bureau responde, porque ele não sabe que estava degradado"
+      - "Impede o cálculo do SLO de latência, já que decisões degradadas são mais rápidas que as normais"
+      - "Impede de listar e reavaliar as decisões degradadas pela política normal quando a fonte volta"
+      - "Nada importante: as decisões degradadas seguem uma regra aprovada, e por isso não precisam de tratamento posterior"
+    answer: 2
+    explanation: "A marcação é o que permite o relatório de decisões degradadas e a reavaliação. O retorno ao modo normal não depende do log, a latência não é a questão, e regra aprovada não dispensa a reavaliação."
+  - question: "Um engenheiro publica a política v3 direto em produção, numa terça às 11h, porque 'é só um cutoff'. Segundo este marco, o que o pipeline deveria ter exigido?"
+    options:
+      - "Apenas que a v3 passasse nos testes unitários do motor, já que mudança de cutoff não altera código"
+      - "Sombra concluída, aprovação por alçada, janela declarada e plano de rollback — e recusar a publicação sem eles"
+      - "Que a publicação fosse feita fora do horário comercial, quando o volume de propostas é menor e o impacto de um erro também"
+      - "Que a v1 fosse editada em vez de criar uma v3, para não acumular versões de política no repositório"
+    answer: 1
+    explanation: "Mudança de política é mudança controlada: sombra, alçada, janela e rollback, impostos pelo pipeline. Testes unitários não medem impacto na carteira, horário não substitui controle, e editar a v1 viola a imutabilidade."
+  - question: "O comitê aprovou, em março, operar com limite reduzido enquanto o bureau estava instável. Em setembro, a exceção continua ativa, sem data de fim. Segundo este marco, qual é o problema?"
+    options:
+      - "Uma exceção sem prazo é uma política nova que ninguém aprovou como tal; toda exceção precisa de dono e data de fim"
+      - "Nenhum: se o comitê aprovou, a exceção vale até o comitê decidir o contrário"
+      - "O problema é só de documentação: a ata de março deveria estar anexada ao log de decisão de cada proposta aprovada desde então"
+      - "A exceção deveria ter sido convertida automaticamente em política v2 depois de 30 dias, por regra do motor"
+    answer: 0
+    explanation: "Exceção tem dono e prazo; sem fim, ela vira política não aprovada. A aprovação inicial não dispensa o prazo, a ata não resolve, e não há conversão automática."
+  - question: "Uma versão nova do `calc/` calculou parcelas R$ 3 acima do correto em 2.000 contratos por uma semana. Segundo este marco, o que o tratamento do incidente inclui além do post-mortem técnico?"
+    options:
+      - "Apenas corrigir o `calc/` e recalcular as próximas parcelas, já que a diferença é pequena por contrato"
+      - "Esperar a próxima auditoria anual para avaliar se o impacto foi material o suficiente para agir"
+      - "Reverter os efeitos sobre o cliente (estornos), comunicar os clientes e, se houver obrigação, o regulador — conferindo prazos com compliance"
+      - "Desligar o `calc/` e voltar ao cálculo manual em planilha até que a causa raiz esteja totalmente comprovada pelo time e pela auditoria interna"
+    answer: 2
+    explanation: "Incidente de crédito inclui reverter o efeito sobre o cliente, comunicar e, quando aplicável, informar o regulador. Corrigir só o futuro deixa a cobrança indevida, esperar a auditoria é omissão, e planilha não é mitigação."

@@ -1,0 +1,17 @@
+id: cr-perda-esperada
+tipo: topologia
+titulo: "Perda esperada = PD × LGD × EAD: R$ 180,00 para este contrato"
+descricao: >
+  Três números descrevem o risco de um contrato. A PD, probabilidade de default em 12 meses,
+  é 4%. A LGD, fração perdida se houver default depois da recuperação, é 45%. A EAD,
+  exposição no momento do default, é R$ 10.000. O produto dá a perda esperada de R$ 180,00.
+  Ela é aditiva entre contratos e linear em cada fator: dobrar a EAD dobra a perda esperada.
+nos:
+  - { id: pd, rotulo: "PD 4%", col: 0, row: 0 }
+  - { id: lgd, rotulo: "LGD 45%", col: 0, row: 1 }
+  - { id: ead, rotulo: "EAD R$ 10.000", col: 0, row: 2 }
+  - { id: el, rotulo: "perda esperada R$ 180", col: 1, row: 1, papel: destaque }
+arestas:
+  - { de: pd, para: el }
+  - { de: lgd, para: el, rotulo: "×" }
+  - { de: ead, para: el }

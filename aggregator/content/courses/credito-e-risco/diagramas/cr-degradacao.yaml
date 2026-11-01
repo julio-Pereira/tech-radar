@@ -1,0 +1,22 @@
+id: cr-degradacao
+tipo: fluxo
+titulo: "Bureau fora do ar: só a regra declarada, cada decisão marcada, todas reavaliadas"
+descricao: >
+  Quando o bureau cai, o motor passa a aplicar a regra de degradação aprovada pelo comitê, e
+  só ela: aprovar com limite reduzido para quem tem dado interno forte, fila manual para o
+  resto. Cada decisão tomada nesse período fica marcada como degradada no log. Quando a fonte
+  volta, um relatório lista as decisões degradadas, e um replay pela política normal mostra
+  quais teriam saído diferentes, para reavaliação.
+passos:
+  - { id: cai, rotulo: "bureau cai", col: 0, row: 0 }
+  - { id: regra, rotulo: "regra de degradação", col: 1, row: 0, papel: destaque }
+  - { id: marca, rotulo: "decisão marcada", col: 2, row: 0 }
+  - { id: volta, rotulo: "bureau volta", col: 2, row: 1 }
+  - { id: replay, rotulo: "replay pela normal", col: 1, row: 1 }
+  - { id: reavalia, rotulo: "reavalia as diferentes", col: 0, row: 1 }
+arestas:
+  - { de: cai, para: regra }
+  - { de: regra, para: marca }
+  - { de: marca, para: volta }
+  - { de: volta, para: replay }
+  - { de: replay, para: reavalia }

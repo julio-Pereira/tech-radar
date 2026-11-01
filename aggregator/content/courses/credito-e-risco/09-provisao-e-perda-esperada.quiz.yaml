@@ -1,0 +1,49 @@
+questions:
+  - question: "Uma fintech nova não provisiona nada nos primeiros meses, porque nenhum contrato atrasou ainda. Segundo este marco, o que isso distorce?"
+    options:
+      - "O fluxo de caixa: sem provisão, a fintech fica sem dinheiro para emprestar nos meses seguintes"
+      - "O lucro dos primeiros meses fica inflado e a perda aparece de uma vez quando o calote se confirma, em vez de ser reconhecida conforme o risco aparece"
+      - "Nada: provisão só faz sentido depois do primeiro atraso, que é quando a perda passa a ser provável"
+      - "A taxa de juros: sem provisão, a fintech não consegue calcular o CET correto dos contratos novos, porque a provisão é um dos custos que entram no cálculo do CET de cada contrato"
+    answer: 1
+    explanation: "A provisão reconhece antes a perda provável; sem ela, o lucro é inflado e a perda chega concentrada. Provisão não é caixa, é reconhecida desde a originação no modelo de perda esperada, e não entra no CET."
+  - question: "Um contrato vai do estágio 1 para o estágio 2 por SICR, com PD, LGD e EAD de 12 meses iguais aos de antes. Segundo este marco, por que a provisão sobe?"
+    options:
+      - "Porque o estágio 2 aplica uma multa regulatória fixa sobre o saldo, independente da PD e da LGD do contrato"
+      - "Porque no estágio 2 a LGD dobra por definição, já que o cliente passou a ter risco de crédito maior"
+      - "Porque o horizonte passa de 12 meses para a vida inteira do contrato, e a PD de vida inteira é maior"
+      - "Porque a migração cancela a provisão do estágio 1 e cria uma nova, somando as duas no mesmo período"
+    answer: 2
+    explanation: "A diferença entre estágios é o horizonte: 12 meses no 1, vida inteira no 2. Não há multa fixa nem LGD dobrada por definição, e as provisões não se somam."
+  - question: "Um contrato no estágio 2 paga uma parcela em dia. O sistema o devolve imediatamente ao estágio 1. Segundo este marco, o que está errado?"
+    options:
+      - "A cura só melhora o estágio depois do período de observação declarado sem o gatilho; um pagamento não desfaz um aumento de risco real"
+      - "Nada: o pagamento em dia elimina o gatilho que tinha levado o contrato ao estágio 2"
+      - "O contrato deveria ir para o estágio 3, porque oscilar entre estágios é, ele mesmo, um sinal de risco"
+      - "A cura só pode acontecer no fechamento anual do balanço, e nunca no meio do exercício contábil, porque mudar de estágio altera a provisão já publicada"
+    answer: 0
+    explanation: "A cura é mais lenta de propósito: exige o período de observação. Um pagamento não basta, oscilar não leva ao estágio 3 por regra, e a cura não está presa ao fechamento anual."
+  - question: "Com o cenário pessimista, a provisão total da carteira saiu menor que no cenário base. Segundo este marco, o que esse resultado indica?"
+    options:
+      - "Que o cenário pessimista foi bem calibrado e a carteira é resiliente a crises"
+      - "Que a ponderação dos cenários precisa ser invertida, dando mais peso ao cenário base, que é o mais provável, e menos ao pessimista"
+      - "Que a carteira tem mais contratos no estágio 1 do que no 2, o que é normal"
+      - "Um defeito: por construção o pessimista nunca dá provisão menor que o base, e o teste de monotonicidade deve falhar"
+    answer: 3
+    explanation: "A monotonicidade entre cenários é uma invariante: pessimista ≥ base. O resultado indica bug, não resiliência; inverter a ponderação não corrige o cálculo; e a distribuição por estágio não explica a inversão."
+  - question: "Depois do fechamento de março, descobre-se que a provisão de 40 contratos estava R$ 3.200 abaixo do correto. Segundo este marco, como corrigir?"
+    options:
+      - "Reabrir março, recalcular a provisão e editar o lançamento original para o valor certo"
+      - "Lançar a diferença no período seguinte, sem editar o período fechado"
+      - "Excluir os 40 contratos do relatório de março e incluí-los só no relatório de abril"
+      - "Ignorar, porque a diferença se compensa sozinha quando os contratos forem baixados"
+    answer: 1
+    explanation: "Período fechado não aceita edição retroativa; a correção entra no período seguinte. Editar março viola o fechamento, mexer no relatório quebra a soma, e ignorar deixa a provisão errada."
+  - question: "O auditor pede para explicar a provisão de R$ 4,2 milhões. O time entrega o total por estágio e a planilha dos parâmetros. Segundo este marco, o que falta?"
+    options:
+      - "Um gráfico da evolução mensal da provisão, para mostrar que o número é coerente com a tendência dos últimos doze meses"
+      - "A assinatura do diretor responsável, que valida o número sem precisar abrir o detalhe"
+      - "O relatório por contrato — estágio, gatilho, PD, LGD, EAD, cenários e valor — cuja soma é exatamente o lançamento"
+      - "Nada: o total por estágio e os parâmetros bastam, porque a auditoria não olha contrato por contrato"
+    answer: 2
+    explanation: "O relatório de auditoria explica 100% do valor por contrato, e sua soma é igual ao lançamento. Gráfico e assinatura não explicam o número, e o total por estágio não mostra de onde cada parte vem."

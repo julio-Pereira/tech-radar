@@ -1,0 +1,33 @@
+questions:
+  - question: "A régua de cobrança do `fin-lend` tem a verificação de horário dentro de cada passo (lembrete, contato, oferta). Um passo novo é criado sem a verificação e manda SMS às 23h. Segundo este marco, qual é a correção estrutural?"
+    options:
+      - "Revisar todos os passos da régua a cada release, com uma checklist que inclua a verificação de horário"
+      - "Um único portão de saída por onde toda mensagem passa, checando proteção, canal, janela e limite diário"
+      - "Mover o envio de SMS para um provedor que bloqueie automaticamente mensagens fora do horário comercial"
+      - "Remover o SMS da régua e usar só e-mail, que o cliente lê quando quiser e por isso não tem janela de horário"
+    answer: 1
+    explanation: "O marco põe a regra num portão único, não espalhada por passo. Checklist depende de memória, o provedor não conhece consentimento nem proteção, e trocar o canal não resolve a regra de contato."
+  - question: "Um contrato com 75 dias de atraso é renegociado e passa a constar 'em dia'. No relatório de provisão, o histórico de atraso some. Segundo este marco, qual é o problema?"
+    options:
+      - "Nenhum: a renegociação cria um contrato novo, e um contrato novo começa sem histórico por definição"
+      - "O problema é só de apresentação: o relatório deveria mostrar o contrato antigo e o novo lado a lado"
+      - "Cura artificial: o risco do cliente não mudou, e o histórico de atraso não pode ser zerado para provisão e reclassificação"
+      - "O problema é que renegociações com mais de 60 dias de atraso são proibidas, e o contrato deveria ter ido para baixa para prejuízo"
+    answer: 2
+    explanation: "Zerar o histórico mascara a inadimplência; a regra declarada mantém o histórico para provisão. O contrato novo carrega a relação, a questão não é só de layout, e o marco não proíbe renegociar nessa faixa."
+  - question: "O cliente prometeu pagar na sexta e não pagou. No sábado, o verificador de promessas roda três vezes por causa de retentativas do agendador. Segundo este marco, quantas vezes a régua avança?"
+    options:
+      - "Uma vez: a quebra da promessa é um evento processado uma única vez, por idempotência"
+      - "Três vezes, uma para cada execução do verificador, porque cada execução observou a promessa quebrada"
+      - "Nenhuma, porque uma promessa quebrada encerra a cobrança e o contrato vai direto para a assessoria externa"
+      - "Duas vezes: a primeira registra a quebra e a segunda confirma, e a terceira é descartada como duplicada"
+    answer: 0
+    explanation: "A quebra avança a régua exatamente um passo, com idempotência sob retentativas. Três avanços é o bug; ir direto para assessoria não é a regra descrita; e não existe 'confirmação' em duas etapas."
+  - question: "Um crédito foi baixado para prejuízo há oito meses. Hoje o cliente paga R$ 2.000. Segundo este marco, como isso entra no razão?"
+    options:
+      - "Revertendo a baixa: o contrato volta para o ativo e o pagamento é aplicado como num contrato em dia"
+      - "Como lançamento novo de recuperação posterior, sem reverter a baixa, que continua no histórico"
+      - "Como redução da provisão do mês, já que a baixa tinha consumido provisão e o pagamento a devolve"
+      - "Não entra: depois da baixa, valores recebidos vão para uma conta fora do razão até o fim do exercício"
+    answer: 1
+    explanation: "Recuperação posterior é um lançamento novo, nunca a reversão da baixa. Reverter apaga o histórico, mexer na provisão do mês distorce a provisão, e nada fica fora do razão."

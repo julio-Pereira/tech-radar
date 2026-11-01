@@ -1,0 +1,17 @@
+id: cr-reserva-limite
+tipo: sequencia
+titulo: "Dois saques de R$ 800 com R$ 1.000 disponíveis: a escrita condicional aprova um só"
+descricao: >
+  Dois saques chegam quase ao mesmo tempo. Cada um tenta reservar R$ 800 com uma escrita
+  condicional, que só reserva se o disponível ainda comportar. O primeiro afeta uma linha e é
+  aprovado, deixando R$ 200. O segundo afeta zero linhas e recebe a recusa explicada, limite
+  insuficiente. O limite nunca fica negativo, sem nenhum lock explícito.
+participantes:
+  - { id: a, rotulo: "saque A" }
+  - { id: lim, rotulo: "limites", papel: destaque }
+  - { id: b, rotulo: "saque B" }
+mensagens:
+  - { de: a, para: lim, rotulo: "reserva 800 se ≥ 800", tipo: sync }
+  - { de: b, para: lim, rotulo: "reserva 800 se ≥ 800", tipo: sync }
+  - { de: lim, para: a, rotulo: "aprovado, resta 200", tipo: reply }
+  - { de: lim, para: b, rotulo: "limite insuficiente", tipo: reply }

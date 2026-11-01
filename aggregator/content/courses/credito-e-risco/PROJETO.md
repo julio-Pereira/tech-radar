@@ -1,10 +1,5 @@
 # `fin-lend` — projeto guia da trilha `credito-e-risco`
 
-> **Stub.** Esta trilha ainda está em `course.yaml` + 12 marcos placeholder — ver o aviso em
-> cada marco. Este `PROJETO.md` reproduz a especificação já fechada em
-> `PLANO-trilha-credito-e-risco.md` §7; o conteúdo completo dos marcos chega bloco a
-> bloco nas próximas PRs desta trilha.
-
 `fin-lend` é o **crédito do `fin-platform`**: contratos como máquina de estados, cronogramas,
 razão, política de decisão versionada, limites, cobrança, provisão e relatórios de carteira,
 sobre uma carteira sintética (50 mil contratos, 36 meses de histórico, determinísticos por

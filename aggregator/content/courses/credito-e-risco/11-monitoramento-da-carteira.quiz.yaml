@@ -1,0 +1,33 @@
+questions:
+  - question: "A inadimplência total da carteira do `fin-lend` está estável há seis meses. Um analista diz que, por isso, a originação está saudável. Segundo este marco, por que essa conclusão é arriscada?"
+    options:
+      - "Porque a inadimplência total só é atualizada no fechamento do trimestre, e seis meses são só dois pontos de dados para comparar"
+      - "Porque o total mistura safras antigas boas com safras novas; só comparando safras na mesma idade se vê se a originação piorou"
+      - "Porque inadimplência estável é, em si, um sinal de alerta: carteiras saudáveis têm inadimplência sempre caindo"
+      - "Porque a inadimplência total não inclui os contratos renegociados, e eles concentram todo o risco da carteira"
+    answer: 1
+    explanation: "A vintage separa idade de população: safras novas piores podem estar escondidas no total. A frequência de atualização não é a questão, estabilidade não é alerta por si, e o ponto não é a renegociação."
+  - question: "Na matriz de migração calculada pelo time, a linha da faixa 31–60 soma 1,12. Segundo este marco, o que isso indica?"
+    options:
+      - "Que 12% dos contratos dessa faixa foram originados no mês, e isso é normal em carteiras em crescimento acelerado, como a do fin-lend nos últimos trimestres"
+      - "Que a faixa 31–60 está piorando, já que mais de 100% dos contratos rolaram para faixas piores"
+      - "Um defeito: cada linha soma 1, porque todo contrato está em alguma faixa no mês seguinte; há contrato contado duas vezes ou faixa calculada errado"
+      - "Nada relevante: arredondamentos fazem as linhas da matriz somarem valores próximos de 1, entre 0,9 e 1,2"
+    answer: 2
+    explanation: "A invariante é que cada linha soma 1. 1,12 é bug (dupla contagem ou faixa errada). Contratos novos não entram em 31–60, piora não passa de 100%, e arredondamento não explica 12%."
+  - question: "O relatório de carteira de 31 de março, rodado hoje, dá números diferentes do mesmo relatório rodado em abril, sem nenhuma correção lançada desde então. Segundo este marco, qual é a falha?"
+    options:
+      - "O relatório lê o estado atual da carteira, e não o estado naquela data de corte; um relatório as-of só muda se o dado daquela data mudar"
+      - "Nenhuma: relatórios de carteira mudam naturalmente com o tempo, porque os contratos continuam vivendo"
+      - "O banco de dados está sem backup, e o relatório de abril foi gerado a partir de uma cópia parcial da carteira"
+      - "A data de corte deveria ser sempre o último dia útil do mês, e 31 de março caiu num fim de semana, o que faz o relatório ler um dia diferente a cada execução"
+    answer: 0
+    explanation: "Relatório as-of é reproduzível: lê o estado naquela data. Mudar sem correção indica que ele lê o estado atual. Contratos vivendo não mudam o passado; backup e dia útil não explicam a divergência."
+  - question: "Um canal parceiro novo trouxe 80 contratos em março, e a curva de vintage desse canal mostra inadimplência de 6% aos 2 meses. Segundo este marco, como tratar essa curva?"
+    options:
+      - "Suspender o canal imediatamente, porque 6% aos 2 meses é o triplo da média da carteira"
+      - "Marcar a curva como não conclusiva, por estar abaixo do tamanho mínimo de amostra declarado, em vez de exibi-la como sinal"
+      - "Somar a safra do canal à safra geral de março, para que ela tenha tamanho suficiente para análise estatística confiável no comitê"
+      - "Excluir o canal do relatório até que ele tenha pelo menos 36 meses de histórico, como a carteira sintética"
+    answer: 1
+    explanation: "Safra pequena oscila muito; abaixo do mínimo declarado ela é marcada como não conclusiva. Suspender por uma curva ruidosa é reagir a ruído, somar esconde o canal, e excluir por 36 meses descarta o sinal quando ele ficar significativo."

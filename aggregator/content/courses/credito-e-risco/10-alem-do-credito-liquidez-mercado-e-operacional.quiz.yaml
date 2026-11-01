@@ -1,0 +1,33 @@
+questions:
+  - question: "A carteira do `fin-lend` tem saldo total crescente e inadimplência estável, mas a área de tesouraria pede a escada de vencimentos. Segundo este marco, o que a escada mostra que o saldo não mostra?"
+    options:
+      - "A rentabilidade de cada contrato, separada por safra, para decidir quais produtos manter na carteira"
+      - "Mês a mês, o que entra das parcelas contra o que sai da captação, e em que mês a cobertura vira negativa"
+      - "A inadimplência projetada da carteira, que o saldo total esconde por somar contratos em dia e em atraso"
+      - "O valor de mercado da carteira se ela fosse vendida hoje, usado para calcular o capital exigido pela regulação"
+    answer: 1
+    explanation: "A escada mostra o descasamento de datas e o mês em que a cobertura vira negativa. Rentabilidade, inadimplência projetada e valor de mercado são outras medidas."
+  - question: "Muitos clientes quitam contratos antecipadamente num mês. Segundo este marco, por que isso pode piorar a liquidez da carteira?"
+    options:
+      - "Porque o pré-pagamento é cobrado com desconto, e o valor recebido é menor que o saldo devedor"
+      - "Porque o dinheiro do pré-pagamento fica retido no banco do cliente até a compensação, que leva semanas para ser concluída"
+      - "Porque a entrada vem antes, mas as parcelas dos meses seguintes somem da escada, enquanto a captação continua vencendo"
+      - "Não piora: pré-pagamento é sempre dinheiro entrando antes, e só melhora a cobertura"
+    answer: 2
+    explanation: "O marco descreve exatamente esse efeito: a entrada antecipa, mas os meses seguintes perdem entradas. O desconto de juros existe, mas não é o efeito sobre a escada; não há retenção de semanas; e 'sempre melhora' ignora os meses seguintes."
+  - question: "A carteira é de contratos prefixados e a captação é pós-fixada. A taxa básica sobe 2 pontos. Segundo este marco, que risco se materializa?"
+    options:
+      - "Risco de mercado: o custo da captação sobe e a receita dos contratos prefixados não, pelo descasamento pré × pós"
+      - "Risco de crédito: com juros mais altos, os clientes passam a pagar parcelas maiores e inadimplem em maior número"
+      - "Risco operacional: os sistemas precisam recalcular todos os cronogramas, e o recálculo pode falhar"
+      - "Nenhum: contratos prefixados protegem a instituição de qualquer variação de taxa"
+    answer: 0
+    explanation: "É o descasamento pré × pós, risco de mercado. Contratos prefixados não mudam a parcela (então não é esse o canal de crédito), não há recálculo de cronograma, e o prefixado protege o cliente, não a instituição."
+  - question: "O motor de decisão do `fin-lend` ficou fora do ar por 3 horas numa segunda de pico. A diretoria pergunta quanto isso custou. Segundo este marco, como responder?"
+    options:
+      - "Não é possível calcular: falha de sistema é custo de TI, não perda financeira mensurável"
+      - "Pelo custo da hora dos engenheiros que trabalharam no incidente, somado ao custo da infraestrutura extra usada"
+      - "Pela queda da taxa de aprovação no dia, comparada com a média das segundas-feiras dos últimos três meses de operação"
+      - "Como evento de perda operacional: propostas perdidas no período × margem esperada, mais reembolsos ou multas, se houver"
+    answer: 3
+    explanation: "O marco trata o evento operacional como perda calculável: propostas perdidas × margem, mais custos diretos. Ele é mensurável; o custo de engenharia é uma parte pequena; e a taxa de aprovação não mede o que se deixou de originar."

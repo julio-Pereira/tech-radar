@@ -1,0 +1,33 @@
+questions:
+  - question: "No `fin-lend`, o saque lê o disponível, verifica se cabe e depois grava o novo uso, em duas operações. Com R$ 1.000 disponíveis, dois saques de R$ 800 simultâneos são aprovados. Segundo este marco, qual é a correção?"
+    options:
+      - "Colocar um sleep aleatório entre a leitura e a escrita, para reduzir a chance de os dois saques coincidirem"
+      - "Verificar e reservar na mesma operação atômica, uma escrita condicional que só reserva se o disponível ainda comportar"
+      - "Aceitar o estouro e corrigi-lo no fechamento diário, estornando o saque que chegou por último"
+      - "Processar saques em lote a cada minuto, para que nenhum saque concorra com outro dentro da mesma janela de tempo de processamento"
+    answer: 1
+    explanation: "É o lost update clássico; a solução é a escrita condicional atômica. Sleep não elimina a corrida, corrigir no fechamento deixa o limite negativo durante o dia, e lote muda o produto sem resolver o mecanismo."
+  - question: "Um cartão tem limite de R$ 5.000 e saldo de R$ 1.000. Segundo este marco, qual é a exposição da instituição a esse cliente?"
+    options:
+      - "R$ 1.000, porque exposição é o que o cliente já deve, e o limite não usado ainda não é dinheiro emprestado"
+      - "R$ 5.000 sempre, porque o cliente pode usar o limite inteiro a qualquer momento antes do default"
+      - "O saldo de R$ 1.000 mais a parte provável dos R$ 4.000 não usados, pelo fator de conversão estimado e medido"
+      - "R$ 4.000, porque o saldo de R$ 1.000 já está coberto pelo pagamento mínimo da próxima fatura do cartão do cliente"
+    answer: 2
+    explanation: "Exposição é saldo mais a parte provável do não usado (o EAD do rotativo). Só o saldo subestima, o limite inteiro superestima sem base, e o pagamento mínimo não cobre o saldo."
+  - question: "A política reduz o limite de um cliente de R$ 5.000 para R$ 2.000, mas ele já usa R$ 3.000. Segundo este marco, o que acontece?"
+    options:
+      - "O uso acima do novo limite (R$ 1.000) é cobrado imediatamente do cliente como antecipação obrigatória de pagamento"
+      - "A redução é recusada pelo sistema, porque nenhum limite pode ficar abaixo do valor já utilizado"
+      - "O uso continua devido normalmente, e novos saques ficam bloqueados até o uso cair abaixo dos R$ 2.000"
+      - "O uso de R$ 3.000 é cancelado e o cliente passa a dever só R$ 2.000, igual ao novo limite"
+    answer: 2
+    explanation: "Reduzir abaixo do usado não cancela o usado e bloqueia novos saques. Não há cobrança antecipada automática, a redução não é recusada por isso, e cancelar dívida seria um desconto sem fundamento."
+  - question: "Cinco empresas de um mesmo dono têm, cada uma, exposição de R$ 400 mil, abaixo do limite individual de R$ 500 mil. Segundo este marco, por que isso pode ser um problema?"
+    options:
+      - "Não é um problema: cada empresa está abaixo do limite individual, que é o único limite que a política precisa controlar"
+      - "A consolidação por grupo econômico soma R$ 2 milhões de exposição ligada; o limite de concentração do grupo é que precisa ser controlado"
+      - "O problema é apenas contábil: as cinco empresas deveriam estar num único CNPJ para simplificar o razão do fin-lend"
+      - "O risco existe só se as cinco empresas atuarem no mesmo setor; donos em comum não aumentam o risco de crédito de nenhuma delas individualmente"
+    answer: 1
+    explanation: "Exposições ligadas parecem pequenas uma a uma; a consolidação por grupo econômico mostra R$ 2 milhões. O limite individual não basta, a questão não é contábil, e dono em comum é justamente a ligação que concentra o risco."

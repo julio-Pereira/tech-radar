@@ -1,0 +1,18 @@
+id: cr-escada
+tipo: grafico
+titulo: "Escada de liquidez: no estresse, a cobertura vira negativa no mês 8"
+descricao: >
+  A cobertura acumulada é a reserva inicial de R$ 6 milhões mais, mês a mês, o que entra das
+  parcelas menos o que sai da captação que vence. No cenário base, com R$ 42 milhões de
+  entradas por mês, ela nunca fica negativa. No estresse, um pico de atraso reduz as entradas
+  em 5%, e a cobertura cai até ficar negativa no mês 8, quando vencem as captações maiores.
+  Pontos calculados por tools/diagramas/curvas.py escada.
+forma: linha
+eixo_x: { rotulo: "mês", tipo: numero }
+eixo_y: { rotulo: "cobertura acumulada (R$ mi)", min: -20, max: 25 }
+series:
+  - { id: base, rotulo: "base", pontos: [[1, 10], [2, 14], [3, 17], [4, 19], [5, 21], [6, 22], [7, 18], [8, 14], [9, 12], [10, 11], [11, 10], [12, 10]] }
+  - { id: estresse, rotulo: "estresse (−5% de entradas)", pontos: [[1, 7.9], [2, 9.8], [3, 10.7], [4, 10.6], [5, 10.5], [6, 9.4], [7, 3.3], [8, -2.8], [9, -6.9], [10, -10], [11, -13.1], [12, -15.2]] }
+anotacoes:
+  - { tipo: linha-y, valor: 0, rotulo: "cobertura zero", papel: destaque }
+fonte: "dados ilustrativos"

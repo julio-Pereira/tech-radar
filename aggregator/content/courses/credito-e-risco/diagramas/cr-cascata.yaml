@@ -1,0 +1,27 @@
+id: cr-cascata
+tipo: fluxo
+titulo: "Consulta em cascata: o barato primeiro, e o bureau só na faixa de dúvida"
+descricao: >
+  A proposta consulta primeiro as fontes baratas e rápidas: o dado interno e o de Open
+  Finance, este só com consentimento válido para a finalidade. Com elas, uma pré-decisão
+  classifica a proposta. Se ela é claramente boa ou claramente ruim, a decisão sai sem
+  consulta paga. Só a faixa de dúvida chama o bureau, que custa por consulta e responde em
+  segundos. Se o bureau estoura o orçamento de tempo, a proposta segue a regra de degradação
+  declarada na política.
+passos:
+  - { id: proposta, rotulo: "proposta", col: 0, row: 0 }
+  - { id: interno, rotulo: "dado interno", col: 1, row: 0 }
+  - { id: of, rotulo: "Open Finance", col: 1, row: 1 }
+  - { id: pre, rotulo: "pré-decisão", col: 2, row: 0, papel: destaque }
+  - { id: decide, rotulo: "decide sem bureau", col: 3, row: 0 }
+  - { id: bureau, rotulo: "bureau (pago)", col: 2, row: 1 }
+  - { id: degrada, rotulo: "regra de degradação", col: 3, row: 1 }
+arestas:
+  - { de: proposta, para: interno }
+  - { de: proposta, para: of, rotulo: "consentimento ok" }
+  - { de: interno, para: pre }
+  - { de: of, para: pre }
+  - { de: pre, para: decide, rotulo: "clara" }
+  - { de: pre, para: bureau, rotulo: "dúvida" }
+  - { de: bureau, para: decide }
+  - { de: bureau, para: degrada, rotulo: "estourou", tipo: falha }
