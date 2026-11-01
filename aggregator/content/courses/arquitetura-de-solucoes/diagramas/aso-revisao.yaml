@@ -1,0 +1,25 @@
+id: aso-revisao
+tipo: fluxo
+titulo: "Revisão do fin-platform: do comando às recomendações, com prazo pela reversibilidade"
+descricao: >
+  A primeira passagem lê artefatos, ADRs, PROJETOs e modelos, e roda o comando que agrega os
+  lints dos marcos 01 a 08, formando uma hipótese de riscos e não-riscos. A segunda passagem,
+  de entrevistas, confirma ou corrige a hipótese. A priorização pesa impacto, probabilidade e
+  facilidade de reversão. Saldo sem sistema de registro único é de impacto alto e difícil de
+  reverter, por isso recebe prazo curto; o arquivo sem idempotent receiver é fácil de corrigir
+  isoladamente e recebe prazo maior, também com dono e critério de pronto.
+passos:
+  - { id: artefatos, rotulo: "artefatos (ADR, PROJETO)", col: 0, row: 0 }
+  - { id: comando, rotulo: "comando: lints 01–08", col: 1, row: 0 }
+  - { id: hipotese, rotulo: "riscos e não-riscos", col: 2, row: 0 }
+  - { id: entrevistas, rotulo: "entrevistas confirmam", col: 2, row: 1 }
+  - { id: prioriza, rotulo: "impacto × reversão", col: 1, row: 1, papel: destaque }
+  - { id: r1, rotulo: "R1 saldo · prazo curto", col: 0, row: 1 }
+  - { id: r2, rotulo: "R2 arquivo · prazo maior", col: 0, row: 2 }
+arestas:
+  - { de: artefatos, para: comando }
+  - { de: comando, para: hipotese }
+  - { de: hipotese, para: entrevistas }
+  - { de: entrevistas, para: prioriza }
+  - { de: prioriza, para: r1 }
+  - { de: prioriza, para: r2 }

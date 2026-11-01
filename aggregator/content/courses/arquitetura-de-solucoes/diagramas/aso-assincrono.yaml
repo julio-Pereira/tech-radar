@@ -1,0 +1,16 @@
+id: aso-assincrono
+tipo: sequencia
+titulo: "Assíncrono: a fila segura a mensagem até o consumidor voltar"
+descricao: >
+  Na mensageria, pagamentos publica o evento e recebe a confirmação da fila, sem depender de
+  quem consome. Se a conciliação está fora do ar, a mensagem espera na fila; quando o
+  consumidor volta, ela é entregue. A indisponibilidade é absorvida, ao custo de a resposta
+  não ser imediata, e o consumidor precisa ser um idempotent receiver.
+participantes:
+  - { id: pag, rotulo: "pagamentos" }
+  - { id: fila, rotulo: "fila" }
+  - { id: conc, rotulo: "conciliação", papel: externo }
+mensagens:
+  - { de: pag, para: fila, rotulo: "publica", tipo: async }
+  - { de: fila, para: pag, rotulo: "ack", tipo: reply, nota: "consumidor fora" }
+  - { de: fila, para: conc, rotulo: "entrega ao voltar", tipo: async }

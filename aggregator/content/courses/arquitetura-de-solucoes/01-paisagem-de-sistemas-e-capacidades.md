@@ -49,6 +49,11 @@ gosta de admitir) separado do **estado alvo** (como deveriam ser) é o que torna
 discutível — sem essa separação, toda conversa sobre arquitetura mistura "o que temos" com "o que
 queremos", e fica difícil saber se uma proposta está descrevendo a realidade ou uma aspiração.
 
+```diagrama
+aso-saldo-atual
+aso-saldo-alvo
+```
+
 ## Princípios arquiteturais: poucos, e verificáveis
 
 Uma lista de vinte princípios genéricos ("devemos ser ágeis", "devemos ser seguros") não orienta

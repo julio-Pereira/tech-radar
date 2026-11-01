@@ -1,0 +1,22 @@
+id: aso-landing-zone
+tipo: topologia
+titulo: "Zona de pouso: a fundação vem antes de qualquer serviço, e nega por padrão"
+descricao: >
+  A zona de pouso existe antes do primeiro serviço: identidade e acesso, rede, registro
+  central e política como código. A política nega por padrão, exige etiquetas de dono, custo
+  e ambiente, e só admite exceção com prazo. Produção e desenvolvimento ficam em contas
+  separadas, sem confiança implícita entre elas, o que limita o raio de explosão de um erro
+  de configuração ou de uma credencial vazada.
+grupos:
+  - { id: fundacao, rotulo: "fundação", col: 0, row: 0, cols: 2, rows: 2 }
+nos:
+  - { id: iam, rotulo: "identidade e acesso", grupo: fundacao, col: 0, row: 0 }
+  - { id: rede, rotulo: "rede", grupo: fundacao, col: 1, row: 0 }
+  - { id: log, rotulo: "registro central", grupo: fundacao, col: 0, row: 1 }
+  - { id: politica, rotulo: "política como código", grupo: fundacao, col: 1, row: 1, papel: destaque }
+  - { id: prod, rotulo: "conta de produção", col: 2, row: 0 }
+  - { id: dev, rotulo: "conta de dev", col: 2, row: 1 }
+arestas:
+  - { de: politica, para: dev, rotulo: "nega por padrão" }
+  - { de: politica, para: prod }
+  - { de: prod, para: dev, rotulo: "sem confiança", estilo: tracejada }

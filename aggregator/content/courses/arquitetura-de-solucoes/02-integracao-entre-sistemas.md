@@ -28,6 +28,11 @@ temporariamente (a mensagem espera na fila até o consumidor voltar) — ao cust
 imediata. `system-design/08` já tratou esse orçamento de latência; aqui a mesma decisão aparece entre
 sistemas inteiros, não só entre componentes de um sistema.
 
+```diagrama
+aso-sincrono
+aso-assincrono
+```
+
 ## Orquestração × coreografia
 
 **Orquestração**: um componente central decide a sequência de chamadas a outros sistemas,

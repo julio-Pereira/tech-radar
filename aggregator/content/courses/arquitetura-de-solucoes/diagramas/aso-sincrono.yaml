@@ -1,0 +1,15 @@
+id: aso-sincrono
+tipo: sequencia
+titulo: "Síncrono: a queda do outro lado vira erro agora"
+descricao: >
+  Na chamada síncrona, pagamentos pede a avaliação ao antifraude e espera a resposta. Se o
+  antifraude está fora do ar, a chamada estoura o timeout e a indisponibilidade se propaga na
+  hora: pagamentos falha junto. O acoplamento temporal é total, em troca de uma resposta
+  imediata quando tudo está de pé.
+participantes:
+  - { id: pag, rotulo: "pagamentos" }
+  - { id: af, rotulo: "antifraude", papel: externo }
+mensagens:
+  - { de: pag, para: af, rotulo: "avalia", tipo: sync, nota: "fora do ar" }
+  - { de: af, para: pag, rotulo: "timeout", tipo: reply }
+  - { de: pag, para: pag, rotulo: "falha agora", tipo: sync }
