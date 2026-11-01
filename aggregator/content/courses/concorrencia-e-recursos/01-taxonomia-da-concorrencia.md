@@ -32,6 +32,10 @@ Confundir os três produz o bug mais caro desta trilha: um programa que **passa 
 detector de race e **viola a invariante de saldo** mesmo assim, porque o bug nunca foi data race
 — sempre foi race condition lógica sobre uma estrutura internamente segura.
 
+```diagrama
+cr-check-then-act
+```
+
 ## O que cada camada protege
 
 | Nível | O que vive lá | Quem protege |
@@ -62,6 +66,10 @@ um certo `n` — o caso que Amdahl sozinho não prevê.
 A consequência prática: antes de pedir mais threads, meça `s`. Se a seção crítica do débito segura
 30% do tempo da operação, 64 threads não vão te dar 64× — vão te dar pouco mais de 3×, e o
 restante vira contenção.
+
+```diagrama
+cr-amdahl
+```
 
 ## Exemplo numa fintech
 

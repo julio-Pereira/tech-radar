@@ -25,6 +25,11 @@ viável: em vez de esperar um lock indefinidamente, desistir depois de um tempo,
 foi adquirido, esperar um intervalo aleatório (o *jitter* evita que todas as threads tentem de
 novo no mesmo instante) e tentar outra vez.
 
+```diagrama
+cr-deadlock
+cr-ordem-de-aquisicao
+```
+
 **Livelock** é diferente: duas threads reagem uma à outra de forma tão educada que nenhuma
 progride — cada uma recua para deixar a outra passar, e as duas recuam ao mesmo tempo, para
 sempre. **Starvation** é quando uma thread específica nunca consegue o recurso porque outras

@@ -1,0 +1,26 @@
+id: cr-debito-ponta-a-ponta
+tipo: fluxo
+titulo: "O débito de ponta a ponta atravessa todas as camadas, e cada uma cobre uma falha"
+descricao: >
+  A requisição de débito entra num executor limitado, que impede a carga concorrente de
+  explodir a memória. Em processo, um lock por conta ou um ator protege o estado em memória.
+  O pool dimensionado entrega a conexão sem segurar o sistema inteiro, e a transação, com
+  ordem de aquisição, protege a invariante no banco entre linhas. Se o cliente desiste, o
+  cancelamento libera os recursos; as métricas tornam a degradação visível antes do
+  incidente. Tirar qualquer camada não quebra na hora: quebra sob a carga, a falha ou a
+  intercalação que ela cobria.
+passos:
+  - { id: req, rotulo: "débito", col: 0, row: 0 }
+  - { id: executor, rotulo: "executor limitado", col: 1, row: 0 }
+  - { id: lock, rotulo: "lock por conta", col: 2, row: 0 }
+  - { id: pool, rotulo: "conexão do pool", col: 2, row: 1 }
+  - { id: tx, rotulo: "tx + ordem de aquisição", col: 1, row: 1, papel: destaque }
+  - { id: commit, rotulo: "commit", col: 0, row: 1 }
+  - { id: cancela, rotulo: "cancelamento", col: 1, row: 2, papel: externo }
+arestas:
+  - { de: req, para: executor }
+  - { de: executor, para: lock }
+  - { de: lock, para: pool }
+  - { de: pool, para: tx }
+  - { de: tx, para: commit }
+  - { de: cancela, para: tx, rotulo: "cliente desistiu", tipo: falha }

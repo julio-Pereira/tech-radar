@@ -1,0 +1,23 @@
+id: cr-executor
+tipo: fluxo
+titulo: "Executor com fila limitada: o excesso vira sinal explícito, não memória esgotada"
+descricao: >
+  A tarefa submetida entra numa fila limitada e é executada por um pool de tamanho
+  calculado, não chutado. Quando a fila enche, a política de rejeição decide: AbortPolicy
+  lança exceção, um sinal que a aplicação trata; CallerRunsPolicy faz a própria thread que
+  submeteu executar a tarefa, criando contrapressão em quem está gerando trabalho demais.
+  Com fila ilimitada, o padrão do newFixedThreadPool e do executor de Async do Spring Boot,
+  o sistema morre de memória em silêncio.
+passos:
+  - { id: tarefa, rotulo: "tarefa submetida", col: 0, row: 0 }
+  - { id: fila, rotulo: "fila limitada", col: 1, row: 0, papel: destaque }
+  - { id: pool, rotulo: "pool (tamanho calculado)", col: 2, row: 0 }
+  - { id: cheia, rotulo: "fila cheia", col: 1, row: 1 }
+  - { id: abort, rotulo: "AbortPolicy: exceção", col: 0, row: 2 }
+  - { id: caller, rotulo: "CallerRuns: contrapressão", col: 2, row: 2 }
+arestas:
+  - { de: tarefa, para: fila }
+  - { de: fila, para: pool, rotulo: "thread livre" }
+  - { de: fila, para: cheia, rotulo: "sem espaço", tipo: falha }
+  - { de: cheia, para: abort }
+  - { de: cheia, para: caller }

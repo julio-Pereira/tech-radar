@@ -1,0 +1,20 @@
+id: cr-amdahl
+tipo: grafico
+titulo: "Amdahl: com 30% serial, 64 threads rendem pouco mais de 3×"
+descricao: >
+  A lei de Amdahl limita o ganho com n workers a 1 dividido por s mais (1 menos s) sobre n,
+  em que s é a fração serial. Com 10% serial, o speedup sobe devagar e nunca passa de 10
+  vezes: em 64 threads, fica em 8,8. Com 30% serial, como uma seção crítica do débito que
+  segura 30% do tempo, o teto é 3,3, e 64 threads rendem 3,2 vezes. Antes de pedir mais
+  threads, meça a fração serial. Os pontos foram calculados pela fórmula, com o script
+  tools/diagramas/curvas.py.
+forma: linha
+eixo_x: { rotulo: "threads (n)", tipo: numero, escala: log }
+eixo_y: { rotulo: "speedup", min: 0, max: 10 }
+series:
+  - { id: s10, rotulo: "10% serial", pontos: [[1, 1], [2, 1.82], [4, 3.08], [8, 4.71], [16, 6.4], [32, 7.8], [64, 8.77]] }
+  - { id: s30, rotulo: "30% serial", pontos: [[1, 1], [2, 1.54], [4, 2.11], [8, 2.58], [16, 2.91], [32, 3.11], [64, 3.22]] }
+anotacoes:
+  - { tipo: linha-y, valor: 10, rotulo: "teto com 10%: 10×" }
+  - { tipo: linha-y, valor: 3.33, rotulo: "teto com 30%: 3,3×", papel: destaque }
+fonte: "dados ilustrativos"

@@ -1,0 +1,33 @@
+id: cr-deadlock
+tipo: topologia
+titulo: "A→B e B→A ao mesmo tempo: cada thread segura uma conta e espera a outra"
+descricao: >
+  A thread 1 transfere da conta A para a B e a thread 2 da B para a A. A thread 1 trava a
+  conta A, e a thread 2 trava a conta B. Em seguida a thread 1 pede a B, que está com a
+  thread 2, e a thread 2 pede a A, que está com a thread 1. As quatro condições de Coffman
+  estão presentes, e a espera é circular: nenhuma das duas progride, para sempre.
+nos:
+  - { id: t1, rotulo: "thread 1: A→B", col: 0, row: 0 }
+  - { id: a, rotulo: "conta A", col: 1, row: 0 }
+  - { id: b, rotulo: "conta B", col: 0, row: 1 }
+  - { id: t2, rotulo: "thread 2: B→A", col: 1, row: 1 }
+arestas:
+  - { de: t1, para: a, rotulo: "segura" }
+  - { de: t2, para: b, rotulo: "segura" }
+  - { de: t1, para: b, rotulo: "espera", estilo: tracejada }
+  - { de: t2, para: a, rotulo: "espera", estilo: tracejada }
+animacao:
+  - legenda: "Duas transferências em sentidos opostos começam ao mesmo tempo"
+  - legenda: "A thread 1 trava a conta A"
+    estados: { t1: ativo, a: destaque }
+    fluxos: [ { de: t1, para: a } ]
+  - legenda: "A thread 2 trava a conta B"
+    estados: { t2: ativo, b: destaque }
+    fluxos: [ { de: t2, para: b } ]
+  - legenda: "A thread 1 pede a conta B, que está com a thread 2, e espera"
+    estados: { t1: inativo }
+    fluxos: [ { de: t1, para: b } ]
+  - legenda: "A thread 2 pede a conta A: o ciclo fecha, e ninguém progride"
+    estados: { t1: falha, t2: falha }
+    fluxos: [ { de: t2, para: a } ]
+    anotacao: "espera circular: deadlock"
