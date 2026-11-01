@@ -1,0 +1,22 @@
+id: cr-saga
+tipo: fluxo
+titulo: "Saga de contratação: se o desembolso falha, a formalização é revertida"
+descricao: >
+  Contratar é um processo de longa duração: aprovar, assinar, desembolsar e registrar. Cada etapa
+  pode precisar de compensação se uma posterior falhar. Se o desembolso falha depois da
+  assinatura, a saga reverte a formalização, em vez de deixar um contrato assinado e sem dinheiro
+  num limbo. Cada comando carrega uma chave de idempotência, para que a repetição não aplique o
+  efeito duas vezes.
+passos:
+  - { id: aprovar, rotulo: "aprovar", col: 0, row: 0 }
+  - { id: assinar, rotulo: "assinar a CCB", col: 1, row: 0 }
+  - { id: desembolsar, rotulo: "desembolsar", col: 2, row: 0, papel: destaque }
+  - { id: registrar, rotulo: "registrar", col: 3, row: 0 }
+  - { id: falhou, rotulo: "desembolso falhou", col: 2, row: 1 }
+  - { id: reverte, rotulo: "reverte a formalização", col: 1, row: 1 }
+arestas:
+  - { de: aprovar, para: assinar }
+  - { de: assinar, para: desembolsar }
+  - { de: desembolsar, para: registrar }
+  - { de: desembolsar, para: falhou, tipo: falha }
+  - { de: falhou, para: reverte, tipo: compensacao }

@@ -1,0 +1,25 @@
+id: cr-razao
+tipo: fluxo
+titulo: "Contrato no razão: desembolso, accrual diário e o pagamento imputado em ordem"
+descricao: >
+  O desembolso é o primeiro lançamento: débito em empréstimos a receber, um ativo que nasce, e
+  crédito em disponibilidades. Os juros são reconhecidos por accrual diário, para o saldo contábil
+  refletir o valor econômico da carteira. Quando um pagamento chega, a ordem de imputação aplica
+  o valor primeiro aos encargos, depois aos juros e por fim ao principal; um pagamento parcial
+  para no meio. O saldo do cronograma e o saldo derivado do razão são conciliados num relatório
+  que fica vazio no caso normal.
+passos:
+  - { id: desembolso, rotulo: "desembolso", col: 0, row: 0 }
+  - { id: accrual, rotulo: "accrual diário de juros", col: 1, row: 0 }
+  - { id: pagamento, rotulo: "pagamento chega", col: 2, row: 0 }
+  - { id: encargos, rotulo: "1º encargos", col: 2, row: 1, papel: destaque }
+  - { id: juros, rotulo: "2º juros", col: 1, row: 1 }
+  - { id: principal, rotulo: "3º principal", col: 0, row: 1 }
+  - { id: conciliacao, rotulo: "contrato × razão: vazio", col: 0, row: 2 }
+arestas:
+  - { de: desembolso, para: accrual }
+  - { de: accrual, para: pagamento }
+  - { de: pagamento, para: encargos }
+  - { de: encargos, para: juros }
+  - { de: juros, para: principal }
+  - { de: principal, para: conciliacao }
