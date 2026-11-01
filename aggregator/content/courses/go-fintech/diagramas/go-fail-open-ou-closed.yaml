@@ -1,0 +1,27 @@
+id: go-fail-open-ou-closed
+tipo: fluxo
+titulo: "Sem resposta do fraud-check no prazo, fail-open ou fail-closed é decisão de produto"
+descricao: >
+  Antes de aprovar, o payments-api pede ao fraud-check, por gRPC e com o deadline do
+  context, um score de risco. Com o score, a decisão é direta: risco baixo aprova, risco
+  alto recusa. O caso difícil é quando o fraud-check não responde dentro do prazo. Em
+  fail-open, a transação é aprovada e revisada depois, priorizando disponibilidade; em
+  fail-closed, ela é recusada, priorizando segurança. Numa fintech essa escolha é
+  registrada e auditada, não escondida num tratamento de erro.
+passos:
+  - { id: tx, rotulo: "nova transação", col: 0, row: 0 }
+  - { id: check, rotulo: "Check via gRPC", col: 1, row: 0 }
+  - { id: score, rotulo: "decide pelo score", col: 2, row: 0 }
+  - { id: aprova, rotulo: "aprova", col: 3, row: 0 }
+  - { id: recusa, rotulo: "recusa", col: 3, row: 1 }
+  - { id: sem-resposta, rotulo: "sem resposta", col: 1, row: 1, papel: destaque }
+  - { id: open, rotulo: "aprova e revisa", col: 0, row: 2 }
+  - { id: closed, rotulo: "recusa a transação", col: 2, row: 2 }
+arestas:
+  - { de: tx, para: check, rotulo: "deadline" }
+  - { de: check, para: score, rotulo: "score" }
+  - { de: score, para: aprova, rotulo: "risco baixo" }
+  - { de: score, para: recusa, rotulo: "risco alto" }
+  - { de: check, para: sem-resposta, rotulo: "timeout", tipo: falha }
+  - { de: sem-resposta, para: open, rotulo: "fail-open" }
+  - { de: sem-resposta, para: closed, rotulo: "fail-closed" }

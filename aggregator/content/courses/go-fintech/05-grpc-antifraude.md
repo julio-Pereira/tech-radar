@@ -49,6 +49,10 @@ precisam ser explícitas:
   (fail-open, prioriza disponibilidade) ou recusa (fail-closed, prioriza segurança)?
   Em fintech essa escolha é registrada e auditada, não escondida num `catch`.
 
+```diagrama
+go-fail-open-ou-closed
+```
+
 ## Hands-on
 
 **Tutorial — o serviço `fraud-check`.**

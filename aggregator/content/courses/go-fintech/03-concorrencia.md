@@ -53,6 +53,10 @@ shard := fnv32(tx.SourceAccount) % uint32(numWorkers)
 queues[shard] <- tx // mesma conta → sempre a mesma goroutine → sem corrida de saldo
 ```
 
+```diagrama
+go-sharding-por-conta
+```
+
 Ao processar, grave o evento numa tabela **outbox** (consistência sem 2-phase commit) e,
 ao final, reconcilie: `sum(débitos) == sum(créditos)`. Se não bater, dispare alarme.
 Use `golang.org/x/time/rate` para limitar a vazão e não derrubar dependências downstream.

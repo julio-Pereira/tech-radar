@@ -1,0 +1,27 @@
+id: go-sharding-por-conta
+tipo: topologia
+titulo: "Sharding por conta: a mesma conta cai sempre no mesmo worker, e o saldo não tem corrida"
+descricao: >
+  O lote de 100 mil transações é lido e cada transação é roteada por fnv32 da conta de
+  origem, módulo o número de workers. Cada worker é uma goroutine com a sua fila e cuida
+  de um conjunto fixo de contas: as transações de uma mesma conta são processadas em
+  sequência, e contas diferentes correm em paralelo, sem lock global. Cada worker grava o
+  saldo e o evento no outbox na mesma transação, e no fim uma reconciliação confere que a
+  soma dos débitos é igual à soma dos créditos.
+nos:
+  - { id: lote, rotulo: "CSV · 100 mil tx", col: 0, row: 1 }
+  - { id: roteador, rotulo: "fnv32(conta) % 3", col: 1, row: 1, papel: destaque }
+  - { id: w0, rotulo: "worker 0 · contas A, D", col: 2, row: 0 }
+  - { id: w1, rotulo: "worker 1 · contas B, E", col: 2, row: 1 }
+  - { id: w2, rotulo: "worker 2 · contas C, F", col: 2, row: 2 }
+  - { id: banco, rotulo: "saldo + outbox", col: 3, row: 1, conceito: outbox }
+  - { id: reconciliacao, rotulo: "débitos = créditos?", col: 3, row: 2 }
+arestas:
+  - { de: lote, para: roteador }
+  - { de: roteador, para: w0, rotulo: "fila 0" }
+  - { de: roteador, para: w1, rotulo: "fila 1" }
+  - { de: roteador, para: w2, rotulo: "fila 2" }
+  - { de: w0, para: banco }
+  - { de: w1, para: banco }
+  - { de: w2, para: banco }
+  - { de: banco, para: reconciliacao, rotulo: "no fim do lote" }

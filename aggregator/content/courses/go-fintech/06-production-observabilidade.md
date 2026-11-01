@@ -23,6 +23,10 @@ microservice fintech production-grade. Três frentes se consolidam.
   aprovação — contam tanto quanto CPU e latência.
 - **Tracing** com OpenTelemetry, propagado via `context` entre os três serviços.
 
+```diagrama
+go-observabilidade
+```
+
 ### Operação
 
 - **Health checks separados**: liveness ("estou vivo?") distinto de readiness ("estou
