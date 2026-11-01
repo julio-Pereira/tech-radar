@@ -52,6 +52,10 @@ condicional embutida no YAML é o antipadrão central deste marco: aquela lógic
 isoladamente, sem rodar a pipeline inteira — e "só descobrir que a lógica está errada rodando a
 pipeline de produção" é exatamente o tipo de risco que esta trilha existe para evitar.
 
+```diagrama
+ec-pipeline
+```
+
 ## Reuso: *workflows* reutilizáveis, *composite actions*
 
 Duplicar o mesmo conjunto de estágios em cada repositório é o mesmo problema de copiar-colar código

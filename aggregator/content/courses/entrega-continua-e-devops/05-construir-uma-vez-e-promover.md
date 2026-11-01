@@ -25,6 +25,10 @@ etapa separada. Reconstruir parece inofensivo ("é o mesmo código, vai dar o me
 ferramenta — qualquer uma dessas diferenças silenciosas significa que o artefato que roda em
 produção **não é** o que foi testado em homologação, mesmo vindo do "mesmo" código-fonte.
 
+```diagrama
+ec-promover
+```
+
 ## Configuração externa ao artefato, e a diferença permitida entre ambientes
 
 Segundo o princípio dos doze fatores (`spring-boot/03`), configuração (strings de conexão,

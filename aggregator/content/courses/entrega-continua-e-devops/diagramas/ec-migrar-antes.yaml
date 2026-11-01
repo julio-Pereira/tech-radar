@@ -1,0 +1,20 @@
+id: ec-migrar-antes
+tipo: sequencia
+titulo: "Banco na esteira: migra o schema antes do app, e o N-1 precisa aguentar"
+descricao: >
+  A pipeline aplica primeiro a migração de expansão, que adiciona sem remover. Enquanto isso, o
+  app N-1 continua lendo e escrevendo contra o schema já migrado, e a matriz de compatibilidade
+  garante que isso funciona. Só então o app N é implantado e passa a usar a coluna nova. A
+  contração, que remove o antigo, vem numa migração posterior, quando nenhum N-1 roda mais.
+participantes:
+  - { id: pipe, rotulo: "pipeline" }
+  - { id: banco, rotulo: "banco", papel: destaque }
+  - { id: velho, rotulo: "app N-1" }
+  - { id: novo, rotulo: "app N" }
+mensagens:
+  - { de: pipe, para: banco, rotulo: "migração N (expand)", tipo: sync }
+  - { de: banco, para: pipe, rotulo: "ok", tipo: reply }
+  - { de: velho, para: banco, rotulo: "lê e escreve", tipo: sync, nota: "N-1 × schema N precisa funcionar" }
+  - { de: pipe, para: novo, rotulo: "deploy N", tipo: async }
+  - { de: novo, para: banco, rotulo: "usa a coluna nova", tipo: sync }
+  - { de: pipe, para: banco, rotulo: "contract (depois)", tipo: sync, nota: "só sem N-1 rodando" }

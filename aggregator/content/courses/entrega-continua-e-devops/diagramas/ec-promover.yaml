@@ -1,0 +1,23 @@
+id: ec-promover
+tipo: topologia
+titulo: "Construir uma vez e promover o mesmo digest; só a configuração muda"
+descricao: >
+  O commit é construído uma única vez, e a imagem resultante é identificada pelo digest, o hash
+  do conteúdo, nunca por uma tag mutável. Promover de homologação para produção é mover a
+  referência ao mesmo digest, sem reconstruir: reconstruir pode puxar outra dependência
+  transitiva ou outro timestamp, e produção passaria a rodar algo que não foi testado. A
+  configuração fica fora do artefato e é injetada em cada ambiente, e só as variáveis da lista
+  de diferenças permitidas podem divergir.
+nos:
+  - { id: commit, rotulo: "commit", col: 0, row: 0 }
+  - { id: build, rotulo: "build uma vez", col: 1, row: 0 }
+  - { id: imagem, rotulo: "imagem @sha256:9f2c…", col: 2, row: 0, papel: destaque }
+  - { id: hml, rotulo: "homologação", col: 3, row: 0 }
+  - { id: prod, rotulo: "produção", col: 3, row: 1 }
+  - { id: config, rotulo: "config por ambiente", col: 2, row: 1, papel: externo }
+arestas:
+  - { de: commit, para: build }
+  - { de: build, para: imagem }
+  - { de: imagem, para: hml }
+  - { de: imagem, para: prod, rotulo: "mesmo digest" }
+  - { de: config, para: prod, rotulo: "injeta" }

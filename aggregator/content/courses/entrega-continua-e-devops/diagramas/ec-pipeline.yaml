@@ -1,0 +1,24 @@
+id: ec-pipeline
+tipo: fluxo
+titulo: "Anatomia da pipeline: o estágio mais barato vem primeiro e para tudo cedo"
+descricao: >
+  A pipeline percorre lint, teste unitário, build, teste de integração, empacotamento e
+  promoção, nessa ordem, porque a ordem é função do custo declarado de cada estágio. Um lint de
+  5 segundos que falha para a pipeline ali, antes dos 12 minutos do teste de integração. O
+  build passa o binário adiante como artefato explícito entre jobs, sem reconstruir, e o YAML
+  só orquestra: cada decisão vive num script testável.
+passos:
+  - { id: lint, rotulo: "lint · 5 s", col: 0, row: 1, papel: destaque }
+  - { id: unit, rotulo: "teste unitário", col: 1, row: 1 }
+  - { id: build, rotulo: "build", col: 2, row: 1 }
+  - { id: integ, rotulo: "integração · 12 min", col: 2, row: 2 }
+  - { id: empacota, rotulo: "empacota (digest)", col: 1, row: 2 }
+  - { id: promove, rotulo: "promove", col: 0, row: 2 }
+  - { id: para, rotulo: "para cedo e barato", col: 0, row: 0 }
+arestas:
+  - { de: lint, para: unit }
+  - { de: unit, para: build }
+  - { de: build, para: integ, rotulo: "artefato" }
+  - { de: integ, para: empacota }
+  - { de: empacota, para: promove }
+  - { de: lint, para: para, rotulo: "falhou", tipo: falha }

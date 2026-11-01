@@ -40,6 +40,10 @@ orçamento já está consumido por outros motivos no período, a tolerância par
 deveria ser **mais apertada**, porque o sistema já está mais próximo do limite aceitável de
 degradação total.
 
+```diagrama
+ec-canario
+```
+
 ## *Rollback* × *roll-forward*, e por que migração de banco complica o *rollback*
 
 **Rollback**: voltar à versão anterior. **Roll-forward**: corrigir com uma nova versão em vez de

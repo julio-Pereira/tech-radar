@@ -1,0 +1,23 @@
+id: ec-iac
+tipo: fluxo
+titulo: "IaC: plan revisado, apply só pela pipeline, e o drift aparece no próximo plan"
+descricao: >
+  O plan é o artefato de revisão: humanos e a política como código o aprovam antes de qualquer
+  apply, e o apply roda só pela pipeline, executando exatamente o plano revisado. Aplicar de
+  novo produz um plan vazio, porque a infraestrutura já corresponde ao declarado. Se alguém muda
+  um recurso pelo console, o próximo plan mostra a diferença, o drift, e o apply realinha a
+  realidade, ou revela que a configuração precisa refletir uma mudança legítima.
+passos:
+  - { id: plan, rotulo: "plan", col: 0, row: 0 }
+  - { id: revisao, rotulo: "revisão + política", col: 1, row: 0 }
+  - { id: apply, rotulo: "apply pela pipeline", col: 2, row: 0, papel: destaque }
+  - { id: vazio, rotulo: "2º plan: vazio", col: 3, row: 0 }
+  - { id: console, rotulo: "mudança no console", col: 3, row: 1 }
+  - { id: drift, rotulo: "plan mostra drift", col: 2, row: 1 }
+arestas:
+  - { de: plan, para: revisao }
+  - { de: revisao, para: apply }
+  - { de: apply, para: vazio }
+  - { de: vazio, para: console, rotulo: "alguém clica", tipo: falha }
+  - { de: console, para: drift }
+  - { de: drift, para: apply, rotulo: "realinha", tipo: compensacao }

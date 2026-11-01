@@ -1,0 +1,43 @@
+id: ec-canario
+tipo: estados
+titulo: "Release por SLO: o canário é promovido, segurado ou revertido por uma função"
+descricao: >
+  Depois do deploy, o canário recebe uma fração do tráfego e entra em observação por uma
+  janela. A decisão é uma função: compara taxa de erro e latência do canário com a linha de
+  base, o grupo estável no mesmo período, dentro de uma tolerância. Dentro da tolerância,
+  promove. Sinal inconclusivo segura por mais uma janela. Fora dela, reverte. Se o error budget
+  do SLO já está gasto, a tolerância fica mais apertada. Os pesos e o AnalysisTemplate no
+  cluster estão desenhados em kubernetes/13.
+estados:
+  - { id: implantado, rotulo: "IMPLANTADO", col: 0, row: 0 }
+  - { id: observando, rotulo: "OBSERVANDO", col: 1, row: 0, papel: destaque }
+  - { id: promovido, rotulo: "PROMOVIDO", col: 2, row: 0 }
+  - { id: segurado, rotulo: "SEGURADO", col: 1, row: 1 }
+  - { id: revertido, rotulo: "REVERTIDO", col: 2, row: 1 }
+inicial: implantado
+finais: [promovido, revertido]
+transicoes:
+  - { de: implantado, para: observando, evento: "5% do tráfego" }
+  - { de: observando, para: promovido, evento: "na tolerância" }
+  - { de: observando, para: segurado, evento: "inconclusivo" }
+  - { de: segurado, para: observando, evento: "nova janela" }
+  - { de: observando, para: revertido, evento: "erro > base", guarda: "budget aperta" }
+animacao:
+  - legenda: "Deploy feito: o canário está no ambiente, ainda sem tráfego"
+    atual: implantado
+  - legenda: "5% do tráfego vai ao canário, comparado à base durante a janela"
+    atual: observando
+    transicao: { de: implantado, para: observando }
+  - legenda: "A diferença fica perto da tolerância: sinal inconclusivo, segura"
+    atual: segurado
+    transicao: { de: observando, para: segurado }
+  - legenda: "Mais uma janela de observação, com a mesma comparação"
+    atual: observando
+    transicao: { de: segurado, para: observando }
+  - legenda: "Erro e latência dentro da tolerância: promove"
+    atual: promovido
+    transicao: { de: observando, para: promovido }
+  - legenda: "Outro desfecho: o erro passa da base mais a tolerância, e reverte"
+    atual: revertido
+    transicao: { de: observando, para: revertido }
+    anotacao: "com o budget gasto, a tolerância é menor"
