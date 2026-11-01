@@ -42,6 +42,10 @@ exponencial com *jitter* (um atraso crescente mais uma variação aleatória) ev
 instâncias do ingestor, todas reagindo ao mesmo erro, tentem de novo no mesmo instante — a mesma
 disciplina de retry de `system-design/04`, aplicada do lado de quem consome, não de quem balanceia.
 
+```diagrama
+ed-ingestao
+```
+
 ## Mudança de schema sem aviso, e a desduplicação por chave de negócio
 
 Uma transmissora pode renomear um campo, mudar um tipo, ou passar a devolver um valor em unidade

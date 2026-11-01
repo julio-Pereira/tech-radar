@@ -1,0 +1,23 @@
+id: ed-iceberg
+tipo: topologia
+titulo: "Tabela de lakehouse: snapshots imutáveis sobre arquivos Parquet, com time travel"
+descricao: >
+  O catálogo aponta para o snapshot atual da tabela. Cada mudança gera um snapshot novo e
+  imutável, que lista o conjunto de arquivos válido naquele momento. O snapshot S1, de ontem,
+  tem só o arquivo A; o S2, de hoje, tem A e B, mais um vetor de deleção que marca as linhas de A
+  apagadas sem reescrever o arquivo. Consultar como a tabela estava ontem é ler o S1. Confira a
+  versão da especificação do Iceberg em uso para saber se há vetores de deleção ou delete files.
+nos:
+  - { id: catalogo, rotulo: "catálogo", col: 0, row: 0, papel: externo }
+  - { id: s2, rotulo: "snapshot S2 (atual)", col: 1, row: 0, papel: destaque }
+  - { id: s1, rotulo: "snapshot S1 (ontem)", col: 1, row: 1 }
+  - { id: fa, rotulo: "arquivo A.parquet", col: 2, row: 1 }
+  - { id: fb, rotulo: "arquivo B.parquet", col: 2, row: 0 }
+  - { id: dv, rotulo: "vetor de deleção sobre A", col: 2, row: 2 }
+arestas:
+  - { de: catalogo, para: s2 }
+  - { de: s2, para: fb }
+  - { de: s2, para: fa }
+  - { de: s2, para: dv }
+  - { de: s1, para: fa }
+  - { de: s2, para: s1, rotulo: "pai", estilo: tracejada }

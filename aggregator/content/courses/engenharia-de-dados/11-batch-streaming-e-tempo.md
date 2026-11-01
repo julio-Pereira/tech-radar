@@ -47,6 +47,10 @@ atrasados do que a aposta previa) não podem simplesmente ser descartados em sil
 **correção auditável**: um ajuste explícito e registrado ao agregado que já tinha sido fechado e
 publicado, nunca uma perda silenciosa de dado.
 
+```diagrama
+ed-watermark
+```
+
 ## Efeito exatamente-uma-vez com *sink* idempotente
 
 A mesma lição do marco 01, aplicada a streaming: o transporte garante no máximo pelo-menos-uma-vez;

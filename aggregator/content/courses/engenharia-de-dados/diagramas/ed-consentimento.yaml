@@ -1,0 +1,23 @@
+id: ed-consentimento
+tipo: estados
+titulo: "Consentimento como dado: cada transição é um evento num histórico imutável"
+descricao: >
+  Do lado do receptor, o consentimento nasce autorizado, com titular, transmissora, grupos de
+  dados, finalidade e validade. Pode ser renovado, sem perder o histórico do que valia antes;
+  expira quando o prazo acaba; ou é revogado pelo titular a qualquer momento. Cada transição é um
+  evento acrescentado, nunca um UPDATE, e é isso que responde se um dado podia ser usado para
+  uma finalidade numa data. A validade é parâmetro configurável: confira o texto vigente. Os
+  status do lado da transmissora estão em open-finance-brasil/04.
+estados:
+  - { id: autorizado, rotulo: "AUTORIZADO", col: 0, row: 0, papel: destaque }
+  - { id: renovado, rotulo: "RENOVADO", col: 1, row: 1 }
+  - { id: expirado, rotulo: "EXPIRADO", col: 2, row: 0 }
+  - { id: revogado, rotulo: "REVOGADO", col: 2, row: 1 }
+inicial: autorizado
+finais: [expirado, revogado]
+transicoes:
+  - { de: autorizado, para: renovado, evento: "titular estende" }
+  - { de: autorizado, para: expirado, evento: "prazo acabou" }
+  - { de: autorizado, para: revogado, evento: "titular revoga" }
+  - { de: renovado, para: expirado, evento: "prazo acabou" }
+  - { de: renovado, para: revogado, evento: "titular revoga" }

@@ -40,6 +40,10 @@ nova e metade antiga); e o padrão **write-audit-publish**: escrever os dados pr
 de staging, **auditar** (rodar os testes de qualidade) e só então **publicar** (tornar visível aos
 consumidores) — o oposto de escrever direto no destino e torcer para os testes passarem depois.
 
+```diagrama
+ed-wap
+```
+
 ## *At-least-once*, e por que exatamente-uma-vez é sobre o efeito, não sobre a entrega
 
 Garantir que uma mensagem ou um arquivo seja **entregue exatamente uma vez**, de ponta a ponta, é

@@ -1,0 +1,21 @@
+id: ed-qualidade
+tipo: fluxo
+titulo: "Qualidade em camadas: testar na entrada, na transformação e na saída, com quarentena"
+descricao: >
+  O dado bruto é testado assim que chega, onde vive a maior parte dos testes, pegando o problema
+  antes de contaminar as camadas seguintes. A transformação tem testes próprios, para o que a
+  lógica de negócio pode introduzir mesmo com entrada limpa, e a saída é testada antes de
+  publicar. O registro que falha não trava o pipeline nem some: vai para a quarentena, visível,
+  com prazo e dono para decidir.
+passos:
+  - { id: bruto, rotulo: "bruto chega", col: 0, row: 0 }
+  - { id: entrada, rotulo: "testa a entrada", col: 1, row: 0, papel: destaque }
+  - { id: transforma, rotulo: "transforma e testa", col: 2, row: 0 }
+  - { id: saida, rotulo: "testa a saída", col: 3, row: 0 }
+  - { id: quarentena, rotulo: "quarentena", col: 1, row: 1 }
+arestas:
+  - { de: bruto, para: entrada }
+  - { de: entrada, para: transforma }
+  - { de: transforma, para: saida }
+  - { de: entrada, para: quarentena, rotulo: "falhou", tipo: falha }
+  - { de: transforma, para: quarentena, tipo: falha }
