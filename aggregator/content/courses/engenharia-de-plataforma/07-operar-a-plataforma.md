@@ -41,7 +41,7 @@ plataforma, como qualquer plantão, precisa de dono, rotação e critério claro
 ## Gestão de mudança da própria plataforma
 
 Uma mudança na **API** da plataforma, ou uma nova versão do **template**, segue o mesmo rigor de
-canário que qualquer release (`entrega-continua-e-devops/07`, **trilha planejada**): liberar
+canário que qualquer release (`entrega-continua-e-devops/07`): liberar
 gradualmente, medir, e ter rollback pronto — a plataforma não se exime da disciplina que ela impõe
 a todo mundo que a consome.
 
@@ -91,7 +91,7 @@ rodando, que continuou saudável o tempo todo.
 4. Todo alerta da plataforma tem ***runbook*** associado — verificado por *lint*, nenhum alerta
    sem o campo preenchido.
 5. A liberação de uma nova versão da API usa o **decisor de canário** já construído
-   (`release/`, `entrega-continua-e-devops/07`, trilha planejada), com teste de regressão
+   (`release/`, `entrega-continua-e-devops/07`), com teste de regressão
    aplicado à própria API da plataforma.
 
 **Complemento.** Escreva o comunicado de um incidente real (ou simulado) de 40 minutos de

@@ -10,7 +10,7 @@ references:
 
 ## Linhagem de treino
 
-Assim como uma tabela ouro tem linhagem até o bruto (`engenharia-de-dados/09`, trilha planejada), um
+Assim como uma tabela ouro tem linhagem até o bruto (`engenharia-de-dados/09`), um
 modelo tem **linhagem de treino**: quais dados, quais consentimentos e qual janela temporal entraram no
 dataset que o treinou. Sem essa linhagem, a pergunta "quais modelos usaram o consentimento X" não tem
 resposta confiável — e essa pergunta é exatamente o que uma revogação em massa exige responder rápido.
@@ -19,7 +19,7 @@ resposta confiável — e essa pergunta é exatamente o que uma revogação em m
 
 Um modelo treinado com dado de um consentimento depois revogado já absorveu esse dado nos próprios pesos —
 não existe uma operação limpa de "remover só aquele cliente" de um modelo já treinado, da mesma forma que
-não existe em `engenharia-de-dados/10` (trilha planejada) para dado já exportado. As políticas possíveis
+não existe em `engenharia-de-dados/10` para dado já exportado. As políticas possíveis
 são sempre um trade-off: **retreino periódico** (o modelo eventualmente "esquece" porque o dado revogado
 sai da próxima janela de treino), **expiração do modelo por fração de dados revogados** (se X% do dado de
 treino de um modelo foi revogado, o modelo é considerado expirado e deixa de ser promovido ou servido), ou
@@ -97,7 +97,7 @@ configuração testada, não como documento solto.
    passado"?
 4. Por que LLMs e agentes autônomos ficam deliberadamente fora do escopo desta trilha?
 
-> **Reencontro — todas as anteriores desta trilha; `engenharia-de-dados/10` (trilha planejada);
+> **Reencontro — todas as anteriores desta trilha; `engenharia-de-dados/10`;
 > `dados-distribuidos/13`; `observabilidade/16`.** A consulta de linhagem por consentimento e o mecanismo
 > de expiração retomam diretamente a propagação de revogação de `engenharia-de-dados/10`. A governança de
 > PII e auditoria de `dados-distribuidos/13` é o mesmo tipo de disciplina aplicada aqui a modelo em vez de

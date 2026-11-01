@@ -15,7 +15,7 @@ alertas).
 
 | Direção | Interface | Vizinho |
 | --- | --- | --- |
-| consome | tabelas ouro, `dado_utilizavel` e política de consentimento/finalidade | `fin-insight`, trilha engenharia-de-dados (planejada) |
+| consome | tabelas ouro, `dado_utilizavel` e política de consentimento/finalidade | `fin-insight`, trilha `engenharia-de-dados` |
 | consome | elegibilidade e limite (resposta de política/risco, **fora de escopo**) | stub de motor de risco |
 | serve | `GET /ofertas?cliente=...` → oferta, braço do experimento, *reason codes*, `decisionId` | canais (app/`pix-gateway`) |
 | emite | log de decisão (entradas, versão do modelo, features, política, resultado) | auditoria / `fin-insight` |
@@ -32,9 +32,8 @@ linguagem. O `sim-clientes` substitui qualquer base real.
   ainda não verificados)
 - **Não precisa:** GPU, nuvem paga, plataforma de ML gerenciada. Confirmar versões/licenças antes de fixar
   a versão usada.
-- Se a trilha `engenharia-de-dados` ainda não estiver publicada, o `sim-clientes` gera as tabelas
-  necessárias sozinho — a trilha funciona de forma independente, com os links marcados "(trilha
-  planejada)" até a publicação.
+- Sem a `engenharia-de-dados` feita, o `sim-clientes` gera as tabelas necessárias sozinho: esta trilha
+  funciona de forma independente.
 
 ### Incrementos por marco
 

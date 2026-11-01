@@ -62,12 +62,11 @@ todas tocam esta trilha — cada uma é tratada com profundidade no marco corres
 cabe apenas o aviso: nenhuma afirmação normativa nesta trilha deve ser tratada como texto definitivo;
 confira a fonte vigente antes de implementar qualquer decisão real sobre ela.
 
-> **Reencontro — `system-design/12`, `go-fintech/05` e `engenharia-de-dados/03` (trilha planejada).**
+> **Reencontro — `system-design/12`, `go-fintech/05` e `engenharia-de-dados/03`.**
 > A arquitetura de decisão síncrona com orçamento e fallback (marco 06 desta trilha) retoma o mesmo
 > vocabulário do caso de antifraude em tempo real. O baseline por regras compartilha a ideia de
 > `go-fintech/05` (decisão síncrona simples antes de qualquer modelo). E o *policy gate* aplicado aqui é a
-> mesma disciplina de consentimento como dado que `engenharia-de-dados/03` ensina — referenciada aqui como
-> trilha planejada até sua publicação.
+> mesma disciplina de consentimento como dado que `engenharia-de-dados/03` ensina.
 
 ## Exemplo numa fintech
 

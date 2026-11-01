@@ -55,8 +55,7 @@ atual da organização.
 
 Um modelo de serviço que já nasce **conforme** — com CI, observabilidade, segurança e estrutura já
 embutidos — torna seguir o padrão o caminho de menor esforço, não o caminho de maior disciplina. A
-trilha `entrega-continua-e-devops` (marco 10, "esteira-como-produto" — **trilha planejada** até sua
-publicação) é quem **constrói** o modelo de pipeline que materializa parte desse *paved road*; este
+trilha `entrega-continua-e-devops` (marco 10, "esteira como produto") é quem **constrói** o modelo de pipeline que materializa parte desse *paved road*; este
 marco **verifica** se um serviço está conforme a ele, não reconstrói o modelo em si.
 
 ## Conformidade como código, e exceções com dono e prazo
@@ -125,7 +124,7 @@ volume real de decisões do seu contexto de trabalho.
    esporadicamente, em termos de escalabilidade de governança?
 
 > **Reencontro — `system-design/15`; `spring-boot/13`; `seguranca-aplicacao/13`; `kubernetes/14`;
-> `observabilidade/12`; `entrega-continua-e-devops/10` (trilha planejada).** A trajetória de IC
+> `observabilidade/12`; `entrega-continua-e-devops/10`.** A trajetória de IC
 > sênior/staff de `system-design/15` é onde a habilidade de tomar decisão sem autoridade formal
 > central (o espírito do processo de aconselhamento) já é discutida. O time de plataforma de
 > `spring-boot/13` (Conway) é quem tipicamente mantém o *paved road* por dentro. A ordem dos *gates*
@@ -134,7 +133,7 @@ volume real de decisões do seu contexto de trabalho.
 > capturar. O SLO de `observabilidade/12` é outro exemplo de "regra que só vale alguma coisa quando
 > verificada automaticamente" — a mesma disciplina de conformidade como código. E
 > `entrega-continua-e-devops/10` é, especificamente, quem constrói o modelo de pipeline que este
-> marco verifica, referenciada aqui como trilha planejada até sua publicação.
+> marco verifica.
 
 ## Principais aprendizados
 

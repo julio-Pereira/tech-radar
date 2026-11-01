@@ -26,12 +26,12 @@ orquestrador.
 | Direção | Interface | Vizinho |
 | --- | --- | --- |
 | consome | Pedidos de pagamento com chave de idempotência | `pix-gateway`, trilha spring-boot |
-| consome | Razão: reservar, capturar, liberar, estornar, postar | `fin-books`, trilha `ledger-e-contabilidade` (planejada) |
+| consome | Razão: reservar, capturar, liberar, estornar, postar | `fin-books`, trilha `ledger-e-contabilidade` |
 | consome | Regras de antifraude (decisão por transação) | `ledger-core`/antifraude, trilha go-fintech |
 | serve | Eventos de pagamento (autorizado, liquidado, devolvido, em disputa) | `pix-stream`, trilha kafka |
-| serve | Arquivos de liquidação e dados de conciliação | `fin-books`, trilha `ledger-e-contabilidade` (planejada) |
+| serve | Arquivos de liquidação e dados de conciliação | `fin-books`, trilha `ledger-e-contabilidade` |
 | serve | Métricas de aprovação, latência e funil por trilho | trilha observabilidade |
-| serve | Pix iniciado por terceiros (consumo da mesma máquina de estados) | `open-finance-brasil` (planejada) |
+| serve | Pix iniciado por terceiros (consumo da mesma máquina de estados) | `open-finance-brasil` |
 
 **O que este projeto não é.** Não integra com participante real, não guarda PAN de verdade,
 não implementa antifraude nem crédito e não substitui homologação com arranjos.

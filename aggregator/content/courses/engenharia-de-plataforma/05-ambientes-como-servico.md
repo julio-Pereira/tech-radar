@@ -31,8 +31,7 @@ não explica o motivo real da negação.
 
 ## Módulos Terraform como produto versionado
 
-Os módulos Terraform usados para provisionar um ambiente (`entrega-continua-e-devops/06`, **trilha
-planejada** até sua publicação) são, eles mesmos, um **produto** da plataforma — versionados,
+Os módulos Terraform usados para provisionar um ambiente (`entrega-continua-e-devops/06`) são, eles mesmos, um **produto** da plataforma — versionados,
 testados, com contrato — não um script ad-hoc copiado e colado a cada novo tipo de ambiente
 necessário.
 
@@ -76,7 +75,7 @@ da operação saudável de ambientes como serviço.
 
 ## Ambientes efêmeros por PR
 
-A mesma disciplina de `entrega-continua-e-devops/05` (**trilha planejada**) — um ambiente criado
+A mesma disciplina de `entrega-continua-e-devops/05` — um ambiente criado
 automaticamente por PR, destruído no fechamento — é um caso particular de "ambiente como serviço",
 só que com ciclo de vida atado ao PR em vez de a um TTL fixo.
 

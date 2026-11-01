@@ -26,8 +26,8 @@ segurança.
 
 ## Raio de explosão, e isolamento por ambiente
 
-O mesmo conceito do marco 06 de `entrega-continua-e-devops` (se essa trilha já estiver publicada; se
-não, trata-se do mesmo princípio geral de limitar o alcance de um erro), aqui aplicado a contas de
+O mesmo conceito de `entrega-continua-e-devops/06` (um estado por fronteira limita o alcance de um
+erro), aqui aplicado a contas de
 nuvem: produção e desenvolvimento em contas **separadas**, sem confiança implícita entre elas, limita
 o que um erro de configuração ou uma credencial comprometida numa conta pode afetar na outra.
 

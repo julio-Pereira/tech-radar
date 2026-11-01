@@ -106,7 +106,7 @@ recentes ficam de fora por não terem rótulo ainda).
 4. Por que uma linha de treino cujo consentimento só passou a cobrir a finalidade depois da decisão precisa
    ser excluída?
 
-> **Reencontro — `engenharia-de-dados/04`, `/06` e `/12` (trilha planejada); `dados-distribuidos/14`;
+> **Reencontro — `engenharia-de-dados/04`, `/06` e `/12`; `dados-distribuidos/14`;
 > `concorrencia-e-recursos/08`.** O join point-in-time retoma o modelo dimensional e os testes de dados
 > que `engenharia-de-dados/04` e `/06` ensinam, aqui aplicados à construção de um dataset de treino. A
 > separação OLTP/analítico de `dados-distribuidos/14` é o mesmo tipo de fronteira que isola o dataset de

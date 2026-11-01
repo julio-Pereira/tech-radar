@@ -15,7 +15,7 @@ Em vez de cada equipe copiar e colar a mesma pipeline — e divergir silenciosam
 *pinning*, teste como *gate*, promoção por *digest*, política sobre o plano, segregação de funções)
 como *workflows* **reutilizáveis e versionados**. Um serviço novo que usa o modelo nasce já
 conforme, sem que ninguém precise lembrar de configurar cada verificação manualmente. A trilha
-`arquitetura-de-solucoes` (planejada/existente, conforme o estado do repositório) **verifica** se um
+`arquitetura-de-solucoes` (marco 06) **verifica** se um
 serviço está no *paved road*; esta trilha é quem **constrói** o modelo que torna isso possível de
 verificar.
 

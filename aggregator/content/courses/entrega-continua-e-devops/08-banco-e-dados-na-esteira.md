@@ -71,8 +71,7 @@ migração registre seu próprio progresso de forma durável, não dependa de ro
 
 ## Pipelines de dados e de modelos — por link
 
-Qualidade de dados no CI e promoção de modelo (`engenharia-de-dados/06`, `ml-em-producao/05`, ambas
-trilhas planejadas/existentes conforme o estado do repositório) já tratam, em profundidade, a
+Qualidade de dados no CI e promoção de modelo (`engenharia-de-dados/06`, `ml-em-producao/05`) já tratam, em profundidade, a
 disciplina equivalente aplicada a pipelines de dados analíticos e de machine learning — este marco
 não reensina isso, trata só o schema do banco **transacional** que serve a aplicação.
 

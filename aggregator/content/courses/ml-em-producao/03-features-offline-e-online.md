@@ -104,7 +104,7 @@ calculá-la sob demanda, para as 5 features do tutorial.
 4. Por que uma feature derivada de dado de terceiros precisa desaparecer quando o consentimento de origem
    é revogado, mesmo que o valor já esteja materializado?
 
-> **Reencontro — `engenharia-de-dados/03`, `/10` e `/12` (trilha planejada); `dados-distribuidos/09`;
+> **Reencontro — `engenharia-de-dados/03`, `/10` e `/12`; `dados-distribuidos/09`;
 > `dados-distribuidos/01`.** A regra "a feature some quando o consentimento some" estende diretamente a
 > propagação de revogação por todas as camadas que `engenharia-de-dados/10` ensina. O TTL de feature e a
 > distinção ausente-versus-velho usam o mesmo raciocínio de cache de `dados-distribuidos/09`. E a causa

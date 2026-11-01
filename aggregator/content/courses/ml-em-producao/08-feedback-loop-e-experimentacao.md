@@ -107,7 +107,7 @@ experimento antes da janela de maturação se fechar.
 5. O que a probabilidade da ação registrada permite calcular depois, sem rodar um novo experimento?
 6. Por que um cap de frequência de contato é necessário mesmo num experimento bem desenhado estatisticamente?
 
-> **Reencontro — `system-design/14`; `observabilidade/08`; `engenharia-de-dados/11` (trilha planejada).**
+> **Reencontro — `system-design/14`; `observabilidade/08`; `engenharia-de-dados/11`.**
 > Atribuição determinística e exploração reusam o mecanismo de *feature flags* e *dark launch* de
 > `system-design/14` — a mesma função pura decidindo quem vê o quê. As métricas de negócio do experimento
 > (receita incremental, taxa de dano) seguem o mesmo vocabulário de `observabilidade/08`. E o tratamento de
