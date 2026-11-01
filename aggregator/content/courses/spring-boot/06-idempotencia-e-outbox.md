@@ -71,17 +71,8 @@ primeira terminar. Se ela comitou, a segunda colide (`DuplicateKeyException`), n
 processa nada e devolve a resposta gravada — byte a byte a mesma. Se a primeira falhou e
 fez rollback, a chave não existe mais e a segunda processa normalmente, como deve ser.
 
-```
-  req A (key K)             Postgres              req B (key K)
-  INSERT K ─────────▶  K reservada, tx A
-                       aberta            ◀──────── INSERT K
-  process():                                       bloqueado,
-    pagamento + outbox                             esperando tx A
-  UPDATE response_body
-  COMMIT ───────────▶  K comitada ────────▶ DuplicateKeyException
-                                           rollback: nada processado
-  ◀── 201 {paymentId: P}                   SELECT response_body
-                                           ◀── 201 {paymentId: P}
+```diagrama
+sb-idempotency-key
 ```
 
 Idempotência de verdade se apoia numa garantia do banco, não num `if` na aplicação.
@@ -104,20 +95,8 @@ insere o evento numa tabela `outbox`. Como é a *mesma* transação, ou os dois 
 ou nenhum — atômico de verdade. Depois, um **relay** — um processo de fundo que só
 repassa — lê o outbox e publica no Kafka, marcando o que já enviou:
 
-```
-            ┌─────────── uma transação ───────────┐
-  initiate ─┤  INSERT payments  +  INSERT outbox  ├─ COMMIT
-            └─────────────────────────────────────┘
-                              │
-          relay (@Scheduled, a cada 500 ms, sem transação)
-                              │
-   SELECT pendentes ─▶ kafka.send(...).get() ─▶ ack do broker
-                                                     │
-        UPDATE outbox SET published_at ◀─────────────┘
-        (transação curta, só depois do ack)
-
-  broker fora: o send falha, nada é marcado, e o evento
-  espera no banco pela próxima rodada
+```diagrama
+sb-outbox-e-relay
 ```
 
 ```java

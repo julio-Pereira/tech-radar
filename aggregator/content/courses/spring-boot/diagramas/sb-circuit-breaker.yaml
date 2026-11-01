@@ -1,0 +1,20 @@
+id: sb-circuit-breaker
+tipo: estados
+titulo: "O circuit breaker abre, falha rápido e testa antes de fechar de novo"
+descricao: >
+  Fechado, o circuit breaker deixa as chamadas passarem e mede a taxa de falha numa
+  janela. Quando ela chega a 50%, ele abre: as chamadas seguintes falham na hora, sem
+  chegar ao PSP, o que dá ao serviço espaço para se recuperar. Passado o wait-duration, ele
+  fica meio aberto e deixa passar poucas chamadas de teste. Se elas dão certo, fecha; se
+  uma falha, volta a abrir.
+estados:
+  - { id: closed, rotulo: "CLOSED", col: 0, row: 0 }
+  - { id: open, rotulo: "OPEN", col: 1, row: 0, papel: destaque }
+  - { id: half, rotulo: "HALF_OPEN", col: 1, row: 1 }
+inicial: closed
+transicoes:
+  - { de: closed, para: open, evento: "falha ≥ 50% na janela" }
+  - { de: open, para: open, evento: "chamada: falha rápido" }
+  - { de: open, para: half, evento: "wait-duration" }
+  - { de: half, para: closed, evento: "testes ok" }
+  - { de: half, para: open, evento: "teste falhou" }

@@ -1,0 +1,24 @@
+id: sb-graceful-shutdown
+tipo: sequencia
+titulo: "Rollout sem cortar transação: sai do balanceador, drena e só então morre"
+descricao: >
+  Num rollout, o Kubernetes envia SIGTERM ao pod depois do preStop. O Boot marca a
+  readiness como fora de serviço no início do shutdown, e o pod é removido dos endpoints do
+  Service, então o tráfego novo vai para os outros pods. O servidor para de aceitar
+  requisições novas e espera as que estão em voo terminarem, até o limite de 30 segundos,
+  com commit no Postgres. Só então fecha o pool de conexões e o processo sai, antes do
+  terminationGracePeriodSeconds. Nenhuma transação Pix é cortada no meio.
+participantes:
+  - { id: k8s, rotulo: "Kubernetes", papel: externo }
+  - { id: svc, rotulo: "Service (endpoints)" }
+  - { id: gw, rotulo: "pix-gateway", papel: destaque }
+  - { id: pg, rotulo: "Postgres" }
+mensagens:
+  - { de: k8s, para: gw, rotulo: "SIGTERM", nota: "depois do preStop" }
+  - { de: gw, para: gw, rotulo: "readiness: fora de serviço" }
+  - { de: k8s, para: svc, rotulo: "remove o pod", tipo: async, nota: "tráfego novo vai a outros pods" }
+  - { de: gw, para: gw, rotulo: "recusa requisição nova" }
+  - { de: gw, para: pg, rotulo: "termina as tx em voo", nota: "até 30 s (timeout-per-shutdown-phase)" }
+  - { de: pg, para: gw, rotulo: "commit", tipo: reply }
+  - { de: gw, para: pg, rotulo: "fecha o pool" }
+  - { de: gw, para: k8s, rotulo: "processo sai", tipo: reply, nota: "antes do terminationGracePeriod" }

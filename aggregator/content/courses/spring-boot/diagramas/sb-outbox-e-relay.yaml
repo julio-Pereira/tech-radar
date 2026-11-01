@@ -1,0 +1,24 @@
+id: sb-outbox-e-relay
+tipo: topologia
+titulo: "Uma escrita só: pagamento e evento na mesma transação, o relay publica depois"
+descricao: >
+  O initiate grava o pagamento e o evento na tabela outbox dentro da mesma transação do
+  Postgres: ou os dois persistem, ou nenhum. Fora dela, o relay, um Scheduled a cada 500
+  ms, seleciona as linhas pendentes, publica no Kafka e espera o ack do broker. Só depois
+  do ack ele marca published_at, numa transação curta. Se o broker está fora, o envio
+  falha, nada é marcado, e o evento espera no banco pela próxima rodada.
+grupos:
+  - { id: tx, rotulo: "uma transação", col: 1, row: 0, cols: 1, rows: 2 }
+nos:
+  - { id: initiate, rotulo: "initiate()", col: 0, row: 0, papel: destaque }
+  - { id: payments, rotulo: "payments", grupo: tx, col: 1, row: 0 }
+  - { id: outbox, rotulo: "outbox", grupo: tx, col: 1, row: 1, conceito: outbox }
+  - { id: relay, rotulo: "relay (500 ms)", col: 2, row: 1 }
+  - { id: kafka, rotulo: "Kafka", col: 2, row: 2, papel: externo }
+arestas:
+  - { de: initiate, para: payments, rotulo: "INSERT" }
+  - { de: initiate, para: outbox, rotulo: "INSERT, mesma tx" }
+  - { de: outbox, para: relay, rotulo: "SELECT pendentes" }
+  - { de: relay, para: outbox, rotulo: "marca published_at" }
+  - { de: relay, para: kafka, rotulo: "send().get()" }
+  - { de: kafka, para: relay, rotulo: "ack", estilo: tracejada }

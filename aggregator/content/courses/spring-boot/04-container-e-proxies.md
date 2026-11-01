@@ -37,13 +37,8 @@ do contexto:
    beans recebem por injeção e o que atende as requisições.
 8. **Destruição.** No shutdown do contexto, rodam os métodos `@PreDestroy`.
 
-```
-  1 new ─▶ 2 injeção ─▶ 3 *Aware ─▶ 4 BPP before ─▶ 5 @PostConstruct
-                                                          │
-       8 @PreDestroy ◀── 7 uso ◀── 6 BPP after ◀──────────┘
-                                       │
-                     pode trocar o bean por um proxy:
-                     quem injeta recebe  [proxy] ─▶ [seu bean]
+```diagrama
+sb-ciclo-de-vida-do-bean
 ```
 
 Um `BeanPostProcessor` age sobre beans prontos; um `BeanFactoryPostProcessor` age antes,
@@ -69,10 +64,6 @@ Elas funcionam porque, no passo 6 do ciclo de vida, o Spring **embrulha o seu be
 proxy**. Quem chama o bean recebe, na verdade, o proxy; ele executa o *advice*
 (abrir/commitar transação, consultar cache, despachar para outra thread) e **então**
 delega ao seu método real.
-
-```
-chamador → [proxy: begin tx] → seuBean.metodo() → [proxy: commit]
-```
 
 São dois mecanismos: **JDK dynamic proxy**, que implementa as interfaces do bean, e
 **CGLIB**, que gera uma subclasse dele. No Spring Framework "puro", a escolha depende de
@@ -112,19 +103,9 @@ class RefundService {
 
 O desenho mostra onde a chamada se perde:
 
-```
-                 ┌────────────── proxy de RefundService ──────────────┐
-  controller ──▶ │  advice de processRefund: nenhum                   │
-                 │        │                                           │
-                 │        ▼                                           │
-                 │  ┌────────────── objeto real ──────────────┐       │
-                 │  │ processRefund()                         │       │
-                 │  │    └─ this.applyRefund() ──┐            │       │
-                 │  │                            ▼            │       │
-                 │  │ applyRefund()  ◀── chega direto, sem tx │       │
-                 │  └─────────────────────────────────────────┘       │
-                 │  advice @Transactional de applyRefund: não roda    │
-                 └────────────────────────────────────────────────────┘
+```diagrama
+sb-proxy-chamada-externa
+sb-proxy-self-invocation
 ```
 
 Como `applyRefund` é invocado por `this`, o `@Transactional` é ignorado: débito e

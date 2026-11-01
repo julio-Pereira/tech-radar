@@ -1,0 +1,25 @@
+id: sb-precedencia-de-fontes
+tipo: fluxo
+titulo: "Quem vem depois sobrescreve; o segredo chega em runtime, nunca pelo repositório"
+descricao: >
+  O Boot resolve cada propriedade numa ordem fixa, da menor para a maior prioridade: o
+  application.yaml empacotado no JAR, o arquivo do perfil, as variáveis de ambiente e os
+  argumentos de linha de comando. Cada fonte sobrescreve a anterior, e o valor que o bean
+  recebe é o da última que define a chave. Segredos seguem outro caminho: vêm de um Secret
+  montado ou de um cofre, importados com spring.config.import em runtime. Colocar um
+  segredo no application.yaml do repositório, ou na imagem, é proibido.
+passos:
+  - { id: jar, rotulo: "application.yaml (JAR)", col: 0, row: 0 }
+  - { id: perfil, rotulo: "application-prod.yaml", col: 0, row: 1 }
+  - { id: env, rotulo: "env PIX_PSP_BASE_URL", col: 0, row: 2 }
+  - { id: cli, rotulo: "--pix.psp.read-timeout=5s", col: 0, row: 3 }
+  - { id: final, rotulo: "valor que o bean recebe", col: 0, row: 4, papel: destaque }
+  - { id: repo, rotulo: "segredo no repositório", col: 1, row: 0 }
+  - { id: secret, rotulo: "Secret montado ou cofre", col: 1, row: 4, papel: externo }
+arestas:
+  - { de: jar, para: perfil, rotulo: "sobrescrito por" }
+  - { de: perfil, para: env, rotulo: "sobrescrito por" }
+  - { de: env, para: cli, rotulo: "sobrescrito por" }
+  - { de: cli, para: final }
+  - { de: repo, para: jar, rotulo: "nunca", tipo: falha }
+  - { de: secret, para: final, rotulo: "spring.config.import" }

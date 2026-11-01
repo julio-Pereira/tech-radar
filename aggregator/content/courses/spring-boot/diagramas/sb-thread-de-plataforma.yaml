@@ -1,0 +1,21 @@
+id: sb-thread-de-plataforma
+tipo: topologia
+titulo: "Thread de plataforma: a requisição 201 espera alguém voltar do PSP"
+descricao: >
+  No modelo clássico, o Tomcat tem um pool de 200 threads de plataforma e cada requisição
+  ocupa uma do começo ao fim. Enquanto espera a resposta do PSP, a thread fica parada no
+  I/O, sem usar CPU, mas presa àquela requisição. Com as 200 ocupadas esperando, a
+  requisição 201 fica na fila até alguma voltar, mesmo com a CPU ociosa.
+grupos:
+  - { id: tomcat, rotulo: "Tomcat: 200 threads", col: 0, row: 0, cols: 1, rows: 3 }
+nos:
+  - { id: t1, rotulo: "T1 · espera o PSP", grupo: tomcat, col: 0, row: 0 }
+  - { id: t2, rotulo: "T2 · espera o PSP", grupo: tomcat, col: 0, row: 1 }
+  - { id: t200, rotulo: "T200 · espera o PSP", grupo: tomcat, col: 0, row: 2 }
+  - { id: psp, rotulo: "PSP", col: 1, row: 1, papel: externo }
+  - { id: req, rotulo: "requisição 201", col: 1, row: 0, papel: destaque }
+arestas:
+  - { de: t1, para: psp }
+  - { de: t2, para: psp, rotulo: "I/O" }
+  - { de: t200, para: psp }
+  - { de: req, para: t1, rotulo: "na fila", estilo: tracejada }

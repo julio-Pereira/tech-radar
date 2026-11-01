@@ -1,0 +1,21 @@
+id: sb-proxy-chamada-externa
+tipo: sequencia
+titulo: "Chamada de fora: passa pelo proxy, e a transação abre"
+descricao: >
+  O chamador recebeu por injeção o proxy, não o RefundService real. Quando chama
+  applyRefund, o proxy executa o advice do Transactional, abrindo a transação, e só então
+  delega ao método do objeto real. Débito e crédito rodam dentro dessa transação. Na
+  volta, o proxy faz commit, ou rollback se uma exceção escapou, e devolve o resultado ao
+  chamador. O advice só roda porque a chamada atravessou a fronteira do bean.
+participantes:
+  - { id: chamador, rotulo: "controller" }
+  - { id: proxy, rotulo: "proxy (CGLIB)", papel: destaque }
+  - { id: bean, rotulo: "RefundService real" }
+mensagens:
+  - { de: chamador, para: proxy, rotulo: "applyRefund(r)" }
+  - { de: proxy, para: proxy, rotulo: "begin tx" }
+  - { de: proxy, para: bean, rotulo: "applyRefund(r)" }
+  - { de: bean, para: bean, rotulo: "débito e crédito", nota: "dentro da transação" }
+  - { de: bean, para: proxy, rotulo: "retorno", tipo: reply }
+  - { de: proxy, para: proxy, rotulo: "commit ou rollback" }
+  - { de: proxy, para: chamador, rotulo: "retorno", tipo: reply }

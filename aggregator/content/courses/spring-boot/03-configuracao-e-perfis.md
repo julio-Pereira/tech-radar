@@ -63,6 +63,10 @@ ambiente, fora do código: o mesmo artefato roda em qualquer lugar, e o ambiente
 comportamento com `if (profile == "prod")` no código — deixe a configuração externa
 decidir.
 
+```diagrama
+sb-precedencia-de-fontes
+```
+
 ## Profiles vs env vars — e o perfil do autor
 
 **Profiles** (`@Profile`, `spring.profiles.active`) trocam *conjuntos* de beans e

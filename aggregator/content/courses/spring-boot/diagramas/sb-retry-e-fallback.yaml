@@ -1,0 +1,25 @@
+id: sb-retry-e-fallback
+tipo: fluxo
+titulo: "Fallback no @Retry repete o 503; no @CircuitBreaker, engole o erro na 1ª tentativa"
+descricao: >
+  O Resilience4j aplica o Retry por fora do CircuitBreaker, que embrulha a chamada ao PSP.
+  Com o fallback no Retry, um 503 é registrado pelo circuit breaker e propagado; o Retry vê
+  o erro, espera com jitter e repete, e só depois de esgotar as tentativas chama o
+  fallback, que devolve ACCEPTED. Com o fallback no CircuitBreaker, ele captura o 503 por
+  dentro e devolve ACCEPTED já na primeira tentativa: o Retry vê sucesso e nunca repete, e
+  uma falha transitória vira fallback sem necessidade.
+passos:
+  - { id: erro, rotulo: "PSP devolve 503", col: 0, row: 0, papel: externo }
+  - { id: cb, rotulo: "CB registra a falha", col: 1, row: 0 }
+  - { id: retry, rotulo: "Retry espera e repete", col: 2, row: 0 }
+  - { id: fallback-retry, rotulo: "fallback no @Retry", col: 2, row: 1, papel: destaque }
+  - { id: fallback-cb, rotulo: "fallback no @CircuitBreaker", col: 0, row: 1 }
+  - { id: sucesso, rotulo: "Retry vê ACCEPTED", col: 0, row: 2 }
+  - { id: nunca, rotulo: "o 503 nunca é repetido", col: 1, row: 2 }
+arestas:
+  - { de: erro, para: cb }
+  - { de: cb, para: retry, rotulo: "propaga o erro" }
+  - { de: retry, para: fallback-retry, rotulo: "3 tentativas esgotadas" }
+  - { de: erro, para: fallback-cb, rotulo: "se o fallback está no CB", tipo: falha }
+  - { de: fallback-cb, para: sucesso, rotulo: "devolve ACCEPTED" }
+  - { de: sucesso, para: nunca }

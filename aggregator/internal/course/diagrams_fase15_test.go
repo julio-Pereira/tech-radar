@@ -60,9 +60,16 @@ func TestDiagramaLarguraNatural(t *testing.T) {
 	if w := diagramaLarguraNatural(d); w != 40+2*(140+56)+140+40 {
 		t.Fatalf("width %v", w)
 	}
+	// Sequence columns follow the labels: 150px when short, 200px at most.
 	seq := Diagrama{Tipo: "sequencia", Participantes: make([]DiagramaParticipante, 6)}
-	if w := diagramaLarguraNatural(seq); w <= diagramaLarguraMax {
-		t.Fatalf("six participants (%v px) should be above the limit", w)
+	if w := diagramaLarguraNatural(seq); w != 80+6*150 {
+		t.Fatalf("six short participants: %v px", w)
+	}
+	for i := range seq.Participantes {
+		seq.Participantes[i].Rotulo = "um participante de nome longo"
+	}
+	if w := diagramaLarguraNatural(seq); w != 80+6*200 || w <= diagramaLarguraMax {
+		t.Fatalf("six long participants (%v px) should be above the limit", w)
 	}
 }
 

@@ -1,0 +1,21 @@
+id: sb-virtual-threads
+tipo: topologia
+titulo: "Virtual thread: bloqueou no I/O, desmonta e libera a carrier"
+descricao: >
+  Com virtual threads, milhares de threads leves rodam sobre poucas threads de
+  plataforma, as carriers. Quando a VT1 bloqueia esperando o PSP, a JVM a desmonta da
+  carrier 1, que fica livre para montar outra virtual thread pronta. Quando o I/O da VT1
+  volta, ela fica pronta de novo e é montada em qualquer carrier livre. O código continua
+  bloqueante e linear, e escala como assíncrono.
+grupos:
+  - { id: carriers, rotulo: "carriers (≈ núcleos)", col: 0, row: 0, cols: 1, rows: 2 }
+nos:
+  - { id: c1, rotulo: "carrier 1 · roda VT2", grupo: carriers, col: 0, row: 0 }
+  - { id: c2, rotulo: "carrier 2 · roda VT5", grupo: carriers, col: 0, row: 1 }
+  - { id: vt1, rotulo: "VT1 · espera o PSP", col: 1, row: 0, papel: destaque }
+  - { id: prontas, rotulo: "VTs prontas (milhares)", col: 1, row: 1 }
+arestas:
+  - { de: c1, para: vt1, rotulo: "desmonta no I/O" }
+  - { de: vt1, para: prontas, rotulo: "I/O voltou" }
+  - { de: prontas, para: c1, rotulo: "monta" }
+  - { de: prontas, para: c2, rotulo: "monta" }

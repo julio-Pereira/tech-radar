@@ -1,0 +1,27 @@
+id: sb-auto-config-condicoes
+tipo: fluxo
+titulo: "Cada condição pode tirar a auto-configuração do jogo; se você declara o bean, o Boot recua"
+descricao: >
+  O Boot só considera a AuditAutoConfiguration porque ela está listada no arquivo de
+  imports, não por component scan. Depois avalia as condições em ordem: se a classe Filter
+  não está no classpath, ou se fintech.audit.enabled vale false, a auto-configuração é
+  ignorada inteira. Passando as duas, cada bean ainda tem a sua condição: com
+  ConditionalOnMissingBean, se o squad já declarou o próprio CorrelationFilter, o Boot
+  recua e usa o dele; se não declarou, registra o filtro padrão. O relatório de --debug
+  mostra cada decisão com o motivo.
+passos:
+  - { id: imports, rotulo: "listada no .imports", col: 0, row: 0 }
+  - { id: classe, rotulo: "OnClass(Filter)", col: 1, row: 0 }
+  - { id: propriedade, rotulo: "OnProperty enabled", col: 2, row: 0 }
+  - { id: missing, rotulo: "OnMissingBean", col: 3, row: 0, papel: destaque }
+  - { id: ignorada, rotulo: "auto-config ignorada", col: 1, row: 1 }
+  - { id: recua, rotulo: "usa o bean do squad", col: 2, row: 1 }
+  - { id: registra, rotulo: "registra o filtro", col: 3, row: 1 }
+arestas:
+  - { de: imports, para: classe }
+  - { de: classe, para: propriedade, rotulo: "presente" }
+  - { de: propriedade, para: missing, rotulo: "habilitada" }
+  - { de: classe, para: ignorada, rotulo: "Filter ausente", tipo: falha }
+  - { de: propriedade, para: ignorada, rotulo: "enabled=false", tipo: falha }
+  - { de: missing, para: recua, rotulo: "squad declarou" }
+  - { de: missing, para: registra, rotulo: "não há bean" }

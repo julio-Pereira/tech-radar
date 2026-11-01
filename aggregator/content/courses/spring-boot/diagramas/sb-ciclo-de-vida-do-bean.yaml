@@ -1,0 +1,29 @@
+id: sb-ciclo-de-vida-do-bean
+tipo: fluxo
+titulo: "O proxy nasce no passo 6: é ele, não o seu objeto, que os outros beans recebem"
+descricao: >
+  Cada singleton passa por uma esteira no refresh do contexto. Primeiro o construtor,
+  depois a injeção por campo ou setter, os callbacks Aware e os BeanPostProcessors antes
+  da inicialização. Em seguida roda o PostConstruct. No passo 6, os BeanPostProcessors
+  depois da inicialização podem devolver outro objeto no lugar do bean: é aqui que nasce
+  o proxy de Transactional, Cacheable e Async. O que ficou registrado, bean ou proxy, é o
+  que os outros recebem por injeção e atende as requisições, até o PreDestroy no shutdown.
+passos:
+  - { id: new, rotulo: "1. construtor", col: 0, row: 0 }
+  - { id: injecao, rotulo: "2. injeção", col: 1, row: 0 }
+  - { id: aware, rotulo: "3. *Aware", col: 2, row: 0 }
+  - { id: bpp-antes, rotulo: "4. BPP antes", col: 3, row: 0 }
+  - { id: init, rotulo: "5. @PostConstruct", col: 3, row: 1 }
+  - { id: bpp-depois, rotulo: "6. BPP depois", col: 2, row: 1, papel: destaque }
+  - { id: uso, rotulo: "7. uso", col: 1, row: 1 }
+  - { id: destroy, rotulo: "8. @PreDestroy", col: 0, row: 1 }
+  - { id: proxy, rotulo: "proxy embrulha o bean", col: 2, row: 2 }
+arestas:
+  - { de: new, para: injecao }
+  - { de: injecao, para: aware }
+  - { de: aware, para: bpp-antes }
+  - { de: bpp-antes, para: init }
+  - { de: init, para: bpp-depois }
+  - { de: bpp-depois, para: uso }
+  - { de: uso, para: destroy, rotulo: "shutdown" }
+  - { de: bpp-depois, para: proxy, rotulo: "pode devolver" }
