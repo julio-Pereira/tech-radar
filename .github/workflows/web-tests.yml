@@ -42,6 +42,21 @@ jobs:
           OUTPUT_FILE: ../web/data/feed.json
         run: go run .
 
+      # Visual coverage per track (diagram plan, Fase 5): informs, never
+      # gates — the compiler is what refuses an ASCII diagram.
+      - name: Diagram coverage report
+        working-directory: aggregator
+        run: |
+          go run ./cmd/cobertura > ../cobertura-diagramas.md
+          cat ../cobertura-diagramas.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload diagram coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-diagramas
+          path: cobertura-diagramas.md
+          retention-days: 30
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:

@@ -288,8 +288,21 @@ components interacting**, an **order of messages**, the **states of a life cycle
 assertion ("o PSP fica fora da transação"), not a label ("Transações"). Use the domain's
 names — `pix-gateway`, `ledger-core`, `pix-stream`, real topics and events — never
 `Service A`. The diagram complements the prose: the text stays self-sufficient, and the
-diagram never states a fact the text doesn't support. **New ASCII diagrams are not
-allowed**: the compiler warns about fenced blocks with box-drawing characters or arrows.
+diagram never states a fact the text doesn't support. **ASCII diagrams are not allowed**:
+a fenced block without a language (or `text`) that has box-drawing characters or arrows
+fails the build. Every track was converted; the rule is permanent.
+
+**Coverage report.** `go run ./cmd/cobertura` (in `aggregator/`) prints, per track, the
+diagrams, the animated ones and the charts, the milestones with prose and no diagram, and
+the ASCII left. The floor is **⌈milestones with prose / 2⌉** diagrams; a stub milestone
+(it opens with `> **Stub.**`) doesn't count until its prose exists. CI writes the report
+to the job summary and uploads it as the `cobertura-diagramas` artifact. It informs, it
+doesn't gate: a track below the floor is marked ⚠.
+
+**Planning a new track.** The plan's table of milestones gets a **"diagrama"** column: for
+each milestone, the diagram it will have (type and one-line idea) or "—" when the prose
+doesn't hit any of the triggers above. The diagrams are written with the prose, not
+retrofitted later.
 
 **Animation by steps.** A diagram whose lesson is a process in time — a rolling update,
 a canary, a saga compensating, an alert's life cycle — gets an `animacao:` list (the plan

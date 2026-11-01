@@ -227,7 +227,9 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 					}
 				}
 			}
-			warnASCIIDiagrams(source, manifest.Slug+"/"+file)
+			if aerr := checkASCIIDiagrams(source); aerr != nil {
+				return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %w", file, aerr)
+			}
 		}
 		if fm.ID == "" {
 			return CompiledCourse{}, nil, fmt.Errorf("milestone %s is missing id", file)
