@@ -1434,7 +1434,7 @@
 .diagrama-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; margin-top: 0.4rem; }
 .diagrama-dica { display: none; margin: 0 auto 0 0; font-size: 0.8rem; color: var(--text-muted); }
 .diagrama-rola .diagrama-dica { display: block; }
-.diagrama-ampliar, .diagrama-dialogo-topo button {
+.diagrama-ampliar, .diagrama-dialogo-topo button, .diagrama-player button {
   min-height: 32px;
   padding: 0.25rem 0.8rem;
   border: 1px solid var(--border);
@@ -1446,8 +1446,8 @@
   font-weight: 600;
   cursor: pointer;
 }
-.diagrama-ampliar:hover, .diagrama-dialogo-topo button:hover { border-color: var(--accent); }
-.diagrama-ampliar:focus-visible, .diagrama-dialogo-topo button:focus-visible { outline: 2px solid var(--accent-hover); outline-offset: 2px; }
+.diagrama-ampliar:hover, .diagrama-dialogo-topo button:hover, .diagrama-player button:hover:not([aria-disabled="true"]) { border-color: var(--accent); }
+.diagrama-ampliar:focus-visible, .diagrama-dialogo-topo button:focus-visible, .diagrama-player button:focus-visible { outline: 2px solid var(--accent-hover); outline-offset: 2px; }
 .diagrama-ajustar[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-hover); }
 
 /* Ampliar: a full-screen modal; natural size with two-way scrolling, or
@@ -1588,3 +1588,27 @@ a.diagrama-conceito.conceito-retorno .diagrama-no-caixa { stroke: var(--accent-h
 .diagrama-dados summary { cursor: pointer; }
 .diagrama-dados table { margin: 0.4rem 0 0; }
 .diagrama-fonte { font-size: 0.78rem; color: var(--text-muted); margin: 0.3rem 0 0; }
+
+/* Step player (diagram-player.js, Fase 1.6). Each state also has a text
+   mark in the node label and a dash or opacity change: never color alone. */
+.diagrama-player { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 0.5rem; }
+.diagrama-dialogo .diagrama-player { padding: 0.5rem 1rem 0.8rem; border-top: 1px solid var(--border); margin: 0; }
+.diagrama-player button[aria-disabled="true"] { opacity: 0.45; cursor: default; }
+.diagrama-player-posicao { font-size: 0.8rem; color: var(--text-muted); font-variant-numeric: tabular-nums; margin: 0 0.3rem; }
+.diagrama-legenda { flex-basis: 100%; margin: 0.2rem 0 0; font-size: 0.9rem; min-height: 1.5em; }
+.diagrama-est-ativo .diagrama-no-caixa { stroke: var(--eng); stroke-width: 2.5; }
+.diagrama-est-novo .diagrama-no-caixa { stroke: var(--arch); stroke-width: 2; stroke-dasharray: 5 3; }
+.diagrama-est-saindo { opacity: 0.75; }
+.diagrama-est-saindo .diagrama-no-caixa { stroke: var(--java); stroke-width: 2; stroke-dasharray: 2 3; }
+.diagrama-est-removido { opacity: 0.35; }
+.diagrama-est-falha .diagrama-no-caixa { stroke: #f87171; stroke-width: 2.5; }
+.diagrama-est-inativo { opacity: 0.5; }
+.diagrama-est-destaque .diagrama-no-caixa,
+.diagrama-est-atual .diagrama-no-caixa { stroke: var(--accent-hover); stroke-width: 3.5; }
+.diagrama-est-atual .diagrama-no-rotulo { font-weight: 700; }
+.diagrama-percorrida .diagrama-aresta { stroke: var(--accent-hover); stroke-width: 2.6; }
+.diagrama-oculto { visibility: hidden; }
+.diagrama-pacote { fill: var(--accent-hover); stroke: var(--surface); stroke-width: 1.5; }
+@media (prefers-reduced-motion: no-preference) {
+  .diagrama-no, .diagrama-no-caixa, .diagrama-aresta, .diagrama-mensagem { transition: opacity 0.3s, stroke 0.3s, stroke-width 0.3s; }
+}

@@ -58,8 +58,7 @@ function draw(spec, prefix, links) {
   const svg = spec.tipo === 'sequencia' ? drawSequence(spec, prefix, links)
     : spec.tipo === 'grafico' ? drawChart(spec)
       : drawGraph(spec, prefix, links);
-  // "group", not "img": concept links and chart points are focusable
-  // children; boxes and lines are aria-hidden, the caption names the group.
+  // "group", not "img": it has focusable children (links, chart points).
   svg.setAttribute('role', 'group');
   svg.dataset.tipo = spec.tipo;
   widthClass(svg);
@@ -105,6 +104,7 @@ function drawInto(figure, spec) {
 
   wireConceptLinks(svg);
   wireChartKeys(svg);
+  animate(svg, spec, frame);
   resumeReturnPoint(figure);
 }
 
@@ -179,6 +179,11 @@ function zoomDialog() {
   return d;
 }
 
+// Fase 1.6: the step player loads only for an animated spec.
+function animate(svg, spec, mount, twin) {
+  if (spec.animacao) import('./diagram-player.js').then((m) => m.attach(svg, spec, mount, twin));
+}
+
 function openZoom(spec, title, opener) {
   const d = zoomDialog();
   const h = (d.querySelector('h2'));
@@ -190,12 +195,14 @@ function openZoom(spec, title, opener) {
   area.replaceChildren(svg);
   d.addEventListener('close', () => {
     area.replaceChildren();
+    d.querySelector('.diagrama-player')?.remove();
     opener.focus();
   }, { once: true });
   d.showModal();
   fitViewBox(svg);
   widthClass(svg);
   wireChartKeys(svg);
+  animate(svg, spec, area, opener.closest('figure'));
   (d.querySelector('.diagrama-fechar')).focus();
 }
 
@@ -279,7 +286,7 @@ function drawGraph(spec, prefix, links) {
 }
 
 function drawEdge(from, to, a, prefix, hasReverse, via) {
-  const g = el('g', { class: `diagrama-aresta-grupo${a.estilo ? ` diagrama-aresta--${a.estilo}` : ''}` });
+  const g = el('g', { class: `diagrama-aresta-grupo${a.estilo ? ` diagrama-aresta--${a.estilo}` : ''}`, 'data-aresta': `${a.de}>${a.para}` });
   const arrow = { class: 'diagrama-aresta', fill: 'none', 'marker-end': `url(#${prefix}-seta)` };
   if (from === to) {
     const x = from.cx;
@@ -308,8 +315,7 @@ function drawEdge(from, to, a, prefix, hasReverse, via) {
     const mx = (s.x1 + s.x2) / 2;
     const my = (s.y1 + s.y2) / 2;
     const vertical = Math.abs(s.x2 - s.x1) < Math.abs(s.y2 - s.y1);
-    // Beside a vertical edge, above a horizontal one; in an opposite pair
-    // each label goes on its own line's side.
+    // Beside a vertical edge, above a horizontal one, on its own side.
     const side = vertical ? Math.sign(-(s.y2 - s.y1)) : Math.sign(s.x2 - s.x1);
     const t = vertical
       ? (hasReverse && side < 0
@@ -331,7 +337,7 @@ function edgeText(a) {
 function drawNode(no, p, tipo, final, links) {
   const radius = tipo === 'estados' ? 22 : tipo === 'fluxo' ? 14 : 6;
   const cls = `diagrama-no${no.papel ? ` diagrama-no--${no.papel}` : ''}`;
-  const g = el('g', { class: cls });
+  const g = el('g', { class: cls, 'data-id': no.id });
   g.appendChild(hidden(rect(p, 'diagrama-no-caixa', radius)));
   if (final) g.appendChild(hidden(rect({ x: p.x + 4, y: p.y + 4, w: p.w - 8, h: p.h - 8 }, 'diagrama-no-final', radius - 4)));
   g.appendChild(hidden(label(p.cx, p.cy + 5, no.rotulo, 'diagrama-no-rotulo')));
@@ -377,13 +383,12 @@ function drawSequence(spec, prefix, links) {
     svg.appendChild(p.href && links ? conceptLink(p, g) : g);
   }
 
-  for (const { m, y: my } of rows) {
+  rows.forEach(({ m, y: my }, i) => {
     const x1 = (colOf.get(m.de));
     const x2 = (colOf.get(m.para));
-    const g = hidden(el('g', { class: `diagrama-mensagem diagrama-mensagem--${m.tipo}` }));
+    const g = hidden(el('g', { class: `diagrama-mensagem diagrama-mensagem--${m.tipo}`, 'data-msg': i }));
     const marker = m.tipo === 'sync' ? 'seta' : 'seta-aberta';
     if (x1 === x2) {
-      // On the last lifeline the loop opens to the left.
       const d = m.de === parts[parts.length - 1].id && parts.length > 1 ? -1 : 1;
       const side = d > 0 ? 'diagrama-rotulo-inicio' : 'diagrama-rotulo-fim';
       g.appendChild(el('path', {
@@ -402,7 +407,7 @@ function drawSequence(spec, prefix, links) {
       if (m.nota) g.appendChild(label((x1 + x2) / 2, my + 16, m.nota, 'diagrama-nota'));
     }
     svg.appendChild(g);
-  }
+  });
   return svg;
 }
 
@@ -547,7 +552,7 @@ function drawChart(spec) {
   return svg;
 }
 
-// Focusable point with its values; roving tabindex, arrows move.
+// Roving tabindex: one Tab stop per chart.
 function point(node, spec, s, p) {
   node.setAttribute('class', `${node.getAttribute('class') || ''} diagrama-ponto`.trim());
   node.setAttribute('tabindex', '-1');
@@ -592,7 +597,7 @@ function wireConceptLinks(svg) {
   });
 }
 
-// The detour's return point may be a node drawn late: return to it now.
+// Return to a detour point drawn late.
 function resumeReturnPoint(figure) {
   const parts = window.location.hash.split('/');
   if (parts.length < 5 || parts[1] !== 'learn') return;

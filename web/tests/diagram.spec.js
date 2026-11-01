@@ -35,7 +35,8 @@ test.describe('Diagramas tipados', () => {
   test('draws the four types with caption, description and no inline style', async ({ page }) => {
     const node = await openFirst(page);
     for (const tipo of ['topologia', 'sequencia', 'estados', 'fluxo', 'grafico']) {
-      await expect(node.locator(`svg.diagrama-${tipo}`)).toHaveCount(1);
+      // exemplo-animado is a second topologia (diagram-player.spec.js).
+      await expect(node.locator(`svg.diagrama-${tipo}`)).toHaveCount(tipo === 'topologia' ? 2 : 1);
     }
     const figure = node.locator('figure[data-diagrama="kafka/exemplo-topologia"]');
     const svg = figure.locator('svg');

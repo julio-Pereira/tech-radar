@@ -7,7 +7,7 @@ descricao: >
   PSP, cada passo um span do
   mesmo trace, propagado pelo cabeçalho traceparent. Por fim publica em
   payments.initiated com o contexto nos headers da mensagem. O ledger-core consome o
-  evento minutos depois: o span de consumo é raiz da própria árvore e carrega um link
+  evento segundos depois: o span de consumo é raiz da própria árvore e carrega um link
   para o span de produção, sem fingir que foi uma chamada síncrona, e o lançamento no
   ledger é filho dele.
 participantes:
@@ -26,3 +26,16 @@ mensagens:
   - { de: gateway, para: topico, rotulo: "publica o evento", tipo: async, nota: "contexto nos headers" }
   - { de: topico, para: ledger, rotulo: "consumo, 40s depois", tipo: async, nota: "span link para a produção" }
   - { de: ledger, para: postgres, rotulo: "lançamento no ledger" }
+animacao:
+  - legenda: "O span raiz nasce no pix-gateway; validação e limite são filhos dele"
+    ate: 2
+  - legenda: "Na chamada gRPC, o traceparent vai no cabeçalho e o ledger-core continua o trace"
+    ate: 3
+  - legenda: "O span do ledger-core tem o do gateway como pai e devolve a decisão"
+    ate: 5
+  - legenda: "A chamada ao PSP é mais um span filho, com o atributo fin.psp"
+    ate: 6
+  - legenda: "Ao publicar, o contexto do trace vai nos headers da mensagem"
+    ate: 7
+  - legenda: "O consumo, 40 s depois, abre uma árvore própria, ligada à produção por span link"
+    ate: 9

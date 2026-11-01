@@ -146,6 +146,8 @@ type diagramaSpec struct {
 	Series    []graficoSerieSpec    `yaml:"series"`
 	Anotacoes []graficoAnotacaoSpec `yaml:"anotacoes"`
 	Fonte     string                `yaml:"fonte"`
+	// animacao (Fase 1.6): a list of steps, or "mensagens" in a sequencia.
+	Animacao yaml.Node `yaml:"animacao"`
 }
 
 // Compiled schema (JSON): one normalized graph shape for topologia, fluxo
@@ -215,6 +217,7 @@ type Diagrama struct {
 	Series        []GraficoSerie         `json:"series,omitempty"`
 	Anotacoes     []GraficoAnotacao      `json:"anotacoes,omitempty"`
 	Fonte         string                 `json:"fonte,omitempty"`
+	Animacao      []DiagramaPasso        `json:"animacao,omitempty"`
 }
 
 // DiagramasFile is data/diagramas/<slug>.json.
@@ -441,6 +444,9 @@ func parseDiagrama(data []byte, fileID string, conceitos *conceitoSet) (Diagrama
 		}
 	}
 
+	if len(v.problems) == 0 {
+		d.Animacao = v.animacao(&s.Animacao, d)
+	}
 	if err := v.err(); err != nil {
 		return Diagrama{}, err
 	}
@@ -682,7 +688,7 @@ func figureHTML(slug string, d Diagrama) string {
 	return `<figure class="diagrama" data-diagrama="` + slug + "/" + d.ID + `">` +
 		`<figcaption>` + html.EscapeString(d.Titulo) + `</figcaption>` +
 		`<details class="diagrama-descricao"><summary>Descrição textual</summary><p>` +
-		html.EscapeString(d.Descricao) + `</p></details>` + dados + `</figure>`
+		html.EscapeString(d.Descricao) + `</p>` + animacaoHTML(d) + `</details>` + dados + `</figure>`
 }
 
 // applyDiagramas expands diagrams in every rendered fragment of a milestone:

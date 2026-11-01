@@ -1,0 +1,47 @@
+id: k8s-canary-com-analise
+tipo: topologia
+titulo: "Canary com análise: 5% → 25% → 50% → 100%, ou abort automático se o erro estoura"
+descricao: >
+  O Rollout do pix-gateway tem 20 réplicas e não usa roteador de tráfego, então o peso
+  do canário é a proporção de pods. Com setWeight 5, 1 pod v2 recebe 5% e 19 pods v1
+  recebem 95%. Na pausa, o AnalysisTemplate consulta a taxa de erro no Prometheus. Com
+  setWeight 25 são 5 pods v2, e com 50 são 10 de cada versão. Na promoção, os 20 pods são
+  v2. Se a taxa de erro sair da faixa durante a análise, o Rollout aborta: o canário volta
+  a 0 pods, os 20 v1 recebem tudo, e ninguém precisou intervir.
+nos:
+  - { id: svc, rotulo: "tráfego do pix-gateway", col: 0, row: 1, papel: destaque }
+  - { id: estavel, rotulo: "estável v1 · 20 pods", col: 1, row: 0 }
+  - { id: canario, rotulo: "canário v2 · 0 pods", col: 1, row: 2 }
+  - { id: analise, rotulo: "AnalysisTemplate", col: 2, row: 1 }
+  - { id: prom, rotulo: "Prometheus", col: 2, row: 2, papel: externo }
+arestas:
+  - { de: svc, para: estavel, rotulo: "peso v1" }
+  - { de: svc, para: canario, rotulo: "peso v2" }
+  - { de: canario, para: prom, rotulo: "métricas", estilo: tracejada }
+  - { de: analise, para: prom, rotulo: "taxa de erro" }
+animacao:
+  - legenda: "Antes do rollout: 20 pods v1 recebem 100% do tráfego"
+    fluxos: [ { de: svc, para: estavel, rotulo: "100%" } ]
+  - legenda: "setWeight 5: 1 pod v2 de 20 recebe 5% do tráfego"
+    estados: { canario: novo }
+    rotulos: { estavel: "estável v1 · 19 pods", canario: "canário v2 · 1 pod" }
+    fluxos: [ { de: svc, para: estavel, rotulo: "95%" }, { de: svc, para: canario, rotulo: "5%" } ]
+  - legenda: "Pausa de 5 min e análise: a taxa de erro do v2 fica dentro da faixa"
+    estados: { canario: ativo, analise: ativo }
+    fluxos: [ { de: canario, para: prom }, { de: analise, para: prom }, { de: svc, para: estavel, rotulo: "95%" }, { de: svc, para: canario, rotulo: "5%" } ]
+  - legenda: "setWeight 25: 5 pods v2 recebem 25%, 15 pods v1 os outros 75%"
+    estados: { analise: inativo }
+    rotulos: { estavel: "estável v1 · 15 pods", canario: "canário v2 · 5 pods" }
+    fluxos: [ { de: svc, para: estavel, rotulo: "75%" }, { de: svc, para: canario, rotulo: "25%" } ]
+  - legenda: "setWeight 50: 10 pods de cada versão, metade do tráfego para cada"
+    rotulos: { estavel: "estável v1 · 10 pods", canario: "canário v2 · 10 pods" }
+    fluxos: [ { de: svc, para: estavel, rotulo: "50%" }, { de: svc, para: canario, rotulo: "50%" } ]
+  - legenda: "Promoção: os 20 pods são v2 e recebem 100%; o v1 sai"
+    estados: { estavel: removido }
+    rotulos: { estavel: "estável v1 · 0 pods", canario: "canário v2 · 20 pods" }
+    fluxos: [ { de: svc, para: canario, rotulo: "100%" } ]
+  - legenda: "Outro desfecho: se o erro estoura na análise, abort e o v2 volta a 0%"
+    estados: { estavel: ativo, canario: falha, analise: ativo }
+    rotulos: { estavel: "estável v1 · 20 pods", canario: "canário v2 · 0 pods" }
+    fluxos: [ { de: analise, para: prom }, { de: svc, para: estavel, rotulo: "100%" } ]
+    anotacao: "rollback automático em segundos, sem humano"

@@ -1,0 +1,35 @@
+id: k8s-blue-green
+tipo: topologia
+titulo: "Blue-green: as duas versões inteiras, e a troca de tráfego é uma troca de selector"
+descricao: >
+  O blue, com 4 pods v1, atende todo o tráfego porque o selector do Service aponta para
+  ele. O green, com 4 pods v2, sobe inteiro ao lado, sem tráfego: enquanto as duas versões
+  existem, a capacidade custa o dobro. Pronto e testado, o green recebe todo o tráfego de
+  uma vez, com a troca do selector. Se o v2 falha, o rollback é trocar o selector de volta
+  para o blue, instantâneo. Se o v2 se confirma, o blue é desligado e o custo volta ao
+  normal.
+nos:
+  - { id: svc, rotulo: "Service pix-gateway", col: 0, row: 1, papel: destaque }
+  - { id: blue, rotulo: "blue v1 · 4 pods", col: 1, row: 0 }
+  - { id: green, rotulo: "green v2 · sem pods", col: 1, row: 2 }
+arestas:
+  - { de: svc, para: blue, rotulo: "selector" }
+  - { de: svc, para: green, rotulo: "selector" }
+animacao:
+  - legenda: "O blue v1 atende todo o tráfego; o selector aponta para ele"
+    fluxos: [ { de: svc, para: blue } ]
+  - legenda: "O green v2 sobe inteiro, 4 pods, ainda sem tráfego"
+    estados: { green: novo }
+    rotulos: { green: "green v2 · 4 pods" }
+    fluxos: [ { de: svc, para: blue } ]
+    anotacao: "custo: 2× a capacidade enquanto as duas existem"
+  - legenda: "Troca de selector: todo o tráfego vai de uma vez para o green"
+    estados: { green: ativo, blue: inativo }
+    fluxos: [ { de: svc, para: green } ]
+  - legenda: "Se o v2 falha: o selector volta ao blue, e o rollback é instantâneo"
+    estados: { green: falha, blue: ativo }
+    fluxos: [ { de: svc, para: blue } ]
+  - legenda: "Se o v2 se confirma: o blue é desligado, e o custo volta a 1×"
+    estados: { green: ativo, blue: removido }
+    rotulos: { blue: "blue v1 · 0 pods" }
+    fluxos: [ { de: svc, para: green } ]

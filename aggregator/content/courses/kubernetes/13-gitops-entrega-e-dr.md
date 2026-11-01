@@ -73,9 +73,17 @@ O `AnalysisTemplate` consulta o Prometheus e **aborta** se a métrica sair da fa
 rollback automático em segundos, sem humano no meio. A métrica de análise deve ser de
 **sintoma** (taxa de erro, p99), pela mesma razão do marco 12.
 
+```diagrama
+k8s-canary-com-analise
+```
+
 **Blue-green** mantém as duas versões inteiras e troca o tráfego de uma vez: rollback é
 instantâneo, ao custo do dobro de capacidade. Faz sentido quando o canary é inviável — por
 exemplo, quando a versão nova exige uma migração de banco incompatível.
+
+```diagrama
+k8s-blue-green
+```
 
 E a restrição que nenhuma estratégia resolve: **rollback de código não desfaz migração de
 banco** (marco 06). Toda migração precisa ser compatível com a versão anterior —

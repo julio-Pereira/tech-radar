@@ -13,3 +13,8 @@ test('diagram.js + diagram-svg.js stay within 10 KB gzip', () => {
     .reduce((a, b) => a + b, 0);
   expect(size).toBeLessThanOrEqual(10_000);
 });
+
+test('diagram-player.js stays within 4 KB gzip', () => {
+  const size = zlib.gzipSync(fs.readFileSync(path.join(__dirname, '..', 'js', 'courses', 'diagram-player.js'))).length;
+  expect(size).toBeLessThanOrEqual(4_000);
+});

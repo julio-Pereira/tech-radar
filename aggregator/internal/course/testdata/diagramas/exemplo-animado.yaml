@@ -1,0 +1,31 @@
+id: exemplo-animado
+tipo: topologia
+titulo: "O Service só manda tráfego ao pod novo depois da readiness"
+descricao: >
+  Um Service distribui o tráfego entre o pod v1 e a vaga de um pod novo. No primeiro
+  passo só o v1 atende. No segundo, o pod v2 sobe, mas ainda não recebe tráfego porque
+  a readiness não passou. No terceiro, ele fica pronto e o Service passa a mandar
+  requisições para os dois. No quarto, o v1 sai, drenando o que estava em curso, e o v2
+  fica com todo o tráfego. Exemplo usado nos testes do player.
+nos:
+  - { id: svc, rotulo: "Service", col: 1, row: 0, papel: destaque }
+  - { id: v1, rotulo: "pod v1", col: 0, row: 1 }
+  - { id: v2, rotulo: "vaga do pod novo", col: 2, row: 1, papel: externo }
+arestas:
+  - { de: svc, para: v1, rotulo: "100%" }
+  - { de: svc, para: v2, rotulo: "0%" }
+animacao:
+  - legenda: "Só o pod v1 atende"
+    fluxos: [ { de: svc, para: v1 } ]
+  - legenda: "O pod v2 sobe, ainda fora do Service"
+    estados: { v2: novo }
+    rotulos: { v2: "v2 · iniciando" }
+    fluxos: [ { de: svc, para: v1 } ]
+  - legenda: "Readiness ok: o Service divide o tráfego"
+    estados: { v2: ativo }
+    rotulos: { v2: "pod v2" }
+    fluxos: [ { de: svc, para: v1, rotulo: "50%" }, { de: svc, para: v2, rotulo: "50%" } ]
+  - legenda: "O v1 sai drenando; o v2 fica com tudo"
+    estados: { v1: saindo }
+    fluxos: [ { de: svc, para: v2, rotulo: "100%" } ]
+    anotacao: "capacidade nunca abaixo de 1"

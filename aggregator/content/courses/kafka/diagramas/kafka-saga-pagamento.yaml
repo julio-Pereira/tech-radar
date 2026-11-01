@@ -21,3 +21,20 @@ arestas:
   - { de: autorizar, para: liberar, rotulo: "recusou", tipo: falha }
   - { de: lancar, para: cancelar, rotulo: "falhou", tipo: falha }
   - { de: cancelar, para: liberar, rotulo: "depois", tipo: compensacao }
+animacao:
+  - legenda: "A saga tem três passos locais, sem transação entre eles"
+  - legenda: "Saldo reservado; a saga pede a autorização ao PSP"
+    estados: { reservar: ativo }
+    fluxos: [ { de: reservar, para: autorizar } ]
+  - legenda: "PSP autorizou; a saga lança o pagamento no ledger"
+    estados: { autorizar: ativo }
+    fluxos: [ { de: autorizar, para: lancar } ]
+  - legenda: "O lançamento no ledger falha depois de o PSP autorizar"
+    estados: { lancar: falha }
+  - legenda: "Compensação em ordem inversa: primeiro cancela a autorização no PSP"
+    estados: { cancelar: ativo, autorizar: inativo }
+    fluxos: [ { de: lancar, para: cancelar } ]
+  - legenda: "Depois libera a reserva: cada compensação é uma transação nova"
+    estados: { liberar: ativo, reservar: inativo }
+    fluxos: [ { de: cancelar, para: liberar } ]
+    anotacao: "nada é apagado: o extrato mostra os lançamentos"
