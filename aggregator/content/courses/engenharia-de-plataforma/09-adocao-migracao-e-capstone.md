@@ -49,7 +49,7 @@ equipe de plataforma.
 
 Um estudo **comparativo e neutro** de portal/catálogo (Backstage e alternativas) e de composição de
 infraestrutura (Crossplane e alternativas), aplicando diretamente o framework de TCO e
-sensibilidade de `arquitetura-de-solucoes/04` (**trilha planejada**) — com critérios explícitos,
+sensibilidade de `arquitetura-de-solucoes/04` — com critérios explícitos,
 **sem recomendar produto**, e com licenças e maturidade a **conferir** antes de qualquer decisão
 real.
 

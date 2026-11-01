@@ -27,7 +27,7 @@ Seis partes: `ledger/` (serviço Go com PostgreSQL: contas, lançamentos, saldos
 | serve | API de lançamento, saldo, extrato e reserva | `pix-gateway`, `ledger-core`, antifraude |
 | serve | Eventos de lançamento postado (via *outbox*) | `pix-stream`, trilha kafka |
 | serve | Balancete e arquivos de fechamento | auditoria, trilha engenharia-de-dados |
-| consome | Estado do consentimento (apenas rotulagem de origem) | `open-finance-brasil` (planejada) |
+| consome | Estado do consentimento (apenas rotulagem de origem) | `open-finance-brasil` |
 
 **O que este projeto não é.** Não é um core bancário completo, não faz cálculo de provisão de
 crédito, não executa pagamentos (apenas registra) e não toca em dado real.

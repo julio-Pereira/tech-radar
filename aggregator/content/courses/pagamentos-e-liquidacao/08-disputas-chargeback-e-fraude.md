@@ -74,7 +74,7 @@ consequências automáticas.
 
 Cada etapa de um chargeback — retenção do valor em disputa, estorno se o lojista perder,
 reapresentação se o lojista ganhar — precisa de um lançamento correspondente no razão
-(`ledger-e-contabilidade`, planejada), com os mesmos fundos conservados do início ao fim do
+(`ledger-e-contabilidade`), com os mesmos fundos conservados do início ao fim do
 processo. E a decisão de contestar uma disputa (vale o custo do processo em relação ao valor em
 jogo e à probabilidade de sucesso?) se apoia nos mesmos sinais de risco que a detecção de fraude
 de aplicação já calcula antes da transação ocorrer.

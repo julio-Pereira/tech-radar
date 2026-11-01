@@ -66,7 +66,7 @@ líquido** que chega ao lojista, para cada lote de captura — a mesma proprieda
 **Antecipar** um recebível é trocar o valor futuro (com desconto) por dinheiro disponível hoje — um
 produto financeiro com desconto embutido, estruturalmente parecido com um empréstimo garantido pelo
 próprio recebível. O produto de crédito em si (como precificar o desconto, como avaliar risco de
-antecipação) pertence ao domínio de crédito e risco (planejada); este marco cobre apenas a mecânica
+antecipação) pertence à trilha `credito-e-risco`; este marco cobre apenas a mecânica
 de liquidação que torna um recebível antecipável — ele precisa ter data e valor conhecidos e
 estáveis para servir de garantia confiável.
 
@@ -76,7 +76,7 @@ O arquivo de liquidação que o arranjo envia é, ao mesmo tempo, a prova de qua
 fonte primária para **conciliar** as capturas esperadas contra o que de fato chegou — qualquer
 divergência (um valor que não aparece, um valor duplicado, um valor diferente do esperado) precisa
 ser **classificada**, não apenas registrada como "diferença". O destino natural dessa conciliação é
-o razão (`ledger-e-contabilidade`, planejada), que usa o mesmo arquivo como evidência de auditoria.
+o razão (`ledger-e-contabilidade`), que usa o mesmo arquivo como evidência de auditoria.
 
 ## Exemplo numa fintech
 

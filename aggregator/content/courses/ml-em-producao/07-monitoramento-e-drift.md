@@ -93,7 +93,7 @@ correspondia a um problema real).
 4. Quais são os três gatilhos típicos de retreino, e por que retreinar com muita frequência tem custo sem
    ganho correspondente?
 
-> **Reencontro — `observabilidade/07`, `/12`, `/13`; `engenharia-de-dados/08`, `/09` (trilha planejada).**
+> **Reencontro — `observabilidade/07`, `/12`, `/13`; `engenharia-de-dados/08`, `/09`.**
 > PSI e KS como métricas com limiar testado reusam o mesmo vocabulário de SLI/SLO de `observabilidade/12`;
 > a regra de alerta testada com `promtool` é a mesma disciplina de `observabilidade/13`, e as métricas em
 > si (Prometheus) usam o ferramental de `observabilidade/07`. A distinção entre problema de qualidade de

@@ -95,7 +95,7 @@ mantê-lo em produção.
 3. Por que a validação usa split temporal, e não validação cruzada aleatória?
 4. Por que um modelo com melhora real de métrica pode, ainda assim, não valer a pena promover?
 
-> **Reencontro — `engenharia-de-dados/06` (trilha planejada); `spring-boot/11`; `observabilidade/04`.**
+> **Reencontro — `engenharia-de-dados/06`; `spring-boot/11`; `observabilidade/04`.**
 > A disciplina de testes de dados que quebram o build, de `engenharia-de-dados/06`, é a mesma que esta
 > trilha aplica ao próprio modelo — um teste que falha antes da promoção, não depois. `spring-boot/11`
 > trata testes de integração que provam comportamento real, não só cobertura; os testes de invariância e

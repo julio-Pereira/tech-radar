@@ -42,13 +42,13 @@ auditoria** completa de toda ação.
 ## Evidência de toda ação
 
 Toda ação da plataforma (criar ambiente, mudar permissão, promover modelo de pipeline) gera
-**evidência** — a mesma disciplina de `entrega-continua-e-devops/09` (**trilha planejada**),
+**evidência** — a mesma disciplina de `entrega-continua-e-devops/09`,
 aplicada especificamente às ações da própria plataforma, não só às ações de deploy de um serviço.
 
 ## Exceção com prazo (de novo)
 
-A mesma disciplina de exceção com dono e prazo, já vista em `arquitetura-de-solucoes/06`
-(**trilha planejada**), se aplica aqui a desvios de política de segurança — nunca uma exceção
+A mesma disciplina de exceção com dono e prazo, já vista em `arquitetura-de-solucoes/06`,
+se aplica aqui a desvios de política de segurança — nunca uma exceção
 permanente sem revisão.
 
 ## Conformidade como capacidade: o time herda, não reimplementa

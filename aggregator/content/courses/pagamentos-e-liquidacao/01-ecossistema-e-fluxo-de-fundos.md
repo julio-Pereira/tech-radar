@@ -95,7 +95,7 @@ obrigatória.
 
 Cada participante de um fluxo — o pagador, o lojista, o adquirente, o emissor, a conta de reserva
 da própria instituição — corresponde a uma conta (ou conjunto de contas) num plano de contas do
-razão (`ledger-e-contabilidade`, planejada). Esse mapeamento é o que permite, mais adiante, provar
+razão (`ledger-e-contabilidade`). Esse mapeamento é o que permite, mais adiante, provar
 que um fluxo **conserva o dinheiro**: cada lançamento de débito num participante tem um lançamento
 de crédito correspondente em outro, nunca criando ou destruindo valor no caminho.
 

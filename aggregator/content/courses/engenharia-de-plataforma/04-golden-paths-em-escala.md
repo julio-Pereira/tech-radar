@@ -21,8 +21,7 @@ permanente sem revisão).
 ## O que embutir num *golden path*
 
 Um *golden path* completo embute: a estrutura de código (`arquitetura-de-software`), o **modelo de
-pipeline** já construído e verificado por `entrega-continua-e-devops/10` (**trilha planejada** até
-sua publicação), observabilidade (instrumentação já configurada, não adicionada depois) e
+pipeline** já construído e verificado por `entrega-continua-e-devops/10`, observabilidade (instrumentação já configurada, não adicionada depois) e
 segurança (defaults seguros, marco 06 desta trilha). Um serviço gerado por esse caminho nasce
 **conforme** em todas essas dimensões simultaneamente, sem que ninguém precise lembrar de
 configurar cada uma manualmente.
@@ -127,13 +126,13 @@ com personalizações plantadas.
 6. Em que situação não padronizar é a decisão correta, mesmo havendo um *golden path* disponível?
 
 > **Reencontro — `spring-boot/12`; `go-fintech/01`; `kubernetes/13`; `seguranca-aplicacao/13`;
-> `entrega-continua-e-devops/10` (trilha planejada).** Produção e deploy de `spring-boot/12` é o
+> `entrega-continua-e-devops/10`.** Produção e deploy de `spring-boot/12` é o
 > destino típico de um serviço gerado pelo *golden path* Java. A estrutura de pacotes de
 > `go-fintech/01` é a base do template Go equivalente. O GitOps de `kubernetes/13` é onde a
 > definição de ambiente, embutida no template, acaba sendo entregue. A ordem de *gates* de
 > segurança de `seguranca-aplicacao/13` é um dos componentes que o template já embute por padrão. E
 > `entrega-continua-e-devops/10` é especificamente quem constrói o modelo de pipeline que o
-> *golden path* consome, referenciado aqui como trilha planejada.
+> *golden path* consome.
 
 ## Principais aprendizados
 

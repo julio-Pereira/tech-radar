@@ -102,7 +102,7 @@ esperado de pedidos de revisão.
 6. Por que uma revisão precisa reexecutar a decisão com dados históricos, e não rodar o modelo atual sobre
    os dados atuais?
 
-> **Reencontro — `engenharia-de-dados/10` (trilha planejada); `seguranca-aplicacao/08`, `/14`;
+> **Reencontro — `engenharia-de-dados/10`; `seguranca-aplicacao/08`, `/14`;
 > `observabilidade/17`.** A revisão de decisão automatizada aplica a mesma disciplina de dado como
 > primeira classe de `engenharia-de-dados/10`, aqui para decisão em vez de dado bruto. A detecção de
 > *proxy* e o controle de acesso ao atributo protegido reusam autorização de `seguranca-aplicacao/08`, e o
