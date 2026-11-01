@@ -1,0 +1,32 @@
+id: ae-read-your-writes
+tipo: sequencia
+titulo: "O cliente paga e abre o extrato antes de a projeção alcançar"
+descricao: >
+  O comando de pagamento é aceito e gravado no modelo de escrita, e o cliente recebe a
+  confirmação. Ele abre o extrato na hora, mas a projeção está alguns segundos atrás e
+  devolve a lista sem o pagamento: do ponto de vista dele, algo deu errado. O evento chega
+  à projeção segundos depois, dentro da janela declarada de 5 segundos no p99. O truque
+  honesto de read-your-own-writes é, logo após o comando, ler essa tela do modelo de
+  escrita, só por alguns segundos.
+participantes:
+  - { id: cliente, rotulo: "cliente", papel: externo }
+  - { id: escrita, rotulo: "modelo de escrita", papel: destaque }
+  - { id: projecao, rotulo: "projeção do extrato" }
+mensagens:
+  - { de: cliente, para: escrita, rotulo: "pagar" }
+  - { de: escrita, para: escrita, rotulo: "commit" }
+  - { de: escrita, para: cliente, rotulo: "concluído", tipo: reply }
+  - { de: cliente, para: projecao, rotulo: "abre o extrato" }
+  - { de: projecao, para: cliente, rotulo: "sem o pagamento", tipo: reply, nota: "a projeção está atrás" }
+  - { de: escrita, para: projecao, rotulo: "PaymentAuthorized", tipo: async, nota: "segundos depois; janela: 5 s p99" }
+  - { de: cliente, para: escrita, rotulo: "lê do modelo de escrita" }
+  - { de: escrita, para: cliente, rotulo: "com o pagamento", tipo: reply, nota: "só nessa tela, por alguns segundos" }
+animacao:
+  - legenda: "O comando é aceito e gravado no modelo de escrita"
+    ate: 3
+  - legenda: "O cliente abre o extrato antes de a projeção alcançar: o pagamento não aparece"
+    ate: 5
+  - legenda: "O evento chega à projeção segundos depois, dentro da janela declarada"
+    ate: 6
+  - legenda: "Read-your-own-writes: logo após o comando, essa tela lê do modelo de escrita"
+    ate: 8

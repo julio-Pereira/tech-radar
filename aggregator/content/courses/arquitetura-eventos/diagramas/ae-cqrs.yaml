@@ -1,0 +1,23 @@
+id: ae-cqrs
+tipo: topologia
+titulo: "CQRS no degrau 3: um modelo decide, eventos alimentam projeções, cada uma com seu lag"
+descricao: >
+  O comando chega ao modelo de escrita, o agregado rico em invariante, que existe para
+  dizer não. Ao aceitar, ele publica eventos. Cada projeção é um consumidor idempotente e
+  descartável que lê esses eventos e constrói um read model para uma pergunta de tela: o
+  extrato dos últimos 90 dias e a posição consolidada. Cada uma tem o seu próprio lag, que
+  é métrica de produto. A tela lê da projeção, não do modelo de escrita. Este é o degrau
+  mais caro da escada; a maioria dos casos deveria parar no degrau 2.
+nos:
+  - { id: comando, rotulo: "comando", col: 0, row: 0, papel: externo }
+  - { id: escrita, rotulo: "modelo de escrita", col: 1, row: 0, papel: destaque }
+  - { id: eventos, rotulo: "eventos", col: 1, row: 1 }
+  - { id: extrato, rotulo: "extrato 90 dias", col: 2, row: 1 }
+  - { id: posicao, rotulo: "posição consolidada", col: 2, row: 2 }
+  - { id: tela, rotulo: "tela do app", col: 3, row: 1, papel: externo }
+arestas:
+  - { de: comando, para: escrita, rotulo: "decide" }
+  - { de: escrita, para: eventos, rotulo: "publica" }
+  - { de: eventos, para: extrato, rotulo: "lag próprio" }
+  - { de: eventos, para: posicao, rotulo: "lag próprio" }
+  - { de: tela, para: extrato, rotulo: "consulta" }

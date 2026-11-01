@@ -1,0 +1,30 @@
+id: ae-arvore-causal
+tipo: topologia
+titulo: "correlationId junta o caso; causationId vira a árvore e mostra o que causou cada evento"
+descricao: >
+  Todos os eventos do pagamento pay-8f2c carregam o mesmo correlationId, que nasce na borda
+  e nunca é regenerado. Cada evento aponta, pelo causationId, para o que o causou: o
+  comando cmd-iniciar causa PagamentoIniciado, que causa RiscoAprovado, que causa
+  LiquidaçãoSolicitada. Ela causa duas tentativas de envio ao PSP; a primeira dá timeout, e
+  a segunda dá certo e causa LiquidaçãoConfirmada, que causa ClienteNotificado. Com só o
+  correlationId seriam sete registros numa lista plana; com o causationId dá para
+  responder o que causou a segunda tentativa.
+grupos:
+  - { id: caso, rotulo: "correlationId: pay-8f2c", col: 0, row: 0, cols: 2, rows: 7 }
+nos:
+  - { id: cmd, rotulo: "cmd-iniciar", grupo: caso, col: 0, row: 0, papel: externo }
+  - { id: iniciado, rotulo: "PagamentoIniciado", grupo: caso, col: 0, row: 1 }
+  - { id: risco, rotulo: "RiscoAprovado", grupo: caso, col: 0, row: 2 }
+  - { id: solicitada, rotulo: "LiquidaçãoSolicitada", grupo: caso, col: 0, row: 3 }
+  - { id: envio1, rotulo: "EnvioAoPSP #1: timeout", grupo: caso, col: 1, row: 3 }
+  - { id: envio2, rotulo: "EnvioAoPSP #2: ok", grupo: caso, col: 1, row: 4, papel: destaque }
+  - { id: confirmada, rotulo: "LiquidaçãoConfirmada", grupo: caso, col: 1, row: 5 }
+  - { id: notificado, rotulo: "ClienteNotificado", grupo: caso, col: 1, row: 6 }
+arestas:
+  - { de: cmd, para: iniciado, rotulo: "causou" }
+  - { de: iniciado, para: risco, rotulo: "causou" }
+  - { de: risco, para: solicitada, rotulo: "causou" }
+  - { de: solicitada, para: envio1, estilo: tracejada }
+  - { de: solicitada, para: envio2 }
+  - { de: envio2, para: confirmada, rotulo: "causou" }
+  - { de: confirmada, para: notificado, rotulo: "causou" }

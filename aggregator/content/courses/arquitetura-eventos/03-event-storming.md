@@ -112,16 +112,8 @@ candidato a ter contrato bem versionado.
 Modelando a liquidação D+1 com o time de operações, o fluxo na parede sai mais ou menos
 assim:
 
-```
-[cliente] → SolicitarPagamento → (Conta) → PagamentoIniciado
-                                            ↓ política: submeter ao risco
-                                          PagamentoAutorizado
-                                            ↓ política: solicitar liquidação
-                                          LiquidaçãoSolicitada
-                                            ↓ (janela D+1, temporizador)
-                                          LiquidaçãoConfirmada  ← [PSP]
-                                            ↓ política: notificar
-                                          ClienteNotificado
+```diagrama
+ae-event-storming
 ```
 
 E então alguém de operações diz a frase que vale a sessão inteira:

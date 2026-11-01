@@ -1,0 +1,32 @@
+id: ae-outbox-inbox
+tipo: sequencia
+titulo: "Outbox garante que o evento sai; inbox garante que o efeito acontece uma vez"
+descricao: >
+  O pix-gateway grava o pagamento e o evento na tabela outbox, na mesma transação, e o
+  relay publica depois: o evento sai pelo menos uma vez. O ledger-core consome e grava, na
+  mesma transação, o eventId no inbox e o lançamento. O broker reentrega o mesmo evento,
+  por projeto, não por bug. Na segunda vez, a chave primária do inbox, eventId mais
+  consumidor, é violada: o consumidor aborta, confirma o consumo, e há um lançamento só.
+  At-least-once na entrega vira efeito único no negócio.
+participantes:
+  - { id: gateway, rotulo: "pix-gateway" }
+  - { id: broker, rotulo: "broker" }
+  - { id: ledger, rotulo: "ledger-core", papel: destaque }
+mensagens:
+  - { de: gateway, para: gateway, rotulo: "pagamento + outbox", nota: "mesma transação" }
+  - { de: gateway, para: broker, rotulo: "relay publica evt-1", tipo: async }
+  - { de: broker, para: ledger, rotulo: "evt-1", tipo: async }
+  - { de: ledger, para: ledger, rotulo: "inbox + lançamento", nota: "mesma transação" }
+  - { de: broker, para: ledger, rotulo: "evt-1 de novo", tipo: async, nota: "at-least-once: reentrega" }
+  - { de: ledger, para: ledger, rotulo: "PK do inbox violada", nota: "aborta e confirma: um lançamento" }
+animacao:
+  - legenda: "Pagamento e evento gravados na mesma transação: o outbox"
+    ate: 1
+  - legenda: "O relay publica: o evento sai pelo menos uma vez"
+    ate: 2
+  - legenda: "O ledger-core consome: inbox e lançamento na mesma transação"
+    ate: 4
+  - legenda: "O broker reentrega o mesmo evt-1, por projeto, não por bug"
+    ate: 5
+  - legenda: "A chave do inbox barra o duplicado: um efeito só no negócio"
+    ate: 6

@@ -109,6 +109,10 @@ A ACL é o item que mais se economiza e mais se paga depois. O payload do PSP te
 "porque é quase igual ao nosso". Meses depois, o domínio inteiro fala a língua do parceiro,
 e trocar de parceiro virou reescrita.
 
+```diagrama
+ae-context-map
+```
+
 ## Evento de domínio × evento de integração
 
 A distinção mais prática do marco, e a mais ignorada.

@@ -48,6 +48,10 @@ janela de falha entre a marcação e o efeito.
 Não existe exactly-once na entrega; existe efeito único, e ele é responsabilidade do
 consumidor.
 
+```diagrama
+ae-outbox-inbox
+```
+
 Duas decisões operacionais: o inbox cresce para sempre, então tem retenção (dias, não anos —
 o suficiente para cobrir a janela de reentrega); e a chave é `(eventId, consumer)`, porque
 dois consumidores diferentes devem processar o mesmo evento.

@@ -32,6 +32,10 @@ ele, e o estado é derivado.
 Repare no que muda de lugar: a decisão continua no agregado (marco 02), a invariante
 continua protegida por uma transação. O que muda é **o que é persistido**.
 
+```diagrama
+ae-event-sourcing
+```
+
 ## Upcasting: os eventos de 2019
 
 O custo que as apresentações não mostram.

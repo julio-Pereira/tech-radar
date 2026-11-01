@@ -1,0 +1,55 @@
+id: ae-saga-orquestrada
+tipo: estados
+titulo: "A saga é uma máquina de estado persistida, com prazo por passo e compensação"
+descricao: >
+  A saga de liquidação é um registro no banco, com estado, passo, tentativas e prazo. Com o
+  saldo reservado, o risco aprova e ela avança; se o risco nega, ela compensa liberando a
+  reserva e termina cancelada. O envio ao PSP é o pivot step: depois que ele dá certo, a
+  saga só anda para a frente. Aguardando o PSP, o silêncio é o modo de falha comum: o prazo
+  estoura e ela tenta de novo; esgotadas as tentativas, escala para um humano. Se o PSP
+  rejeita, ela compensa. Com a confirmação, liquida e notifica o cliente.
+estados:
+  - { id: reservado, rotulo: "SALDO_RESERVADO", col: 0, row: 0 }
+  - { id: risco, rotulo: "RISCO_APROVADO", col: 1, row: 0 }
+  - { id: aguardando, rotulo: "AGUARDANDO_PSP", col: 2, row: 0, papel: destaque }
+  - { id: liquidada, rotulo: "LIQUIDADA", col: 3, row: 0 }
+  - { id: compensando, rotulo: "COMPENSANDO", col: 0, row: 1 }
+  - { id: escalada, rotulo: "ESCALADA", col: 2, row: 1 }
+  - { id: notificada, rotulo: "NOTIFICADA", col: 3, row: 1 }
+  - { id: cancelada, rotulo: "CANCELADA", col: 0, row: 2 }
+inicial: reservado
+finais: [notificada, cancelada]
+transicoes:
+  - { de: reservado, para: risco, evento: "risco ok" }
+  - { de: reservado, para: compensando, evento: "risco negou" }
+  - { de: risco, para: aguardando, evento: "envia (pivot)" }
+  - { de: aguardando, para: aguardando, evento: "prazo", guarda: "tentativa < 3" }
+  - { de: aguardando, para: escalada, evento: "prazo", guarda: "esgotou" }
+  - { de: aguardando, para: compensando, evento: "PSP rejeitou" }
+  - { de: aguardando, para: liquidada, evento: "confirmou" }
+  - { de: liquidada, para: notificada, evento: "notifica" }
+  - { de: compensando, para: cancelada, evento: "reserva liberada" }
+animacao:
+  - legenda: "Saldo reservado: a saga é um registro no banco, com passo e prazo"
+    atual: reservado
+  - legenda: "O risco aprova; a saga avança e grava o novo estado"
+    atual: risco
+    transicao: { de: reservado, para: risco }
+  - legenda: "Envio ao PSP, o pivot step: se der certo, a saga só anda para a frente"
+    atual: aguardando
+    transicao: { de: risco, para: aguardando }
+  - legenda: "O PSP fica em silêncio: o prazo estoura e a saga tenta de novo"
+    atual: aguardando
+    transicao: { de: aguardando, para: aguardando }
+  - legenda: "O PSP confirma: a saga liquida"
+    atual: liquidada
+    transicao: { de: aguardando, para: liquidada }
+  - legenda: "Cliente notificado: a saga termina"
+    atual: notificada
+    transicao: { de: liquidada, para: notificada }
+  - legenda: "Outro desfecho: o risco nega, e a saga compensa liberando a reserva"
+    atual: compensando
+    transicao: { de: reservado, para: compensando }
+  - legenda: "Reserva liberada: a saga termina cancelada, com tudo no extrato"
+    atual: cancelada
+    transicao: { de: compensando, para: cancelada }

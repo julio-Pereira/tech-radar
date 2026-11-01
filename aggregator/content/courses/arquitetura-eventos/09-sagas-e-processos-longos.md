@@ -70,6 +70,10 @@ em nenhum diagrama, e aparece no primeiro incidente.
 E permite responder à pergunta do parágrafo anterior com uma consulta, em vez de um mergulho
 em log.
 
+```diagrama
+ae-saga-orquestrada
+```
+
 ## Compensação é semântica, não rollback
 
 Um rollback apaga; uma compensação **acrescenta**.

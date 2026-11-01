@@ -1,7 +1,6 @@
-// Typed diagrams (PLANO-diagramas), imported only when a milestone has a
-// figure.diagrama; title, description and data table are already in it.
-// SVG via createElementNS, CSS classes only (style-src 'self'). Budget: 10 KB
-// gzip with diagram-svg.js, no build step, hence no type annotations.
+// Typed diagrams, imported only for a figure.diagrama (which already holds
+// title, description, data). createElementNS, CSS classes only (style-src
+// 'self'). 10 KB gzip budget with diagram-svg.js: no type annotations.
 import { el, label, rect, arrowDefs, edgeBetween, clipToBox } from './diagram-svg.js';
 import { startDesvio, returnToPoint } from './desvio.js';
 
@@ -212,7 +211,9 @@ function hidden(node) {
 }
 
 function cellWidthFor(spec) {
-  const longest = Math.max(0, ...(spec.nos || []).map((n) => n.rotulo.length));
+  const steps = spec.animacao || [];
+  const labels = [...(spec.nos || []).map((n) => n.rotulo), ...steps.flatMap((p) => Object.values(p.rotulos || {}))];
+  const longest = Math.max(0, ...labels.map((l) => l.length)) + (steps.length ? 2 : 0);
   return Math.max(CELL_W_MIN, Math.min(CELL_W_MAX, Math.ceil(longest * NODE_CHAR_W + 28)));
 }
 
@@ -297,7 +298,6 @@ function drawEdge(from, to, a, prefix, hasReverse, via) {
   }
   let s;
   if (via.length) {
-    // Through the bends; the label goes on the middle segment.
     const first = via[0];
     const last = via[via.length - 1];
     const p0 = clipToBox(from.cx, from.cy, first.cx - from.cx, first.cy - from.cy, from.w, from.h);
