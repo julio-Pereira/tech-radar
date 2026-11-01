@@ -1,0 +1,24 @@
+id: ep-golden-path
+tipo: fluxo
+titulo: "Golden path: gerar, medir o drift e atualizar em massa sem sobrescrever"
+descricao: >
+  O template v3 gera o serviço, que registra a versão de onde veio. O serviço evolui com
+  personalizações locais. Quando sai o template v4, o relatório de drift lista, por
+  repositório, os arquivos que divergem. A atualização em massa abre PRs automáticos com
+  mesclagem de três vias, comparando a base comum, o v3 e o v4: o que não conflita entra no
+  PR; o arquivo personalizado que conflita é reportado, nunca sobrescrito.
+passos:
+  - { id: v3, rotulo: "template v3", col: 0, row: 0 }
+  - { id: gera, rotulo: "serviço (registra v3)", col: 1, row: 0 }
+  - { id: personaliza, rotulo: "personalização local", col: 2, row: 0 }
+  - { id: v4, rotulo: "template v4 + drift", col: 2, row: 1 }
+  - { id: merge, rotulo: "merge de três vias", col: 1, row: 1, papel: destaque }
+  - { id: pr, rotulo: "PR automático", col: 0, row: 1 }
+  - { id: conflito, rotulo: "conflito reportado", col: 1, row: 2 }
+arestas:
+  - { de: v3, para: gera }
+  - { de: gera, para: personaliza }
+  - { de: personaliza, para: v4 }
+  - { de: v4, para: merge }
+  - { de: merge, para: pr }
+  - { de: merge, para: conflito, rotulo: "arquivo mexido", tipo: falha }

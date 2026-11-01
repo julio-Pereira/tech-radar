@@ -1,0 +1,23 @@
+id: ep-pedido
+tipo: fluxo
+titulo: "Pedido, plano e reconciliação: idempotente pelo id, e tudo ou nada"
+descricao: >
+  O cliente envia um pedido declarativo com um identificador único; se reenviar o mesmo id
+  depois de um timeout, recebe o mesmo resultado, nunca um segundo recurso. A plataforma
+  calcula o plano e cria os recursos: banco, rede e permissões. Se o terceiro falha, os dois
+  já criados são compensados, sem deixar um ambiente pela metade. Depois de pronto, o
+  reconciliador continua corrigindo qualquer desvio entre o real e o desejado.
+passos:
+  - { id: pedido, rotulo: "pedido (id único)", col: 0, row: 0 }
+  - { id: plano, rotulo: "plano", col: 1, row: 0 }
+  - { id: cria, rotulo: "banco, rede, permissões", col: 2, row: 0 }
+  - { id: pronto, rotulo: "reconciliado", col: 3, row: 0, papel: destaque }
+  - { id: compensa, rotulo: "desfaz os já criados", col: 2, row: 1 }
+  - { id: desvio, rotulo: "desvio detectado", col: 3, row: 1 }
+arestas:
+  - { de: pedido, para: plano }
+  - { de: plano, para: cria }
+  - { de: cria, para: pronto }
+  - { de: cria, para: compensa, rotulo: "um falhou", tipo: falha }
+  - { de: pronto, para: desvio }
+  - { de: desvio, para: pronto, rotulo: "reconcilia", tipo: compensacao }

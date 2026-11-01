@@ -58,6 +58,10 @@ remoção automática de **qualquer** ambiente que contenha dados reais (mesmo s
 representam esforço de configuração significativo) sem essa proteção é o tipo de incidente que essa
 regra existe para prevenir.
 
+```diagrama
+ep-ambiente
+```
+
 ## Dono obrigatório vindo do catálogo
 
 Todo ambiente tem **dono**, e esse dono precisa existir no **catálogo** (marco 03) — não um nome de

@@ -1,0 +1,22 @@
+id: ep-custo
+tipo: topologia
+titulo: "Custo por dono: etiqueta e catálogo alocam, e o que sobra fica visível"
+descricao: >
+  Cada recurso carrega etiquetas obrigatórias, e o catálogo diz quem é o dono real. A alocação
+  cruza os dois e mostra o custo de cada equipe em showback, sem cobrar. Recursos usados por
+  várias equipes, como um cluster compartilhado, seguem uma regra de rateio declarada antes da
+  disputa. O custo que não se atribui a ninguém vai para um balde próprio e visível, em vez de
+  se diluir no total.
+nos:
+  - { id: recursos, rotulo: "recursos + etiquetas", col: 0, row: 1 }
+  - { id: catalogo, rotulo: "catálogo (dono)", col: 0, row: 0, papel: externo }
+  - { id: alocacao, rotulo: "alocação", col: 1, row: 1, papel: destaque }
+  - { id: showback, rotulo: "showback por equipe", col: 2, row: 0 }
+  - { id: rateio, rotulo: "rateio declarado", col: 2, row: 1 }
+  - { id: semdono, rotulo: "balde sem dono", col: 2, row: 2 }
+arestas:
+  - { de: recursos, para: alocacao }
+  - { de: catalogo, para: alocacao }
+  - { de: alocacao, para: showback }
+  - { de: alocacao, para: rateio, rotulo: "compartilhado" }
+  - { de: alocacao, para: semdono, rotulo: "sem etiqueta" }

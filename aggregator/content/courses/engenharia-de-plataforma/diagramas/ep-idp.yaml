@@ -1,0 +1,25 @@
+id: ep-idp
+tipo: topologia
+titulo: "Uma IDP em planos: o pedido entra pela interface e o control plane reconcilia"
+descricao: >
+  A equipe de produto fala com a plataforma pela interface com o desenvolvedor: API, CLI ou
+  portal, que são só portas para a mesma API. O control plane recebe o pedido declarativo,
+  calcula o plano e reconcilia continuamente o estado real com o desejado, provisionando
+  recursos como ambientes, bancos e filas e acionando a esteira de integração e entrega.
+  Observabilidade e segurança são planos próprios que atravessam os outros, não detalhes da
+  camada de recursos.
+nos:
+  - { id: dev, rotulo: "equipe de produto", col: 0, row: 0, papel: externo }
+  - { id: interface, rotulo: "API · CLI · portal", col: 1, row: 0 }
+  - { id: control, rotulo: "control plane", col: 2, row: 0, papel: destaque }
+  - { id: recursos, rotulo: "recursos", col: 3, row: 0 }
+  - { id: esteira, rotulo: "integração e entrega", col: 2, row: 1 }
+  - { id: obs, rotulo: "observabilidade", col: 3, row: 1, papel: externo }
+  - { id: seg, rotulo: "segurança", col: 1, row: 1, papel: externo }
+arestas:
+  - { de: dev, para: interface, rotulo: "pedido" }
+  - { de: interface, para: control }
+  - { de: control, para: recursos, rotulo: "reconcilia" }
+  - { de: control, para: esteira }
+  - { de: seg, para: control, estilo: tracejada }
+  - { de: obs, para: control, estilo: tracejada }

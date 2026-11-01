@@ -32,6 +32,10 @@ As relações entre entidades formam um **grafo de dependência** — o mesmo ti
 componentes de software. Esse grafo é o que permite responder "se eu mudar ou desligar este
 componente, o que mais é afetado?" sem depender de memória de quem está presente no momento.
 
+```diagrama
+ep-catalogo
+```
+
 ## Propriedade como contrato
 
 "Dono" não é um campo decorativo — é um **contrato**: o dono se compromete a **escalonamento**

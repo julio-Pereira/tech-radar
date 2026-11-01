@@ -1,0 +1,25 @@
+id: ep-ambiente
+tipo: estados
+titulo: "Ciclo de vida de um ambiente: TTL desde a criação, e o protegido não some sozinho"
+descricao: >
+  O pedido de ambiente só segue se o dono existe no catálogo; acima da cota, é negado com uma
+  mensagem que diz o limite e como pedir exceção. Provisionado e reconciliado, o ambiente fica
+  ativo, e o dono pode estender o TTL com justificativa. Quando o TTL se esgota, o ambiente
+  expira e é removido, a menos que esteja marcado como protegido. O ambiente efêmero de PR
+  segue o mesmo ciclo, com a vida atada ao PR em vez de um TTL fixo.
+estados:
+  - { id: pedido, rotulo: "PEDIDO", col: 0, row: 0 }
+  - { id: provisionando, rotulo: "PROVISIONANDO", col: 1, row: 0 }
+  - { id: ativo, rotulo: "ATIVO", col: 2, row: 0, papel: destaque }
+  - { id: expirado, rotulo: "EXPIRADO", col: 3, row: 0 }
+  - { id: removido, rotulo: "REMOVIDO", col: 3, row: 1 }
+  - { id: negado, rotulo: "NEGADO", col: 0, row: 1 }
+inicial: pedido
+finais: [removido, negado]
+transicoes:
+  - { de: pedido, para: provisionando, evento: "dono ok" }
+  - { de: pedido, para: negado, evento: "acima da cota" }
+  - { de: provisionando, para: ativo, evento: "reconciliado" }
+  - { de: ativo, para: ativo, evento: "estende TTL" }
+  - { de: ativo, para: expirado, evento: "TTL esgotou" }
+  - { de: expirado, para: removido, evento: "teardown", guarda: "não protegido" }

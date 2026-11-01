@@ -20,6 +20,10 @@ observabilidade, e segurança. Cada camada tem responsabilidade própria, e conf
 capacidade deveria morar (por exemplo, tratar segurança como só um detalhe da camada de recursos)
 produz lacunas que só aparecem quando alguém tenta contornar a camada errada.
 
+```diagrama
+ep-idp
+```
+
 ## Plataforma como API: pedido → plano → reconciliação
 
 O padrão central desta trilha, emprestado diretamente do modelo de **reconciliação** do Kubernetes
@@ -42,6 +46,10 @@ Um pedido que envolve múltiplos recursos (por exemplo, um ambiente que precisa 
 e um conjunto de permissões) deveria ser **tudo ou nada**: se o terceiro recurso falhar ao criar, os
 dois primeiros já criados precisam ser **desfeitos** (compensação), não deixados pela metade, num
 estado que ninguém decidiu deliberadamente.
+
+```diagrama
+ep-pedido
+```
 
 ## Contrato versionado, e compatibilidade
 
