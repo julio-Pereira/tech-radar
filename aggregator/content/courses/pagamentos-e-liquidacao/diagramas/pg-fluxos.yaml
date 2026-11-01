@@ -1,0 +1,22 @@
+id: pg-fluxos
+tipo: topologia
+titulo: "Fluxo de informação × fluxo de fundos: a API responde sobre o primeiro"
+descricao: >
+  O pagamento tem dois fluxos. O de informação é a mensagem entre o PSP do pagador e o do
+  recebedor dizendo que o pagamento foi autorizado, e leva de milissegundos a segundos. O de
+  fundos é o dinheiro de fato trocando de dono entre as contas de reserva das duas instituições,
+  na infraestrutura de liquidação: segundos no Pix, por liquidação bruta em tempo real, ou
+  semanas num cartão parcelado, por liquidação líquida diferida. A API de um PSP responde rápido
+  porque responde sobre a informação.
+nos:
+  - { id: pspa, rotulo: "PSP do pagador", col: 0, row: 0 }
+  - { id: pspb, rotulo: "PSP do recebedor", col: 2, row: 0 }
+  - { id: resa, rotulo: "reserva do pagador", col: 0, row: 1 }
+  - { id: infra, rotulo: "liquidação", col: 1, row: 1, papel: destaque }
+  - { id: resb, rotulo: "reserva do recebedor", col: 2, row: 1 }
+arestas:
+  - { de: pspa, para: pspb, rotulo: "informação: autorizado" }
+  - { de: resa, para: infra, rotulo: "fundos" }
+  - { de: infra, para: resb, rotulo: "fundos" }
+  - { de: pspa, para: resa, estilo: tracejada }
+  - { de: pspb, para: resb, estilo: tracejada }

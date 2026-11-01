@@ -1,0 +1,40 @@
+id: pg-cartao
+tipo: sequencia
+titulo: "Cartão em quatro partes: o timeout é resultado desconhecido, e a reversão é obrigatória"
+descricao: >
+  A autorização sai do lojista, passa pelo adquirente e pela bandeira e chega ao emissor, que
+  reserva o valor no limite do portador com um hold e aprova. A resposta volta pelo mesmo
+  caminho, mas não chega ao adquirente dentro do prazo. O resultado é desconhecido, não negado:
+  o emissor pode ter aprovado e segurado o limite. Por isso o adquirente envia a reversão, que
+  percorre a cadeia até o emissor desfazer o hold. São quatro saltos, cada um com latência e
+  modo de falha próprios.
+participantes:
+  - { id: loja, rotulo: "lojista" }
+  - { id: adq, rotulo: "adquirente", papel: destaque }
+  - { id: band, rotulo: "bandeira" }
+  - { id: emi, rotulo: "emissor" }
+mensagens:
+  - { de: loja, para: adq, rotulo: "autoriza R$ 120", tipo: sync }
+  - { de: adq, para: band, rotulo: "autoriza", tipo: sync }
+  - { de: band, para: emi, rotulo: "autoriza", tipo: sync }
+  - { de: emi, para: emi, rotulo: "hold no limite", tipo: sync }
+  - { de: emi, para: band, rotulo: "aprovado", tipo: reply }
+  - { de: band, para: adq, rotulo: "aprovado (tarde)", tipo: reply, nota: "timeout: resultado desconhecido" }
+  - { de: adq, para: band, rotulo: "reversão", tipo: sync }
+  - { de: band, para: emi, rotulo: "reversão", tipo: sync }
+  - { de: emi, para: emi, rotulo: "desfaz o hold", tipo: sync }
+  - { de: adq, para: loja, rotulo: "não aprovado", tipo: reply }
+animacao:
+  - legenda: "O lojista pede a autorização ao adquirente"
+    ate: 1
+  - legenda: "A autorização atravessa a bandeira até o emissor: quatro saltos"
+    ate: 3
+  - legenda: "O emissor reserva o valor no limite do portador e aprova"
+    ate: 5
+  - legenda: "A aprovação não chega no prazo: o adquirente não sabe o resultado"
+    ate: 6
+    anotacao: "timeout não é negado"
+  - legenda: "O adquirente envia a reversão, que percorre a cadeia"
+    ate: 8
+  - legenda: "O emissor desfaz o hold, e o lojista recebe a recusa"
+    ate: 10

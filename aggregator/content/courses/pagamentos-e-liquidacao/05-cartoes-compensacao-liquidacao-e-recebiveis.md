@@ -34,6 +34,10 @@ conservação do marco 01 — a soma das parcelas tem que bater exatamente com o
 usando uma regra de rateio (maior resto, por exemplo) para o centavo que não divide igualmente
 entre todas as parcelas.
 
+```diagrama
+pg-recebiveis
+```
+
 ## Registro de recebíveis
 
 Um **registro de recebíveis** (uma infraestrutura que torna públicos, entre credores autorizados,

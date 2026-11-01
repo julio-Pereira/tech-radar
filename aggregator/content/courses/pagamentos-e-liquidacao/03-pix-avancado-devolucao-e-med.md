@@ -54,6 +54,10 @@ justamente por isso reservado a casos de fraude investigada, não a arrependimen
 alimenta a decisão de notificar um MED é o mesmo domínio de `seguranca-aplicacao/14`, aplicado
 aqui à resposta pós-fato em vez de à prevenção em tempo real.
 
+```diagrama
+pg-med
+```
+
 ## Limites noturnos
 
 Transações Pix acima de um certo valor, em horários noturnos, frequentemente enfrentam limites

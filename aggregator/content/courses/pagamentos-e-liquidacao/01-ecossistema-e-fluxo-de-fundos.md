@@ -39,6 +39,10 @@ em que o dinheiro de fato troca de conta entre instituições — pode levar seg
 conhece pagamentos pela API de um PSP: a API responde rápido porque responde sobre a
 **informação**, não sobre o fundo.
 
+```diagrama
+pg-fluxos
+```
+
 ## Liquidação bruta em tempo real × liquidação líquida diferida
 
 **Liquidação bruta em tempo real** movimenta o valor cheio de cada transação individualmente, no

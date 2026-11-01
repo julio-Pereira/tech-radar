@@ -90,3 +90,11 @@ Provoque cada cenário e escreva um post-mortem de uma página — inclusive qua
 `estimatedHours` ≈ 2 × Σ `estimatedMinutes`: 610 min de leitura viram ~20h porque o hands-on é
 derrubar o simulador, duplicar a mensagem, atrasar o arquivo e conferir que o dinheiro se
 conserva.
+
+## Versão de referência dos diagramas
+
+O diagrama do MED (marco 03) usa nomes descritivos dos estados (notificado, bloqueio cautelar,
+rastreio de fundos, em análise, devolvido, liberado), não os códigos do regulamento. Os prazos de
+recebíveis no marco 05 (D+30, D+60, D+90) são **ilustrativos**. Antes de implementar,
+**confira** a versão vigente do regulamento do Pix e do MED, e o cronograma do arranjo de cartão.
+Se algo mudar, atualize os diagramas junto com o código.
