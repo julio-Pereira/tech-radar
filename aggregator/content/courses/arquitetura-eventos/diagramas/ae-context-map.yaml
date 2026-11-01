@@ -1,0 +1,21 @@
+id: ae-context-map
+tipo: topologia
+titulo: "A ACL traduz o modelo do parceiro na fronteira; com o fin-flow, customer/supplier"
+descricao: >
+  O PSP fala a própria língua, com status como APPROVED_WITH_RESTRICTIONS. A camada
+  anticorrupção traduz esse payload na fronteira, para que o modelo do parceiro não vaze
+  para dentro do contexto de pagamentos e trocar de parceiro não vire reescrita. Entre o
+  pix-gateway e o fin-flow a relação é customer/supplier: o fornecedor atende às
+  necessidades do cliente, negociadas. O que cruza a fronteira é evento de integração,
+  como payments.authorized, um contrato público com versão e dono.
+nos:
+  - { id: psp, rotulo: "PSP (parceiro)", col: 0, row: 0, papel: externo }
+  - { id: acl, rotulo: "ACL", col: 1, row: 0 }
+  - { id: gateway, rotulo: "pix-gateway", col: 2, row: 0, papel: destaque }
+  - { id: finflow, rotulo: "fin-flow", col: 2, row: 1 }
+  - { id: topico, rotulo: "payments.authorized", col: 1, row: 1 }
+arestas:
+  - { de: psp, para: acl, rotulo: "payload do PSP" }
+  - { de: acl, para: gateway, rotulo: "modelo próprio" }
+  - { de: gateway, para: finflow, rotulo: "customer/supplier" }
+  - { de: gateway, para: topico, rotulo: "contrato público" }

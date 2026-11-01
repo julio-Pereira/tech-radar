@@ -98,6 +98,10 @@ truques honestos:
 - **Devolver a versão esperada** no comando e fazer a leitura esperar por ela (ou avisar).
 - **Sticky routing** da sessão para a réplica que já recebeu a escrita.
 
+```diagrama
+ae-read-your-writes
+```
+
 Todos custam alguma coisa; nenhum é vergonhoso. O que é vergonhoso é o cliente descobrir a
 janela sozinho.
 

@@ -1,0 +1,24 @@
+id: sa-dfd-stride
+tipo: topologia
+titulo: "DFD do pix-gateway: STRIDE se aplica a cada fluxo que atravessa uma fronteira de confiança"
+descricao: >
+  O diagrama de fluxo de dados marca as fronteiras de confiança, as linhas onde o nível de
+  confiança no que chega muda. Do lado de fora ficam o app do cliente e o PSP, que envia
+  webhooks. Do lado de dentro, o pix-gateway chama o ledger-core, que grava no Postgres.
+  Sobre cada fluxo que cruza a fronteira se percorrem as seis categorias de STRIDE: o token
+  do app pode ser forjado, spoofing; o parceiro pode alegar que nunca enviou aquele
+  webhook, repúdio, a categoria mais esquecida.
+grupos:
+  - { id: fora, rotulo: "não confiável", col: 0, row: 0, cols: 1, rows: 2 }
+  - { id: dentro, rotulo: "fin-platform", col: 1, row: 0, cols: 2, rows: 2 }
+nos:
+  - { id: app, rotulo: "app do cliente", grupo: fora, col: 0, row: 0, papel: externo }
+  - { id: psp, rotulo: "PSP (webhook)", grupo: fora, col: 0, row: 1, papel: externo }
+  - { id: gateway, rotulo: "pix-gateway", grupo: dentro, col: 1, row: 0, papel: destaque }
+  - { id: ledger, rotulo: "ledger-core", grupo: dentro, col: 2, row: 0 }
+  - { id: db, rotulo: "Postgres", grupo: dentro, col: 2, row: 1 }
+arestas:
+  - { de: app, para: gateway, rotulo: "S: token forjado?" }
+  - { de: psp, para: gateway, rotulo: "R: nega ter enviado?" }
+  - { de: gateway, para: ledger, rotulo: "gRPC" }
+  - { de: ledger, para: db, rotulo: "SQL" }

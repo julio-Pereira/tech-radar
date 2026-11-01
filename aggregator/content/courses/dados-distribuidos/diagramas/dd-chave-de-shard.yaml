@@ -1,0 +1,21 @@
+id: dd-chave-de-shard
+tipo: fluxo
+titulo: "A chave de shard decide quais queries ficam baratas, e onde mora a conta quente"
+descricao: >
+  A query do caminho quente é o extrato da conta X, então a chave de shard é o accountId:
+  a query toca um shard só. O hash da chave cai numa de 1.024 partições lógicas, muito mais
+  que os 4 nós, e cada nó guarda 256 delas; crescer é mover partições inteiras. A
+  cardinalidade alta não garante uniformidade: o marketplace que é o maior cliente responde
+  por 30% dos lançamentos, e o nó da partição dele fica quente enquanto os outros dormem.
+passos:
+  - { id: query, rotulo: "extrato da conta X", col: 0, row: 0 }
+  - { id: hash, rotulo: "hash(accountId)", col: 1, row: 0 }
+  - { id: particao, rotulo: "1 de 1.024 partições", col: 2, row: 0 }
+  - { id: no, rotulo: "nó 3 · 256 partições", col: 3, row: 0 }
+  - { id: marketplace, rotulo: "marketplace: 30%", col: 2, row: 1, papel: destaque }
+  - { id: quente, rotulo: "nó quente", col: 3, row: 1 }
+arestas:
+  - { de: query, para: hash }
+  - { de: hash, para: particao }
+  - { de: particao, para: no, rotulo: "um shard" }
+  - { de: marketplace, para: quente, rotulo: "carga", tipo: falha }

@@ -63,6 +63,10 @@ de rotação sem downtime**: nunca substituir o velho pelo novo de uma vez; semp
 em que os dois são aceitos, com um mecanismo explícito (`kid`, versão de schema, versão de
 segredo) para o consumidor escolher qual usar.
 
+```diagrama
+sa-ciclo-da-chave
+```
+
 ## Revogação e vazamento
 
 O detalhe que muda a régua de tempo de qualquer resposta a incidente: **o relógio de

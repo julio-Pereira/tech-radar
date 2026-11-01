@@ -1,0 +1,30 @@
+id: ae-event-storming
+tipo: fluxo
+titulo: "A liquidação D+1 na parede: comando, eventos, políticas e o temporizador"
+descricao: >
+  O cliente dispara o comando SolicitarPagamento, que o agregado Conta aceita, gerando
+  PagamentoIniciado. Uma política submete o pagamento ao risco, e sai
+  PagamentoAutorizado; outra solicita a liquidação, e sai LiquidaçãoSolicitada. A janela
+  D+1 é um temporizador, e o PSP confirma, gerando LiquidaçãoConfirmada, que dispara a
+  política de notificar o cliente. Fora do caminho feliz fica o hotspot que operações
+  revelou: o estorno que chega depois do fechamento da janela.
+passos:
+  - { id: cliente, rotulo: "cliente", col: 0, row: 0, papel: externo }
+  - { id: comando, rotulo: "SolicitarPagamento", col: 1, row: 0 }
+  - { id: conta, rotulo: "Conta (agregado)", col: 2, row: 0 }
+  - { id: iniciado, rotulo: "PagamentoIniciado", col: 3, row: 0 }
+  - { id: autorizado, rotulo: "PagamentoAutorizado", col: 3, row: 1 }
+  - { id: solicitada, rotulo: "LiquidaçãoSolicitada", col: 2, row: 1 }
+  - { id: confirmada, rotulo: "LiquidaçãoConfirmada", col: 1, row: 1 }
+  - { id: psp, rotulo: "PSP", col: 1, row: 2, papel: externo }
+  - { id: notificado, rotulo: "ClienteNotificado", col: 0, row: 1 }
+  - { id: hotspot, rotulo: "estorno após a janela", col: 0, row: 2, papel: destaque }
+arestas:
+  - { de: cliente, para: comando }
+  - { de: comando, para: conta }
+  - { de: conta, para: iniciado }
+  - { de: iniciado, para: autorizado, rotulo: "política: risco" }
+  - { de: autorizado, para: solicitada, rotulo: "liquidar" }
+  - { de: solicitada, para: confirmada, rotulo: "D+1" }
+  - { de: psp, para: confirmada, rotulo: "confirma" }
+  - { de: confirmada, para: notificado, rotulo: "notificar" }

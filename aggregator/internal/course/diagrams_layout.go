@@ -45,9 +45,19 @@ func edgeTextLen(a DiagramaAresta) int {
 }
 
 func newGridLayout(d Diagrama) gridLayout {
+	// Same as diagram.js: an animated diagram needs room for the state mark
+	// and for every label a step sets.
 	longest := 0
 	for _, n := range d.Nos {
 		longest = max(longest, utf8.RuneCountInString(n.Rotulo))
+	}
+	for _, p := range d.Animacao {
+		for _, r := range p.Rotulos {
+			longest = max(longest, utf8.RuneCountInString(r))
+		}
+	}
+	if len(d.Animacao) > 0 {
+		longest += 2
 	}
 	cellW := math.Max(layoutCellWMin, math.Min(layoutCellWMax, math.Ceil(float64(longest)*layoutNodeCharW+28)))
 	rowOf := map[string]int{}

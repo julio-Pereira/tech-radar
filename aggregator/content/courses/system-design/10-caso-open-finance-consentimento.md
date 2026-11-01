@@ -36,6 +36,10 @@ requisição ainda pode ser indevidamente aceita". Propagar a revogação via ev
 do cache, não apenas TTL passivo) reduz esse pior caso — TTL sozinho garante só o limite superior,
 nunca a reação imediata.
 
+```diagrama
+sd-consentimento
+```
+
 ## Isolamento entre TPPs: o *noisy neighbor* regulatório
 
 Cada TPP tem sua própria cota (marco 06), e a cota de um TPP não pode degradar a experiência dos

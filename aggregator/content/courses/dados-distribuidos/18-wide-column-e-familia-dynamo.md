@@ -40,6 +40,10 @@ certos); **escrita concorrente** em duas réplicas diferentes na mesma janela, s
 alguma entre si; e o **relógio** (`dados-distribuidos/01`) decidindo qual escrita concorrente
 "vence" — o próximo problema.
 
+```diagrama
+dd-anel-dynamo
+```
+
 ## *Read repair*, *anti-entropy*, *last-write-wins*
 
 **Read repair**: ao servir uma leitura, o coordenador nota réplicas desatualizadas e as corrige em

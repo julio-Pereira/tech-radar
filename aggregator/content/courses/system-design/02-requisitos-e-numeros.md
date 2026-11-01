@@ -60,6 +60,10 @@ igualitariamente — se divide com folga desigual, dando mais tempo ao salto que
 mais, e reservando uma margem que nenhum salto individual consome, para absorver variação
 agregada.
 
+```diagrama
+sd-orcamento-de-latencia
+```
+
 > **Reencontro adiante — `spring-boot/08`.** O timeout de cada chamada, primeiro item da
 > hierarquia de resiliência daquele marco, só tem um valor defensável quando deriva deste
 > orçamento — nunca um número redondo escolhido de cabeça.
@@ -72,6 +76,10 @@ a validar com dados reais quando existirem; (2) transações por usuário ativo 
 produtos similares no mercado; (3) fator de pico — concentração em três janelas do dia (início da
 manhã, almoço, fim de tarde) multiplica a média por 6×. O resultado não é "3.000 TPS": é um
 **intervalo** com a conta exposta, pronto para ser substituído por dado real assim que ele existir.
+
+```diagrama
+sd-conta-de-tps
+```
 
 ## Hands-on
 

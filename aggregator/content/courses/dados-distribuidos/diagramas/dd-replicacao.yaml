@@ -1,0 +1,20 @@
+id: dd-replicacao
+tipo: topologia
+titulo: "Semi-síncrono: uma réplica confirma o commit; a assíncrona atrasada serve saldo velho"
+descricao: >
+  O leader aceita a escrita do pagamento e só responde commitado depois que uma réplica
+  síncrona confirma, o modo semi-síncrono do Postgres com ANY 1. As outras réplicas recebem
+  o WAL depois, de forma assíncrona. Em regime normal o lag é de milissegundos; sob carga,
+  chega a segundos. Se a leitura do saldo vai para a réplica assíncrona atrasada, o cliente
+  não vê o pagamento que acabou de fazer: é o read-your-writes quebrado, o mais caro, porque
+  leva o cliente a pagar de novo.
+nos:
+  - { id: cliente, rotulo: "cliente", col: 0, row: 1, papel: externo }
+  - { id: leader, rotulo: "leader", col: 1, row: 1, papel: destaque }
+  - { id: sincrona, rotulo: "réplica síncrona", col: 2, row: 0 }
+  - { id: assincrona, rotulo: "réplica assíncrona", col: 2, row: 2 }
+arestas:
+  - { de: cliente, para: leader, rotulo: "paga" }
+  - { de: leader, para: sincrona, rotulo: "confirma antes" }
+  - { de: leader, para: assincrona, rotulo: "WAL depois", estilo: tracejada }
+  - { de: cliente, para: assincrona, rotulo: "lê o saldo: velho", via: [{ col: 0, row: 2 }] }

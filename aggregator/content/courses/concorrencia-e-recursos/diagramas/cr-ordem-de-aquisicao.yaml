@@ -1,0 +1,18 @@
+id: cr-ordem-de-aquisicao
+tipo: topologia
+titulo: "Ordem total, menor accountId primeiro: o ciclo não tem como se formar"
+descricao: >
+  Com uma ordem total de aquisição, toda transferência trava primeiro a conta de menor
+  accountId, qualquer que seja o sentido. A thread 1, de A para B, trava A e depois B. A
+  thread 2, de B para A, também começa por A: como A está com a thread 1, ela espera antes
+  de segurar qualquer coisa. Não existe espera circular, e quebrar essa condição, a mais
+  barata das quatro de Coffman, elimina o deadlock.
+nos:
+  - { id: t1, rotulo: "thread 1: A→B", col: 0, row: 0 }
+  - { id: a, rotulo: "conta A (1º)", col: 1, row: 0, papel: destaque }
+  - { id: b, rotulo: "conta B (2º)", col: 0, row: 1 }
+  - { id: t2, rotulo: "thread 2: B→A", col: 1, row: 1 }
+arestas:
+  - { de: t1, para: a, rotulo: "segura" }
+  - { de: t1, para: b, rotulo: "depois" }
+  - { de: t2, para: a, rotulo: "espera", estilo: tracejada }

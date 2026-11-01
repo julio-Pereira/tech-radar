@@ -1,0 +1,20 @@
+id: dd-lsm
+tipo: fluxo
+titulo: "LSM: a escrita é sempre append; a conta chega na leitura e na compactação"
+descricao: >
+  Na LSM a escrita vai para uma estrutura ordenada em memória, a memtable, e para um log.
+  Quando a memtable enche, ela vira em disco um arquivo imutável e ordenado, a SSTable:
+  escrever é sempre sequencial. A leitura pode precisar de várias SSTables, e filtros de
+  Bloom evitam quase todas as visitas inúteis. Um processo de fundo compacta as SSTables,
+  descartando versões antigas, e consome I/O exatamente quando o sistema está sob carga.
+passos:
+  - { id: escrita, rotulo: "escrita da chave", col: 0, row: 0 }
+  - { id: memtable, rotulo: "memtable + log", col: 0, row: 1 }
+  - { id: sstable, rotulo: "SSTable imutável", col: 0, row: 2 }
+  - { id: compacta, rotulo: "compactação", col: 1, row: 2, papel: destaque }
+  - { id: leitura, rotulo: "leitura: várias SSTables", col: 1, row: 3 }
+arestas:
+  - { de: escrita, para: memtable, rotulo: "append" }
+  - { de: memtable, para: sstable, rotulo: "encheu" }
+  - { de: sstable, para: compacta, rotulo: "em fundo" }
+  - { de: compacta, para: leitura }

@@ -1,0 +1,24 @@
+id: ae-event-sourcing
+tipo: fluxo
+titulo: "O estado é o fold dos eventos; snapshot + delta tem de dar o mesmo saldo"
+descricao: >
+  Em event sourcing o que se persiste é o fluxo append-only de cada conta: ContaAberta,
+  ValorCreditado, ValorDebitado. Carregar o agregado é aplicar os eventos em ordem a partir
+  do zero, um fold com função pura, sem I/O. Com milhares de eventos o replay fica caro, e
+  o snapshot guarda o estado materializado num ponto do fluxo; carrega-se o snapshot e
+  aplica-se só o delta. O snapshot é otimização, nunca verdade: os dois caminhos precisam
+  dar o mesmo saldo, e isso é um teste.
+passos:
+  - { id: fluxo, rotulo: "fluxo da conta", col: 0, row: 0, papel: destaque }
+  - { id: fold, rotulo: "fold(0, eventos)", col: 1, row: 0 }
+  - { id: saldo, rotulo: "saldo", col: 2, row: 0 }
+  - { id: snapshot, rotulo: "snapshot", col: 0, row: 1 }
+  - { id: delta, rotulo: "+ eventos depois dele", col: 1, row: 1 }
+  - { id: teste, rotulo: "mesmo saldo? (teste)", col: 2, row: 1 }
+arestas:
+  - { de: fluxo, para: fold, rotulo: "replay total" }
+  - { de: fold, para: saldo }
+  - { de: fluxo, para: snapshot, rotulo: "a cada N" }
+  - { de: snapshot, para: delta }
+  - { de: delta, para: teste }
+  - { de: saldo, para: teste }

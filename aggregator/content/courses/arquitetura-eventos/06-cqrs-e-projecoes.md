@@ -54,6 +54,10 @@ leitura muito maior que a de escrita) ou quando o dono do read model é outro co
 O degrau 3 é o que as pessoas chamam de "CQRS" e é o mais caro dos três. Subir direto para
 ele, sem ter sentido a dor dos degraus 1 e 2, é a definição de complexidade especulativa.
 
+```diagrama
+ae-cqrs
+```
+
 ## Projeção: consumidor idempotente e descartável
 
 Uma **projeção** é o consumidor que lê o fluxo de eventos e constrói o read model. Três

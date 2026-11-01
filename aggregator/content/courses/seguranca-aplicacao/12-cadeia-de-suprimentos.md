@@ -64,6 +64,10 @@ ensina a **verificar** SBOM e proveniência **na admissão** do cluster — esta
 a **produzir** o artefato que a política de admissão de lá exige. São as duas metades do
 mesmo controle: sem produção correta aqui, não há nada real para verificar lá.
 
+```diagrama
+sa-cadeia-de-suprimentos
+```
+
 ## Build reprodutível e pinning por hash
 
 Um **build reprodutível** garante que compilar o mesmo código-fonte, duas vezes, em

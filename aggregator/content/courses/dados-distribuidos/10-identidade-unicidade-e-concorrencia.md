@@ -86,6 +86,10 @@ onde a escrita acontece — e é a única que sobrevive a uma pausa arbitrária.
 Onde não dá para adicionar o token, a saída é tornar a operação idempotente, de modo que a
 execução dupla não cause dano. É a mesma conclusão do marco 01, chegando por outro caminho.
 
+```diagrama
+dd-fencing-token
+```
+
 ## Concorrência otimista quando a contenção sobe
 
 `@Version` (`spring-boot/05`) é elegante e correto: leia com a versão, escreva verificando que ela

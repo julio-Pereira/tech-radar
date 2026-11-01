@@ -23,6 +23,10 @@ sistema imediatamente — quebra sob a carga, a falha ou a intercalação espec�
 camada existia para cobrir. É por isso que "funcionou no teste manual" nunca foi evidência
 suficiente em concorrência.
 
+```diagrama
+cr-debito-ponta-a-ponta
+```
+
 > **Reencontro — `spring-boot/07`, `/08` e `go-fintech/03`.** O lado Java deste caminho completo
 > é o `pix-gateway`: virtual threads e pinning (`spring-boot/07`), o pool isolado por dependência do bulkhead
 > (`spring-boot/08`). O lado Go é o `ledger-core`: sharding por conta e `context`/`errgroup` (`go-fintech/03`).

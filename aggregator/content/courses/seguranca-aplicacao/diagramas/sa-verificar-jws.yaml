@@ -1,0 +1,25 @@
+id: sa-verificar-jws
+tipo: fluxo
+titulo: "Verificar um JWS: o servidor fixa o algoritmo, e as claims só valem após a assinatura"
+descricao: >
+  O verificador lê o kid do cabeçalho e busca a chave correspondente no JWKS do emissor,
+  com cache, sem seguir jku ou x5u para hosts que não conhece. O algoritmo é fixado pelo
+  servidor, RS256, e nunca escolhido pelo token: alg none ou um HS256 assinado com a chave
+  pública são rejeitados. Só com a assinatura verificada as claims passam a valer, e então
+  se conferem emissor, audiência e expiração antes de qualquer decisão.
+passos:
+  - { id: token, rotulo: "token recebido", col: 0, row: 0 }
+  - { id: kid, rotulo: "kid: chave no JWKS", col: 1, row: 0 }
+  - { id: alg, rotulo: "algoritmo fixo: RS256", col: 2, row: 0 }
+  - { id: assinatura, rotulo: "verifica a assinatura", col: 3, row: 0 }
+  - { id: rejeita, rotulo: "rejeita o token", col: 2, row: 1 }
+  - { id: claims, rotulo: "iss, aud, exp", col: 3, row: 1 }
+  - { id: decide, rotulo: "só então decide", col: 3, row: 2, papel: destaque }
+arestas:
+  - { de: token, para: kid }
+  - { de: kid, para: alg }
+  - { de: alg, para: assinatura }
+  - { de: alg, para: rejeita, rotulo: "alg diferente", tipo: falha }
+  - { de: assinatura, para: rejeita, rotulo: "inválida", tipo: falha }
+  - { de: assinatura, para: claims, rotulo: "válida" }
+  - { de: claims, para: decide }

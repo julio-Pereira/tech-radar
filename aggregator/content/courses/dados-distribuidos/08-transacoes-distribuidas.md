@@ -38,6 +38,10 @@ Some a isso que 2PC é síncrono e serializa a latência de todos os participant
 que ele sobreviveu apenas em nichos: mesmo datacenter, poucos participantes, volume moderado —
 tipicamente banco mais fila, com XA num servidor de aplicação.
 
+```diagrama
+dd-2pc
+```
+
 ## A geração seguinte
 
 O problema não foi abandonado; foi atacado por outros caminhos.

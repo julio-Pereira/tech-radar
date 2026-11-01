@@ -82,6 +82,10 @@ ledger registra o lançamento como "em trânsito", não some, não duplica. A co
 pior caso: se o arquivo do SPI mostra que liquidou, o estado "em trânsito" vira "liquidado" e o
 cliente é notificado tardiamente; se mostra que não liquidou, vira "revertido" e o valor volta.
 
+```diagrama
+sd-pix-estados
+```
+
 ## Hands-on
 
 **Tutorial.** Escreva o documento de design completo do Pix ponta a ponta, no molde desta seção.

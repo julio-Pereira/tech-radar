@@ -1,0 +1,21 @@
+id: sd-extrato
+tipo: topologia
+titulo: "Extrato: fan-out na escrita para quase todos, na leitura para o cliente famoso"
+descricao: >
+  Cada lançamento no ledger sai pelo outbox e atualiza a projeção do extrato na escrita:
+  paga-se na escrita para a leitura ser barata e previsível. O lojista com 2 milhões de
+  transações por dia não cabe na mesma estrutura, e a projeção dele é montada na leitura,
+  sob demanda. As notificações saem do mesmo fluxo como webhook, entregue pelo menos uma
+  vez e nunca exatamente uma: o receptor deduplica. Logo após o Pix, a tela do cliente lê o
+  lançamento recente do modelo de escrita, porque a projeção pode estar segundos atrás.
+nos:
+  - { id: ledger, rotulo: "ledger (escrita)", col: 0, row: 1, papel: destaque }
+  - { id: outbox, rotulo: "outbox", col: 1, row: 1, conceito: outbox }
+  - { id: projecao, rotulo: "extrato: fan-out na escrita", col: 2, row: 0 }
+  - { id: famoso, rotulo: "lojista: fan-out na leitura", col: 2, row: 1 }
+  - { id: webhook, rotulo: "webhook (at-least-once)", col: 2, row: 2 }
+arestas:
+  - { de: ledger, para: outbox, rotulo: "mesma tx" }
+  - { de: outbox, para: projecao }
+  - { de: outbox, para: famoso, estilo: tracejada }
+  - { de: outbox, para: webhook }

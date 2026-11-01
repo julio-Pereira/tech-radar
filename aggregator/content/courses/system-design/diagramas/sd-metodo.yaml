@@ -1,0 +1,29 @@
+id: sd-metodo
+tipo: fluxo
+titulo: "O método: cada etapa é insumo da próxima, e a defesa escrita prova que tudo foi decidido"
+descricao: >
+  O ciclo de system design tem nove etapas em ordem fixa: requisito, número, corte,
+  contrato, estado, fluxo, falha, evolução e defesa escrita. A ordem importa porque cada
+  etapa alimenta a seguinte: cortar o sistema antes de ter os números produz módulos do
+  tamanho errado, e desenhar o contrato antes de saber o que é síncrono produz um contrato
+  que a implementação não cumpre. A defesa escrita vem por último porque prova que o resto
+  foi decidido, não presumido.
+passos:
+  - { id: requisito, rotulo: "requisito", col: 0, row: 0 }
+  - { id: numero, rotulo: "número", col: 1, row: 0 }
+  - { id: corte, rotulo: "corte", col: 2, row: 0 }
+  - { id: contrato, rotulo: "contrato", col: 2, row: 1 }
+  - { id: estado, rotulo: "estado", col: 1, row: 1 }
+  - { id: fluxo, rotulo: "fluxo", col: 0, row: 1 }
+  - { id: falha, rotulo: "falha", col: 0, row: 2 }
+  - { id: evolucao, rotulo: "evolução", col: 1, row: 2 }
+  - { id: defesa, rotulo: "defesa escrita", col: 2, row: 2, papel: destaque }
+arestas:
+  - { de: requisito, para: numero }
+  - { de: numero, para: corte }
+  - { de: corte, para: contrato }
+  - { de: contrato, para: estado }
+  - { de: estado, para: fluxo }
+  - { de: fluxo, para: falha }
+  - { de: falha, para: evolucao }
+  - { de: evolucao, para: defesa }

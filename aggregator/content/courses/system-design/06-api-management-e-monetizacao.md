@@ -31,6 +31,10 @@ TPP age em nome do usuário final, com consentimento explícito, e cada chamada 
 identidade). O **portal do desenvolvedor** é onde o parceiro se registra, vê sua cota e lê a
 documentação — ele é parte do produto, não um extra.
 
+```diagrama
+sd-api-management
+```
+
 ## Algoritmos de rate limit, e o defeito de cada um
 
 **Janela fixa** (contar requisições num intervalo de relógio, ex. por minuto): simples, e tem um

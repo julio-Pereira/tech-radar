@@ -1,0 +1,20 @@
+id: dd-write-skew
+tipo: sequencia
+titulo: "READ COMMITTED: as duas transferências cabem, e o limite estoura"
+descricao: >
+  Duas contas compartilham um limite de R$ 10.000, e chegam duas transferências simultâneas
+  de R$ 6.000. Cada sessão soma o uso do grupo e lê zero, conclui que cabe e insere a sua
+  linha. As duas fazem commit sem erro: o grupo usou R$ 12.000. Não houve conflito de
+  escrita, porque cada sessão escreveu numa linha diferente; a leitura que sustentava a
+  decisão é que ficou obsoleta.
+participantes:
+  - { id: a, rotulo: "sessão A (6.000)" }
+  - { id: pg, rotulo: "Postgres", papel: destaque }
+  - { id: b, rotulo: "sessão B (6.000)" }
+mensagens:
+  - { de: a, para: pg, rotulo: "SELECT sum(uso)" }
+  - { de: pg, para: a, rotulo: "0", tipo: reply }
+  - { de: b, para: pg, rotulo: "SELECT sum(uso)" }
+  - { de: pg, para: b, rotulo: "0", tipo: reply }
+  - { de: a, para: pg, rotulo: "INSERT 6000, COMMIT" }
+  - { de: b, para: pg, rotulo: "INSERT 6000, COMMIT", nota: "12.000 num limite de 10.000" }

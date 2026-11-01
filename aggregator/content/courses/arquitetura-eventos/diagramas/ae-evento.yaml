@@ -1,0 +1,17 @@
+id: ae-evento
+tipo: sequencia
+titulo: "Evento: um fato no passado, e quem publica não sabe quem ouve"
+descricao: >
+  Um evento é um fato consumado, no particípio passado, que não se recusa. O antifraude
+  publica PaymentAuthorized no tópico payments.authorized porque já decidiu; o tópico
+  entrega aos consumidores que se inscreveram, como o ledger-core e o serviço de
+  notificações, e o antifraude não sabe quem são. Um evento com zero consumidores continua correto: o fato aconteceu e ninguém
+  se interessou.
+participantes:
+  - { id: antifraude, rotulo: "antifraude", papel: destaque }
+  - { id: topico, rotulo: "tópico" }
+  - { id: consumidores, rotulo: "consumidores" }
+mensagens:
+  - { de: antifraude, para: topico, rotulo: "PaymentAuthorized", tipo: async, nota: "não sabe quem vai ouvir" }
+  - { de: topico, para: consumidores, rotulo: "ledger-core", tipo: async }
+  - { de: topico, para: consumidores, rotulo: "notificações", tipo: async, nota: "zero consumidores também é correto" }

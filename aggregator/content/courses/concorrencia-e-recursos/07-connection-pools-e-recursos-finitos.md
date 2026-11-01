@@ -71,6 +71,10 @@ em modo transação resolve isso multiplexando muitas conexões lógicas sobre p
 no Postgres — ao custo de restrições conhecidas (prepared statements por sessão deixam de
 funcionar do jeito usual, porque a conexão física muda entre transações).
 
+```diagrama
+cr-little-pool
+```
+
 ## Pools de saída, e o que fazer quando esgota
 
 O cliente HTTP de saída tem seu próprio pool: `http.Transport` em Go tem

@@ -58,6 +58,10 @@ TTL** (nunca o mesmo valor exato para todas as chaves), **single-flight** (só a
 demais esperam o resultado dela) e **refresh antecipado** (renovar a chave antes de expirar, com
 probabilidade crescente).
 
+```diagrama
+dd-stampede
+```
+
 **Hot key.** Uma chave concentra tráfego desproporcional e satura o nó do cluster que a hospeda.
 É o celebrity problem do marco 03, agora no Redis. As saídas são replicar a chave com sufixo
 aleatório ou manter um cache local na aplicação para essa chave específica.

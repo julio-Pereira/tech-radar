@@ -1,0 +1,35 @@
+id: dd-fencing-token
+tipo: sequencia
+titulo: "O processo pausa, o lock expira, e só o fencing token barra o zumbi"
+descricao: >
+  O processo A pega o lock no Redis, com expiração de 30 segundos, e recebe o token 41. Ele
+  sofre uma pausa de GC de 40 segundos, e o lock expira. O processo B adquire o lock, recebe
+  o token 42 e escreve. Quando A acorda, continua achando que tem o lock e tenta escrever
+  com o token 41. O storage já aceitou o 42 e recusa qualquer escrita com número menor: a
+  proteção está onde a escrita acontece, a única que sobrevive a uma pausa arbitrária.
+participantes:
+  - { id: a, rotulo: "processo A" }
+  - { id: redis, rotulo: "lock (Redis)" }
+  - { id: b, rotulo: "processo B" }
+  - { id: storage, rotulo: "storage", papel: destaque }
+mensagens:
+  - { de: a, para: redis, rotulo: "SET NX PX 30000" }
+  - { de: redis, para: a, rotulo: "ok, token 41", tipo: reply }
+  - { de: a, para: a, rotulo: "pausa de GC: 40 s" }
+  - { de: redis, para: redis, rotulo: "o lock expira" }
+  - { de: b, para: redis, rotulo: "SET NX PX 30000" }
+  - { de: redis, para: b, rotulo: "ok, token 42", tipo: reply }
+  - { de: b, para: storage, rotulo: "escreve, token 42" }
+  - { de: a, para: storage, rotulo: "escreve, token 41", nota: "acordou achando que tem o lock" }
+  - { de: storage, para: a, rotulo: "recusada: 41 < 42", tipo: reply }
+animacao:
+  - legenda: "A pega o lock por 30 s e recebe o token 41"
+    ate: 2
+  - legenda: "A sofre uma pausa de GC de 40 s, e o lock expira no meio dela"
+    ate: 4
+  - legenda: "B adquire o lock, recebe o token 42 e escreve"
+    ate: 7
+  - legenda: "A acorda e escreve, achando que ainda tem o lock"
+    ate: 8
+  - legenda: "O storage já viu o 42 e recusa o 41: o zumbi não causa dano"
+    ate: 9

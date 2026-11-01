@@ -39,6 +39,10 @@ a estrutura; para um contador simples de inteiro, raramente importa. Saber recon
 código está exposto a ABA é mais importante do que decorar a solução (contador de versão
 embutido).
 
+```diagrama
+cr-cas
+```
+
 ## Granularidade: o que fica serial
 
 **Lock global** protege tudo com um único lock — simples de provar correto, serializa tudo que

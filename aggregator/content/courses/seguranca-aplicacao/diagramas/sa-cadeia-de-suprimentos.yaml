@@ -1,0 +1,21 @@
+id: sa-cadeia-de-suprimentos
+tipo: fluxo
+titulo: "Da dependência à admissão: pinning, build reprodutível, SBOM, proveniência e assinatura"
+descricao: >
+  As dependências vêm de um mirror interno, fixadas por hash de conteúdo, não só por
+  versão. O build é reprodutível: o mesmo código produz o mesmo artefato, byte a byte. Dele
+  saem o SBOM, a lista completa de dependências, e a proveniência, a prova de qual pipeline
+  e commit produziram o artefato. A assinatura com Sigstore amarra o artefato à
+  proveniência, e a admissão do cluster, em kubernetes/09, verifica tudo antes de deixar
+  rodar.
+passos:
+  - { id: deps, rotulo: "mirror, pin por hash", col: 0, row: 0 }
+  - { id: build, rotulo: "build reprodutível", col: 1, row: 0 }
+  - { id: sbom, rotulo: "SBOM + proveniência", col: 2, row: 0 }
+  - { id: assinatura, rotulo: "assinatura (Sigstore)", col: 2, row: 1 }
+  - { id: admissao, rotulo: "admissão verifica", col: 1, row: 1, papel: destaque }
+arestas:
+  - { de: deps, para: build }
+  - { de: build, para: sbom }
+  - { de: sbom, para: assinatura }
+  - { de: assinatura, para: admissao, rotulo: "kubernetes/09" }

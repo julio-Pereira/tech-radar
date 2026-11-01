@@ -38,6 +38,11 @@ Um teste simples: **você consegue ter zero consumidores?** Um evento com zero
 consumidores continua correto — o fato aconteceu, ninguém se interessou. Um comando com
 zero destinatários é um bug.
 
+```diagrama
+ae-comando
+ae-evento
+```
+
 ## Os quatro estilos, que não são um pacote
 
 Fowler separa quatro coisas que quase todo mundo compra junto, e que são escolhas

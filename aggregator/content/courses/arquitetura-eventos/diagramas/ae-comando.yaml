@@ -1,0 +1,15 @@
+id: ae-comando
+tipo: sequencia
+titulo: "Comando: quem envia sabe para quem, e espera a decisão"
+descricao: >
+  Um comando é um pedido com destinatário conhecido, que expressa intenção e pode ser
+  recusado. O app envia IniciarPagamento ao pix-gateway, que valida o saldo e decide. Se o
+  saldo não dá, a resposta é não. Quem envia sabe para quem enviou e espera que alguém
+  decida; um comando sem destinatário é um bug.
+participantes:
+  - { id: app, rotulo: "app", papel: externo }
+  - { id: gateway, rotulo: "pix-gateway", papel: destaque }
+mensagens:
+  - { de: app, para: gateway, rotulo: "IniciarPagamento" }
+  - { de: gateway, para: gateway, rotulo: "valida o saldo" }
+  - { de: gateway, para: app, rotulo: "recusado", tipo: reply, nota: "um comando pode ser recusado" }

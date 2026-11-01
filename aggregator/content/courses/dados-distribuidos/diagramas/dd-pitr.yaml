@@ -1,0 +1,22 @@
+id: dd-pitr
+tipo: fluxo
+titulo: "PITR: backup base + WAL arquivado voltam a qualquer instante, até antes do DELETE"
+descricao: >
+  O backup base é a cópia física do banco num momento. O WAL arquivado continuamente
+  registra tudo o que veio depois. Para recuperar, restaura-se o base e reaplica-se o WAL
+  até o recovery_target_time, por exemplo 14:32, cinco minutos antes do DELETE errado, em
+  vez de perder o dia inteiro. O preço é operar o arquivamento e monitorá-lo: arquivamento
+  parado é backup quebrado que continua reportando verde.
+passos:
+  - { id: base, rotulo: "backup base", col: 0, row: 0 }
+  - { id: wal, rotulo: "WAL arquivado", col: 0, row: 1 }
+  - { id: restore, rotulo: "restaura o base", col: 1, row: 0 }
+  - { id: replay, rotulo: "reaplica até 14:32", col: 2, row: 0 }
+  - { id: pronto, rotulo: "banco antes do DELETE", col: 2, row: 1, papel: destaque }
+  - { id: parado, rotulo: "arquivamento parado", col: 1, row: 1 }
+arestas:
+  - { de: base, para: restore }
+  - { de: restore, para: replay }
+  - { de: wal, para: replay, rotulo: "contínuo" }
+  - { de: replay, para: pronto, rotulo: "recovery_target_time" }
+  - { de: parado, para: wal, rotulo: "backup quebrado", tipo: falha }

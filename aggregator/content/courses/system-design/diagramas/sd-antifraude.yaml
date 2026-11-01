@@ -1,0 +1,27 @@
+id: sd-antifraude
+tipo: fluxo
+titulo: "Antifraude em tempo real: enriquecimentos em paralelo, cada um com timeout e fallback"
+descricao: >
+  A decisão de risco cabe num orçamento curto, que dita a arquitetura. Os enriquecimentos,
+  histórico do cliente, reputação do dispositivo e velocidade de transações recentes, rodam
+  em paralelo, nunca em série, e cada um tem o seu próprio timeout, menor que o orçamento, e
+  um valor de fallback definido antes. Regras e modelo decidem juntos. Se um enriquecimento
+  crítico falha, deixar passar ou bloquear depende da faixa de valor: valor baixo passa,
+  valor alto vai para retenção e análise humana.
+passos:
+  - { id: tx, rotulo: "transação", col: 0, row: 1 }
+  - { id: historico, rotulo: "histórico do cliente", col: 1, row: 0 }
+  - { id: dispositivo, rotulo: "dispositivo", col: 1, row: 1 }
+  - { id: velocidade, rotulo: "velocidade recente", col: 1, row: 2 }
+  - { id: decisao, rotulo: "regras + modelo", col: 2, row: 1, papel: destaque }
+  - { id: passa, rotulo: "valor baixo: passa", col: 3, row: 0 }
+  - { id: retencao, rotulo: "valor alto: retém", col: 3, row: 2 }
+arestas:
+  - { de: tx, para: historico }
+  - { de: tx, para: dispositivo }
+  - { de: tx, para: velocidade }
+  - { de: historico, para: decisao }
+  - { de: dispositivo, para: decisao }
+  - { de: velocidade, para: decisao }
+  - { de: decisao, para: passa, rotulo: "falhou" }
+  - { de: decisao, para: retencao, rotulo: "falhou", tipo: falha }

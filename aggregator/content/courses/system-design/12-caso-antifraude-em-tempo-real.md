@@ -57,6 +57,10 @@ transação de valor alto, na mesma condição, provavelmente vai para retençã
 custo esperado de deixar passar uma fraude grande supera o custo de atrito num volume baixo de
 transações grandes). Cada faixa tem dono, e a matriz é testada faixa a faixa, não como regra única.
 
+```diagrama
+sd-antifraude
+```
+
 > **Reencontro — `go-fintech/03` e `/05`; `seguranca-aplicacao/14`; `observabilidade/08`.** O
 > `ledger-core` e o antifraude compartilham a necessidade de decisão sob concorrência alta —
 > `go-fintech/03` já tratou isso para o débito, aqui é para a decisão de risco. `go-fintech/05` cobre gRPC,

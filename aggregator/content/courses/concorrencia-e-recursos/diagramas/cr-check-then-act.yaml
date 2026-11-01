@@ -1,0 +1,20 @@
+id: cr-check-then-act
+tipo: sequencia
+titulo: "Check-then-act: cada acesso é seguro, a sequência não, e nenhum detector de race pega"
+descricao: >
+  O limite diário da conta é 1.000 e já foram usados 900, guardados num ConcurrentHashMap.
+  Duas threads processam débitos de 100 ao mesmo tempo. As duas leem 900, as duas concluem
+  que cabe e as duas gravam 1.000. Cada leitura e cada escrita é segura, então não há data
+  race e o detector não acusa nada; mas a sequência ler, decidir, escrever não é atômica, e
+  um débito de 100 sumiu do controle de limite. É race condition lógica, não data race.
+participantes:
+  - { id: t1, rotulo: "thread 1 (débito 100)" }
+  - { id: mapa, rotulo: "ConcurrentHashMap", papel: destaque }
+  - { id: t2, rotulo: "thread 2 (débito 100)" }
+mensagens:
+  - { de: t1, para: mapa, rotulo: "get: usado" }
+  - { de: mapa, para: t1, rotulo: "900", tipo: reply, nota: "cabe 100" }
+  - { de: t2, para: mapa, rotulo: "get: usado" }
+  - { de: mapa, para: t2, rotulo: "900", tipo: reply, nota: "cabe 100" }
+  - { de: t1, para: mapa, rotulo: "put: 1.000" }
+  - { de: t2, para: mapa, rotulo: "put: 1.000", nota: "um débito sumiu do limite" }

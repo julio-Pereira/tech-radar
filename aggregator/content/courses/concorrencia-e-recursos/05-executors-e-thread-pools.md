@@ -55,6 +55,10 @@ threads de núcleo **e fila sem limite** a menos que `spring.task.execution.pool
 seja explicitamente definido — o antipadrão descrito acima é literalmente o comportamento de
 fábrica, em produção, até alguém configurar o contrário.
 
+```diagrama
+cr-executor
+```
+
 ## Isolar, limitar, e o que é mecanismo versus dimensionamento
 
 Isolar o pool de uma dependência lenta do resto do sistema — para que um PSP degradado não

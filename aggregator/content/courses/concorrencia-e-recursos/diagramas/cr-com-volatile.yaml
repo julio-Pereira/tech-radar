@@ -1,0 +1,20 @@
+id: cr-com-volatile
+tipo: sequencia
+titulo: "Com volatile (ou channel em Go), quem vê a flag vê o que veio antes dela"
+descricao: >
+  Com pronto declarado volatile, a escrita da flag happens-before qualquer leitura
+  subsequente dela, e tudo o que a thread 1 escreveu antes, o saldo, fica visível para quem
+  leu a flag. A thread 2 que lê pronto igual a verdadeiro tem a garantia de ler o saldo
+  novo. Em Go não existe volatile: o mesmo efeito vem de um envio por channel, que
+  happens-before o recebimento correspondente, ou de sync e sync/atomic.
+participantes:
+  - { id: t1, rotulo: "thread 1" }
+  - { id: mem, rotulo: "memória", papel: destaque }
+  - { id: t2, rotulo: "thread 2" }
+mensagens:
+  - { de: t1, para: mem, rotulo: "saldo = 500" }
+  - { de: t1, para: mem, rotulo: "pronto = true", nota: "pronto é volatile" }
+  - { de: t2, para: mem, rotulo: "lê pronto" }
+  - { de: mem, para: t2, rotulo: "true", tipo: reply }
+  - { de: t2, para: mem, rotulo: "lê saldo" }
+  - { de: mem, para: t2, rotulo: "500", tipo: reply, nota: "garantido pelo happens-before" }

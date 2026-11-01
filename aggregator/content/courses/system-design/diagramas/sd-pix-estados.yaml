@@ -1,0 +1,45 @@
+id: sd-pix-estados
+tipo: estados
+titulo: "Pix ponta a ponta: um destino só, liquidado ou revertido, mesmo sem resposta do SPI"
+descricao: >
+  O pagamento é validado e reservado no ledger, que marca o débito como em trânsito. Depois
+  é enviado ao SPI, fora do controle do sistema. Se o SPI liquida, o débito vira
+  definitivo; se rejeita, a reserva é revertida. O caso traiçoeiro é o timeout: o resultado
+  é desconhecido, e repetir o envio arriscaria duplicar. O pagamento fica em verificação,
+  com consulta ativa de status e, no pior caso, a conciliação D+1 contra o arquivo do SPI
+  decide. Nunca os dois destinos, e nunca nenhum para sempre.
+estados:
+  - { id: validado, rotulo: "VALIDADO", col: 0, row: 0 }
+  - { id: transito, rotulo: "EM_TRANSITO", col: 1, row: 0 }
+  - { id: enviado, rotulo: "ENVIADO_AO_SPI", col: 2, row: 0, papel: destaque }
+  - { id: liquidado, rotulo: "LIQUIDADO", col: 3, row: 0 }
+  - { id: verificacao, rotulo: "EM_VERIFICACAO", col: 3, row: 1 }
+  - { id: revertido, rotulo: "REVERTIDO", col: 2, row: 1 }
+inicial: validado
+finais: [liquidado, revertido]
+transicoes:
+  - { de: validado, para: transito, evento: "reserva" }
+  - { de: transito, para: enviado, evento: "envio" }
+  - { de: enviado, para: liquidado, evento: "liquidou" }
+  - { de: enviado, para: revertido, evento: "rejeitou" }
+  - { de: enviado, para: verificacao, evento: "timeout" }
+  - { de: verificacao, para: liquidado, evento: "consulta: liquidou" }
+  - { de: verificacao, para: revertido, evento: "D+1: não liquidou" }
+animacao:
+  - legenda: "Validado: limite e antifraude passaram, de forma síncrona"
+    atual: validado
+  - legenda: "A reserva no ledger marca o débito como em trânsito, numa transação local"
+    atual: transito
+    transicao: { de: validado, para: transito }
+  - legenda: "O envio ao SPI sai do controle do sistema"
+    atual: enviado
+    transicao: { de: transito, para: enviado }
+  - legenda: "O SPI não responde no prazo: o resultado é desconhecido, e não se reenvia"
+    atual: verificacao
+    transicao: { de: enviado, para: verificacao }
+  - legenda: "A consulta de status mostra que liquidou: o débito vira definitivo"
+    atual: liquidado
+    transicao: { de: verificacao, para: liquidado }
+  - legenda: "Outro desfecho: a conciliação D+1 mostra que não liquidou, e o valor volta"
+    atual: revertido
+    transicao: { de: verificacao, para: revertido }

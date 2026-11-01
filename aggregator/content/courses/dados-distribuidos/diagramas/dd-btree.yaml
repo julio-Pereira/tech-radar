@@ -1,0 +1,20 @@
+id: dd-btree
+tipo: fluxo
+titulo: "B-tree: a escrita acha a página da chave, e página cheia divide"
+descricao: >
+  Na B-tree a escrita procura a página onde a chave deve morar, num lugar fixo do disco.
+  Se a página tem espaço, a chave entra ali; se está cheia, ela se divide em duas e o pai
+  é atualizado, o que pode dividir o pai também. Como cada página tem lugar fixo, escrever
+  numa chave aleatória é escrita aleatória, e UUIDv4 suja uma página diferente a cada
+  inserção. A leitura, em compensação, custa três ou quatro páginas.
+passos:
+  - { id: escrita, rotulo: "escrita da chave", col: 0, row: 0 }
+  - { id: pagina, rotulo: "acha a página", col: 0, row: 1 }
+  - { id: cabe, rotulo: "grava na página", col: 0, row: 2 }
+  - { id: divide, rotulo: "divide a página", col: 1, row: 2, papel: destaque }
+  - { id: pai, rotulo: "atualiza o pai", col: 1, row: 3 }
+arestas:
+  - { de: escrita, para: pagina }
+  - { de: pagina, para: cabe, rotulo: "tem espaço" }
+  - { de: pagina, para: divide, rotulo: "cheia" }
+  - { de: divide, para: pai }

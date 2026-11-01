@@ -65,12 +65,17 @@ export function buildMilestoneBody(slug, milestone) {
  * diagram; the figure already carries its title and textual description.
  * @param {HTMLElement} article
  */
+/** @type {WeakMap<HTMLElement, Promise<void>>} */
+export const diagramsReady = new WeakMap();
+
 function hydrateDiagrams(article) {
   if (!article.querySelector('figure.diagrama[data-diagrama]')) return;
   // Title and description stay readable when the renderer fails to load;
   // the warning keeps the failure visible in diagnostics (C8).
-  import('./diagram.js').then((m) => m.renderDiagrams(article))
-    .catch((err) => console.warn('diagram.js não carregou; ficam o título e a descrição textual', err));
+  // The promise lets a detour return re-center its target once the figures
+  // above it have their height (desvio.js returnToPoint).
+  diagramsReady.set(article, import('./diagram.js').then((m) => m.renderDiagrams(article))
+    .catch((err) => console.warn('diagram.js não carregou; ficam o título e a descrição textual', err)));
 }
 
 function buildHandsonSection(slug, milestoneId, section) {

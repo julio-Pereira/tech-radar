@@ -1,0 +1,23 @@
+id: sd-borda
+tipo: topologia
+titulo: "A borda em camadas: DNS escolhe a região, LB a zona, gateway a rota; o LB não decide"
+descricao: >
+  O DNS manda o cliente para uma região, e é o failover mais grosso que existe. A CDN serve
+  só o que é público e estático, como assets e documentação; dado de conta nunca. O load
+  balancer distribui entre zonas. O gateway, em L7, decide por rota e aplica política, como
+  validar o token e a cota. O mesh, se existir, balanceia entre instâncias do mesmo serviço
+  dentro do cluster. Lógica de negócio no load balancer é o erro clássico: ele roteia, não
+  decide.
+nos:
+  - { id: cliente, rotulo: "cliente", col: 0, row: 1, papel: externo }
+  - { id: dns, rotulo: "DNS: região", col: 1, row: 1 }
+  - { id: cdn, rotulo: "CDN: só estático", col: 1, row: 0 }
+  - { id: lb, rotulo: "LB: zonas", col: 2, row: 1 }
+  - { id: gateway, rotulo: "gateway L7: rota", col: 3, row: 1, papel: destaque }
+  - { id: mesh, rotulo: "serviços (mesh)", col: 3, row: 2 }
+arestas:
+  - { de: cliente, para: cdn, rotulo: "assets" }
+  - { de: cliente, para: dns }
+  - { de: dns, para: lb }
+  - { de: lb, para: gateway }
+  - { de: gateway, para: mesh, rotulo: "política aplicada" }

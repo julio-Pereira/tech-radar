@@ -1,0 +1,38 @@
+id: sa-code-pkce-par
+tipo: sequencia
+titulo: "Authorization code com PKCE e PAR: cada parâmetro fecha uma classe de ataque"
+descricao: >
+  O client pix-gateway gera, para esta requisição, o code_verifier e o state. Com PAR, ele
+  envia os parâmetros da autorização ao fin-idp por back-channel, incluindo o
+  code_challenge, e recebe uma referência opaca; o navegador só carrega essa referência. O
+  titular autentica e consente, e o fin-idp redireciona de volta com o code e o state. O
+  client confere o state, que protege contra CSRF no redirect, e troca o code enviando o
+  code_verifier: um code interceptado não vale nada sem ele. Na resposta, o nonce dentro do
+  id_token protege contra replay.
+participantes:
+  - { id: titular, rotulo: "titular (navegador)", papel: externo }
+  - { id: client, rotulo: "client pix-gateway", papel: destaque }
+  - { id: as, rotulo: "fin-idp" }
+mensagens:
+  - { de: client, para: client, rotulo: "gera verifier e state" }
+  - { de: client, para: as, rotulo: "PAR: parâmetros", nota: "back-channel, com code_challenge" }
+  - { de: as, para: client, rotulo: "request_uri opaca", tipo: reply }
+  - { de: client, para: titular, rotulo: "redireciona" }
+  - { de: titular, para: as, rotulo: "autentica e consente" }
+  - { de: as, para: titular, rotulo: "302 com code e state", tipo: reply }
+  - { de: titular, para: client, rotulo: "callback", nota: "o client confere o state" }
+  - { de: client, para: as, rotulo: "code + code_verifier" }
+  - { de: as, para: client, rotulo: "tokens", tipo: reply, nota: "o client confere o nonce" }
+animacao:
+  - legenda: "O client gera o code_verifier e o state, segredos desta requisição"
+    ate: 1
+  - legenda: "PAR: os parâmetros vão por back-channel; o navegador só leva uma referência"
+    ate: 4
+  - legenda: "O titular autentica e consente; o fin-idp devolve o code e o state"
+    ate: 6
+  - legenda: "No callback, o client confere o state: protege contra CSRF no redirect"
+    ate: 7
+  - legenda: "A troca exige o code_verifier: um code interceptado não vale nada"
+    ate: 8
+  - legenda: "Chegam os tokens; o nonce no id_token protege contra replay"
+    ate: 9

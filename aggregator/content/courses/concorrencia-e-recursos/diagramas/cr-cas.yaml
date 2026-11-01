@@ -1,0 +1,34 @@
+id: cr-cas
+tipo: sequencia
+titulo: "O laço de CAS: quem perde a corrida relê e tenta de novo, sem lock"
+descricao: >
+  As duas threads querem somar ao mesmo contador atômico, que vale 100. As duas leem 100. A
+  thread 2 faz compareAndSet de 100 para 120 e consegue. A thread 1 tenta compareAndSet de
+  100 para 150, mas o valor já não é 100, e a operação falha. Ela relê o valor, 120, e tenta
+  de novo, de 120 para 170, e consegue. Ninguém bloqueou ninguém: o custo da contenção é a
+  retentativa, e sob contenção alta um LongAdder distribui o contador.
+participantes:
+  - { id: t1, rotulo: "thread 1 (+50)" }
+  - { id: atom, rotulo: "AtomicLong", papel: destaque }
+  - { id: t2, rotulo: "thread 2 (+20)" }
+mensagens:
+  - { de: t1, para: atom, rotulo: "get" }
+  - { de: atom, para: t1, rotulo: "100", tipo: reply }
+  - { de: t2, para: atom, rotulo: "get" }
+  - { de: atom, para: t2, rotulo: "100", tipo: reply }
+  - { de: t2, para: atom, rotulo: "CAS(100 → 120)" }
+  - { de: atom, para: t2, rotulo: "ok", tipo: reply }
+  - { de: t1, para: atom, rotulo: "CAS(100 → 150)" }
+  - { de: atom, para: t1, rotulo: "falhou", tipo: reply, nota: "o valor mudou" }
+  - { de: t1, para: atom, rotulo: "relê: 120" }
+  - { de: t1, para: atom, rotulo: "CAS(120 → 170)" }
+  - { de: atom, para: t1, rotulo: "ok", tipo: reply }
+animacao:
+  - legenda: "As duas threads leem o mesmo valor, 100"
+    ate: 4
+  - legenda: "A thread 2 faz o CAS de 100 para 120 e consegue"
+    ate: 6
+  - legenda: "O CAS da thread 1 falha: o valor já não é o que ela leu"
+    ate: 8
+  - legenda: "Ela relê e tenta de novo, de 120 para 170, e consegue; ninguém bloqueou"
+    ate: 11

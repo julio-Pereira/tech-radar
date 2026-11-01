@@ -1,0 +1,20 @@
+id: cr-sem-happens-before
+tipo: sequencia
+titulo: "Sem happens-before, a thread 2 pode ver a flag e o dado velho"
+descricao: >
+  A thread 1 grava o saldo e depois a flag pronto, um campo comum. Sem relação de
+  happens-before entre a escrita e a leitura, nada garante que a thread 2 veja as escritas
+  na ordem em que aconteceram: ela pode ler pronto igual a verdadeiro e, ainda assim, ler o
+  saldo antigo. O compilador e o processador podem reordenar, e x86 esconde o que ARM
+  revela.
+participantes:
+  - { id: t1, rotulo: "thread 1" }
+  - { id: mem, rotulo: "memória", papel: destaque }
+  - { id: t2, rotulo: "thread 2" }
+mensagens:
+  - { de: t1, para: mem, rotulo: "saldo = 500" }
+  - { de: t1, para: mem, rotulo: "pronto = true" }
+  - { de: t2, para: mem, rotulo: "lê pronto" }
+  - { de: mem, para: t2, rotulo: "true", tipo: reply }
+  - { de: t2, para: mem, rotulo: "lê saldo" }
+  - { de: mem, para: t2, rotulo: "0 (velho)", tipo: reply, nota: "permitido sem happens-before" }

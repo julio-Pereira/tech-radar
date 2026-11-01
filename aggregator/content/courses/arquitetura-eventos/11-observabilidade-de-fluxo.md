@@ -32,14 +32,8 @@ Dois campos do envelope (marco 05) fazem o trabalho:
 
 Com os dois, a lista vira árvore:
 
-```
-correlationId: pay-8f2c
-├─ PagamentoIniciado         (causation: cmd-iniciar)
-├─ RiscoAprovado             (causation: PagamentoIniciado)
-├─ LiquidaçãoSolicitada      (causation: RiscoAprovado)
-│  ├─ EnvioAoPSP tentativa 1 (causation: LiquidaçãoSolicitada) → timeout
-│  └─ EnvioAoPSP tentativa 2 (causation: LiquidaçãoSolicitada) → ok
-└─ ClienteNotificado         (causation: LiquidaçãoConfirmada)
+```diagrama
+ae-arvore-causal
 ```
 
 Só com `correlationId` você teria os mesmos sete registros numa lista plana, e a pergunta

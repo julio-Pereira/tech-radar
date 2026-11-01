@@ -27,6 +27,10 @@ fan-out na escrita (poucos "seguidores" por evento), e casos excepcionais (muito
 fan-out na leitura sob demanda — a decisão não é global, é **por caso**, com o ponto de cruzamento
 de custo entre as duas estratégias medido, não estimado.
 
+```diagrama
+sd-extrato
+```
+
 ## O problema do cliente famoso
 
 Um lojista com 2 milhões de transações por dia tem uma projeção de extrato que **não pode** ser a

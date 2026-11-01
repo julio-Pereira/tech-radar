@@ -1,0 +1,33 @@
+id: dd-stampede
+tipo: sequencia
+titulo: "Stampede: a chave popular expira e 200 requisições vão ao banco; single-flight manda uma"
+descricao: >
+  A chave popular do cache expira, e as 200 requisições em voo naquele instante recebem
+  miss e vão todas ao banco, que engasga e pode derrubar o que não tinha nada a ver. Com
+  single-flight, só a primeira busca vai ao banco; as demais esperam o resultado dela e
+  recebem o mesmo valor. Jitter no TTL e refresh antecipado somam-se a isso, para que as
+  chaves não expirem todas ao mesmo tempo.
+participantes:
+  - { id: reqs, rotulo: "200 requisições", papel: externo }
+  - { id: cache, rotulo: "cache", papel: destaque }
+  - { id: banco, rotulo: "banco" }
+mensagens:
+  - { de: cache, para: cache, rotulo: "a chave expira" }
+  - { de: reqs, para: cache, rotulo: "200 leituras" }
+  - { de: cache, para: reqs, rotulo: "miss", tipo: reply }
+  - { de: reqs, para: banco, rotulo: "200 consultas", nota: "o banco engasga" }
+  - { de: reqs, para: cache, rotulo: "200 leituras", nota: "agora com single-flight" }
+  - { de: cache, para: banco, rotulo: "1 consulta", nota: "as outras 199 esperam" }
+  - { de: banco, para: cache, rotulo: "valor", tipo: reply }
+  - { de: cache, para: reqs, rotulo: "valor para as 200", tipo: reply }
+animacao:
+  - legenda: "A chave popular expira"
+    ate: 1
+  - legenda: "As 200 requisições em voo recebem miss ao mesmo tempo"
+    ate: 3
+  - legenda: "Todas vão ao banco: o pico derruba o banco e o que depende dele"
+    ate: 4
+  - legenda: "Com single-flight, só a primeira busca no banco; as outras esperam"
+    ate: 6
+  - legenda: "O valor volta uma vez e serve as 200"
+    ate: 8

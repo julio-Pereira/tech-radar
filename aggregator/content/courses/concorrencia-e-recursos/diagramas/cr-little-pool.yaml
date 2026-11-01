@@ -1,0 +1,19 @@
+id: cr-little-pool
+tipo: grafico
+titulo: "Lei de Little: o pool necessário cresce com o tempo de retenção, não só com o TPS"
+descricao: >
+  Pela lei de Little, as conexões necessárias são o TPS vezes o tempo de retenção de cada
+  uma, que é quase sempre o tempo da transação. Com uma transação curta, de 50 ms, 1.000
+  TPS pedem 50 conexões. Com uma chamada HTTP de 200 ms dentro da transação, a retenção vai a
+  250 ms e o mesmo pool precisa de 250: a 400 TPS já se gastam as 100 conexões do banco, sem
+  contar as outras réplicas. Os pontos foram calculados pela fórmula, com o script
+  tools/diagramas/curvas.py.
+forma: linha
+eixo_x: { rotulo: "TPS", tipo: numero }
+eixo_y: { rotulo: "conexões necessárias", min: 0 }
+series:
+  - { id: curta, rotulo: "transação de 50 ms", pontos: [[0, 0], [100, 5], [200, 10], [300, 15], [400, 20], [500, 25], [600, 30], [700, 35], [800, 40], [900, 45], [1000, 50]] }
+  - { id: http, rotulo: "com HTTP: 250 ms", pontos: [[0, 0], [100, 25], [200, 50], [300, 75], [400, 100], [500, 125], [600, 150], [700, 175], [800, 200], [900, 225], [1000, 250]] }
+anotacoes:
+  - { tipo: linha-y, valor: 100, rotulo: "max_connections = 100", papel: destaque }
+fonte: "dados ilustrativos"

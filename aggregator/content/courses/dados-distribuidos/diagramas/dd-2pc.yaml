@@ -1,0 +1,34 @@
+id: dd-2pc
+tipo: sequencia
+titulo: "2PC: o coordenador cai entre o prepare e o commit, e ninguém decide sozinho"
+descricao: >
+  O coordenador pede prepare ao banco e à fila; cada um grava a intenção de forma durável,
+  responde sim e passa a segurar locks, prometendo que consegue commitar. O coordenador cai
+  antes de mandar o commit. Nenhum participante pode decidir sozinho: cada um prometeu e
+  não sabe o que o outro respondeu. A transação fica prepared, em dúvida, segurando locks,
+  até alguém decidir à mão se commita ou aborta, sem informação suficiente para ter
+  certeza.
+participantes:
+  - { id: coord, rotulo: "coordenador", papel: destaque }
+  - { id: banco, rotulo: "banco" }
+  - { id: fila, rotulo: "fila" }
+  - { id: humano, rotulo: "operador", papel: externo }
+mensagens:
+  - { de: coord, para: banco, rotulo: "prepare" }
+  - { de: coord, para: fila, rotulo: "prepare" }
+  - { de: banco, para: coord, rotulo: "sim", tipo: reply, nota: "segura os locks" }
+  - { de: fila, para: coord, rotulo: "sim", tipo: reply }
+  - { de: coord, para: coord, rotulo: "cai antes do commit" }
+  - { de: banco, para: banco, rotulo: "prepared, em dúvida", nota: "locks presos" }
+  - { de: humano, para: banco, rotulo: "commit ou abort, à mão", nota: "sem saber o que a fila fez" }
+animacao:
+  - legenda: "Fase 1: o coordenador pede prepare ao banco e à fila"
+    ate: 2
+  - legenda: "Os dois gravam a intenção, dizem sim e passam a segurar locks"
+    ate: 4
+  - legenda: "O coordenador cai depois dos sim e antes de mandar o commit"
+    ate: 5
+  - legenda: "Ninguém pode decidir sozinho: a transação fica em dúvida, com locks presos"
+    ate: 6
+  - legenda: "Alguém decide à mão, às 3h, sem saber o que o outro participante fez"
+    ate: 7

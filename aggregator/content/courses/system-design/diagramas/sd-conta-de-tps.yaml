@@ -1,0 +1,21 @@
+id: sd-conta-de-tps
+tipo: fluxo
+titulo: "De 5 milhões de clientes a ~160 TPS de pico, com cada premissa nomeada"
+descricao: >
+  A conta parte de 5 milhões de clientes. Com 20% de ativos por dia, uma premissa a validar
+  com dado real, são 1 milhão de clientes ativos. Com 2,3 transações por ativo por dia, a
+  média de produtos similares, são 2,3 milhões de transações por dia, cerca de 27 por
+  segundo na média. O fator de pico de 6 vezes, pela concentração em três janelas do dia,
+  leva a cerca de 160 transações por segundo. O resultado é um intervalo com a conta
+  exposta, pronto para ser trocado por dado real.
+passos:
+  - { id: clientes, rotulo: "5 milhões de clientes", col: 0, row: 0 }
+  - { id: ativos, rotulo: "1 milhão ativos/dia", col: 1, row: 0 }
+  - { id: tx, rotulo: "2,3 milhões tx/dia", col: 2, row: 0 }
+  - { id: media, rotulo: "~27 TPS na média", col: 2, row: 1 }
+  - { id: pico, rotulo: "~160 TPS de pico", col: 1, row: 1, papel: destaque }
+arestas:
+  - { de: clientes, para: ativos, rotulo: "20% (premissa)" }
+  - { de: ativos, para: tx, rotulo: "× 2,3 tx" }
+  - { de: tx, para: media, rotulo: "÷ 86.400 s" }
+  - { de: media, para: pico, rotulo: "× 6 (pico)" }

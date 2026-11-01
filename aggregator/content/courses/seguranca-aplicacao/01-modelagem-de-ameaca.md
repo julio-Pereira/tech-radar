@@ -29,6 +29,10 @@ ela força a passar pelas seis categorias em toda fronteira, inclusive as que ni
 sem checklist. Repúdio é a mais esquecida: "o parceiro pode alegar que nunca enviou aquele
 webhook?" é uma pergunta de segurança tanto quanto "alguém pode forjar esse token?".
 
+```diagrama
+sa-dfd-stride
+```
+
 ## Attack tree: quando a ameaça merece decomposição
 
 STRIDE por fronteira gera uma lista plana. Quando uma ameaça específica é grande demais
