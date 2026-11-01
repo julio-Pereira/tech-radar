@@ -14,6 +14,10 @@ Um **registry** guarda cada versão treinada de um modelo com seus metadados (m�
 código, *model card*) e a move por **estágios** (candidato, *shadow*, canário, produção, arquivado) — a
 mesma ideia de pipeline de deploy de software, aplicada a um artefato de modelo em vez de um binário.
 
+```diagrama
+ml-registry
+```
+
 ## O contrato do modelo
 
 Assim como uma API tem contrato, um modelo tem **contrato de entrada e saída**: quais features recebe, em
@@ -34,6 +38,11 @@ urgência de negócio.
 **nunca a usa** — só registra, para comparação. **Canário**: uma fração pequena do tráfego real recebe a
 decisão do modelo novo de fato. Shadow mede sem risco; canário mede com risco controlado e limitado. Os
 dois são etapas diferentes, não alternativas — o fluxo normal é shadow primeiro, canário depois.
+
+```diagrama
+ml-shadow
+ml-canario
+```
 
 ## Rollback, e por que ele exige guardar a versão das features
 

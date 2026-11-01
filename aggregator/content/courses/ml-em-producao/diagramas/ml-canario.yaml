@@ -1,0 +1,14 @@
+id: ml-canario
+tipo: topologia
+titulo: "Canário: uma fração pequena do tráfego recebe a decisão do novo"
+descricao: >
+  No canário, a requisição é dividida: a maior parte segue com o modelo em produção, e uma fração
+  pequena, 5% por exemplo, recebe de fato a decisão do modelo novo. É medição com risco real, mas
+  controlado e limitado. Vem depois do shadow, não no lugar dele.
+nos:
+  - { id: req, rotulo: "requisição", col: 0, row: 0 }
+  - { id: prod, rotulo: "modelo v3 decide", col: 1, row: 0 }
+  - { id: novo, rotulo: "v4 decide", col: 1, row: 1, papel: destaque }
+arestas:
+  - { de: req, para: prod, rotulo: "95%" }
+  - { de: req, para: novo, rotulo: "5%" }

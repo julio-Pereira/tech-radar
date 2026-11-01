@@ -1,0 +1,14 @@
+id: ml-shadow
+tipo: topologia
+titulo: "Shadow: o modelo novo calcula, registra e nunca decide"
+descricao: >
+  Em shadow, a mesma requisição vai ao modelo em produção e ao modelo novo. Só a decisão do modelo
+  em produção chega ao cliente; a do novo é registrada para comparação. É medição sem risco,
+  sobre todo o tráfego, antes de qualquer cliente ver o modelo novo.
+nos:
+  - { id: req, rotulo: "requisição", col: 0, row: 0 }
+  - { id: prod, rotulo: "modelo v3 decide", col: 1, row: 0 }
+  - { id: novo, rotulo: "v4 só registra", col: 1, row: 1, papel: destaque }
+arestas:
+  - { de: req, para: prod, rotulo: "100%" }
+  - { de: req, para: novo, rotulo: "cópia" }

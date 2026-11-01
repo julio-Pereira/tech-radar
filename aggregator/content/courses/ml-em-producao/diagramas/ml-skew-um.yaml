@@ -1,0 +1,15 @@
+id: ml-skew-um
+tipo: topologia
+titulo: "Um caminho: a definição versionada roda igual nos dois contextos"
+descricao: >
+  A feature é código: uma definição versionada, com fórmula, janela, dono e valor-padrão
+  declarados, executada tanto sobre o histórico no treino quanto sobre o estado atual no serviço.
+  Um teste prova que os dois contextos produzem o mesmo número para a mesma entrada. Vencido o
+  TTL, o serviço devolve ausente, nunca o valor velho como se fosse atual.
+nos:
+  - { id: def, rotulo: "renda_90d v4", col: 0, row: 0, papel: destaque }
+  - { id: treino, rotulo: "treino: 5.200", col: 1, row: 0 }
+  - { id: servico, rotulo: "serviço: 5.200", col: 1, row: 1 }
+arestas:
+  - { de: def, para: treino, rotulo: "histórico" }
+  - { de: def, para: servico, rotulo: "estado atual" }

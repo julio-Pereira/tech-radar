@@ -31,6 +31,10 @@ Um **holdout**: uma fração pequena e constante da base nunca recebe nenhuma of
 serve como referência do que aconteceria sem o sistema, para medir o efeito real do sistema inteiro ao
 longo do tempo, não só comparar uma versão de modelo com outra.
 
+```diagrama
+ml-feedback
+```
+
 ## Teste A/B correto
 
 **Unidade de randomização**: o que é sorteado entre braços (cliente, não decisão — senão o mesmo cliente

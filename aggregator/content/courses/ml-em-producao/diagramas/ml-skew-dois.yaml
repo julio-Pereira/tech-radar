@@ -1,0 +1,16 @@
+id: ml-skew-dois
+tipo: topologia
+titulo: "Dois caminhos: a mesma feature dá números diferentes no treino e no serviço"
+descricao: >
+  O treino calcula a renda dos últimos 90 dias numa consulta SQL, contando dias corridos. O
+  serviço recalcula em memória, contando dias úteis e usando nulo onde o treino usava zero. Para o
+  mesmo cliente, os dois caminhos devolvem 5.200 e 4.870, e o modelo passa a decidir em produção
+  sobre uma feature que não é a que viu no treino. Valores ilustrativos.
+nos:
+  - { id: sql, rotulo: "SQL · 90 dias corridos", col: 0, row: 0 }
+  - { id: treino, rotulo: "treino: 5.200", col: 1, row: 0 }
+  - { id: mem, rotulo: "memória · 90 dias úteis", col: 0, row: 1 }
+  - { id: servico, rotulo: "serviço: 4.870", col: 1, row: 1, papel: destaque }
+arestas:
+  - { de: sql, para: treino }
+  - { de: mem, para: servico }
