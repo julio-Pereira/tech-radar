@@ -129,6 +129,40 @@ for (const slug of slugs) {
     expect(report.problems).toEqual([]);
     expect(report.csp).toEqual([]);
     expect([...new Set(report.drawn)].sort(), 'every compiled diagram appears in a milestone').toEqual(ids.sort());
+
+    // Animated diagrams: labels change per step (rotulos, state marks), so
+    // the same label checks run on every step.
+    const players = page.locator('figure.diagrama-desenhado:has(.diagrama-player)');
+    for (let f = 0; f < await players.count(); f++) {
+      const figure = players.nth(f);
+      const next = figure.locator('.diagrama-player-proximo');
+      for (let step = 1; ; step++) {
+        const problems = await figure.evaluate((fig, n) => {
+          const out = [];
+          const id = /** @type {HTMLElement} */ (fig).dataset.diagrama;
+          const svg = /** @type {SVGSVGElement} */ (fig.querySelector('svg'));
+          const box = svg.getBoundingClientRect();
+          const texts = [...svg.querySelectorAll('text')]
+            .filter((t) => !t.closest('.diagrama-oculto'))
+            .map((t) => ({ t: t.textContent, r: t.getBoundingClientRect() }));
+          for (const { t, r } of texts) {
+            if (r.left < box.left - 1 || r.right > box.right + 1 || r.top < box.top - 1 || r.bottom > box.bottom + 1) out.push(`${id} passo ${n}: "${t}" sai do viewBox`);
+          }
+          for (let i = 0; i < texts.length; i++) {
+            for (let j = i + 1; j < texts.length; j++) {
+              const a = texts[i].r; const b = texts[j].r;
+              if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 2 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 3) {
+                out.push(`${id} passo ${n}: "${texts[i].t}" sobrepõe "${texts[j].t}"`);
+              }
+            }
+          }
+          return out;
+        }, step);
+        expect(problems).toEqual([]);
+        if (await next.getAttribute('aria-disabled') === 'true') break;
+        await next.click();
+      }
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
   });
 

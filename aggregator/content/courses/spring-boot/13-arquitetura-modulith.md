@@ -78,6 +78,10 @@ Módulos não devem se chamar direto como serviços acoplados. O Modulith incent
 **eventos de aplicação**: `payments` publica `PaymentInitiated`; `antifraud` e `audit`
 **escutam**, sem `payments` conhecê-los.
 
+```diagrama
+sb-modulith
+```
+
 ```java
 @ApplicationModuleListener
 void on(PaymentInitiated event) { ... }

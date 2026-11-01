@@ -1,0 +1,23 @@
+id: sb-idempotency-key
+tipo: sequencia
+titulo: "Duas requisições com a mesma chave: o banco serializa e a segunda devolve a mesma resposta"
+descricao: >
+  As requisições A e B chegam ao mesmo tempo com a mesma Idempotency-Key. A insere a
+  chave e abre a transação; o INSERT de B fica bloqueado, esperando A terminar. A processa
+  o pagamento e o outbox, grava o corpo da resposta e faz commit. O INSERT de B então
+  colide com a constraint única, B faz rollback sem processar nada e lê o corpo gravado:
+  devolve 201 com o mesmo paymentId de A. Se A tivesse falhado, a chave sumiria e B
+  processaria normalmente.
+participantes:
+  - { id: a, rotulo: "requisição A (chave K)" }
+  - { id: pg, rotulo: "Postgres", papel: destaque, conceito: idempotency-key }
+  - { id: b, rotulo: "requisição B (chave K)" }
+mensagens:
+  - { de: a, para: pg, rotulo: "INSERT K", nota: "K reservada; tx A aberta" }
+  - { de: b, para: pg, rotulo: "INSERT K", nota: "bloqueado, esperando tx A" }
+  - { de: a, para: a, rotulo: "pagamento + outbox" }
+  - { de: a, para: pg, rotulo: "UPDATE response_body" }
+  - { de: a, para: pg, rotulo: "COMMIT", nota: "A devolve 201 {paymentId: P}" }
+  - { de: pg, para: b, rotulo: "DuplicateKeyException", tipo: reply, nota: "rollback: nada processado" }
+  - { de: b, para: pg, rotulo: "SELECT response_body" }
+  - { de: pg, para: b, rotulo: "{paymentId: P}", tipo: reply, nota: "B devolve o mesmo 201" }

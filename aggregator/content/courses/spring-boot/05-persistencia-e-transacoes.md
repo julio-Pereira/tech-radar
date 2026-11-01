@@ -138,19 +138,9 @@ duas o saldo 100, debitar as duas 80 e gravar as duas 20. Saíram 160 de uma con
 tinha 100, e o segundo débito, que deveria ter sido recusado, apagou o primeiro. É um
 *lost update* — uma atualização perdida:
 
-```
-  sem lock:
-  tx A                     saldo no banco                tx B
-  lê ───────────────────▶       100       ◀─────────────── lê
-  100 - 80 = 20                                  100 - 80 = 20
-  grava 20 ─────────────▶        20
-                                 20       ◀─────────── grava 20
-                          (o débito de A sumiu)
-
-  com SELECT ... FOR UPDATE:
-  lê e trava ───────────▶       100       ◀── B tenta ler: espera
-  grava 20, commit ─────▶        20       ──▶ B lê 20; 20 < 80:
-                                              "saldo insuficiente"
+```diagrama
+sb-lost-update
+sb-version-otimista
 ```
 
 Há duas defesas.

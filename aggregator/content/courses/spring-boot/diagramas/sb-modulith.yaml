@@ -1,0 +1,22 @@
+id: sb-modulith
+tipo: topologia
+titulo: "Módulos conversam por evento; importar o interno de outro módulo quebra o build"
+descricao: >
+  O pix-gateway é um Modulith com três módulos: payments, antifraud e audit. O payments
+  publica o evento PaymentInitiated, e o antifraud e o audit escutam, sem que o payments
+  conheça nenhum dos dois. O que está nos subpacotes de um módulo é interno: se o payments
+  importar uma classe interna do antifraud, o ApplicationModules.verify falha no CI e o
+  acoplamento acidental vira erro de build, não dívida silenciosa.
+grupos:
+  - { id: modulith, rotulo: "pix-gateway (Modulith)", col: 0, row: 0, cols: 3, rows: 2 }
+nos:
+  - { id: payments, rotulo: "payments", grupo: modulith, col: 0, row: 0, papel: destaque }
+  - { id: evento, rotulo: "PaymentInitiated", grupo: modulith, col: 1, row: 0 }
+  - { id: antifraud, rotulo: "antifraud (API)", grupo: modulith, col: 2, row: 0 }
+  - { id: audit, rotulo: "audit", grupo: modulith, col: 2, row: 1 }
+  - { id: interno, rotulo: "antifraud.internal", grupo: modulith, col: 1, row: 1 }
+arestas:
+  - { de: payments, para: evento, rotulo: "publica" }
+  - { de: evento, para: antifraud, rotulo: "escuta" }
+  - { de: evento, para: audit, rotulo: "escuta" }
+  - { de: payments, para: interno, rotulo: "import: verify() falha", estilo: tracejada }

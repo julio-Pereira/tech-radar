@@ -52,19 +52,9 @@ JVM: milhões cabem na memória. Quando uma virtual thread bloqueia em I/O, a JV
 thread. Você escreve código bloqueante, linear, com `try/catch` e `ThreadLocal`
 normais — e ele escala como reativo.
 
-```
-  █ = usando CPU     ░ = parada no I/O, segurando a thread
-
-  uma thread de plataforma por requisição (Tomcat, 200 threads)
-  T1  ██ espera PSP ░░░░░░░░░░░░░░ ██
-  T2  ██ espera PSP ░░░░░░░░░░░░░░ ██
-  ... a requisição 201 espera uma thread livre
-
-  virtual threads (milhares) sobre poucas carriers
-  carrier 1  [VT1 ██][VT2 ██][VT3 ██][VT1 ██][VT4 ██] ...
-  carrier 2  [VT5 ██][VT6 ██][VT2 ██][VT7 ██] ...
-  VT1 bloqueou no I/O → desmontou; a carrier 1 pegou a VT2.
-  O I/O de VT1 voltou → ela é montada de novo, em qualquer carrier.
+```diagrama
+sb-thread-de-plataforma
+sb-virtual-threads
 ```
 
 No Boot, é uma linha:

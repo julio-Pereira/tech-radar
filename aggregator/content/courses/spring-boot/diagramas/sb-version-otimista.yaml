@@ -1,0 +1,22 @@
+id: sb-version-otimista
+tipo: sequencia
+titulo: "Com @Version, o segundo commit falha, repete e encontra o saldo real"
+descricao: >
+  A conta tem uma coluna de versão. As duas transações leem saldo 100 na versão 1. A
+  primeira grava 20 com a condição version igual a 1 e a versão passa a 2. A segunda
+  tenta a mesma condição, não encontra linha nenhuma, e o Hibernate lança
+  OptimisticLockException. A operação é repetida: agora lê 20 na versão 2, e o débito de
+  80 é recusado por saldo insuficiente. Serve quando o conflito é raro.
+participantes:
+  - { id: a, rotulo: "tx A (débito 80)" }
+  - { id: pg, rotulo: "Postgres", papel: destaque }
+  - { id: b, rotulo: "tx B (débito 80)" }
+mensagens:
+  - { de: a, para: pg, rotulo: "SELECT saldo, version" }
+  - { de: pg, para: a, rotulo: "100, v1", tipo: reply }
+  - { de: b, para: pg, rotulo: "SELECT saldo, version" }
+  - { de: pg, para: b, rotulo: "100, v1", tipo: reply }
+  - { de: a, para: pg, rotulo: "UPDATE se version=1", nota: "1 linha: saldo 20, v2" }
+  - { de: b, para: pg, rotulo: "UPDATE se version=1" }
+  - { de: pg, para: b, rotulo: "0 linhas", tipo: reply, nota: "OptimisticLockException" }
+  - { de: b, para: pg, rotulo: "repete: lê 20, v2", nota: "20 < 80: saldo insuficiente" }

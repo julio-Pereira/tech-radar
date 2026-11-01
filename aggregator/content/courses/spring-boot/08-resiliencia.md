@@ -56,17 +56,8 @@ de falha; ao ultrapassar um limite, ele **abre** e passa a **falhar rápido** po
 tempo, sem nem chamar o serviço morto — dando a ele espaço para se recuperar. Depois,
 entra em *half-open* (meio aberto) e testa com poucas chamadas antes de fechar de novo:
 
-```
-               falha ≥ 50% na janela
-  ┌────────┐ ─────────────────────────▶ ┌────────┐ falha rápido, sem
-  │ CLOSED │                            │  OPEN  │ chamar o PSP
-  └────────┘                            └────────┘
-       ▲                                     │ passou o tempo de
-       │ testes deram certo                  ▼ wait-duration
-       │                              ┌───────────┐
-       └───────────────────────────── │ HALF_OPEN │
-                                      └───────────┘
-                                 teste falhou ─▶ volta a OPEN
+```diagrama
+sb-circuit-breaker
 ```
 
 O **bulkhead** isola recursos: um pool de concorrência separado por dependência, para
@@ -119,17 +110,8 @@ Três decisões estão nesse trecho, e cada uma tem motivo:
 - **Circuito aberto não se repete.** Com o circuito aberto, a chamada falha com
   `CallNotPermittedException`; repeti-la só adiaria o fallback.
 
-```
-  chamador ─▶ Retry ─▶ CircuitBreaker ─▶ pspClient.post()
-              (fora)      (dentro)
-
-  fallback no Retry:
-    503 ─▶ CB registra a falha ─▶ Retry vê o erro, espera, repete
-    3 tentativas esgotadas ─▶ fallback
-
-  fallback no CircuitBreaker:
-    503 ─▶ CB chama o fallback e devolve ACCEPTED
-        ─▶ Retry vê sucesso ─▶ nunca repete
+```diagrama
+sb-retry-e-fallback
 ```
 
 Diga ao retry para não repetir o circuito aberto:

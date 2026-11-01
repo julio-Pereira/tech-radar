@@ -1,0 +1,28 @@
+id: sb-security-filter-chain
+tipo: fluxo
+titulo: "pix-gateway: certificado, token preso a ele, scope e regra, nessa ordem"
+descricao: >
+  A instituição cliente apresenta o certificado no TLS mútuo, terminado no ingress. Em
+  seguida o Spring Security valida o JWT do header Authorization com as chaves do JWKS do
+  issuer: assinatura, expiração e emissor. Pelo FAPI, o claim cnf do token precisa
+  conferir com o certificado apresentado, então um token roubado não serve sem a chave
+  privada. Depois vem a autorização por URL, que exige o scope payments:write, e a
+  autorização por método, com PreAuthorize checando o valor. Sem o scope, a requisição é
+  negada com 403, e a negativa também é registrada.
+passos:
+  - { id: cliente, rotulo: "instituição cliente", col: 0, row: 0, papel: externo }
+  - { id: mtls, rotulo: "mTLS no ingress", col: 1, row: 0, conceito: mtls }
+  - { id: jwt, rotulo: "JWT validado (JWKS)", col: 2, row: 0, conceito: jwt }
+  - { id: cnf, rotulo: "token preso ao cert", col: 3, row: 0, conceito: fapi }
+  - { id: scope, rotulo: "scope na URL", col: 3, row: 1 }
+  - { id: metodo, rotulo: "@PreAuthorize", col: 2, row: 1 }
+  - { id: pagamento, rotulo: "pagamento iniciado", col: 1, row: 1, papel: destaque }
+  - { id: negado, rotulo: "403, com log", col: 3, row: 2 }
+arestas:
+  - { de: cliente, para: mtls, rotulo: "certificado" }
+  - { de: mtls, para: jwt, rotulo: "Bearer" }
+  - { de: jwt, para: cnf, rotulo: "assinado" }
+  - { de: cnf, para: scope, rotulo: "cnf confere" }
+  - { de: scope, para: metodo, rotulo: "SCOPE ok" }
+  - { de: metodo, para: pagamento, rotulo: "≤ 50 mil" }
+  - { de: scope, para: negado, rotulo: "sem scope", tipo: falha }

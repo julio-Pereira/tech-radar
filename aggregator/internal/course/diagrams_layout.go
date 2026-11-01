@@ -22,7 +22,8 @@ const (
 	layoutGapY       = 60.0
 	layoutMargin     = 40.0
 	layoutGroupLabel = 20.0
-	layoutSeqCol     = 200.0
+	layoutSeqColMin  = 150.0
+	layoutSeqColMax  = 200.0
 	layoutChartW     = 640.0
 
 	// Above this natural width the drawing no longer fits the widened figure
@@ -81,7 +82,7 @@ func (l gridLayout) center(col, row float64) (float64, float64) {
 func diagramaLarguraNatural(d Diagrama) float64 {
 	switch d.Tipo {
 	case "sequencia":
-		return 2*layoutMargin + float64(len(d.Participantes))*layoutSeqCol
+		return 2*layoutMargin + float64(len(d.Participantes))*seqCol(d)
 	case "grafico":
 		return layoutChartW
 	}
@@ -161,4 +162,18 @@ func segmentHitsBox(p, q [2]float64, x0, y0, x1, y1 float64) bool {
 		}
 	}
 	return true
+}
+
+// seqCol is the distance between lifelines: as wide as the longest
+// participant or message label needs, between 150 and 200px.
+func seqCol(d Diagrama) float64 {
+	part, msg := 0, 0
+	for _, p := range d.Participantes {
+		part = max(part, utf8.RuneCountInString(p.Rotulo))
+	}
+	for _, m := range d.Mensagens {
+		msg = max(msg, utf8.RuneCountInString(m.Rotulo))
+	}
+	need := math.Max(float64(part)*layoutNodeCharW+40, float64(msg)*layoutCharW+24)
+	return math.Max(layoutSeqColMin, math.Min(layoutSeqColMax, math.Ceil(need)))
 }

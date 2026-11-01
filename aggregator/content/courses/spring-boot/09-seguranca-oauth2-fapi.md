@@ -121,6 +121,10 @@ e repassar o certificado do cliente; o essencial é entender **por que** cada pe
 — roubo de token e falsificação de identidade são o modelo de ameaça de quem move
 dinheiro alheio.
 
+```diagrama
+sb-security-filter-chain
+```
+
 > **Reencontro adiante — `seguranca-aplicacao/07`.** Os requisitos do FAPI que mais pegam na prática, o token *sender-constrained* e o
 > mTLS de verdade, do lado de quem configura o servidor de autorização. Os fluxos OAuth2 e
 > OIDC por baixo estão em `seguranca-aplicacao/05`, e a cripto-agilidade — inclusive a

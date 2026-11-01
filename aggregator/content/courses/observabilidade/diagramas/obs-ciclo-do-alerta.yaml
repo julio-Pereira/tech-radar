@@ -20,3 +20,21 @@ transicoes:
   - { de: pending, para: firing, evento: "dura o for" }
   - { de: firing, para: resolved, evento: "janela curta normal" }
   - { de: resolved, para: inactive, evento: "esfria" }
+animacao:
+  - legenda: "A regra é avaliada a cada intervalo; com a expressão falsa, nada acontece"
+    atual: inactive
+  - legenda: "Expressão verdadeira: o alerta fica pendente, ainda sem notificar ninguém"
+    atual: pending
+    transicao: { de: inactive, para: pending }
+  - legenda: "A condição durou o tempo do for: o alerta dispara e notifica"
+    atual: firing
+    transicao: { de: pending, para: firing }
+  - legenda: "A janela curta normaliza: o alerta resolve, mesmo com a longa ainda alta"
+    atual: resolved
+    transicao: { de: firing, para: resolved }
+  - legenda: "Esfria e volta a inativo, pronto para a próxima avaliação"
+    atual: inactive
+    transicao: { de: resolved, para: inactive }
+  - legenda: "Outro desfecho: a expressão volta a falsa antes do for, e ninguém é notificado"
+    atual: inactive
+    transicao: { de: pending, para: inactive }

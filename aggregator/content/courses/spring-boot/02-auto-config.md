@@ -70,17 +70,19 @@ Duas boas práticas que separam o brinquedo do artefato de produção:
   esse arquivo e descarta as auto-configurações que não se aplicam **sem carregar a
   classe** delas — startup mais rápido, que cresce com o número de starters internos.
 
+```diagrama
+sb-auto-config-condicoes
+```
+
 ## Um starter interno de plataforma
 
 Um **starter** é uma casca sem código: ele só amarra a auto-configuração + as
 dependências transitivas numa coordenada Maven fácil de adicionar. A convenção da
 comunidade é `acme-fintech-audit-spring-boot-starter` (o prefixo do produto vem
-**antes** de `spring-boot-starter`, que é reservado para os oficiais).
+**antes** de `spring-boot-starter`, que é reservado para os oficiais). São dois módulos:
 
-```
-acme-fintech-audit-spring-boot-starter   (pom vazio: só depende do autoconfigure)
-        └── acme-fintech-audit-autoconfigure  (a @AutoConfiguration + as classes)
-```
+- `acme-fintech-audit-spring-boot-starter`: o pom vazio, que só depende do autoconfigure;
+- `acme-fintech-audit-autoconfigure`: a `@AutoConfiguration` e as classes.
 
 Um squad passa a ter observabilidade de auditoria padronizada assim:
 

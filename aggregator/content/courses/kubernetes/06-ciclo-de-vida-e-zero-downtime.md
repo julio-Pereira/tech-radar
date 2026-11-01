@@ -112,6 +112,10 @@ Para deploy sem perder capacidade: **`maxUnavailable: 0`** e `maxSurge: 1` (ou m
 Sobe o novo, espera ficar `Ready`, só então derruba um antigo. Mais lento e é o que você
 quer no caminho do dinheiro.
 
+```diagrama
+k8s-rolling-update
+```
+
 `maxUnavailable: 0` com `replicas: 3` e capacidade justa no cluster **trava**: não há nó
 para o pod extra. É a interação com o marco 05 que aparece no pior momento.
 

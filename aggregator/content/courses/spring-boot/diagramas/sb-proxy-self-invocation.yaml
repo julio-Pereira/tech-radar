@@ -1,0 +1,20 @@
+id: sb-proxy-self-invocation
+tipo: sequencia
+titulo: "Self-invocation: this.applyRefund() contorna o proxy, e não há transação"
+descricao: >
+  O controller chama processRefund, que não tem advice: o proxy apenas delega ao objeto
+  real. Dentro dele, processRefund chama this.applyRefund. Essa chamada não passa pelo
+  proxy, vai direto ao objeto real, e o advice do Transactional de applyRefund nunca roda.
+  Débito e crédito executam sem transação: se o crédito falha, o débito já está gravado.
+  Nenhum erro, nenhum log. A correção é mover applyRefund para outro bean e injetá-lo.
+participantes:
+  - { id: chamador, rotulo: "controller" }
+  - { id: proxy, rotulo: "proxy (CGLIB)" }
+  - { id: bean, rotulo: "RefundService real", papel: destaque }
+mensagens:
+  - { de: chamador, para: proxy, rotulo: "processRefund(r)" }
+  - { de: proxy, para: bean, rotulo: "processRefund(r)", nota: "sem advice: só delega" }
+  - { de: bean, para: bean, rotulo: "this.applyRefund(r)", nota: "não passa pelo proxy" }
+  - { de: bean, para: bean, rotulo: "débito e crédito", nota: "sem tx: a falha não desfaz" }
+  - { de: bean, para: proxy, rotulo: "retorno", tipo: reply }
+  - { de: proxy, para: chamador, rotulo: "retorno", tipo: reply }

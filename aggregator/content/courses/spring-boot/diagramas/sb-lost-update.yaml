@@ -1,0 +1,20 @@
+id: sb-lost-update
+tipo: sequencia
+titulo: "Sem controle, o segundo débito apaga o primeiro"
+descricao: >
+  Duas transações debitam 80 da mesma conta, que tem saldo 100. As duas leem 100, as duas
+  calculam 20 e as duas gravam 20. O banco aceita as duas escritas, e a segunda sobrescreve
+  a primeira: saíram 160 de uma conta que tinha 100, e o débito que deveria ter sido
+  recusado apagou o outro. É o lost update, a atualização perdida, que nenhum erro
+  denuncia.
+participantes:
+  - { id: a, rotulo: "tx A (débito 80)" }
+  - { id: pg, rotulo: "Postgres", papel: destaque }
+  - { id: b, rotulo: "tx B (débito 80)" }
+mensagens:
+  - { de: a, para: pg, rotulo: "SELECT saldo" }
+  - { de: pg, para: a, rotulo: "100", tipo: reply }
+  - { de: b, para: pg, rotulo: "SELECT saldo" }
+  - { de: pg, para: b, rotulo: "100", tipo: reply }
+  - { de: a, para: pg, rotulo: "UPDATE saldo = 20" }
+  - { de: b, para: pg, rotulo: "UPDATE saldo = 20", nota: "o débito de A sumiu: saíram 160" }

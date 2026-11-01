@@ -21,3 +21,4 @@ mensagens:
   - { de: proc, para: destino, rotulo: "send(resultado)" }
   - { de: proc, para: origem, rotulo: "sendOffsetsToTransaction" }
   - { de: proc, para: proc, rotulo: "commitTransaction", nota: "crash antes daqui: aborta, mas cobrou" }
+animacao: mensagens

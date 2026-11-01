@@ -19,7 +19,6 @@ const GROUP_PAD = 12;
 const GROUP_LABEL = 20;
 const FIT_PAD = 8; // room kept around labels that stick out of the boxes
 
-const SEQ_COL = 200;
 const SEQ_HEAD = 40;
 const SEQ_STEP = 46;
 const SEQ_NOTE = 18;
@@ -59,8 +58,7 @@ function draw(spec, prefix, links) {
   const svg = spec.tipo === 'sequencia' ? drawSequence(spec, prefix, links)
     : spec.tipo === 'grafico' ? drawChart(spec)
       : drawGraph(spec, prefix, links);
-  // "group", not "img": concept links and chart points are focusable
-  // children; boxes and lines are aria-hidden, the caption names the group.
+  // "group", not "img": it has focusable children (links, chart points).
   svg.setAttribute('role', 'group');
   svg.dataset.tipo = spec.tipo;
   widthClass(svg);
@@ -106,34 +104,33 @@ function drawInto(figure, spec) {
 
   wireConceptLinks(svg);
   wireChartKeys(svg);
+  animate(svg, spec, frame);
   resumeReturnPoint(figure);
 }
 
 // Width class (course.css): between 80% and 100% of the natural width.
 function widthClass(svg) {
   const w = Number((svg.getAttribute('viewBox') || '').split(' ')[2]);
-  const bucket = Math.min(16, Math.max(3, Math.ceil(w / 100)));
+  const bucket = Math.min(16, Math.max(3, Math.ceil((w - 5) / 100)));
   svg.setAttribute('class', `diagrama-svg diagrama-${svg.dataset.tipo} diagrama-l${bucket}`);
 }
 
-// Grows the viewBox to every label drawn (C2), once the figure is displayed.
+// Grows the viewBox where a label sticks out (C2); needs layout.
 function fitViewBox(svg) {
   if (svg.dataset.ajustado) return false;
   const b = svg.getBBox();
   if (!b.width || !b.height) return false;
   svg.dataset.ajustado = '1';
   const [vx, vy, vw, vh] = (svg.getAttribute('viewBox') || '0 0 0 0').split(' ').map(Number);
-  const x0 = Math.min(vx, Math.floor(b.x - FIT_PAD));
-  const y0 = Math.min(vy, Math.floor(b.y - FIT_PAD));
-  const x1 = Math.max(vx + vw, Math.ceil(b.x + b.width + FIT_PAD));
-  const y1 = Math.max(vy + vh, Math.ceil(b.y + b.height + FIT_PAD));
+  const x0 = b.x < vx ? Math.floor(b.x - FIT_PAD) : vx;
+  const y0 = b.y < vy ? Math.floor(b.y - FIT_PAD) : vy;
+  const x1 = b.x + b.width > vx + vw ? Math.ceil(b.x + b.width + FIT_PAD) : vx + vw;
+  const y1 = b.y + b.height > vy + vh ? Math.ceil(b.y + b.height + FIT_PAD) : vy + vh;
   svg.setAttribute('viewBox', `${x0} ${y0} ${x1 - x0} ${y1 - y0}`);
   svg.setAttribute('width', String(x1 - x0));
   svg.setAttribute('height', String(y1 - y0));
   return true;
 }
-
-// Ampliar: the same drawing in a full-screen modal dialog
 
 let dialog = null;
 
@@ -182,6 +179,11 @@ function zoomDialog() {
   return d;
 }
 
+// Fase 1.6: the step player loads only for an animated spec.
+function animate(svg, spec, mount, twin) {
+  if (spec.animacao) import('./diagram-player.js').then((m) => m.attach(svg, spec, mount, twin));
+}
+
 function openZoom(spec, title, opener) {
   const d = zoomDialog();
   const h = (d.querySelector('h2'));
@@ -193,12 +195,14 @@ function openZoom(spec, title, opener) {
   area.replaceChildren(svg);
   d.addEventListener('close', () => {
     area.replaceChildren();
+    d.querySelector('.diagrama-player')?.remove();
     opener.focus();
   }, { once: true });
   d.showModal();
   fitViewBox(svg);
   widthClass(svg);
   wireChartKeys(svg);
+  animate(svg, spec, area, opener.closest('figure'));
   (d.querySelector('.diagrama-fechar')).focus();
 }
 
@@ -206,8 +210,6 @@ function hidden(node) {
   node.setAttribute('aria-hidden', 'true');
   return node;
 }
-
-// topologia, fluxo, estados: boxes on the author's grid
 
 function cellWidthFor(spec) {
   const longest = Math.max(0, ...(spec.nos || []).map((n) => n.rotulo.length));
@@ -284,7 +286,7 @@ function drawGraph(spec, prefix, links) {
 }
 
 function drawEdge(from, to, a, prefix, hasReverse, via) {
-  const g = el('g', { class: `diagrama-aresta-grupo${a.estilo ? ` diagrama-aresta--${a.estilo}` : ''}` });
+  const g = el('g', { class: `diagrama-aresta-grupo${a.estilo ? ` diagrama-aresta--${a.estilo}` : ''}`, 'data-aresta': `${a.de}>${a.para}` });
   const arrow = { class: 'diagrama-aresta', fill: 'none', 'marker-end': `url(#${prefix}-seta)` };
   if (from === to) {
     const x = from.cx;
@@ -313,8 +315,7 @@ function drawEdge(from, to, a, prefix, hasReverse, via) {
     const mx = (s.x1 + s.x2) / 2;
     const my = (s.y1 + s.y2) / 2;
     const vertical = Math.abs(s.x2 - s.x1) < Math.abs(s.y2 - s.y1);
-    // Beside a vertical edge, above a horizontal one; in an opposite pair
-    // each label goes on its own line's side.
+    // Beside a vertical edge, above a horizontal one, on its own side.
     const side = vertical ? Math.sign(-(s.y2 - s.y1)) : Math.sign(s.x2 - s.x1);
     const t = vertical
       ? (hasReverse && side < 0
@@ -336,7 +337,7 @@ function edgeText(a) {
 function drawNode(no, p, tipo, final, links) {
   const radius = tipo === 'estados' ? 22 : tipo === 'fluxo' ? 14 : 6;
   const cls = `diagrama-no${no.papel ? ` diagrama-no--${no.papel}` : ''}`;
-  const g = el('g', { class: cls });
+  const g = el('g', { class: cls, 'data-id': no.id });
   g.appendChild(hidden(rect(p, 'diagrama-no-caixa', radius)));
   if (final) g.appendChild(hidden(rect({ x: p.x + 4, y: p.y + 4, w: p.w - 8, h: p.h - 8 }, 'diagrama-no-final', radius - 4)));
   g.appendChild(hidden(label(p.cx, p.cy + 5, no.rotulo, 'diagrama-no-rotulo')));
@@ -354,11 +355,11 @@ function conceptLink(item, g) {
   return a;
 }
 
-// sequencia: participants as columns, messages as rows
-
 function drawSequence(spec, prefix, links) {
   const parts = spec.participantes || [];
   const msgs = spec.mensagens || [];
+  const len = (xs, k) => Math.max(0, ...xs.map((x) => x[k].length));
+  const SEQ_COL = Math.max(150, Math.min(200, Math.ceil(Math.max(len(parts, 'rotulo') * NODE_CHAR_W + 40, len(msgs, 'rotulo') * CHAR_W + 24))));
   const colOf = new Map(parts.map((p, i) => [p.id, MARGIN + i * SEQ_COL + SEQ_COL / 2]));
 
   let y = MARGIN + SEQ_HEAD + 34;
@@ -382,18 +383,20 @@ function drawSequence(spec, prefix, links) {
     svg.appendChild(p.href && links ? conceptLink(p, g) : g);
   }
 
-  for (const { m, y: my } of rows) {
+  rows.forEach(({ m, y: my }, i) => {
     const x1 = (colOf.get(m.de));
     const x2 = (colOf.get(m.para));
-    const g = hidden(el('g', { class: `diagrama-mensagem diagrama-mensagem--${m.tipo}` }));
+    const g = hidden(el('g', { class: `diagrama-mensagem diagrama-mensagem--${m.tipo}`, 'data-msg': i }));
     const marker = m.tipo === 'sync' ? 'seta' : 'seta-aberta';
     if (x1 === x2) {
+      const d = m.de === parts[parts.length - 1].id && parts.length > 1 ? -1 : 1;
+      const side = d > 0 ? 'diagrama-rotulo-inicio' : 'diagrama-rotulo-fim';
       g.appendChild(el('path', {
-        d: `M${x1},${my} h44 v18 h-42`,
+        d: `M${x1},${my} h${44 * d} v18 h${-42 * d}`,
         class: 'diagrama-aresta', fill: 'none', 'marker-end': `url(#${prefix}-${marker})`,
       }));
-      g.appendChild(label(x1 + 50, my + 4, m.rotulo, 'diagrama-aresta-rotulo diagrama-rotulo-inicio'));
-      if (m.nota) g.appendChild(label(x1 + 50, my + 34, m.nota, 'diagrama-nota diagrama-rotulo-inicio'));
+      g.appendChild(label(x1 + 50 * d, my + 4, m.rotulo, `diagrama-aresta-rotulo ${side}`));
+      if (m.nota) g.appendChild(label(x1 + 50 * d, my + 34, m.nota, `diagrama-nota ${side}`));
     } else {
       const dir = x2 > x1 ? 1 : -1;
       g.appendChild(el('line', {
@@ -404,11 +407,9 @@ function drawSequence(spec, prefix, links) {
       if (m.nota) g.appendChild(label((x1 + x2) / 2, my + 16, m.nota, 'diagrama-nota'));
     }
     svg.appendChild(g);
-  }
+  });
   return svg;
 }
-
-// grafico: lines, bars or areas over two axes (D-G)
 
 const fmt = (n) => (typeof n === 'number' ? n.toLocaleString('pt-BR') : String(n));
 
@@ -442,18 +443,15 @@ function axisScale(lo, hi, log, a, b) {
 const MARKS = [
   (x, y) => el('circle', { cx: x, cy: y, r: 4.5 }),
   (x, y) => el('rect', { x: x - 4, y: y - 4, width: 8, height: 8 }),
-  (x, y) => el('path', { d: `M${x},${y - 5.5} L${x + 5},${y + 4} L${x - 5},${y + 4} Z` }),
-  (x, y) => el('path', { d: `M${x},${y - 5.5} L${x + 5.5},${y} L${x},${y + 5.5} L${x - 5.5},${y} Z` }),
+  (x, y) => el('path', { d: `M${x},${y - 5.5}l5,9.5h-10z` }),
+  (x, y) => el('path', { d: `M${x},${y - 5.5}l5.5,5.5-5.5,5.5-5.5-5.5z` }),
 ];
 
 function drawChart(spec) {
   const series = spec.series || [];
   const cat = spec.eixo_x.tipo === 'categoria';
   const legend = series.length > 1;
-  const left = CH_L;
-  const right = CH_W - CH_R;
-  const top = CH_T + (legend ? 22 : 0);
-  const bottom = CH_H - CH_B;
+  const [left, right, top, bottom] = [CH_L, CH_W - CH_R, CH_T + (legend ? 22 : 0), CH_H - CH_B];
   const svg = el('svg', { viewBox: `0 0 ${CH_W} ${CH_H}`, width: CH_W, height: CH_H });
 
   const ys = series.flatMap((s) => s.pontos.map((p) => p[1]));
@@ -491,7 +489,6 @@ function drawChart(spec) {
   axes.appendChild(yTitle);
   svg.appendChild(axes);
 
-  // Bands behind the data, lines over it.
   const anots = spec.anotacoes || [];
   const xEdge = (v, side) => X(v) + (cat ? side * band / 2 : 0);
   for (const a of anots.filter((a) => a.tipo.startsWith('faixa'))) {
@@ -555,7 +552,7 @@ function drawChart(spec) {
   return svg;
 }
 
-// Focusable point with its values; roving tabindex, arrows move.
+// Roving tabindex: one Tab stop per chart.
 function point(node, spec, s, p) {
   node.setAttribute('class', `${node.getAttribute('class') || ''} diagrama-ponto`.trim());
   node.setAttribute('tabindex', '-1');
@@ -590,8 +587,6 @@ function wireChartKeys(svg) {
   });
 }
 
-// concept links: detour and return, like the links in the prose
-
 function wireConceptLinks(svg) {
   svg.querySelectorAll('a.diagrama-conceito').forEach((a) => {
     a.addEventListener('click', (e) => {
@@ -602,7 +597,7 @@ function wireConceptLinks(svg) {
   });
 }
 
-// The detour's return point may be a node drawn late: return to it now.
+// Return to a detour point drawn late.
 function resumeReturnPoint(figure) {
   const parts = window.location.hash.split('/');
   if (parts.length < 5 || parts[1] !== 'learn') return;

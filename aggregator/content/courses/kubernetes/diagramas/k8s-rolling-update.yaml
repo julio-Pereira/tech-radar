@@ -1,0 +1,59 @@
+id: k8s-rolling-update
+tipo: topologia
+titulo: "Rolling update com maxUnavailable 0: sobe o novo, espera a readiness, só então sai o velho"
+descricao: >
+  O pix-gateway tem 4 réplicas e o Deployment usa maxSurge 1 e maxUnavailable 0, a
+  recomendação do marco para o caminho do dinheiro. O rollout sobe um pod v2 na vaga
+  extra do surge; ele só entra no Service quando a readiness passa. Só então um pod v1
+  sai, drenando as requisições em curso, e a vaga dele recebe o próximo v2. O ciclo se
+  repete até os quatro pods serem v2. Em nenhum momento há menos de 4 pods prontos
+  atendendo, e o ReplicaSet v1 fica com zero réplicas, pronto para o rollback.
+grupos:
+  - { id: deploy, rotulo: "Deployment pix-gateway", col: 0, row: 1, cols: 5, rows: 1 }
+nos:
+  - { id: svc, rotulo: "Service", col: 2, row: 0, papel: destaque }
+  - { id: p1, rotulo: "v1", grupo: deploy, col: 0, row: 1 }
+  - { id: p2, rotulo: "v1", grupo: deploy, col: 1, row: 1 }
+  - { id: p3, rotulo: "v1", grupo: deploy, col: 2, row: 1 }
+  - { id: p4, rotulo: "v1", grupo: deploy, col: 3, row: 1 }
+  - { id: p5, rotulo: "vaga do surge", grupo: deploy, col: 4, row: 1, papel: externo }
+arestas:
+  - { de: svc, para: p1 }
+  - { de: svc, para: p2 }
+  - { de: svc, para: p3 }
+  - { de: svc, para: p4 }
+  - { de: svc, para: p5 }
+animacao:
+  - legenda: "4 pods v1 atendem; maxSurge 1, maxUnavailable 0"
+    fluxos: [ { de: svc, para: p1 }, { de: svc, para: p2 }, { de: svc, para: p3 }, { de: svc, para: p4 } ]
+  - legenda: "Sobe 1 pod v2 na vaga do surge; fica fora do Service até ficar ready"
+    estados: { p5: novo }
+    rotulos: { p5: "v2 · iniciando" }
+  - legenda: "Readiness ok: o Service passa a enviar tráfego ao v2"
+    estados: { p5: ativo }
+    rotulos: { p5: "v2" }
+    fluxos: [ { de: svc, para: p5 } ]
+  - legenda: "Só então 1 pod v1 sai, drenando as requisições em curso"
+    estados: { p1: saindo }
+    rotulos: { p1: "v1 · drenando" }
+    anotacao: "capacidade nunca abaixo de 4 pods prontos"
+  - legenda: "O v1 saiu; na vaga dele sobe o próximo v2"
+    estados: { p1: novo }
+    rotulos: { p1: "v2 · iniciando" }
+  - legenda: "Ready: o novo v2 recebe tráfego, e outro v1 começa a drenar"
+    estados: { p1: ativo, p2: saindo }
+    rotulos: { p1: "v2", p2: "v1 · drenando" }
+    fluxos: [ { de: svc, para: p1 } ]
+  - legenda: "O mesmo ciclo: um v2 fica ready, só depois um v1 drena"
+    estados: { p2: ativo, p3: saindo }
+    rotulos: { p2: "v2", p3: "v1 · drenando" }
+    fluxos: [ { de: svc, para: p2 } ]
+  - legenda: "Terceiro v2 pronto; o último v1 drena"
+    estados: { p3: ativo, p4: saindo }
+    rotulos: { p3: "v2", p4: "v1 · drenando" }
+    fluxos: [ { de: svc, para: p3 } ]
+  - legenda: "Fim: 4 pods v2, e o pod extra do surge não existe mais"
+    estados: { p4: removido }
+    rotulos: { p4: "v1 · removido" }
+    fluxos: [ { de: svc, para: p5 }, { de: svc, para: p1 }, { de: svc, para: p2 }, { de: svc, para: p3 } ]
+    anotacao: "o ReplicaSet v1 fica com 0 réplicas, pronto para o rollback"

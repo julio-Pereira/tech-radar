@@ -291,6 +291,34 @@ names — `pix-gateway`, `ledger-core`, `pix-stream`, real topics and events —
 diagram never states a fact the text doesn't support. **New ASCII diagrams are not
 allowed**: the compiler warns about fenced blocks with box-drawing characters or arrows.
 
+**Animation by steps.** A diagram whose lesson is a process in time — a rolling update,
+a canary, a saga compensating, an alert's life cycle — gets an `animacao:` list (the plan
+calls it `passos`, but that key is already the node list of `fluxo`). Animate when the
+**order or the transition is the content**, never to decorate.
+
+```yaml
+animacao:
+  - legenda: "4 pods v1 atendem; maxSurge 1, maxUnavailable 0"   # step 1 = the base drawing
+  - legenda: "Sobe 1 pod v2; fica fora do Service até ficar ready"
+    estados: { p5: novo }          # ativo | novo | saindo | removido | falha | inativo | destaque
+    rotulos: { p5: "v2 · iniciando" }
+    fluxos: [ { de: svc, para: p5, rotulo: "5%" } ]   # an existing edge, same direction
+    anotacao: "capacidade nunca abaixo de 4"
+```
+
+`estados` and `rotulos` are **cumulative** (they hold until a later step changes them);
+`fluxos` and `anotacao` last one step. A `fluxos` label only replaces an edge label that
+exists. In `estados`, every step names the `atual` state and may name the `transicao`; in
+`sequencia`, `animacao: mensagens` makes one step per message, or each step reveals up to
+message `ate`. At most 12 steps; each `legenda` (≤ 90 characters) is an assertion, like a
+title. **Numbers must agree** across legend, labels and prose — percentages, replicas,
+limits (a canary of 5% with 20 replicas is 1 pod). The compiler validates all of it and
+writes the steps as a numbered list in the textual description. The player
+(`web/js/courses/diagram-player.js`, ≤ 4 KB gzip, loaded only for a track with an animated
+diagram) never autoplays, pauses off screen and in a hidden tab, is driven by keyboard
+(Space, ←/→, Home/End), announces each legend, and with `prefers-reduced-motion` changes
+steps without moving anything.
+
 On screen the figure is wider than the reading column (up to 1100px), never shrinks below
 80% of its natural size, and says in text when it still has to scroll; **Ampliar** opens
 it full screen in a modal dialog — the main path on a phone. `web/tests/diagram-real.spec.js`

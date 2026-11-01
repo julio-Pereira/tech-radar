@@ -132,6 +132,10 @@ No rollout, o Boot marca readiness como *out* no início do shutdown, então o K
 para de mandar tráfego **antes** do graceful shutdown drenar as requisições em voo. Esse
 é o encadeamento que dá deploy sem derrubar transação.
 
+```diagrama
+sb-graceful-shutdown
+```
+
 > **Reencontro adiante — `kubernetes/06`.** O lado do cluster dessa coreografia — o
 > `preStop`, o `terminationGracePeriodSeconds` e por que o pod ainda recebe tráfego por
 > alguns segundos depois do SIGTERM — é o assunto desse marco.
