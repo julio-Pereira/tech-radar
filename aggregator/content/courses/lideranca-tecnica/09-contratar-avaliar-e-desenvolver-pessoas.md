@@ -39,6 +39,10 @@ rubrica), medir a **concordância** entre elas — formalmente, com um coeficien
 revela se a rubrica está sendo aplicada de forma consistente ou se cada entrevistador está, na
 prática, usando critérios próprios apesar da rubrica compartilhada.
 
+```diagrama
+lt-contratacao
+```
+
 ## Expectativas por nível
 
 Assim como a escada de carreira do marco 01, expectativas por nível **escritas e comparáveis**

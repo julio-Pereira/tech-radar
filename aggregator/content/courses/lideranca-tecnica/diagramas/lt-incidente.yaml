@@ -1,0 +1,20 @@
+id: lt-incidente
+tipo: topologia
+titulo: "Papéis de um incidente: quem coordena não conserta, e cada público tem cadência"
+descricao: >
+  O comandante coordena: decide prioridade e mantém a visão geral, sem entrar no diagnóstico. Os
+  especialistas mitigam primeiro e diagnosticam depois. O escriba mantém a linha do tempo em
+  tempo real. A comunicação atualiza cada público em cadência declarada, a cada 30 minutos por
+  exemplo: o time técnico, o negócio, o cliente e, quando há obrigação, o regulador, com prazos
+  conferidos com compliance. Passar o comando é explícito, nunca silencioso.
+nos:
+  - { id: comandante, rotulo: "comandante", col: 1, row: 0, papel: destaque }
+  - { id: especialistas, rotulo: "especialistas", col: 0, row: 1 }
+  - { id: escriba, rotulo: "escriba", col: 1, row: 1 }
+  - { id: comunicacao, rotulo: "comunicação", col: 2, row: 1 }
+  - { id: publicos, rotulo: "negócio, cliente, regulador", col: 2, row: 2, papel: externo }
+arestas:
+  - { de: comandante, para: especialistas, rotulo: "prioriza" }
+  - { de: comandante, para: escriba }
+  - { de: comandante, para: comunicacao }
+  - { de: comunicacao, para: publicos, rotulo: "a cada 30 min" }

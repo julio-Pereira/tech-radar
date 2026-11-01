@@ -31,6 +31,10 @@ engenharia, cobrindo o que a agenda da liderança não alcança). Os quatro são
 é tentar ser os quatro ao mesmo tempo. Qual arquétipo serve depende do que a organização **precisa
 agora** — não do que parece mais prestigioso.
 
+```diagrama
+lt-arquetipos
+```
+
 ## Escopo por sistema, equipe e tempo
 
 Escopo tem três eixos independentes. **Sistema**: quais partes da arquitetura você é dono de decidir

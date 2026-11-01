@@ -1,0 +1,20 @@
+id: lt-arquetipos
+tipo: topologia
+titulo: "Arquétipos de Staff: quatro trabalhos legítimos, escolhidos pelo que a organização precisa"
+descricao: >
+  Staff é um tamanho de problema: recebe a ambiguidade e devolve um escopo. Quatro arquétipos
+  aparecem com frequência. O líder técnico é dono de um domínio ou iniciativa grande, perto da
+  execução. O arquiteto cuida da coerência estrutural entre sistemas. O resolvedor entra em
+  problemas críticos e ambíguos, sem domínio fixo. O braço direito estende a agenda de um
+  diretor ou VP. O erro comum é tentar ser os quatro de uma vez.
+nos:
+  - { id: staff, rotulo: "ambiguidade → escopo", col: 1, row: 1, papel: destaque }
+  - { id: lider, rotulo: "líder técnico: um domínio", col: 0, row: 0 }
+  - { id: arquiteto, rotulo: "arquiteto: coerência", col: 2, row: 0 }
+  - { id: resolvedor, rotulo: "resolvedor: o crítico", col: 0, row: 2 }
+  - { id: braco, rotulo: "braço direito: a liderança", col: 2, row: 2 }
+arestas:
+  - { de: staff, para: lider }
+  - { de: staff, para: arquiteto }
+  - { de: staff, para: resolvedor }
+  - { de: staff, para: braco }

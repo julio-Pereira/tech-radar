@@ -43,6 +43,10 @@ com compliance). Cada público recebe atualização em **cadência declarada** (
 exemplo), não só quando "tem novidade", porque silêncio durante um incidente é, ele mesmo, uma
 informação ruim.
 
+```diagrama
+lt-incidente
+```
+
 ## Mitigar antes de diagnosticar
 
 A prioridade durante um incidente ativo é **parar o sangramento**, não entender a causa raiz completa

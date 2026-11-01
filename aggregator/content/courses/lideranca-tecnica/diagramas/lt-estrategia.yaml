@@ -1,0 +1,18 @@
+id: lt-estrategia
+tipo: fluxo
+titulo: "Núcleo da estratégia do Time Pix: diagnóstico, política e ações rastreáveis"
+descricao: >
+  O diagnóstico, com evidência, mostra que a latência da conciliação vem da dependência síncrona
+  com um legado, e que esse legado tem um único dono. A política orientadora restringe opções:
+  isolar o legado atrás de uma ACL e só migrar componentes que tenham dono designado. As ações
+  têm dono, prazo e critério, e cada uma é rastreável ao item do diagnóstico que ataca. O
+  não-objetivo é explícito: a fila de eventos não será trocada neste período.
+passos:
+  - { id: diag, rotulo: "diagnóstico: legado síncrono", col: 0, row: 0 }
+  - { id: politica, rotulo: "política: ACL, só com dono", col: 1, row: 0, papel: destaque }
+  - { id: acoes, rotulo: "ações: dono, prazo, critério", col: 2, row: 0 }
+  - { id: nao, rotulo: "não-objetivo: trocar a fila", col: 1, row: 1 }
+arestas:
+  - { de: diag, para: politica }
+  - { de: politica, para: acoes }
+  - { de: politica, para: nao, rotulo: "deixa de fora" }

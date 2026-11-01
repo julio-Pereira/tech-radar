@@ -37,6 +37,10 @@ agora". O formato de ADR de `arquitetura-de-software/07` é a base; este marco a
 **previsão** como campo obrigatório, porque é a previsão registrada **antes** do resultado que torna
 possível, mais tarde, avaliar se a decisão foi boa — não só se o resultado foi bom.
 
+```diagrama
+lt-portas
+```
+
 ## Vieses que distorcem decisão
 
 Quatro vieses aparecem com frequência: **viés de planejamento** (otimismo sistemático sobre prazo e

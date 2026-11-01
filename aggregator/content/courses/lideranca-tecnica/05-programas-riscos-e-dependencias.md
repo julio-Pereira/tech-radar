@@ -45,6 +45,10 @@ fica fora do grafo: um protótipo que reduz a incerteza de uma decisão, uma fer
 horas do time, uma investigação de desempenho, a correção de um defeito que não bloqueia ninguém.
 A regra não é "o líder não programa", é "o atraso do líder não pode virar o atraso do programa".
 
+```diagrama
+lt-caminho-critico
+```
+
 ## Registro de riscos
 
 Um risco tem cinco campos obrigatórios: **probabilidade**, **impacto**, **dono**, **mitigação** e

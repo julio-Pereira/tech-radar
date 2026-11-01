@@ -1,0 +1,21 @@
+id: lt-caminho-critico
+tipo: fluxo
+titulo: "Caminho crítico entre times: 11 dias, e o líder pega o que tem folga"
+descricao: >
+  O contrato da API leva 3 dias e libera dois trabalhos: a integração com o ledger, 5 dias, e a
+  tela, 2 dias. O teste ponta a ponta, 3 dias, espera os dois. O caminho crítico é contrato,
+  integração e ponta a ponta, 11 dias: qualquer atraso ali atrasa o programa. A tela tem 3 dias
+  de folga. O Tech Lead, o mais interrompível do time, não pega tarefa do caminho crítico; pega
+  o que tem folga ou fica fora do grafo, como um protótipo que reduz incerteza.
+passos:
+  - { id: contrato, rotulo: "contrato da API · 3 d", col: 0, row: 0, papel: destaque }
+  - { id: integracao, rotulo: "integração · 5 d", col: 1, row: 0, papel: destaque }
+  - { id: tela, rotulo: "tela · 2 d · folga 3", col: 1, row: 1 }
+  - { id: e2e, rotulo: "ponta a ponta · 3 d", col: 2, row: 0, papel: destaque }
+  - { id: lider, rotulo: "Tech Lead", col: 0, row: 1, papel: externo }
+arestas:
+  - { de: contrato, para: integracao }
+  - { de: contrato, para: tela }
+  - { de: integracao, para: e2e }
+  - { de: tela, para: e2e }
+  - { de: lider, para: tela, rotulo: "pega" }

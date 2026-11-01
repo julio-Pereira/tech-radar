@@ -1,0 +1,21 @@
+id: lt-contratacao
+tipo: fluxo
+titulo: "Entrevista estruturada: nota independente antes do debrief, e kappa na rubrica"
+descricao: >
+  Os critérios por nível são definidos antes da entrevista. As perguntas são comparáveis entre
+  candidatos, e a rubrica tem âncoras que descrevem o que cada nota significa. Cada pessoa
+  registra a nota independentemente, antes do debrief em grupo, para que a primeira opinião
+  falada não ancore as outras. A concordância entre entrevistadores é medida com kappa; se cai,
+  a rubrica é recalibrada.
+passos:
+  - { id: criterios, rotulo: "critérios por nível", col: 0, row: 0 }
+  - { id: rubrica, rotulo: "rubrica com âncoras", col: 1, row: 0 }
+  - { id: nota, rotulo: "nota independente", col: 2, row: 0, papel: destaque }
+  - { id: debrief, rotulo: "debrief", col: 2, row: 1 }
+  - { id: kappa, rotulo: "concordância (kappa)", col: 1, row: 1 }
+arestas:
+  - { de: criterios, para: rubrica }
+  - { de: rubrica, para: nota }
+  - { de: nota, para: debrief }
+  - { de: debrief, para: kappa }
+  - { de: kappa, para: rubrica, rotulo: "recalibra", tipo: compensacao }
