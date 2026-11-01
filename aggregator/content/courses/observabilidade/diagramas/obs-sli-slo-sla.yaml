@@ -1,0 +1,24 @@
+id: obs-sli-slo-sla
+tipo: fluxo
+titulo: "Do SLI ao error budget: o time mede, o SLO promete por dentro, o SLA por fora"
+descricao: >
+  O SLI é o que o time mede: a razão entre eventos bons e eventos válidos, por exemplo a
+  proporção de POST /payments que responde em menos de 500 ms sem erro 5xx. O SLO é a
+  meta interna sobre esse SLI, com janela explícita: 99,9% em 30 dias. O SLA é o contrato
+  com o cliente, mais folgado, 99,5% no mês, com multa abaixo disso; a distância entre os
+  dois é a margem de manobra. O complemento do SLO, 0,1%, é o error budget, cerca de 43
+  minutos em 30 dias. Enquanto há budget o time lança feature; quando ele acaba, a
+  prioridade passa a ser confiabilidade até o budget se recompor.
+passos:
+  - { id: sli, rotulo: "SLI · bons ÷ válidos", col: 0, row: 0 }
+  - { id: slo, rotulo: "SLO · 99,9% em 30 dias", col: 1, row: 0, papel: destaque }
+  - { id: sla, rotulo: "SLA · 99,5% no mês", col: 2, row: 0, papel: externo }
+  - { id: feature, rotulo: "lança feature", col: 0, row: 1 }
+  - { id: budget, rotulo: "error budget · ~43 min", col: 1, row: 1, conceito: error-budget }
+  - { id: confiabilidade, rotulo: "prioriza confiabilidade", col: 2, row: 1 }
+arestas:
+  - { de: sli, para: slo, rotulo: "meta interna" }
+  - { de: slo, para: sla, rotulo: "contrato, com multa" }
+  - { de: slo, para: budget, rotulo: "0,1% permitido" }
+  - { de: budget, para: feature, rotulo: "ainda há budget" }
+  - { de: budget, para: confiabilidade, rotulo: "budget esgotado", tipo: falha }

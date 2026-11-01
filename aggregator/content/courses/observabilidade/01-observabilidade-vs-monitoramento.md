@@ -36,6 +36,10 @@ um circuito observável.
 E os dois não são rivais. Monitoramento é o subconjunto que dispara o pager;
 observabilidade é o que te deixa investigar depois que ele disparou.
 
+```diagrama
+obs-monitorar-e-observar
+```
+
 ## Known-knowns, known-unknowns, unknown-unknowns
 
 O enquadramento mais útil do marco:

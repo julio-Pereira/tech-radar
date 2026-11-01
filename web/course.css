@@ -241,7 +241,7 @@
 
 .timeline-node {
   display: grid;
-  grid-template-columns: 2.5rem 1fr;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
   gap: 1rem;
   position: relative;
   padding-bottom: 1.4rem;
@@ -296,12 +296,15 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
+/* No overflow: hidden here — a diagram figure is wider than the card on
+   purpose (C1); the toggle's hover background follows the corners itself. */
 .node-content {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  overflow: hidden;
 }
+.node-toggle { border-radius: 7px; }
+.node-toggle[aria-expanded="true"] { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 
 .node-toggle {
   width: 100%;
@@ -363,7 +366,9 @@
 .node-body {
   padding: 0 1.1rem 1.1rem;
   border-top: 1px solid var(--border);
+  overflow-wrap: break-word;
 }
+.node-body :not(pre) > code { overflow-wrap: anywhere; }
 
 /* ── Milestone body typography (sanitized HTML from build) ───────────────── */
 .milestone-body {
@@ -371,6 +376,9 @@
   line-height: 1.65;
   color: var(--text);
   padding-top: 1rem;
+  /* The card does not clip (diagram figures break out of it), so a long
+     URL or identifier wraps instead of widening the page. */
+  overflow-wrap: break-word;
 }
 
 .milestone-body h2 {
@@ -451,6 +459,12 @@
   border-collapse: collapse;
   margin: 0.9rem 0;
   font-size: 0.85rem;
+}
+
+/* On a narrow screen a wide table scrolls inside itself; before, the card
+   clipped its last columns. */
+@media (max-width: 799px) {
+  .milestone-body table { display: block; overflow-x: auto; }
 }
 
 .milestone-body th,
@@ -675,6 +689,8 @@
 }
 
 .quiz-question {
+  min-width: 0; /* a fieldset defaults to min-content: a long token would widen the page */
+  overflow-wrap: anywhere;
   margin: 0 0 1.1rem;
   padding: 0;
   border: 0;
@@ -1207,7 +1223,7 @@
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .timeline-node {
-    grid-template-columns: 1.9rem 1fr;
+    grid-template-columns: 1.9rem minmax(0, 1fr);
     gap: 0.7rem;
   }
 
@@ -1376,8 +1392,86 @@
 .diagrama-descricao summary { cursor: pointer; }
 .diagrama-descricao p { margin: 0.4rem 0 0; }
 
-/* Scroll horizontal dentro da figura, nunca da página. */
+/* Wider than the reading column (C1): the prose stays at 667px, the figure
+   grows up to 1100px, centered on the page. The numbers are the timeline's
+   own gutters (75px left, 18px right of the milestone body inside the
+   760px course column; 60px/19px on narrow screens). Side-by-side figures
+   widen as one block. */
+.milestone-body figure.diagrama:not(.diagramas-lado-a-lado > figure),
+.milestone-body .diagramas-lado-a-lado {
+  --diagrama-w: min(1100px, calc(100vw - 48px));
+  width: var(--diagrama-w);
+  max-width: none;
+  margin-left: calc(305px - var(--diagrama-w) / 2);
+  box-sizing: border-box;
+  /* Over the timeline's connector line, which runs in the left gutter. */
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 799px) {
+  .milestone-body figure.diagrama:not(.diagramas-lado-a-lado > figure),
+  .milestone-body .diagramas-lado-a-lado {
+    width: auto;
+    margin-left: -60px;
+    margin-right: -19px;
+  }
+}
+
+/* Scroll horizontal dentro da figura, nunca da página; a fade on the right
+   edge and a sentence say there is more (not color alone). */
+.diagrama-moldura { position: relative; }
 .diagrama-area { overflow-x: auto; overflow-y: hidden; }
+.diagrama-area:focus-visible { outline: 2px solid var(--accent-hover); outline-offset: 2px; }
+.diagrama-rola .diagrama-moldura::after {
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 48px;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--surface));
+}
+.diagrama-rola-fim .diagrama-moldura::after { display: none; }
+.diagrama-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; margin-top: 0.4rem; }
+.diagrama-dica { display: none; margin: 0 auto 0 0; font-size: 0.8rem; color: var(--text-muted); }
+.diagrama-rola .diagrama-dica { display: block; }
+.diagrama-ampliar, .diagrama-dialogo-topo button {
+  min-height: 32px;
+  padding: 0.25rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.diagrama-ampliar:hover, .diagrama-dialogo-topo button:hover { border-color: var(--accent); }
+.diagrama-ampliar:focus-visible, .diagrama-dialogo-topo button:focus-visible { outline: 2px solid var(--accent-hover); outline-offset: 2px; }
+.diagrama-ajustar[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-hover); }
+
+/* Ampliar: a full-screen modal; natural size with two-way scrolling, or
+   fitted to the screen. */
+.diagrama-dialogo {
+  width: 100vw; height: 100vh; max-width: none; max-height: none;
+  margin: 0; padding: 0; border: 0;
+  background: var(--surface); color: var(--text);
+}
+.diagrama-dialogo[open] { display: flex; flex-direction: column; }
+.diagrama-dialogo::backdrop { background: rgb(0 0 0 / 0.6); }
+.diagrama-dialogo-topo {
+  display: flex; align-items: center; gap: 0.5rem 0.6rem;
+  padding: 0.6rem 1rem; border-bottom: 1px solid var(--border);
+}
+.diagrama-dialogo-topo h2 { flex: 1; margin: 0; font-size: 1rem; }
+@media (max-width: 599px) {
+  .diagrama-dialogo-topo { flex-wrap: wrap; justify-content: flex-end; }
+  .diagrama-dialogo-topo h2 { flex-basis: 100%; font-size: 0.9rem; }
+}
+.diagrama-dialogo-area { flex: 1; overflow: auto; padding: 1rem; }
+.diagrama-dialogo-area:focus-visible { outline: 2px solid var(--accent-hover); outline-offset: -2px; }
+.diagrama-dialogo .diagrama-svg { width: auto; min-width: 0; max-width: none; margin: 0 auto; }
+.diagrama-dialogo.diagrama-ajustado .diagrama-svg { width: 100%; height: 100%; }
 /* Width classes set by diagram.js: never wider than the natural size,
    never narrower than 80% of it (then the figure scrolls). */
 .diagrama-svg { display: block; width: 100%; height: auto; margin: 0 auto; }
@@ -1436,6 +1530,7 @@
   stroke-linejoin: round;
 }
 .diagrama-nota { fill: var(--text-muted); font-style: italic; font-size: 11px; }
+.diagrama-aresta-rotulo { stroke-width: 6px; }
 .diagrama-rotulo-inicio { text-anchor: start; }
 .diagrama-rotulo-fim { text-anchor: end; }
 
@@ -1460,3 +1555,36 @@ a.diagrama-conceito.conceito-retorno .diagrama-no-caixa { stroke: var(--accent-h
 .minimapa-rotulo { font-size: 12px; }
 .minimapa-texto { font-size: 0.85rem; color: var(--text-muted); margin: 0.4rem 0 0; }
 .minimapa-texto a { color: var(--accent-hover); }
+
+/* Tipo grafico (D-G): series differ in color, dash and marker shape; the
+   data table under the drawing has the same numbers. */
+.diagrama-grade { stroke: var(--border); stroke-width: 1; }
+.diagrama-eixo { stroke: var(--text-muted); stroke-width: 1.4; }
+.diagrama-marca { fill: var(--text-muted); font-size: 11px; font-family: inherit; text-anchor: middle; }
+.diagrama-eixo-rotulo { fill: var(--text); font-size: 12px; font-family: inherit; text-anchor: middle; }
+.diagrama-serie { --serie: var(--accent-hover); }
+.diagrama-serie-1 { --serie: var(--java); }
+.diagrama-serie-2 { --serie: var(--arch); }
+.diagrama-serie-3 { --serie: var(--eng); }
+.diagrama-serie-linha { fill: none; stroke: var(--serie); stroke-width: 2.2; }
+.diagrama-serie-1 .diagrama-serie-linha { stroke-dasharray: 7 4; }
+.diagrama-serie-2 .diagrama-serie-linha { stroke-dasharray: 2 3; }
+.diagrama-serie-3 .diagrama-serie-linha { stroke-dasharray: 10 3 2 3; }
+.diagrama-serie-area { fill: color-mix(in srgb, var(--serie) 22%, transparent); }
+.diagrama-ponto, .diagrama-marcador { fill: var(--serie); stroke: var(--surface); stroke-width: 1.5; }
+.diagrama-barra { fill: color-mix(in srgb, var(--serie) 75%, var(--surface)); stroke: var(--serie); stroke-width: 1.2; }
+.diagrama-serie-1 .diagrama-barra { stroke-dasharray: 4 2; fill: color-mix(in srgb, var(--serie) 45%, var(--surface)); }
+.diagrama-ponto:focus { outline: none; }
+.diagrama-ponto:focus-visible { stroke: var(--text); stroke-width: 3; }
+.diagrama-faixa-area { fill: color-mix(in srgb, var(--eng) 12%, transparent); stroke: none; }
+.diagrama-anotacao-linha { stroke: var(--text-muted); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.diagrama-anotacao--destaque .diagrama-anotacao-linha { stroke: var(--java); stroke-width: 2; }
+.diagrama-anotacao--destaque .diagrama-faixa-area { fill: color-mix(in srgb, var(--java) 14%, transparent); }
+.diagrama-anotacao-rotulo {
+  fill: var(--text); font-size: 12px; font-weight: 600; font-family: inherit; text-anchor: middle;
+  paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round;
+}
+.diagrama-dados { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem; }
+.diagrama-dados summary { cursor: pointer; }
+.diagrama-dados table { margin: 0.4rem 0 0; }
+.diagrama-fonte { font-size: 0.78rem; color: var(--text-muted); margin: 0.3rem 0 0; }

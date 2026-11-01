@@ -9,10 +9,10 @@ descricao: >
   antes do estorno da mesma conta. Aumentar o número de partições muda o módulo e quebra
   essa garantia por um período.
 passos:
-  - { id: producer, rotulo: "producer (chave accountId)", col: 0, row: 0 }
-  - { id: hash, rotulo: "hash(chave) % partições", col: 1, row: 0, papel: destaque }
-  - { id: p2, rotulo: "partição 2: conta 4711", col: 2, row: 0 }
-  - { id: p5, rotulo: "partição 5: conta 9001", col: 2, row: 1 }
+  - { id: producer, rotulo: "producer · accountId", col: 0, row: 0 }
+  - { id: hash, rotulo: "hash(chave) % N", col: 1, row: 0, papel: destaque }
+  - { id: p2, rotulo: "P2 · conta 4711", col: 2, row: 0 }
+  - { id: p5, rotulo: "P5 · conta 9001", col: 2, row: 1 }
   - { id: c1, rotulo: "consumidor A", col: 3, row: 0 }
   - { id: c2, rotulo: "consumidor B", col: 3, row: 1 }
 arestas:

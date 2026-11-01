@@ -209,6 +209,9 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 			return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %s", file, strings.Join(missing, "; "))
 		}
 		if source, rerr := os.ReadFile(filepath.Join(dir, file)); rerr == nil {
+			if ierr := checkDiagramaIndent(source); ierr != nil {
+				return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %w", file, ierr)
+			}
 			names, aerr := validateAssets(source, dir)
 			if aerr != nil {
 				return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %w", file, aerr)

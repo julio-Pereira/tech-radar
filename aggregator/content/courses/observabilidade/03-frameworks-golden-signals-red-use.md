@@ -86,6 +86,10 @@ que o cliente sente — marco 13 formaliza isso). A investigação percorre USE 
 recurso, procurando o que está com fila. Alertar por USE produz o alerta de CPU do
 marco 01: dispara sem incidente e cala durante o incidente.
 
+```diagrama
+obs-red-e-use
+```
+
 ## Saturação é o único sinal preditivo
 
 Latência, erros e tráfego dizem o que **está** acontecendo. Saturação diz o que **vai**

@@ -16,12 +16,12 @@ nos:
   - { id: offsets-p, rotulo: "offsets do grupo", grupo: primario, col: 0, row: 1 }
   - { id: mm2, rotulo: "MirrorMaker 2", col: 1, row: 0, papel: destaque }
   - { id: topico-dr, rotulo: "payments.authorized", grupo: dr, col: 2, row: 0 }
-  - { id: checkpoints, rotulo: "checkpoints de offset", grupo: dr, col: 2, row: 1 }
+  - { id: checkpoints, rotulo: "checkpoints", grupo: dr, col: 2, row: 1 }
   - { id: consumidor, rotulo: "ledger-projector", col: 3, row: 1, papel: externo }
 arestas:
   - { de: topico-p, para: mm2, rotulo: "lê" }
   - { de: offsets-p, para: mm2, rotulo: "lê offsets" }
   - { de: mm2, para: topico-dr, rotulo: "copia" }
   - { de: mm2, para: checkpoints, rotulo: "1000 → 987" }
-  - { de: checkpoints, para: consumidor, rotulo: "onde retomar" }
+  - { de: checkpoints, para: consumidor, rotulo: "retomar" }
   - { de: topico-dr, para: consumidor, rotulo: "consome", estilo: tracejada }

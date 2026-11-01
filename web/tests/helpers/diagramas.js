@@ -6,7 +6,7 @@
 const fixture = require('../fixtures/diagramas.json');
 
 const SLUG = 'kafka';
-const IDS = ['exemplo-topologia', 'exemplo-sequencia', 'exemplo-estados', 'exemplo-fluxo'];
+const IDS = ['exemplo-topologia', 'exemplo-sequencia', 'exemplo-estados', 'exemplo-fluxo', 'exemplo-grafico'];
 
 /** @param {import('@playwright/test').Page} page */
 async function injectDiagramas(page) {

@@ -45,7 +45,8 @@ func newBodyPolicy() *bluemonday.Policy {
 	// from. No SVG element is ever allowed here — the browser builds it.
 	p.AllowAttrs("data-diagrama").Matching(regexp.MustCompile(`^[a-z0-9-]+/[a-z0-9-]+$`)).OnElements("figure")
 	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagrama$`)).OnElements("figure")
-	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagrama-descricao$`)).OnElements("details")
+	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagrama-(descricao|dados)$`)).OnElements("details")
+	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagrama-fonte$`)).OnElements("p")
 	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagramas-lado-a-lado$`)).OnElements("div")
 	return p
 }

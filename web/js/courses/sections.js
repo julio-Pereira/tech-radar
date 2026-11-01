@@ -67,7 +67,10 @@ export function buildMilestoneBody(slug, milestone) {
  */
 function hydrateDiagrams(article) {
   if (!article.querySelector('figure.diagrama[data-diagrama]')) return;
-  import('./diagram.js').then((m) => m.renderDiagrams(article)).catch(() => {});
+  // Title and description stay readable when the renderer fails to load;
+  // the warning keeps the failure visible in diagnostics (C8).
+  import('./diagram.js').then((m) => m.renderDiagrams(article))
+    .catch((err) => console.warn('diagram.js não carregou; ficam o título e a descrição textual', err));
 }
 
 function buildHandsonSection(slug, milestoneId, section) {

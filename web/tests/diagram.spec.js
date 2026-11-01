@@ -34,7 +34,7 @@ test.beforeEach(async ({ page }) => {
 test.describe('Diagramas tipados', () => {
   test('draws the four types with caption, description and no inline style', async ({ page }) => {
     const node = await openFirst(page);
-    for (const tipo of ['topologia', 'sequencia', 'estados', 'fluxo']) {
+    for (const tipo of ['topologia', 'sequencia', 'estados', 'fluxo', 'grafico']) {
       await expect(node.locator(`svg.diagrama-${tipo}`)).toHaveCount(1);
     }
     const figure = node.locator('figure[data-diagrama="kafka/exemplo-topologia"]');
@@ -94,7 +94,79 @@ test.describe('Diagramas tipados', () => {
   });
 });
 
+test.describe('Ampliar e sinal de rolagem', () => {
+  test('Ampliar opens a modal dialog that keeps focus and gives it back on Esc', async ({ page }) => {
+    const node = await openFirst(page);
+    const button = node.locator('figure[data-diagrama="kafka/exemplo-topologia"] button.diagrama-ampliar');
+    await button.click();
+    const dialog = page.locator('dialog.diagrama-dialogo');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('h2')).toHaveText('O evento sai do outbox, nunca direto do pix-gateway');
+    await expect(dialog.locator('svg')).toHaveAttribute('aria-labelledby', 'diagrama-dialogo-titulo');
+    await expect(dialog.locator('.diagrama-fechar')).toBeFocused();
+    // Modal: Tab cycles inside the dialog, never into the page behind it.
+    for (let i = 0; i < 6; i++) {
+      await page.keyboard.press('Tab');
+      expect(await page.evaluate(() => !!document.activeElement && !!document.activeElement.closest('dialog'))).toBe(true);
+    }
+    await dialog.locator('.diagrama-ajustar').click();
+    await expect(dialog.locator('.diagrama-ajustar')).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(button).toBeFocused();
+    expect(await page.locator('dialog.diagrama-dialogo svg').count()).toBe(0);
+  });
+
+  test('a figure that scrolls says so in text, and is reachable by keyboard', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    const node = await openFirst(page);
+    const figure = node.locator('figure[data-diagrama="kafka/exemplo-topologia"]');
+    await expect(figure).toHaveClass(/diagrama-rola/);
+    await expect(figure.locator('.diagrama-dica')).toBeVisible();
+    await expect(figure.locator('.diagrama-area')).toHaveAttribute('tabindex', '0');
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await expect(figure).not.toHaveClass(/diagrama-rola/);
+    await expect(figure.locator('.diagrama-dica')).toBeHidden();
+  });
+});
+
+test.describe('Tipo grafico', () => {
+  test('the numbers are a table in the figure, and the source is named', async ({ page }) => {
+    const node = page.locator(`.timeline-node[data-id="${FIRST}"]`);
+    await page.route('**/js/courses/diagram.js', (route) => route.abort());
+    await node.locator('.node-toggle').click();
+    const figure = node.locator('figure[data-diagrama="kafka/exemplo-grafico"]');
+    await figure.locator('.diagrama-dados summary').click();
+    await expect(figure.locator('.diagrama-dados tbody tr')).toHaveCount(6);
+    await expect(figure.locator('.diagrama-dados thead')).toContainText('sem cache (p99 (ms))');
+    await expect(figure.locator('.diagrama-fonte')).toHaveText('Fonte: dados ilustrativos');
+  });
+
+  test('one Tab stop per chart; arrows move between points and announce values', async ({ page }) => {
+    const node = await openFirst(page);
+    const svg = node.locator('figure[data-diagrama="kafka/exemplo-grafico"] svg');
+    const points = svg.locator('.diagrama-ponto');
+    await expect(points).toHaveCount(12);
+    await expect(svg.locator('.diagrama-ponto[tabindex="0"]')).toHaveCount(1);
+    // Two series: different marker shapes, a legend, annotations drawn.
+    await expect(svg.locator('.diagrama-serie-0 circle.diagrama-ponto')).toHaveCount(6);
+    await expect(svg.locator('.diagrama-serie-1 rect.diagrama-ponto')).toHaveCount(6);
+    await expect(svg.locator('.diagrama-legenda')).toContainText('com cache');
+    await expect(svg).toContainText('SLO 300 ms');
+    await points.first().focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(points.nth(1)).toBeFocused();
+    await expect(points.nth(1)).toHaveAttribute('aria-label', 'sem cache — hora do dia 9: 160 p99 (ms)');
+    await page.keyboard.press('ArrowDown');
+    await expect(points.nth(7)).toBeFocused();
+    await expect(points.nth(7)).toHaveAttribute('tabindex', '0');
+    await page.keyboard.press('End');
+    await expect(points.nth(11)).toBeFocused();
+  });
+});
+
 test.describe('Carga sob demanda', () => {
+
   // Its own page, without the injected fixture: nothing on screen has a
   // diagram, so neither the renderer nor any diagram data is fetched.
   test('diagram.js is not downloaded for a track without diagrams', async ({ browser }) => {

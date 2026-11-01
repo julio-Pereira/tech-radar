@@ -124,6 +124,98 @@
           }
         ]
       },
+      "exemplo-grafico": {
+        "id": "exemplo-grafico",
+        "tipo": "grafico",
+        "titulo": "Duas séries: a curva com cache fica abaixo e mais plana",
+        "descricao": "Latência p99 do pix-gateway, em milissegundos, ao longo de seis horas, com e sem o cache de chaves Pix. Sem cache a latência sobe com o volume e cruza o orçamento do SLO de 300 ms às 12h; com cache ela fica abaixo de 150 ms o dia todo. A faixa marca o horário de pico. Os números são ilustrativos e existem para testar o tipo grafico.",
+        "forma": "linha",
+        "eixo_x": {
+          "rotulo": "hora do dia",
+          "tipo": "numero"
+        },
+        "eixo_y": {
+          "rotulo": "p99 (ms)",
+          "min": 0
+        },
+        "series": [
+          {
+            "id": "sem-cache",
+            "rotulo": "sem cache",
+            "pontos": [
+              [
+                8,
+                120
+              ],
+              [
+                9,
+                160
+              ],
+              [
+                10,
+                210
+              ],
+              [
+                11,
+                260
+              ],
+              [
+                12,
+                330
+              ],
+              [
+                13,
+                280
+              ]
+            ]
+          },
+          {
+            "id": "com-cache",
+            "rotulo": "com cache",
+            "pontos": [
+              [
+                8,
+                60
+              ],
+              [
+                9,
+                70
+              ],
+              [
+                10,
+                85
+              ],
+              [
+                11,
+                100
+              ],
+              [
+                12,
+                130
+              ],
+              [
+                13,
+                110
+              ]
+            ]
+          }
+        ],
+        "anotacoes": [
+          {
+            "tipo": "linha-y",
+            "valor": 300,
+            "rotulo": "SLO 300 ms",
+            "papel": "destaque"
+          },
+          {
+            "tipo": "faixa-x",
+            "de": 11,
+            "ate": 13,
+            "rotulo": "pico"
+          }
+        ],
+        "fonte": "dados ilustrativos"
+      },
       "exemplo-sequencia": {
         "id": "exemplo-sequencia",
         "tipo": "sequencia",
@@ -270,6 +362,7 @@
   "figures": {
     "exemplo-estados": "\u003cfigure class=\"diagrama\" data-diagrama=\"kafka/exemplo-estados\"\u003e\u003cfigcaption\u003eUm alerta só dispara depois de ficar pendente pelo tempo do for\u003c/figcaption\u003e\u003cdetails class=\"diagrama-descricao\"\u003e\u003csummary\u003eDescrição textual\u003c/summary\u003e\u003cp\u003eToda regra de alerta começa inativa. Quando a expressão fica verdadeira, o alerta passa a pendente e só vai para disparado se continuar verdadeiro durante todo o tempo do for. Se a expressão volta a ser falsa enquanto pendente, ele volta a inativo sem notificar ninguém. Disparado, ele é resolvido quando a expressão deixa de ser verdadeira, e a regra volta a ficar inativa.\u003c/p\u003e\u003c/details\u003e\u003c/figure\u003e",
     "exemplo-fluxo": "\u003cfigure class=\"diagrama\" data-diagrama=\"kafka/exemplo-fluxo\"\u003e\u003cfigcaption\u003eA saga desfaz o que já reservou quando o PSP recusa\u003c/figcaption\u003e\u003cdetails class=\"diagrama-descricao\"\u003e\u003csummary\u003eDescrição textual\u003c/summary\u003e\u003cp\u003eA saga do pagamento reserva o saldo no ledger-core, pede a autorização ao PSP e, autorizado, lança o débito definitivo. Se o PSP recusa, o passo de autorização falha e a saga executa a compensação: libera a reserva de saldo feita no primeiro passo. Nenhum passo desfaz o que outro serviço fez diretamente; cada um expõe a sua própria operação de compensação.\u003c/p\u003e\u003c/details\u003e\u003c/figure\u003e",
+    "exemplo-grafico": "\u003cfigure class=\"diagrama\" data-diagrama=\"kafka/exemplo-grafico\"\u003e\u003cfigcaption\u003eDuas séries: a curva com cache fica abaixo e mais plana\u003c/figcaption\u003e\u003cdetails class=\"diagrama-descricao\"\u003e\u003csummary\u003eDescrição textual\u003c/summary\u003e\u003cp\u003eLatência p99 do pix-gateway, em milissegundos, ao longo de seis horas, com e sem o cache de chaves Pix. Sem cache a latência sobe com o volume e cruza o orçamento do SLO de 300 ms às 12h; com cache ela fica abaixo de 150 ms o dia todo. A faixa marca o horário de pico. Os números são ilustrativos e existem para testar o tipo grafico.\u003c/p\u003e\u003c/details\u003e\u003cdetails class=\"diagrama-dados\"\u003e\u003csummary\u003eDados do gráfico\u003c/summary\u003e\u003ctable\u003e\u003cthead\u003e\u003ctr\u003e\u003cth\u003ehora do dia\u003c/th\u003e\u003cth\u003esem cache (p99 (ms))\u003c/th\u003e\u003cth\u003ecom cache (p99 (ms))\u003c/th\u003e\u003c/tr\u003e\u003c/thead\u003e\u003ctbody\u003e\u003ctr\u003e\u003ctd\u003e8\u003c/td\u003e\u003ctd\u003e120\u003c/td\u003e\u003ctd\u003e60\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003ctd\u003e9\u003c/td\u003e\u003ctd\u003e160\u003c/td\u003e\u003ctd\u003e70\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003ctd\u003e10\u003c/td\u003e\u003ctd\u003e210\u003c/td\u003e\u003ctd\u003e85\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003ctd\u003e11\u003c/td\u003e\u003ctd\u003e260\u003c/td\u003e\u003ctd\u003e100\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003ctd\u003e12\u003c/td\u003e\u003ctd\u003e330\u003c/td\u003e\u003ctd\u003e130\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003ctd\u003e13\u003c/td\u003e\u003ctd\u003e280\u003c/td\u003e\u003ctd\u003e110\u003c/td\u003e\u003c/tr\u003e\u003c/tbody\u003e\u003c/table\u003e\u003c/details\u003e\u003cp class=\"diagrama-fonte\"\u003eFonte: dados ilustrativos\u003c/p\u003e\u003c/figure\u003e",
     "exemplo-sequencia": "\u003cfigure class=\"diagrama\" data-diagrama=\"kafka/exemplo-sequencia\"\u003e\u003cfigcaption\u003eO traceparent atravessa os três serviços do pagamento\u003c/figcaption\u003e\u003cdetails class=\"diagrama-descricao\"\u003e\u003csummary\u003eDescrição textual\u003c/summary\u003e\u003cp\u003eO cliente chama o pix-gateway, que cria o trace e envia o cabeçalho traceparent na chamada síncrona ao ledger-core. O ledger-core responde com o lançamento, e o pix-gateway publica o evento no pix-stream de forma assíncrona, com o mesmo traceparent nos headers da mensagem. O resultado é um único trace, do clique ao consumidor do evento.\u003c/p\u003e\u003c/details\u003e\u003c/figure\u003e",
     "exemplo-topologia": "\u003cfigure class=\"diagrama\" data-diagrama=\"kafka/exemplo-topologia\"\u003e\u003cfigcaption\u003eO evento sai do outbox, nunca direto do pix-gateway\u003c/figcaption\u003e\u003cdetails class=\"diagrama-descricao\"\u003e\u003csummary\u003eDescrição textual\u003c/summary\u003e\u003cp\u003eO pix-gateway grava o pagamento na tabela payments e o evento PaymentInitiated na tabela outbox, as duas no mesmo Postgres e na mesma transação. O relay lê o outbox depois do commit e publica no tópico payments.initiated do Kafka, de onde o antifraude consome. O pix-gateway nunca fala com o Kafka diretamente.\u003c/p\u003e\u003c/details\u003e\u003c/figure\u003e"
   }

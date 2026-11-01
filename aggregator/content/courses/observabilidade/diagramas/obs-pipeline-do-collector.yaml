@@ -9,14 +9,14 @@ descricao: >
   métricas passa só por memory_limiter e batch, e sai pelo exporter do Prometheus.
 passos:
   - { id: otlp, rotulo: "otlp (receiver)", col: 0, row: 0 }
-  - { id: ml, rotulo: "memory_limiter", col: 1, row: 0, papel: destaque }
-  - { id: attr, rotulo: "attributes/limpeza", col: 2, row: 0 }
-  - { id: res, rotulo: "resource", col: 3, row: 0 }
-  - { id: batch, rotulo: "batch", col: 4, row: 0 }
-  - { id: tempo, rotulo: "otlphttp/tempo", col: 5, row: 0, papel: externo }
+  - { id: ml, rotulo: "memory_limiter", col: 0, row: 1, papel: destaque }
+  - { id: attr, rotulo: "attributes/limpeza", col: 0, row: 2 }
+  - { id: res, rotulo: "resource", col: 0, row: 3 }
+  - { id: batch, rotulo: "batch", col: 0, row: 4 }
+  - { id: tempo, rotulo: "otlphttp/tempo", col: 0, row: 5, papel: externo }
   - { id: ml2, rotulo: "memory_limiter", col: 1, row: 1 }
-  - { id: batch2, rotulo: "batch", col: 4, row: 1 }
-  - { id: prom, rotulo: "prometheus", col: 5, row: 1, papel: externo }
+  - { id: batch2, rotulo: "batch", col: 1, row: 4 }
+  - { id: prom, rotulo: "prometheus", col: 1, row: 5, papel: externo }
 arestas:
   - { de: otlp, para: ml, rotulo: "traces" }
   - { de: ml, para: attr }

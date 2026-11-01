@@ -235,17 +235,25 @@ title and the full textual description (readable without JavaScript), and writes
 specs to `web/data/diagramas/<slug>.json`, which the front end fetches only when a
 milestone on screen has a diagram. No SVG element is ever allowed by the sanitizer.
 
-Four types, and only four: **`topologia`** (components and connections — `grupos`, `nos`,
+Five types, and only five: **`topologia`** (components and connections — `grupos`, `nos`,
 `arestas` with `estilo: normal|tracejada`), **`fluxo`** (steps with branches —
 `passos`, `arestas` with `tipo: normal|falha|compensacao`), **`estados`** (a life cycle —
 `estados`, `transicoes` with `evento` and optional `guarda`, `inicial`, `finais`) and
 **`sequencia`** (messages over time — `participantes`, `mensagens` with
-`tipo: sync|async|reply` and an optional `nota`). Grid types place every element with
+`tipo: sync|async|reply` and an optional `nota`) and **`grafico`** (data shape —
+distributions, curves, comparisons: `forma: linha|barra|area`, `eixo_x` with
+`tipo: categoria|numero`, `eixo_y`, 1–4 `series` of `[x, y]` points, optional
+`anotacoes` of type `linha-x|linha-y|faixa-x|faixa-y`, and a mandatory `fonte`: `"dados
+ilustrativos"` or the https link of the origin; the figure also carries the numbers as a
+table, readable without JavaScript). Grid types place every element with
 `col`/`row` (and groups with `cols`/`rows`): the layout is declared by the author, there
 is no layout engine. Presentation is semantic — `papel: destaque|externo|fora-da-transacao`
 on a node — and becomes a CSS class; colors never go in the YAML. A node or participant
 with `conceito: <id>` (from `conceitos.yaml`) is a link to the concept's owner milestone,
-with the same detour and return as a concept in the prose.
+with the same detour and return as a concept in the prose. An edge that would cut
+through another box is a **build error**: move a node, or bend the edge with
+`via: [{ col: 0, row: 0.5 }, { col: 2, row: 0.5 }]` (half steps are the lanes between rows
+and columns).
 
 ```yaml
 id: exemplo-topologia
@@ -268,8 +276,11 @@ message or transition points at something not declared; two elements share a gri
 or a node lies outside its group; the title passes 90 characters or a label 28; the
 description has fewer than 40 words; there are more than 12 elements (6 participants and
 14 messages in a sequence) — split the diagram; a `conceito` is not in `conceitos.yaml`;
-a `diagrama` block names an id that doesn't exist. A diagram file no milestone references
-is a warning. Examples of each type live in `aggregator/internal/course/testdata/diagramas/`.
+a `diagrama` block names an id that doesn't exist, or is indented (inside a list or a
+quote); an edge crosses a box; a chart breaks its own rules (series, points, increasing
+`x`, annotations outside the axes, `log` with values ≤ 0, no `fonte`). A diagram file no
+milestone references is a warning, and so is a drawing wider than 1100px — keep to **4
+columns or fewer**. Examples of each type live in `aggregator/internal/course/testdata/diagramas/`.
 
 **When to draw.** A milestone gets a diagram when its prose describes **3 or more
 components interacting**, an **order of messages**, the **states of a life cycle** or a
@@ -279,6 +290,14 @@ names — `pix-gateway`, `ledger-core`, `pix-stream`, real topics and events —
 `Service A`. The diagram complements the prose: the text stays self-sufficient, and the
 diagram never states a fact the text doesn't support. **New ASCII diagrams are not
 allowed**: the compiler warns about fenced blocks with box-drawing characters or arrows.
+
+On screen the figure is wider than the reading column (up to 1100px), never shrinks below
+80% of its natural size, and says in text when it still has to scroll; **Ampliar** opens
+it full screen in a modal dialog — the main path on a phone. `web/tests/diagram-real.spec.js`
+opens every compiled diagram and fails on a label outside the drawing, two labels on top
+of each other, a line over a box, a figure that scrolls on a 1280px desktop, or a CSP
+violation. The renderer and its primitives have a budget of **10 KB gzip** together,
+checked by a test.
 
 **Illustrations** (what isn't a graph — the anatomy of a log record, say) are authored
 images in `content/courses/<trilha>/assets/` (`svg`, `png` or `webp`, at most 200 KB),
