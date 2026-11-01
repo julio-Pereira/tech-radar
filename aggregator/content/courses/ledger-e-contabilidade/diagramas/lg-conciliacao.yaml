@@ -1,0 +1,23 @@
+id: lg-conciliacao
+tipo: fluxo
+titulo: "Conciliação: regras antes de heurísticas, e cada exceção com idade e dono"
+descricao: >
+  As linhas do arquivo externo e os lançamentos do razão passam primeiro por regras
+  determinísticas: chave exata e tolerância explícita de valor e tempo, em casamentos 1:1, 1:N
+  ou N:M. O que casa está conciliado, e reprocessar o mesmo arquivo não duplica nada. O resto
+  passa por heurísticas revisadas por humano. A divergência que sobra é classificada: timing,
+  que o arquivo de amanhã resolve, ou erro real, que entra na fila de exceções com aging e dono.
+passos:
+  - { id: entrada, rotulo: "razão + arquivo", col: 0, row: 0 }
+  - { id: regras, rotulo: "regras: chave, tolerância", col: 1, row: 0, papel: destaque }
+  - { id: casado, rotulo: "conciliado", col: 2, row: 0 }
+  - { id: heuristica, rotulo: "heurística + humano", col: 1, row: 1 }
+  - { id: timing, rotulo: "timing: espera amanhã", col: 2, row: 1 }
+  - { id: excecao, rotulo: "exceção: aging e dono", col: 1, row: 2 }
+arestas:
+  - { de: entrada, para: regras }
+  - { de: regras, para: casado }
+  - { de: regras, para: heuristica, rotulo: "não casou" }
+  - { de: heuristica, para: casado }
+  - { de: heuristica, para: timing }
+  - { de: heuristica, para: excecao, rotulo: "erro real", tipo: falha }

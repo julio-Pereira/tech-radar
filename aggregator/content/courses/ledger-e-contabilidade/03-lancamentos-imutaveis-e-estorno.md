@@ -69,6 +69,10 @@ lançamento original, o estorno, e o estorno do estorno, cada um referenciando e
 anterior. Sem esse encadeamento, reconstruir "o que realmente aconteceu" numa cadeia de correções
 sucessivas se torna impossível a partir de um certo ponto.
 
+```diagrama
+lg-estorno
+```
+
 ## Journal × *event store*: uma comparação honesta
 
 Um journal contábil *append-only* é, estruturalmente, um caso especializado de **event store**

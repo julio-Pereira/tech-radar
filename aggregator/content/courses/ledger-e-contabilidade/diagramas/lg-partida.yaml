@@ -1,0 +1,18 @@
+id: lg-partida
+tipo: topologia
+titulo: "Partida dobrada com três pernas: débitos somam o mesmo que os créditos"
+descricao: >
+  Um pagamento de R$ 100,00 com tarifa de R$ 2,00 é um lançamento só, com três pernas. A conta
+  do pagador, um passivo do banco, recebe um débito de 100,00. A conta do recebedor recebe um
+  crédito de 98,00, e a receita de tarifas, um crédito de 2,00. A soma dos débitos, 100,00, é
+  igual à soma dos créditos, 98,00 mais 2,00: a equação contábil continua verdadeira. Um
+  lançamento de uma perna só, ou desbalanceado, é recusado.
+nos:
+  - { id: pagador, rotulo: "D pagador · 100,00", col: 0, row: 0 }
+  - { id: lancamento, rotulo: "lançamento · Σ D = Σ C", col: 1, row: 0, papel: destaque }
+  - { id: recebedor, rotulo: "C recebedor · 98,00", col: 2, row: 0 }
+  - { id: tarifa, rotulo: "C tarifas · 2,00", col: 2, row: 1 }
+arestas:
+  - { de: pagador, para: lancamento }
+  - { de: lancamento, para: recebedor }
+  - { de: lancamento, para: tarifa }

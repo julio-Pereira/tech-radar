@@ -1,0 +1,33 @@
+id: lg-holds
+tipo: estados
+titulo: "Reserva: reduz o disponível sem lançamento final, e termina num único estado"
+descricao: >
+  A reserva de R$ 300,00 nasce ativa, reduz o saldo disponível e não mexe no saldo contábil.
+  Ela termina num único estado terminal. Capturada, vira lançamento real; numa captura parcial
+  de 280,00, os 20,00 restantes são liberados na hora. Liberada, sai sem efeito no razão.
+  Expirada, liberou sozinha porque o prazo passou. Uma segunda captura ou liberação, repetida ou
+  concorrente, encontra o estado terminal e não muda nada.
+estados:
+  - { id: ativa, rotulo: "ATIVA", col: 1, row: 0, papel: destaque }
+  - { id: capturada, rotulo: "CAPTURADA", col: 2, row: 0 }
+  - { id: liberada, rotulo: "LIBERADA", col: 0, row: 1 }
+  - { id: expirada, rotulo: "EXPIRADA", col: 2, row: 1 }
+inicial: ativa
+finais: [capturada, liberada, expirada]
+transicoes:
+  - { de: ativa, para: capturada, evento: "captura", guarda: "resto liberado" }
+  - { de: ativa, para: liberada, evento: "libera" }
+  - { de: ativa, para: expirada, evento: "prazo passou" }
+animacao:
+  - legenda: "Reserva de R$ 300,00: o disponível cai 300,00, o contábil não muda"
+    atual: ativa
+  - legenda: "Captura de 280,00: vira lançamento, e os 20,00 restantes voltam ao disponível"
+    atual: capturada
+    transicao: { de: ativa, para: capturada }
+    anotacao: "segunda captura encontra o terminal"
+  - legenda: "Outro desfecho: a venda é cancelada, e a reserva é liberada sem lançamento"
+    atual: liberada
+    transicao: { de: ativa, para: liberada }
+  - legenda: "Outro desfecho: ninguém captura nem libera, e a reserva expira sozinha"
+    atual: expirada
+    transicao: { de: ativa, para: expirada }
