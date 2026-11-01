@@ -86,6 +86,10 @@ Cada mensagem tem um **estado** explícito (recebida, em processamento, liquidad
 sistema que não modela estado intermediário tende a tratar "ainda não sei" como "falhou", o erro que
 `system-design/09` já identificou como o mais caro de cometer num pagamento.
 
+```diagrama
+pg-pix
+```
+
 ## Limites de tempo, horário e valor como texto decimal
 
 Toda mensagem do SPI tem um **limite de tempo de resposta** — estourá-lo tem consequência

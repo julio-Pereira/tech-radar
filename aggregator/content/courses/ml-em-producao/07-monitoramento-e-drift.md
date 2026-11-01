@@ -38,6 +38,10 @@ imperfeitos, correlacionados com o resultado final) ou olhar só para **coortes 
 antigas o suficiente para já terem rótulo). Nenhuma das duas opções é tão boa quanto o rótulo real, e as
 duas precisam ser declaradas como aproximações, não tratadas como a verdade.
 
+```diagrama
+ml-drift
+```
+
 ## Taxa de *fallback*, e alerta sem fadiga
 
 Uma taxa de *fallback* (marco 06) crescente é, por si só, um sinal de monitoramento — indica que o sistema

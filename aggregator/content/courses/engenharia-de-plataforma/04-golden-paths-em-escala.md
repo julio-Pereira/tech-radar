@@ -59,6 +59,10 @@ pela atualização — a técnica de **mesclagem de três vias** (a mesma usada 
 base comum, versão antiga do template e versão nova) detecta e **reporta conflitos**, em vez de
 silenciosamente escolher um lado.
 
+```diagrama
+ep-golden-path
+```
+
 ## CI do próprio template
 
 O template, como qualquer código que vai ser usado por muitos consumidores, merece seu próprio CI:

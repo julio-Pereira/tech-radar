@@ -1,0 +1,22 @@
+id: ep-catalogo
+tipo: topologia
+titulo: "Catálogo: entidades com relações, e o descritor consumido como dado"
+descricao: >
+  O descritor vive ao lado do código e modela as entidades: o grupo é dono do componente, que
+  pertence a um sistema, expõe uma API e depende de recursos como banco e fila. As relações
+  formam o grafo que responde o que é afetado se este componente mudar. Ser dono é um contrato
+  de escalonamento e canal, e o frescor do metadado fica visível. Outras automações consomem
+  o descritor como dado, como o roteamento de alertas e a alocação de custo.
+nos:
+  - { id: grupo, rotulo: "grupo (dono)", col: 0, row: 0, papel: destaque }
+  - { id: componente, rotulo: "componente", col: 1, row: 0 }
+  - { id: sistema, rotulo: "sistema", col: 2, row: 0 }
+  - { id: api, rotulo: "API", col: 1, row: 1 }
+  - { id: recurso, rotulo: "recurso (banco, fila)", col: 2, row: 1 }
+  - { id: alertas, rotulo: "roteamento de alertas", col: 0, row: 1, papel: externo }
+arestas:
+  - { de: grupo, para: componente, rotulo: "é dono" }
+  - { de: componente, para: sistema, rotulo: "pertence" }
+  - { de: componente, para: api, rotulo: "expõe" }
+  - { de: componente, para: recurso, rotulo: "depende" }
+  - { de: alertas, para: grupo, rotulo: "lê o dono", estilo: tracejada }

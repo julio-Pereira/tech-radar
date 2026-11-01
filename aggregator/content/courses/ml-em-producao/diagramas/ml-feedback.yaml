@@ -1,0 +1,23 @@
+id: ml-feedback
+tipo: topologia
+titulo: "Laço de reforço: o modelo aprende das próprias decisões, e exploração e holdout o abrem"
+descricao: >
+  O modelo decide as ofertas; só as decisões tomadas viram dado de treino, e o próximo modelo
+  aprende os padrões dessas decisões, não o efeito real da oferta. O laço se fecha sem a realidade
+  corrigi-lo. A exploração, como ε-greedy, decide diferente numa fração pequena do tempo, ao custo
+  de algumas decisões piores, para aprender o que o modelo nunca escolheria. O holdout, uma fração
+  constante da base sem nenhuma oferta guiada por modelo, mede o efeito do sistema inteiro.
+nos:
+  - { id: modelo, rotulo: "modelo", col: 0, row: 0, papel: destaque }
+  - { id: decisoes, rotulo: "decisões tomadas", col: 1, row: 0 }
+  - { id: dataset, rotulo: "dataset de treino", col: 1, row: 1 }
+  - { id: treino, rotulo: "treino", col: 0, row: 1 }
+  - { id: explora, rotulo: "exploração ε", col: 2, row: 0, papel: externo }
+  - { id: holdout, rotulo: "holdout sem modelo", col: 2, row: 1, papel: externo }
+arestas:
+  - { de: modelo, para: decisoes }
+  - { de: decisoes, para: dataset }
+  - { de: dataset, para: treino }
+  - { de: treino, para: modelo }
+  - { de: explora, para: decisoes, estilo: tracejada }
+  - { de: holdout, para: dataset, rotulo: "referência", estilo: tracejada }

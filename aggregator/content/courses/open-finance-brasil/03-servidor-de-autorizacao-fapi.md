@@ -37,6 +37,10 @@ mesmo que o vinculado. Essa vinculação é o que torna um token roubado (copiad
 inútil para quem não também possui a chave privada correspondente ao certificado — um reforço
 estrutural contra o cenário mais comum de abuso de token.
 
+```diagrama
+of-fapi
+```
+
 ## `redirect_uri` exata, PKCE, `state` e `nonce`
 
 O **`redirect_uri`** de um fluxo precisa casar **exatamente** com um valor pré-registrado — não

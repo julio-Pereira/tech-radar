@@ -25,6 +25,10 @@ ele mesmo, a soma dos fragmentos. Essa fragmentação precisa ser **transparente
 consulta de saldo externa (que vê só a conta lógica) e **consistente** com a invariante de
 balanceamento (cada fragmento, individualmente, ainda participa normalmente da partida dobrada).
 
+```diagrama
+lg-conta-quente
+```
+
 ## Lançamento diferido e agregação em lote
 
 Uma alternativa (ou complemento) à fragmentação: em vez de postar cada lançamento individual

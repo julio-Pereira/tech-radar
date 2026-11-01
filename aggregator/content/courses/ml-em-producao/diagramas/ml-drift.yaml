@@ -1,0 +1,24 @@
+id: ml-drift
+tipo: fluxo
+titulo: "Monitorar: primeiro a entrada, depois o drift, e o desempenho só em coortes maduras"
+descricao: >
+  Decisões piores podem ter três causas, com remédios diferentes. A primeira checagem é a
+  qualidade da entrada: nulos, valores fora de faixa e features ausentes por TTL geram um alerta
+  próprio. Com a entrada saudável, PSI ou KS por feature, contra a distribuição do treino e com
+  limiar declarado, apontam data drift. O concept drift só aparece no desempenho, medido em
+  coortes já maduras ou por proxies, ambos declarados como aproximação.
+passos:
+  - { id: entrada, rotulo: "entrada", col: 0, row: 0 }
+  - { id: qualidade, rotulo: "qualidade ok?", col: 1, row: 0, papel: destaque }
+  - { id: psi, rotulo: "PSI / KS por feature", col: 2, row: 0 }
+  - { id: coortes, rotulo: "coortes maduras", col: 3, row: 0 }
+  - { id: alertaq, rotulo: "alerta de qualidade", col: 1, row: 1 }
+  - { id: data, rotulo: "data drift", col: 2, row: 1 }
+  - { id: concept, rotulo: "concept drift", col: 3, row: 1 }
+arestas:
+  - { de: entrada, para: qualidade }
+  - { de: qualidade, para: psi }
+  - { de: psi, para: coortes }
+  - { de: qualidade, para: alertaq, rotulo: "nulos", tipo: falha }
+  - { de: psi, para: data, rotulo: "> limiar", tipo: falha }
+  - { de: coortes, para: concept, rotulo: "piorou", tipo: falha }

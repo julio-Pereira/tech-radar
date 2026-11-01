@@ -1,0 +1,18 @@
+id: lt-monte-carlo
+tipo: grafico
+titulo: "Monte Carlo: 50% de chance em 10 semanas, 85% só em 12"
+descricao: >
+  Com 40 itens no backlog, a simulação sorteia, semana a semana, um throughput do histórico do
+  time nas últimas 12 semanas, entre 2 e 7 itens, e repete isso 10 mil vezes. A curva é a chance
+  acumulada de terminar até cada semana. A mediana fica na semana 10, mas para 85% de confiança
+  são 12 semanas. Responder "quando, com 85%?" expõe a incerteza que uma data única esconderia.
+  Pontos gerados por tools/diagramas/curvas.py, com semente fixa e histórico ilustrativo.
+forma: linha
+eixo_x: { rotulo: "semanas a partir de hoje", tipo: numero }
+eixo_y: { rotulo: "chance de terminar até (%)", min: 0, max: 100 }
+series:
+  - { id: acumulada, rotulo: "chance acumulada", pontos: [[7, 0.17], [8, 3.82], [9, 20.91], [10, 53], [11, 81.93], [12, 95.69], [13, 99.36], [14, 99.94], [15, 100]] }
+anotacoes:
+  - { tipo: linha-y, valor: 50, rotulo: "p50: semana 10" }
+  - { tipo: linha-y, valor: 85, rotulo: "p85: semana 12", papel: destaque }
+fonte: "dados ilustrativos"

@@ -41,6 +41,10 @@ bloqueado indefinidamente. Toda reserva também carrega uma **expiração**: se 
 liberada explicitamente dentro do prazo configurado, ela expira e libera o valor sozinha — sem essa
 expiração, uma reserva esquecida bloquearia saldo do cliente para sempre.
 
+```diagrama
+lg-holds
+```
+
 ## Reserva sob concorrência
 
 A operação de criar uma reserva precisa verificar o disponível e debitá-lo **na mesma transação

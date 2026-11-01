@@ -1,0 +1,22 @@
+id: of-dcr
+tipo: sequencia
+titulo: "DCR: o TPP se registra apresentando a SSA, e o transmissor confere no diretório"
+descricao: >
+  O TPP obtém do diretório a SSA, um JWT assinado pelo diretório que atesta que o software
+  pertence à organização. Na conexão mTLS, apresenta a SSA ao endpoint de registro do
+  transmissor. O transmissor busca o JWKS do diretório e o status da organização, verifica
+  assinatura, emissor, expiração e se o certificado de transporte é da mesma organização da
+  SSA, e só então devolve o client_id. Atualizar chaves e remover o registro usam o mesmo
+  ciclo.
+participantes:
+  - { id: tpp, rotulo: "TPP" }
+  - { id: as, rotulo: "transmissor (AS)", papel: destaque }
+  - { id: dir, rotulo: "diretório", papel: externo }
+mensagens:
+  - { de: tpp, para: dir, rotulo: "pede a SSA", tipo: sync }
+  - { de: dir, para: tpp, rotulo: "SSA (JWT assinado)", tipo: reply }
+  - { de: tpp, para: as, rotulo: "registro + SSA (mTLS)", tipo: sync }
+  - { de: as, para: dir, rotulo: "JWKS e status da org", tipo: sync }
+  - { de: dir, para: as, rotulo: "ativa", tipo: reply }
+  - { de: as, para: as, rotulo: "assinatura, exp, cert", tipo: sync }
+  - { de: as, para: tpp, rotulo: "client_id", tipo: reply }

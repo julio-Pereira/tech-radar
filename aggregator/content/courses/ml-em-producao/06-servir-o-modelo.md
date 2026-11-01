@@ -33,6 +33,10 @@ rodar **de novo**, porque o tempo passou entre o cálculo e a exibição. Um con
 revogado nos segundos entre o modelo decidir a oferta e a tela do cliente renderizá-la — se isso acontecer,
 a oferta **não pode ser mostrada**, mesmo que já tenha sido calculada e esteja pronta para exibir.
 
+```diagrama
+ml-serving
+```
+
 ## O log de decisão
 
 Cada decisão de oferta gera um registro: as entradas (ou um hash delas, por minimização), a versão do

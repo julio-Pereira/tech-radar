@@ -37,6 +37,10 @@ integral); a última, **R$ 850,00** (amortização mais os juros de um saldo já
 totais do SAC são **R$ 1.300,00** — menores que no Price, porque o saldo devedor cai mais rápido
 no início.
 
+```diagrama
+cr-price-sac
+```
+
 ## Carência e capitalização
 
 **Carência** é um período inicial em que o cliente não paga parcela — mas os juros continuam

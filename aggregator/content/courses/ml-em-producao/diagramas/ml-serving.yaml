@@ -1,0 +1,24 @@
+id: ml-serving
+tipo: fluxo
+titulo: "Servir a oferta: orçamento de latência, fallback decidido antes e o policy gate de novo"
+descricao: >
+  A requisição busca as features online e chama o modelo dentro do orçamento de latência. Se a
+  feature store não responde no prazo, entra o fallback escolhido antes do incidente pelo produto,
+  como o baseline por regras. Antes de exibir, o policy gate roda de novo, porque o consentimento
+  pode ter sido revogado nos segundos desde o cálculo; revogado, a oferta não aparece. Toda
+  decisão grava um log com decisionId, versões de modelo, features e política.
+passos:
+  - { id: req, rotulo: "requisição", col: 0, row: 0 }
+  - { id: features, rotulo: "features online", col: 1, row: 0 }
+  - { id: modelo, rotulo: "modelo", col: 2, row: 0 }
+  - { id: gate, rotulo: "policy gate de novo", col: 3, row: 0, papel: destaque }
+  - { id: fallback, rotulo: "fallback: baseline", col: 1, row: 1 }
+  - { id: log, rotulo: "log de decisão", col: 3, row: 1 }
+  - { id: oculta, rotulo: "não mostra", col: 2, row: 1 }
+arestas:
+  - { de: req, para: features }
+  - { de: features, para: modelo }
+  - { de: modelo, para: gate }
+  - { de: features, para: fallback, rotulo: "estourou", tipo: falha }
+  - { de: gate, para: log }
+  - { de: gate, para: oculta, rotulo: "revogado", tipo: falha }

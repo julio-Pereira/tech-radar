@@ -1,0 +1,24 @@
+id: lg-conta-quente
+tipo: topologia
+titulo: "Conta quente fragmentada: sub-contas absorvem a escrita, e o saldo é a soma"
+descricao: >
+  A conta de tarifas recebe um lançamento por transação do banco inteiro, e a contenção de
+  escrita numa única linha limita a vazão de todo o ledger. Fragmentar divide o saldo lógico
+  em sub-contas internas, cada uma recebendo uma fração dos lançamentos e participando
+  normalmente da partida dobrada. O saldo lógico é a soma dos fragmentos, e a consulta externa
+  vê só a conta lógica.
+nos:
+  - { id: entrada, rotulo: "lançamentos de tarifa", col: 0, row: 1 }
+  - { id: f1, rotulo: "tarifas #1", col: 1, row: 0 }
+  - { id: f2, rotulo: "tarifas #2", col: 1, row: 1 }
+  - { id: f3, rotulo: "tarifas #3", col: 1, row: 2 }
+  - { id: logico, rotulo: "saldo lógico = Σ", col: 2, row: 1, papel: destaque }
+  - { id: consulta, rotulo: "consulta de saldo", col: 3, row: 1, papel: externo }
+arestas:
+  - { de: entrada, para: f1 }
+  - { de: entrada, para: f2 }
+  - { de: entrada, para: f3 }
+  - { de: f1, para: logico }
+  - { de: f2, para: logico }
+  - { de: f3, para: logico }
+  - { de: consulta, para: logico }

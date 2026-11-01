@@ -45,6 +45,10 @@ políticas), não **permitir e auditar depois**. Quando uma exceção legítima 
 **prazo** — a mesma disciplina de exceção com prazo que `governanca-e-paved-road` (marco 06 desta
 trilha) formaliza mais à frente.
 
+```diagrama
+aso-landing-zone
+```
+
 ## Etiquetas obrigatórias, e custo por dono
 
 Toda etiqueta obrigatória (dono, custo, ambiente) em todo recurso é o que torna possível, depois,

@@ -1,0 +1,17 @@
+id: as-hexagonal
+tipo: topologia
+titulo: "Hexagonal: toda dependência aponta para o domínio, inclusive a do banco"
+descricao: >
+  Em hexagonal, onion ou clean, a regra é a mesma: a dependência aponta para o domínio,
+  nunca o contrário. O domínio define portas; os adaptadores de fora, HTTP, SQL e fila,
+  implementam essas portas e dependem dele. Trocar o banco é trocar um adaptador, sem tocar
+  o domínio; o preço é a indireção extra, cara para um CRUD simples.
+nos:
+  - { id: http, rotulo: "adaptador HTTP", col: 0, row: 0, papel: externo }
+  - { id: dominio, rotulo: "domínio + portas", col: 0, row: 1, papel: destaque }
+  - { id: sql, rotulo: "adaptador SQL", col: 0, row: 2, papel: externo }
+  - { id: fila, rotulo: "adaptador de fila", col: 1, row: 1, papel: externo }
+arestas:
+  - { de: http, para: dominio, rotulo: "depende" }
+  - { de: sql, para: dominio, rotulo: "implementa porta" }
+  - { de: fila, para: dominio, rotulo: "implementa" }

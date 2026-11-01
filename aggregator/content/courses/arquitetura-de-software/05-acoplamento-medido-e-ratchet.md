@@ -36,6 +36,11 @@ lados passa a depender de uma interface que o outro implementa, invertendo a dir
 consomem), e **extração via evento** (em vez de A chamar B diretamente e B chamar A de volta, A
 publica um evento que B consome — quebrando a dependência síncrona bidirecional).
 
+```diagrama
+as-ciclo
+as-ciclo-quebrado
+```
+
 ## O princípio das dependências estáveis
 
 Um módulo não deveria depender de outro **menos estável** que ele mesmo — se o módulo A é estável
@@ -68,6 +73,10 @@ instabilidade maior numa dependência que violava o princípio de dependências 
 **passa**, e atualiza a linha de base, quando a métrica melhora. Isso resolve o problema clássico de
 "não dá para proibir todo acoplamento de uma vez, o código legado já tem muito" sem abrir mão de
 nunca mais deixar piorar.
+
+```diagrama
+as-ratchet
+```
 
 ## Limites por módulo, sem punir o código novo por dívida antiga
 

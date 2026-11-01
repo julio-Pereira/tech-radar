@@ -1,0 +1,15 @@
+id: aso-saldo-alvo
+tipo: topologia
+titulo: "Estado alvo: o ledger-core é o registro, e os outros copiam dele"
+descricao: >
+  No estado alvo, o ledger-core é o sistema de registro do saldo, porque é onde a transação
+  nasce. O core bancário e a planilha da tesouraria continuam exibindo o saldo, mas como
+  cópia ou consulta do ledger-core, nunca o contrário. O princípio todo dado tem um sistema
+  de registro único passa a ser verificável: ou tem, ou não tem.
+nos:
+  - { id: ledger, rotulo: "ledger-core (registro)", col: 0, row: 1, papel: destaque }
+  - { id: core, rotulo: "core bancário", col: 1, row: 0, papel: externo }
+  - { id: planilha, rotulo: "planilha da tesouraria", col: 1, row: 2, papel: externo }
+arestas:
+  - { de: ledger, para: core, rotulo: "copia" }
+  - { de: ledger, para: planilha, rotulo: "copia" }

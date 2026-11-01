@@ -49,6 +49,10 @@ falha imediatamente; se o schema migra antes e o app antigo continua rodando por
 schema novo, a matriz de compatibilidade da seção anterior é exatamente o que garante que isso
 funciona. Em Kubernetes, *sync waves* (`kubernetes/13`) coordenam essa ordem de forma declarativa.
 
+```diagrama
+ec-migrar-antes
+```
+
 ## Banco efêmero por PR, e dados sintéticos ou mascarados
 
 Um banco efêmero criado para cada PR (a mesma disciplina de ambiente efêmero do marco 05, aplicada

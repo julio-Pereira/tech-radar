@@ -1,0 +1,20 @@
+id: lt-portas
+tipo: fluxo
+titulo: "Porta de ida e volta decide rápido; porta sem volta delibera e registra a previsão"
+descricao: >
+  A primeira pergunta sobre uma decisão é se ela volta atrás a baixo custo. Se volta, é uma porta
+  de ida e volta: decide rápido quem está mais perto, por consentimento, sem processo pesado. Se
+  não volta, merece deliberação, com papéis nomeados no DACI e um registro com premissas,
+  alternativas reais, previsão explícita e gatilho de reversão. O erro caro é tratar a porta de
+  ida e volta com o processo da porta sem volta.
+passos:
+  - { id: decisao, rotulo: "decisão", col: 0, row: 0 }
+  - { id: pergunta, rotulo: "volta barato?", col: 1, row: 0, papel: destaque }
+  - { id: rapida, rotulo: "rápido, por consentimento", col: 2, row: 0 }
+  - { id: daci, rotulo: "sem volta: DACI", col: 1, row: 1 }
+  - { id: registro, rotulo: "previsão + gatilho", col: 2, row: 1, conceito: adr }
+arestas:
+  - { de: decisao, para: pergunta }
+  - { de: pergunta, para: rapida, rotulo: "sim" }
+  - { de: pergunta, para: daci, rotulo: "não" }
+  - { de: daci, para: registro }

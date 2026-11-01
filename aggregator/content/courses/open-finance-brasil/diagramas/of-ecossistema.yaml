@@ -1,0 +1,25 @@
+id: of-ecossistema
+tipo: topologia
+titulo: "Os papéis do Open Finance: cada chamada é feita num papel que o diretório confirma"
+descricao: >
+  O cliente consente que a receptora de dados leia seus dados na transmissora, e que a
+  iniciadora de pagamento, a ITP, inicie um pagamento a partir da conta na detentora. Um banco
+  costuma ser transmissora e detentora ao mesmo tempo, mas cada chamada é feita num papel só.
+  Receptora e ITP são os TPPs, de fora. O diretório de participantes é a autoridade que confirma
+  quem é participante, com que papel e em que estado; a confiança nunca vem do que o chamador
+  afirma sobre si.
+grupos:
+  - { id: banco, rotulo: "banco do cliente", col: 2, row: 0, cols: 1, rows: 2 }
+nos:
+  - { id: cliente, rotulo: "cliente", col: 0, row: 0, papel: destaque }
+  - { id: receptora, rotulo: "receptora (TPP)", col: 1, row: 0 }
+  - { id: itp, rotulo: "ITP (TPP)", col: 1, row: 1 }
+  - { id: transmissora, rotulo: "transmissora", grupo: banco, col: 2, row: 0 }
+  - { id: detentora, rotulo: "detentora de conta", grupo: banco, col: 2, row: 1 }
+  - { id: diretorio, rotulo: "diretório", col: 1, row: 2, papel: externo }
+arestas:
+  - { de: cliente, para: receptora, rotulo: "consente" }
+  - { de: cliente, para: itp }
+  - { de: receptora, para: transmissora, rotulo: "lê dados" }
+  - { de: itp, para: detentora, rotulo: "inicia" }
+  - { de: diretorio, para: itp, rotulo: "confirma papel", estilo: tracejada }

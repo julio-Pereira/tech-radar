@@ -1,0 +1,17 @@
+id: aso-saldo-atual
+tipo: topologia
+titulo: "Estado atual: saldo vive em três lugares, e ninguém decidiu qual copia qual"
+descricao: >
+  Hoje, a capacidade saldo aparece em três sistemas: no core bancário, no ledger-core e numa
+  planilha da tesouraria mantida à mão para relatório interno. Os três coexistem sem que
+  ninguém tenha decidido qual é o sistema de registro, então a pergunta sobre qual valor está
+  certo quando dois discordam não tem resposta.
+nos:
+  - { id: saldo, rotulo: "capacidade: saldo", col: 0, row: 1, papel: destaque }
+  - { id: core, rotulo: "core bancário", col: 1, row: 0, papel: externo }
+  - { id: ledger, rotulo: "ledger-core", col: 1, row: 1 }
+  - { id: planilha, rotulo: "planilha da tesouraria", col: 1, row: 2, papel: externo }
+arestas:
+  - { de: saldo, para: core, estilo: tracejada }
+  - { de: saldo, para: ledger, estilo: tracejada }
+  - { de: saldo, para: planilha, estilo: tracejada }

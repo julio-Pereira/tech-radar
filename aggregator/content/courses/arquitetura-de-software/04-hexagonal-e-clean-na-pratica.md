@@ -44,6 +44,10 @@ do formato ou do vocabulário do legado fica contido ali, nunca vazando para o d
 como caso particular de adaptador, não como conceito separado, simplifica onde ela deve morar na
 estrutura de pacotes.
 
+```diagrama
+as-portas-e-adaptadores
+```
+
 ## Estrutura de pacotes: Java e Go, lado a lado
 
 Em **Java**, o núcleo mora num pacote próprio (`dominio` ou `core`), com portas como interfaces

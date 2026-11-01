@@ -34,6 +34,10 @@ uma data — são **percentis**: "50% de chance de terminar até 20 de novembro;
 de dezembro". A pergunta "quando, com 85%?" é mais honesta do que qualquer estimativa de ponto
 único, porque expõe a incerteza real em vez de escondê-la atrás de um número confiante.
 
+```diagrama
+lt-monte-carlo
+```
+
 ## Faixas em vez de ponto
 
 Um número único ("vai levar 3 semanas") esconde a incerteza; uma **faixa com premissa explícita**

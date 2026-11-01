@@ -1,0 +1,31 @@
+id: ed-watermark
+tipo: estados
+titulo: "Watermark: a janela fecha na aposta de atraso, e o atrasado vira correção auditável"
+descricao: >
+  A janela das 14h00 às 14h05, por tempo de evento, fica aberta e acumula os eventos que chegam
+  no prazo. O watermark, com 5 minutos de atraso tolerado, passa das 14h05 às 14h10 de tempo de
+  processamento: a janela fecha e o agregado é publicado num sink idempotente. Um evento das 14h03
+  que chega às 14h40 não é descartado em silêncio: vira uma correção auditável do agregado já
+  publicado.
+estados:
+  - { id: aberta, rotulo: "ABERTA", col: 0, row: 0 }
+  - { id: publicada, rotulo: "FECHADA E PUBLICADA", col: 1, row: 0, papel: destaque }
+  - { id: corrigida, rotulo: "CORRIGIDA", col: 2, row: 0 }
+inicial: aberta
+transicoes:
+  - { de: aberta, para: aberta, evento: "evento no prazo" }
+  - { de: aberta, para: publicada, evento: "watermark" }
+  - { de: publicada, para: corrigida, evento: "atrasado" }
+animacao:
+  - legenda: "A janela 14h00–14h05 está aberta e recebe os eventos pelo tempo de evento"
+    atual: aberta
+  - legenda: "Um evento das 14h04 chega às 14h07, dentro da aposta: entra no agregado"
+    atual: aberta
+    transicao: { de: aberta, para: aberta }
+  - legenda: "Às 14h10 o watermark passa das 14h05: a janela fecha e o agregado é publicado"
+    atual: publicada
+    transicao: { de: aberta, para: publicada }
+    anotacao: "sink idempotente: reprocessar não soma em dobro"
+  - legenda: "Um evento das 14h03 chega às 14h40: vira um ajuste registrado, nunca uma perda"
+    atual: corrigida
+    transicao: { de: publicada, para: corrigida }

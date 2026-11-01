@@ -41,6 +41,10 @@ delete file "clássico" por **vetores de deleção** (um bitmap binário, mais e
 leitura que o delete file anterior) — confira a versão da especificação em uso antes de assumir
 qual das duas existe no seu ambiente.
 
+```diagrama
+ed-iceberg
+```
+
 ## Engines: embutido, servidor, warehouse gerenciado
 
 **DuckDB** roda embutido no processo que o chama, sem servidor para administrar, sem conta —

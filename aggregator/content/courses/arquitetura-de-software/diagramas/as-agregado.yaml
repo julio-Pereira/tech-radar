@@ -1,0 +1,24 @@
+id: as-agregado
+tipo: topologia
+titulo: "O agregado Transferencia: a raiz é a única porta, e outra conta entra só pelo id"
+descricao: >
+  A Transferencia é um agregado: débito, crédito e estado mudam juntos, e a raiz é o único
+  ponto de entrada, que garante que nenhuma sequência de chamadas públicas crie valor
+  negativo, conclua duas vezes ou deixe um estado intermediário inválido. O valor é um
+  Money, value object imutável em centavos inteiros. A Conta é outro agregado e é
+  referenciada só pelo contaId, nunca por objeto. O evento TransferenciaConcluida é
+  coletado durante a operação e publicado depois.
+grupos:
+  - { id: agregado, rotulo: "agregado Transferencia", col: 0, row: 0, cols: 2, rows: 2 }
+nos:
+  - { id: raiz, rotulo: "Transferencia (raiz)", grupo: agregado, col: 0, row: 0, papel: destaque }
+  - { id: lancamentos, rotulo: "débito e crédito", grupo: agregado, col: 1, row: 0 }
+  - { id: money, rotulo: "Money (centavos)", grupo: agregado, col: 0, row: 1 }
+  - { id: estado, rotulo: "estado + invariante", grupo: agregado, col: 1, row: 1 }
+  - { id: conta, rotulo: "Conta (outro agregado)", col: 2, row: 0, papel: externo }
+  - { id: evento, rotulo: "TransferenciaConcluida", col: 2, row: 1 }
+arestas:
+  - { de: raiz, para: lancamentos }
+  - { de: raiz, para: money }
+  - { de: lancamentos, para: conta, rotulo: "só contaId", estilo: tracejada }
+  - { de: estado, para: evento, rotulo: "coleta; publica depois" }

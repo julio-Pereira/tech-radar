@@ -61,6 +61,10 @@ mecanismo explícito e auditado, nunca uma simples reversão silenciosa). E repe
 mais de uma vez — a mesma disciplina de idempotência de comando já formalizada para processos de
 longa duração em geral.
 
+```diagrama
+cr-ciclo
+```
+
 ## Exemplo numa fintech
 
 Um cliente decide quitar seu empréstimo antecipadamente no mesmo exato dia em que uma parcela

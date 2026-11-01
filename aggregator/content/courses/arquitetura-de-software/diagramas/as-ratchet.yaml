@@ -1,0 +1,22 @@
+id: as-ratchet
+tipo: fluxo
+titulo: "Ratchet: o CI barra o commit que piora o acoplamento e aperta a base quando melhora"
+descricao: >
+  A cada commit, o CI extrai o grafo de dependências e mede ciclos e instabilidade, módulo a
+  módulo. O resultado é comparado com a linha de base versionada junto com o código. Se a
+  métrica piorou, o CI falha. Se ficou igual, passa. Se melhorou, passa e a linha de base é
+  atualizada, de modo que a melhora não pode ser desfeita depois. O legado com acoplamento
+  alto não precisa ser corrigido de uma vez, mas nunca mais piora.
+passos:
+  - { id: commit, rotulo: "commit", col: 0, row: 0 }
+  - { id: mede, rotulo: "mede ciclos e I", col: 1, row: 0 }
+  - { id: compara, rotulo: "compara com a base", col: 2, row: 0, papel: destaque }
+  - { id: falha, rotulo: "CI falha", col: 2, row: 1 }
+  - { id: passa, rotulo: "passa", col: 3, row: 0 }
+  - { id: atualiza, rotulo: "aperta a linha de base", col: 3, row: 1 }
+arestas:
+  - { de: commit, para: mede }
+  - { de: mede, para: compara }
+  - { de: compara, para: falha, rotulo: "piorou", tipo: falha }
+  - { de: compara, para: passa, rotulo: "igual" }
+  - { de: compara, para: atualiza, rotulo: "melhorou" }

@@ -1,0 +1,33 @@
+id: cr-ciclo
+tipo: estados
+titulo: "Ciclo de vida do contrato: todo estado tem saída prevista, e os terminais não reabrem"
+descricao: >
+  A proposta entra em análise e é negada ou aprovada; aprovada e com a CCB assinada, o contrato
+  está formalizado, e o desembolso o torna vigente. Vigente, termina liquidado quando o cliente
+  quita, ou entra em atraso e vai para a cobrança. Da cobrança, volta a vigente se regulariza,
+  é liquidado por uma renegociação, que origina um contrato novo com o saldo remanescente, ou é
+  baixado sem recuperação. Liquidado e baixado são terminais: nenhum evento os reabre em
+  silêncio, e o mesmo comando repetido não muda o estado duas vezes.
+estados:
+  - { id: proposta, rotulo: "PROPOSTA", col: 0, row: 0 }
+  - { id: analise, rotulo: "EM ANÁLISE", col: 1, row: 0 }
+  - { id: formalizado, rotulo: "FORMALIZADO", col: 2, row: 0 }
+  - { id: vigente, rotulo: "VIGENTE", col: 3, row: 0, papel: destaque }
+  - { id: negado, rotulo: "NEGADO", col: 1, row: 1 }
+  - { id: liquidado, rotulo: "LIQUIDADO", col: 2, row: 1 }
+  - { id: atraso, rotulo: "EM ATRASO", col: 3, row: 1 }
+  - { id: cobranca, rotulo: "EM COBRANÇA", col: 2, row: 2 }
+  - { id: baixado, rotulo: "BAIXADO", col: 1, row: 2 }
+inicial: proposta
+finais: [negado, liquidado, baixado]
+transicoes:
+  - { de: proposta, para: analise, evento: "submete" }
+  - { de: analise, para: formalizado, evento: "aprovada, CCB" }
+  - { de: analise, para: negado, evento: "negada" }
+  - { de: formalizado, para: vigente, evento: "desembolso" }
+  - { de: vigente, para: liquidado, evento: "quitou" }
+  - { de: vigente, para: atraso, evento: "venceu sem pagar" }
+  - { de: atraso, para: cobranca, evento: "cobra" }
+  - { de: cobranca, para: vigente, evento: "regularizou" }
+  - { de: cobranca, para: liquidado, evento: "renegociado" }
+  - { de: cobranca, para: baixado, evento: "sem recuperação" }

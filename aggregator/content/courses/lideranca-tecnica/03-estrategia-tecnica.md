@@ -110,6 +110,10 @@ layer* e só migrar componentes que tenham dono designado. As **ações** têm d
 sucesso específicos — e a lista de não-objetivos deixa explícito que a fila de eventos **não** será
 trocada neste período, mesmo sendo tecnicamente interessante.
 
+```diagrama
+lt-estrategia
+```
+
 ## Hands-on
 
 **Tutorial.** Escreva a estratégia técnica do `fin-platform` a partir do diagnóstico produzido no

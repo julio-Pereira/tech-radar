@@ -29,6 +29,10 @@ ensinou a respeitar, e pode efetivamente fazer um ataque de negação de serviç
 impede isso — o mesmo princípio de orçamento de retry de `system-design/04`, aplicado a quantas
 execuções do pipeline podem competir pelo mesmo recurso externo ao mesmo tempo.
 
+```diagrama
+ed-dag
+```
+
 ## Tarefas idempotentes e *pools*: o orquestrador como camada fina
 
 A tarefa idempotente é o que permite ao orquestrador fazer a coisa mais simples e mais poderosa que

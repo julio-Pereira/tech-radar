@@ -1,0 +1,23 @@
+id: of-fapi
+tipo: sequencia
+titulo: "FAPI: PAR assinado, PKCE na troca e token vinculado ao certificado"
+descricao: >
+  O TPP empurra os parâmetros de autorização num request object assinado, pelo PAR, e recebe
+  uma referência opaca. O cliente é redirecionado ao servidor de autorização com essa
+  referência, autentica e consente. O código volta para a redirect_uri exata, com state e
+  nonce. Na troca do código, o TPP prova o PKCE e se autentica por mTLS ou private_key_jwt, e
+  recebe um token vinculado ao certificado. A API só aceita o token se a conexão atual usa o
+  mesmo certificado.
+participantes:
+  - { id: tpp, rotulo: "TPP" }
+  - { id: cliente, rotulo: "cliente" }
+  - { id: as, rotulo: "servidor de autorização", papel: destaque }
+  - { id: api, rotulo: "API de dados" }
+mensagens:
+  - { de: tpp, para: as, rotulo: "PAR: request object", tipo: sync }
+  - { de: as, para: tpp, rotulo: "request_uri", tipo: reply }
+  - { de: cliente, para: as, rotulo: "autentica e consente", tipo: sync }
+  - { de: as, para: tpp, rotulo: "code na redirect_uri", tipo: reply, nota: "state e nonce conferidos" }
+  - { de: tpp, para: as, rotulo: "code + PKCE (mTLS)", tipo: sync }
+  - { de: as, para: tpp, rotulo: "token vinculado", tipo: reply }
+  - { de: tpp, para: api, rotulo: "chamada + token", tipo: sync, nota: "mesmo certificado?" }

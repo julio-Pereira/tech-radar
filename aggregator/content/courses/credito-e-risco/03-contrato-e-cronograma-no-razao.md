@@ -50,6 +50,10 @@ as regras do produto. **Amortização antecipada** (já vista no marco 02 do pon
 matemático) aqui ganha o lançamento contábil correspondente: reduz o principal diretamente,
 recalculando o cronograma restante.
 
+```diagrama
+cr-razao
+```
+
 ## Renegociação: um novo contrato que liquida o antigo
 
 **Renegociar** um contrato em crédito não é editar o contrato existente — é, estruturalmente,
@@ -73,6 +77,10 @@ longa duração com múltiplas etapas, cada uma potencialmente precisando de **c
 etapa posterior falhar (o desembolso falha depois da assinatura: a saga precisa reverter a
 formalização, não deixar o contrato num limbo). Essa é exatamente a mesma disciplina de sagas já
 formalizada, de forma geral, para processos de longa duração.
+
+```diagrama
+cr-saga
+```
 
 ## Conciliação contrato × razão: a divergência como relatório, não mistério
 

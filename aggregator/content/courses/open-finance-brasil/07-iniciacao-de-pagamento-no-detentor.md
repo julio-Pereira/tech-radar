@@ -57,6 +57,10 @@ problema de **resultado desconhecido** (o SPI não respondeu dentro do tempo esp
 aqui, com a mesma disciplina: resolver por **consulta**, nunca assumir falha e tentar de novo às
 cegas, o que arriscaria uma segunda movimentação de dinheiro para a mesma intenção original.
 
+```diagrama
+of-iniciacao
+```
+
 ## Pagamento agendado, recorrente, e o uso de *hold*
 
 Pagamento **agendado** (executar numa data futura) e **recorrente** (**conferir** as modalidades e

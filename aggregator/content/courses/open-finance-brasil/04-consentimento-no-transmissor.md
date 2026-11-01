@@ -16,6 +16,10 @@ outros — **conferir** os nomes e as transições exatas vigentes). Modelar o c
 estados com transições válidas e inválidas, em vez de um conjunto de *flags* independentes, é o
 que torna "esse consentimento ainda vale?" uma pergunta com resposta única e verificável.
 
+```diagrama
+of-consentimento
+```
+
 ## Permissões e o escopo mínimo
 
 Um consentimento agrupa **permissões** específicas (acesso a saldo, a extrato, a dados cadastrais

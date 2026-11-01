@@ -1,0 +1,24 @@
+id: ml-registry
+tipo: estados
+titulo: "Registry: o modelo só avança passando nos gates, e o rollback leva as features junto"
+descricao: >
+  Cada versão treinada entra como candidata, com métricas, hash de dado e código e model card. Os
+  gates exigem superar o baseline, contrato de entrada e saída compatível e proveniência
+  verificável; só então ela vai para shadow. Em shadow, decide sem efeito e é comparada com
+  produção; depois vai para canário, com uma fração do tráfego real, e então para produção. Se o
+  canário piora, o rollback restaura modelo e versão de features juntos, e a versão é arquivada.
+estados:
+  - { id: candidato, rotulo: "CANDIDATO", col: 0, row: 0 }
+  - { id: shadow, rotulo: "SHADOW", col: 1, row: 0 }
+  - { id: canario, rotulo: "CANÁRIO", col: 2, row: 0, papel: destaque }
+  - { id: producao, rotulo: "PRODUÇÃO", col: 3, row: 0 }
+  - { id: arquivado, rotulo: "ARQUIVADO", col: 2, row: 1 }
+inicial: candidato
+finais: [arquivado]
+transicoes:
+  - { de: candidato, para: shadow, evento: "gates ok" }
+  - { de: shadow, para: canario, evento: "comparou bem" }
+  - { de: canario, para: producao, evento: "métricas ok" }
+  - { de: canario, para: arquivado, evento: "rollback" }
+  - { de: producao, para: arquivado, evento: "substituído" }
+  - { de: shadow, para: arquivado, evento: "pior" }

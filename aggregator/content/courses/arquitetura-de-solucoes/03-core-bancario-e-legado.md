@@ -56,6 +56,10 @@ Periodicamente, os totais do core e os totais da plataforma precisam **bater** �
 a diferença precisa ser **classificada** (atraso normal de sincronização, estorno, erro real), nunca
 simplesmente ignorada ou registrada sem ação associada.
 
+```diagrama
+aso-core-legado
+```
+
 ## Corte, e execução em paralelo
 
 Ao migrar do core para um substituto (ou mesmo ao encapsular de forma mais profunda), rodar os dois

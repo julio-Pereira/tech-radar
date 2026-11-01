@@ -1,0 +1,26 @@
+id: ec-mudanca-regulada
+tipo: fluxo
+titulo: "Mudança regulada: autor ≠ aprovador, e o break-glass só adia a revisão"
+descricao: >
+  No caminho normal, o autor abre a mudança e outra pessoa aprova, com CODEOWNERS tornando isso
+  verificável; os gates automáticos rodam e o deploy gera um registro com autor, aprovador,
+  checagens, digest, hora e classe, num log encadeado por hash. No caminho de emergência, o
+  hotfix vai a produção sem a aprovação normal, mas gera uma tarefa de revisão com prazo de
+  24 horas; se a revisão não ocorre no prazo, o relatório de conformidade reprova.
+passos:
+  - { id: autor, rotulo: "autor", col: 0, row: 0 }
+  - { id: aprovador, rotulo: "aprovador ≠ autor", col: 1, row: 0, papel: destaque }
+  - { id: gates, rotulo: "gates 02–08", col: 2, row: 0 }
+  - { id: deploy, rotulo: "deploy", col: 3, row: 0 }
+  - { id: registro, rotulo: "registro com hash", col: 3, row: 1 }
+  - { id: breakglass, rotulo: "break-glass", col: 2, row: 1 }
+  - { id: revisao, rotulo: "revisão em 24 h", col: 1, row: 1 }
+  - { id: reprova, rotulo: "relatório reprova", col: 0, row: 1 }
+arestas:
+  - { de: autor, para: aprovador }
+  - { de: aprovador, para: gates }
+  - { de: gates, para: deploy }
+  - { de: deploy, para: registro }
+  - { de: breakglass, para: deploy }
+  - { de: breakglass, para: revisao, rotulo: "gera tarefa" }
+  - { de: revisao, para: reprova, tipo: falha }

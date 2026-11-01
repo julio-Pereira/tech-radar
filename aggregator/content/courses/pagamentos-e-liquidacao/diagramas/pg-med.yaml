@@ -1,0 +1,26 @@
+id: pg-med
+tipo: estados
+titulo: "MED: a fraude notificada bloqueia o valor, e a análise decide devolver ou liberar"
+descricao: >
+  A vítima notifica a fraude, e o valor ainda disponível na conta de destino entra em bloqueio
+  cautelar, para que o suposto fraudador não o retire durante a análise. Se o dinheiro já saiu
+  dessa conta, o rastreio de fundos segue para as contas seguintes, num processo mais lento. A
+  análise formal termina em devolução, total ou parcial conforme o que ainda há, ou em liberação
+  do bloqueio. É reservado a fraude investigada, não a arrependimento de compra. Fluxo
+  simplificado; confira estados e prazos no regulamento vigente do Pix.
+estados:
+  - { id: notificado, rotulo: "NOTIFICADO", col: 0, row: 0 }
+  - { id: bloqueio, rotulo: "BLOQUEIO CAUTELAR", col: 1, row: 0, papel: destaque }
+  - { id: analise, rotulo: "EM ANÁLISE", col: 2, row: 0 }
+  - { id: devolvido, rotulo: "DEVOLVIDO", col: 3, row: 0 }
+  - { id: liberado, rotulo: "LIBERADO", col: 3, row: 1 }
+  - { id: rastreio, rotulo: "RASTREIO DE FUNDOS", col: 1, row: 1 }
+inicial: notificado
+finais: [devolvido, liberado]
+transicoes:
+  - { de: notificado, para: bloqueio, evento: "bloqueia" }
+  - { de: bloqueio, para: analise, evento: "analisa" }
+  - { de: bloqueio, para: rastreio, evento: "valor já saiu" }
+  - { de: rastreio, para: analise, evento: "bloqueia adiante" }
+  - { de: analise, para: devolvido, evento: "fraude" }
+  - { de: analise, para: liberado, evento: "improcedente" }

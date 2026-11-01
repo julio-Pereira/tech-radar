@@ -35,6 +35,11 @@ diferentes para dado ausente (o treino usa zero, o serviço usa nulo). A defesa 
 cálculo**, testado para produzir o mesmo resultado nos dois contextos — não duas implementações que
 "deveriam" bater.
 
+```diagrama
+ml-skew-dois
+ml-skew-um
+```
+
 ## Frescor, TTL, e a diferença entre ausente e velho
 
 Toda feature tem um **TTL** (tempo de vida): depois de quanto tempo sem atualização ela é considerada

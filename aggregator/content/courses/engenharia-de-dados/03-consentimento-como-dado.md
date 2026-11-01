@@ -38,6 +38,10 @@ precisa ser conferido, não assumido). Cada transição é um **evento**, regist
 "este dado podia ser usado para esta finalidade, naquela data específica?", que é exatamente a
 pergunta que uma auditoria faz.
 
+```diagrama
+ed-consentimento
+```
+
 ## `consentId` em cada registro: a linhagem de consentimento
 
 Todo registro de dado recebido de uma transmissora carrega o `consentId` que o autorizou — sem

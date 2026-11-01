@@ -37,6 +37,11 @@ banco, fila, HTTP — implementam essas portas de fora para dentro. Chamar isso 
 clean architecture é escolha de vocabulário; a regra de dependência testável é a mesma nos três, e é
 ela que o marco 04 aprofunda.
 
+```diagrama
+as-camadas
+as-hexagonal
+```
+
 ## *Vertical slice*: organizar por funcionalidade, não por camada técnica
 
 Em vez de uma pasta `controllers/`, uma `services/` e uma `repositories/` cada uma com um arquivo por

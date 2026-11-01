@@ -76,6 +76,10 @@ no meio da operação, antes de saber se ela vai mesmo se completar. Publicar ce
 um consumidor externo pode reagir a um evento que descreve um estado que, no fim, nunca existiu de
 verdade (porque a operação falhou depois).
 
+```diagrama
+as-agregado
+```
+
 ## Fábricas, construtores, e o estado inválido impossível de criar
 
 A defesa mais barata contra estado inválido é não deixar ele nascer: construtores e fábricas que

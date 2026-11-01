@@ -46,6 +46,10 @@ detecta essa diferença: é o ***drift***, e o `apply` subsequente o corrige, re
 com a configuração declarada — ou revela que a configuração precisa ser atualizada para refletir uma
 mudança legítima que foi feita por fora.
 
+```diagrama
+ec-iac
+```
+
 ## Módulos, e o que não modularizar
 
 Um **módulo** agrupa recursos relacionados para reúso — mas modularizar prematuramente, antes de ter

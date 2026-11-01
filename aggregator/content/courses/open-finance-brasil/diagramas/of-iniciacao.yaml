@@ -1,0 +1,40 @@
+id: of-iniciacao
+tipo: sequencia
+titulo: "Iniciação de pagamento: consentimento de uso único, e o SPI sem resposta se consulta"
+descricao: >
+  A ITP cria o consentimento de pagamento na detentora, com valor, recebedor e conta de débito
+  exatos. O cliente confirma com autenticação forte. A ITP inicia o pagamento com sua chave de
+  idempotência, e valor e recebedor precisam ser idênticos aos consentidos. A detentora consome
+  o consentimento, que nunca autoriza uma segunda movimentação, e envia a ordem ao SPI. Se o
+  SPI não responde no prazo, o resultado é desconhecido: a detentora consulta, nunca reenvia.
+  Ao liquidar, notifica a ITP; notificação duplicada ou fora de ordem não muda o estado terminal.
+participantes:
+  - { id: itp, rotulo: "ITP" }
+  - { id: cliente, rotulo: "cliente" }
+  - { id: det, rotulo: "detentora", papel: destaque }
+  - { id: spi, rotulo: "SPI", papel: externo }
+mensagens:
+  - { de: itp, para: det, rotulo: "consentimento", tipo: sync, nota: "valor, recebedor, conta exatos" }
+  - { de: cliente, para: det, rotulo: "autenticação forte", tipo: sync }
+  - { de: itp, para: det, rotulo: "pagamento + idempotência", tipo: sync, nota: "valor e recebedor idênticos" }
+  - { de: det, para: det, rotulo: "CONSUMED", tipo: sync }
+  - { de: det, para: spi, rotulo: "ordem Pix", tipo: async }
+  - { de: spi, para: det, rotulo: "sem resposta", tipo: reply, nota: "resultado desconhecido" }
+  - { de: det, para: spi, rotulo: "consulta status", tipo: sync }
+  - { de: spi, para: det, rotulo: "liquidado", tipo: reply }
+  - { de: det, para: itp, rotulo: "estado terminal", tipo: async, nota: "duplicata não muda o terminal" }
+animacao:
+  - legenda: "A ITP cria o consentimento de pagamento, com valor e recebedor exatos"
+    ate: 1
+  - legenda: "O cliente confirma com autenticação forte, mais rigorosa que a de dados"
+    ate: 2
+  - legenda: "A ITP inicia o pagamento com a chave de idempotência"
+    ate: 3
+  - legenda: "O consentimento é consumido: uso único, mesmo que algo falhe depois"
+    ate: 4
+  - legenda: "A ordem vai ao SPI, e o SPI não responde no prazo"
+    ate: 6
+  - legenda: "Resultado desconhecido se resolve por consulta, nunca por reenvio"
+    ate: 8
+  - legenda: "A ITP recebe o estado terminal, que nenhuma notificação tardia reverte"
+    ate: 9

@@ -1,0 +1,24 @@
+id: ed-ingestao
+tipo: sequencia
+titulo: "Ingerir de uma transmissora: marca d'água com sobreposição, cursor e Retry-After"
+descricao: >
+  O ingestor lê a marca d'água da última coleta, 10h00, e pede à transmissora o que mudou desde
+  9h55: a janela de sobreposição pega o registro criado às 9h58 que só ficou visível às 10h01. As
+  páginas vêm por cursor. Um 429 com Retry-After de 30 segundos é respeitado exatamente, sem
+  backoff próprio. A sobreposição traz duplicatas, removidas pela chave de negócio, e só no fim a
+  nova marca d'água é gravada.
+participantes:
+  - { id: ing, rotulo: "ingestor", papel: destaque }
+  - { id: tx, rotulo: "transmissora", papel: externo }
+  - { id: estado, rotulo: "marca d'água" }
+mensagens:
+  - { de: ing, para: estado, rotulo: "lê: 10h00", tipo: sync }
+  - { de: ing, para: tx, rotulo: "desde 9h55", tipo: sync, nota: "sobreposição de 5 min" }
+  - { de: tx, para: ing, rotulo: "página 1 + cursor", tipo: reply }
+  - { de: ing, para: tx, rotulo: "cursor", tipo: sync }
+  - { de: tx, para: ing, rotulo: "429, Retry-After 30", tipo: reply }
+  - { de: ing, para: ing, rotulo: "espera 30 s", tipo: sync }
+  - { de: ing, para: tx, rotulo: "cursor", tipo: sync }
+  - { de: tx, para: ing, rotulo: "página 2, fim", tipo: reply }
+  - { de: ing, para: ing, rotulo: "dedup por chave", tipo: sync }
+  - { de: ing, para: estado, rotulo: "grava: 10h15", tipo: sync }

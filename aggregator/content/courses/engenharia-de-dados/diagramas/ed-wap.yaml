@@ -1,0 +1,20 @@
+id: ed-wap
+tipo: fluxo
+titulo: "Write-audit-publish: o consumidor só vê a partição que passou nos testes"
+descricao: >
+  O pipeline escreve o lote processado numa área de staging, nunca direto no destino. Ali, os
+  testes de qualidade auditam o resultado. Se passam, a partição nova é publicada numa troca
+  atômica, e o leitor nunca vê metade nova e metade antiga. Se falham, nada é publicado e os
+  consumidores continuam lendo a versão anterior. Com MERGE por chave natural, reexecutar o
+  mesmo lote não duplica.
+passos:
+  - { id: extrai, rotulo: "lote do dia", col: 0, row: 0 }
+  - { id: staging, rotulo: "escreve em staging", col: 1, row: 0 }
+  - { id: audita, rotulo: "audita (testes)", col: 2, row: 0, papel: destaque }
+  - { id: publica, rotulo: "publica: troca atômica", col: 3, row: 0 }
+  - { id: retem, rotulo: "fica a versão anterior", col: 2, row: 1 }
+arestas:
+  - { de: extrai, para: staging }
+  - { de: staging, para: audita }
+  - { de: audita, para: publica }
+  - { de: audita, para: retem, rotulo: "falhou", tipo: falha }

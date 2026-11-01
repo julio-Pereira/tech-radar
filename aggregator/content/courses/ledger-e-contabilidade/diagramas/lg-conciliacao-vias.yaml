@@ -1,0 +1,20 @@
+id: lg-conciliacao-vias
+tipo: topologia
+titulo: "Conciliação em três vias por dentro, e o mundo real por fora"
+descricao: >
+  A conciliação interna compara o razão, o subrazão e o saldo materializado: os três derivam da
+  mesma fonte e precisam contar exatamente a mesma história, então qualquer diferença é bug do
+  próprio ledger. A conciliação externa compara o razão com um arquivo fora do seu controle,
+  como o de liquidação do arranjo ou o extrato da contraparte, e ali a divergência pode ser erro
+  do outro lado, timing ou, sim, bug seu.
+grupos:
+  - { id: interna, rotulo: "interna", col: 0, row: 0, cols: 2, rows: 2 }
+nos:
+  - { id: razao, rotulo: "razão", grupo: interna, col: 1, row: 0, papel: destaque }
+  - { id: subrazao, rotulo: "subrazão", grupo: interna, col: 0, row: 0 }
+  - { id: saldo, rotulo: "saldo materializado", grupo: interna, col: 1, row: 1 }
+  - { id: arquivo, rotulo: "arquivo do arranjo", col: 2, row: 0, papel: externo }
+arestas:
+  - { de: subrazao, para: razao, rotulo: "bate?" }
+  - { de: saldo, para: razao, rotulo: "bate?" }
+  - { de: arquivo, para: razao, rotulo: "externa", estilo: tracejada }

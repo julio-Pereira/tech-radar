@@ -1,0 +1,39 @@
+id: pg-pix
+tipo: sequencia
+titulo: "Pix por dentro: QR dinâmico, DICT, SPI e liquidação bruta, com o id fim a fim"
+descricao: >
+  O aplicativo do pagador lê o QR dinâmico e busca o payload hospedado pelo PSP do recebedor:
+  valor, chave e identificador da cobrança. Em seguida consulta o DICT para traduzir a chave na
+  conta de destino. A ordem vai ao SPI com o identificador fim a fim, base da idempotência. O
+  SPI encaminha ao PSP do recebedor, que aceita, liquida a transação individualmente entre as
+  contas de liquidação e confirma aos dois lados. O valor viaja como texto decimal com duas
+  casas.
+participantes:
+  - { id: pa, rotulo: "PSP do pagador" }
+  - { id: dict, rotulo: "DICT", papel: externo }
+  - { id: spi, rotulo: "SPI", papel: destaque }
+  - { id: pb, rotulo: "PSP do recebedor" }
+mensagens:
+  - { de: pa, para: pb, rotulo: "busca payload do QR", tipo: sync }
+  - { de: pb, para: pa, rotulo: "valor e chave", tipo: reply }
+  - { de: pa, para: dict, rotulo: "consulta chave", tipo: sync }
+  - { de: dict, para: pa, rotulo: "conta de destino", tipo: reply }
+  - { de: pa, para: spi, rotulo: "ordem (id fim a fim)", tipo: async, nota: "valor \"120.00\" como texto" }
+  - { de: spi, para: pb, rotulo: "ordem", tipo: async }
+  - { de: pb, para: spi, rotulo: "aceita", tipo: reply }
+  - { de: spi, para: spi, rotulo: "liquida bruto", tipo: sync }
+  - { de: spi, para: pa, rotulo: "liquidado", tipo: reply }
+  - { de: spi, para: pb, rotulo: "liquidado", tipo: async }
+animacao:
+  - legenda: "O app lê o QR dinâmico e busca o payload hospedado pelo recebedor"
+    ate: 2
+  - legenda: "O DICT traduz a chave na conta de destino"
+    ate: 4
+  - legenda: "A ordem vai ao SPI com o identificador fim a fim, base da idempotência"
+    ate: 5
+  - legenda: "O SPI encaminha, e o PSP do recebedor aceita dentro do prazo"
+    ate: 7
+  - legenda: "O SPI liquida a transação individualmente: liquidação bruta em tempo real"
+    ate: 8
+  - legenda: "Os dois lados recebem a confirmação: o dinheiro mudou de dono"
+    ate: 10

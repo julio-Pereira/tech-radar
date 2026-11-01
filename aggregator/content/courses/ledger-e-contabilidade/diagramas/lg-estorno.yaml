@@ -1,0 +1,20 @@
+id: lg-estorno
+tipo: fluxo
+titulo: "Journal append-only: corrigir é lançar de novo, com referência ao original"
+descricao: >
+  O lançamento original, com a tarifa errada, nunca é editado: o banco recusa UPDATE e DELETE do
+  papel da aplicação. A correção é um estorno, o lançamento inverso exato, que referencia o
+  original; depois vem o relançamento correto. Se o próprio estorno foi um engano, um estorno de
+  estorno o desfaz, referenciando o estorno. A cadeia inteira fica rastreável, com quem, quando e
+  por quê em cada elo.
+passos:
+  - { id: l1, rotulo: "L1 original", col: 0, row: 0 }
+  - { id: l2, rotulo: "L2 estorno (ref L1)", col: 1, row: 0, papel: destaque }
+  - { id: l3, rotulo: "L3 relançamento", col: 2, row: 0 }
+  - { id: l4, rotulo: "L4 estorno de L2", col: 1, row: 1 }
+  - { id: update, rotulo: "UPDATE em L1", col: 0, row: 1 }
+arestas:
+  - { de: l1, para: l2 }
+  - { de: l2, para: l3 }
+  - { de: l2, para: l4, rotulo: "se foi engano" }
+  - { de: update, para: l1, rotulo: "negado pelo banco", tipo: falha }

@@ -1,0 +1,22 @@
+id: ed-dag
+tipo: fluxo
+titulo: "Orquestração: o DAG coordena, a tarefa idempotente torna seguro reexecutar"
+descricao: >
+  O DAG ingere de duas transmissoras, consolida no bruto e transforma em prata e ouro, nessa
+  ordem. As tarefas de ingestão entram num pool com no máximo três execuções simultâneas por
+  transmissora, para que um backfill de 30 dias não dispare 30 chamadas paralelas e derrube o
+  parceiro. O orquestrador decide quando e em que ordem; reexecutar sem medo depende de cada
+  tarefa ser idempotente, coisa que o orquestrador não garante sozinho.
+grupos:
+  - { id: pool, rotulo: "pool: máx. 3 por banco", col: 0, row: 0, cols: 1, rows: 2 }
+passos:
+  - { id: a, rotulo: "ingere banco A", grupo: pool, col: 0, row: 0 }
+  - { id: b, rotulo: "ingere banco B", grupo: pool, col: 0, row: 1 }
+  - { id: bruto, rotulo: "bruto", col: 1, row: 0 }
+  - { id: prata, rotulo: "prata", col: 2, row: 0 }
+  - { id: ouro, rotulo: "ouro", col: 3, row: 0, papel: destaque }
+arestas:
+  - { de: a, para: bruto }
+  - { de: b, para: bruto }
+  - { de: bruto, para: prata }
+  - { de: prata, para: ouro }

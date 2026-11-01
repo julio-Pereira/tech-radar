@@ -43,6 +43,10 @@ contas: a do pagador, a do recebedor e a da taxa) — a regra de balanceamento g
 lançamento", não apenas "existem exatamente duas pernas". Um lançamento de uma única perna nunca é
 válido, independente do que ele tentasse representar — sozinho, não tem como balancear.
 
+```diagrama
+lg-partida
+```
+
 ## Plano de contas
 
 O **plano de contas** organiza as contas numa hierarquia (contas de cliente, contas internas como

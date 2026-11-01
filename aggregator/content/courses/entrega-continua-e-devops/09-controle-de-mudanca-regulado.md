@@ -58,6 +58,10 @@ prazo declarado (24h, por exemplo), e se essa revisão **não ocorrer** dentro d
 conformidade **reprova** — a urgência não é desculpa para pular a prestação de contas, só para
 adiá-la.
 
+```diagrama
+ec-mudanca-regulada
+```
+
 ## Retenção de evidência (**confira** prazos com compliance)
 
 Por quanto tempo um registro de deploy precisa ficar disponível para auditoria é uma pergunta de

@@ -1,0 +1,34 @@
+id: of-consentimento
+tipo: estados
+titulo: "Consentimento de dados: uma máquina de estados, e rejeitado não volta"
+descricao: >
+  O consentimento nasce aguardando autorização. Se o cliente autoriza, ele passa a autorizado
+  e as chamadas cobertas pelas suas permissões são aceitas, desde que o escopo do token também
+  permita. Se o cliente nega ou o prazo de autorização passa, ele termina rejeitado. Autorizado,
+  ele termina rejeitado quando é revogado, pelo cliente, pelo TPP ou pelo transmissor, ou
+  quando expira. Rejeitado é final: nenhum ator o reativa. Nomes de status como na especificação
+  de consentimentos do Open Finance Brasil; confira a versão vigente.
+estados:
+  - { id: aguardando, rotulo: "AWAITING_AUTHORISATION", col: 0, row: 0 }
+  - { id: autorizado, rotulo: "AUTHORISED", col: 1, row: 0, papel: destaque }
+  - { id: rejeitado, rotulo: "REJECTED", col: 1, row: 1 }
+inicial: aguardando
+finais: [rejeitado]
+transicoes:
+  - { de: aguardando, para: autorizado, evento: "cliente autoriza" }
+  - { de: aguardando, para: rejeitado, evento: "nega ou prazo" }
+  - { de: autorizado, para: rejeitado, evento: "revogado ou expirou" }
+animacao:
+  - legenda: "O TPP cria o consentimento: ele aguarda a autorização do cliente"
+    atual: aguardando
+  - legenda: "O cliente autoriza as permissões pedidas, e só elas"
+    atual: autorizado
+    transicao: { de: aguardando, para: autorizado }
+    anotacao: "escopo do token é necessário, não suficiente"
+  - legenda: "O cliente revoga: a revogação propaga dentro do limite declarado"
+    atual: rejeitado
+    transicao: { de: autorizado, para: rejeitado }
+    anotacao: "estado final: o TPP não reativa"
+  - legenda: "Outro desfecho: o cliente nega, ou o prazo de autorização passa"
+    atual: rejeitado
+    transicao: { de: aguardando, para: rejeitado }

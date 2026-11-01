@@ -18,6 +18,10 @@ necessariamente um bug seu: pode ser um erro do outro lado, uma diferença de ti
 bug seu também. A conciliação externa é o que prova (ou desmente) que seu ledger e o mundo real
 contam a mesma história.
 
+```diagrama
+lg-conciliacao-vias
+```
+
 ## Chaves de casamento e sua fragilidade
 
 **Casar** um lançamento do seu ledger com uma linha de um arquivo externo depende de uma **chave**
@@ -69,6 +73,10 @@ A estratégia mais sustentável de automação de conciliação começa com **re
 **heurísticas** mais flexíveis (correspondência aproximada, pontuação de similaridade) para o
 resto, sempre revisadas por humano antes de aplicadas automaticamente. Pular direto para heurística
 sofisticada sem esgotar primeiro as regras determinísticas é inverter a ordem de confiabilidade.
+
+```diagrama
+lg-conciliacao
+```
 
 ## Idempotência da conciliação e reprocessamento
 

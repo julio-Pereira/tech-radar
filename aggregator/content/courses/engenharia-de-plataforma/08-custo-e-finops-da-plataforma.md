@@ -42,6 +42,10 @@ porque o recurso é genuinamente compartilhado sem regra de rateio definida) dev
 um **balde próprio**, visível — não diluído silenciosamente dentro do custo total, onde ninguém o
 nota nem o investiga.
 
+```diagrama
+ep-custo
+```
+
 ## Cotas e orçamentos como freio
 
 Um orçamento com alerta (não só um limite rígido que bloqueia sem aviso) é o freio prático mais

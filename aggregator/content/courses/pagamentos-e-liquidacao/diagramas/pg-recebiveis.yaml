@@ -1,0 +1,24 @@
+id: pg-recebiveis
+tipo: fluxo
+titulo: "Da venda parcelada à agenda: captura, compensação, liquidação e uma linha por parcela"
+descricao: >
+  A venda de R$ 100,00 em três parcelas é capturada, e as capturas do período vão no arquivo de
+  compensação do adquirente para a bandeira. A liquidação do arranjo segue o cronograma do
+  parcelado, e a agenda de recebíveis tem uma linha por parcela, cada uma com sua data. A soma
+  tem de bater com o total: 33,34 mais 33,33 mais 33,33, com o centavo que sobra atribuído pelo
+  maior resto. Prazos D+30, D+60 e D+90 ilustrativos; confira os do arranjo vigente.
+passos:
+  - { id: venda, rotulo: "venda 3× R$ 100,00", col: 0, row: 0 }
+  - { id: captura, rotulo: "captura", col: 1, row: 0 }
+  - { id: compensacao, rotulo: "arquivo de compensação", col: 2, row: 0 }
+  - { id: liquidacao, rotulo: "liquidação do arranjo", col: 3, row: 0, papel: destaque }
+  - { id: p1, rotulo: "parcela 1 · 33,34 · D+30", col: 3, row: 1 }
+  - { id: p2, rotulo: "parcela 2 · 33,33 · D+60", col: 2, row: 1 }
+  - { id: p3, rotulo: "parcela 3 · 33,33 · D+90", col: 1, row: 1 }
+arestas:
+  - { de: venda, para: captura }
+  - { de: captura, para: compensacao }
+  - { de: compensacao, para: liquidacao }
+  - { de: liquidacao, para: p1 }
+  - { de: liquidacao, para: p2 }
+  - { de: liquidacao, para: p3 }

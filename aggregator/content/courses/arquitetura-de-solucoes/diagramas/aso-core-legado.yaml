@@ -1,0 +1,24 @@
+id: aso-core-legado
+tipo: topologia
+titulo: "Core legado: uma ponte, uma ACL, leitura degradada e reconciliação"
+descricao: >
+  O core bancário fala com a plataforma por uma de duas pontes, CDC ou arquivo posicional,
+  conforme o que ele de fato oferece. A ACL traduz o formato, não deixa nenhum tipo do legado
+  passar adiante e ignora campo desconhecido com um alerta. Quando o core cai, a plataforma
+  serve o dado do dia anterior, marcado como defasado. Periodicamente, os totais do core e da
+  plataforma são reconciliados, e cada diferença é classificada. Substituir o core usa o
+  strangler e a execução em paralelo de system-design/14.
+nos:
+  - { id: core, rotulo: "core bancário", col: 0, row: 0, papel: externo }
+  - { id: ponte, rotulo: "CDC ou arquivo", col: 1, row: 0, conceito: cdc }
+  - { id: acl, rotulo: "ACL", col: 2, row: 0, papel: destaque }
+  - { id: plataforma, rotulo: "plataforma", col: 3, row: 0 }
+  - { id: cache, rotulo: "D-1 marcado defasado", col: 3, row: 1 }
+  - { id: reconc, rotulo: "reconciliação", col: 1, row: 1 }
+arestas:
+  - { de: core, para: ponte }
+  - { de: ponte, para: acl }
+  - { de: acl, para: plataforma, rotulo: "traduz" }
+  - { de: plataforma, para: cache, rotulo: "core caiu" }
+  - { de: core, para: reconc, rotulo: "totais", estilo: tracejada }
+  - { de: plataforma, para: reconc, rotulo: "totais", estilo: tracejada }

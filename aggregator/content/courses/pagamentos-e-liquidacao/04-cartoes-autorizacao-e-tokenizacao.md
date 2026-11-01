@@ -44,6 +44,10 @@ precisamente porque uma autorização bem-sucedida reserva um valor na linha do 
 reversão, um *timeout* no caminho de volta deixaria esse *hold* preso indefinidamente, reduzindo o
 limite disponível do portador por uma transação que, do lado dele, nunca aconteceu de fato.
 
+```diagrama
+pg-cartao
+```
+
 ## Autorização duplicada e chave de idempotência
 
 Cada autorização carrega um **identificador de rastreio** (e uma referência da transação) que

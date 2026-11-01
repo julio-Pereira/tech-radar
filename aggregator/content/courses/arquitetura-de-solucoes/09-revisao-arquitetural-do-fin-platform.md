@@ -65,12 +65,16 @@ real.
 
 ## Exemplo numa fintech
 
-A revisão do `fin-platform` encontra que "saldo" tem dois sistemas de registro (um problema do marco
+A revisão do `fin-platform` encontra que "saldo" não tem sistema de registro único (um problema do marco
 01, nunca resolvido) e que uma integração por arquivo não tem *idempotent receiver* implementado (um
 problema do marco 02). Os dois riscos são priorizados: o primeiro, de impacto alto e difícil de
 reverter depois que mais sistemas passarem a depender da ambiguidade, recebe prazo mais curto; o
 segundo, mais fácil de corrigir isoladamente, recebe prazo um pouco mais longo, mas ainda com dono e
 critério de pronto definidos.
+
+```diagrama
+aso-revisao
+```
 
 ## Hands-on
 

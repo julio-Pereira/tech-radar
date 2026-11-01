@@ -36,6 +36,10 @@ errado. É o mesmo princípio da *dead-letter queue* de mensageria (`kafka/08`),
 dado em vez de evento. A política de quarentena precisa decidir: quanto tempo um registro pode
 ficar lá, e o que acontece se nunca for resolvido.
 
+```diagrama
+ed-qualidade
+```
+
 ## Contrato com o fornecedor externo, e *schema drift*
 
 Um **data contract** formaliza o que se espera de uma fonte externa: schema, tipos, semântica de
