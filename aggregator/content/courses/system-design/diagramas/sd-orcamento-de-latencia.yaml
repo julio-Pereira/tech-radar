@@ -1,0 +1,36 @@
+id: sd-orcamento-de-latencia
+tipo: sequencia
+titulo: "Orçamento de 1 s: cada salto consome a sua parte, e uma margem fica sem dono"
+descricao: >
+  O cliente tolera 1 segundo para a iniciação do Pix, e o orçamento é distribuído entre os
+  saltos síncronos com folga desigual. Com valores ilustrativos: a consulta de limite usa
+  até 100 ms, o antifraude, que historicamente varia mais, até 300 ms, e a reserva no
+  ledger até 150 ms. Uma margem de 200 ms não é alocada a nenhum salto, para absorver a
+  variação agregada. O timeout de cada chamada sai deste orçamento, nunca de um número
+  redondo escolhido de cabeça.
+participantes:
+  - { id: cliente, rotulo: "cliente", papel: externo }
+  - { id: gateway, rotulo: "pix-gateway", papel: destaque }
+  - { id: limite, rotulo: "limite" }
+  - { id: antifraude, rotulo: "antifraude" }
+  - { id: ledger, rotulo: "ledger-core" }
+mensagens:
+  - { de: cliente, para: gateway, rotulo: "iniciar Pix", nota: "orçamento: 1.000 ms" }
+  - { de: gateway, para: limite, rotulo: "consulta (≤ 100 ms)" }
+  - { de: limite, para: gateway, rotulo: "ok", tipo: reply, nota: "restam ~900 ms" }
+  - { de: gateway, para: antifraude, rotulo: "decisão (≤ 300 ms)" }
+  - { de: antifraude, para: gateway, rotulo: "aprovado", tipo: reply, nota: "restam ~600 ms" }
+  - { de: gateway, para: ledger, rotulo: "reserva (≤ 150 ms)" }
+  - { de: ledger, para: gateway, rotulo: "em trânsito", tipo: reply, nota: "restam ~450 ms; 200 são margem" }
+  - { de: gateway, para: cliente, rotulo: "em processamento", tipo: reply }
+animacao:
+  - legenda: "O cliente tolera 1 s: esse é o orçamento inteiro do fluxo síncrono"
+    ate: 1
+  - legenda: "A consulta de limite consome até 100 ms"
+    ate: 3
+  - legenda: "O antifraude, que varia mais, recebe a maior fatia: até 300 ms"
+    ate: 5
+  - legenda: "A reserva no ledger consome até 150 ms"
+    ate: 7
+  - legenda: "A resposta sai dentro do orçamento; 200 ms ficaram de margem sem dono"
+    ate: 8

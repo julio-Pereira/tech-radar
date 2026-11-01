@@ -32,6 +32,10 @@ distribui entre zonas; o **gateway** (L7, API Management — marco 06) decide po
 política; o **mesh**, se existir, balanceia entre instâncias do mesmo serviço, dentro do cluster.
 Colocar lógica de negócio no LB é o erro clássico — ele deve rotear, não decidir.
 
+```diagrama
+sd-borda
+```
+
 ## Algoritmos: o que cada um faz quando um backend degrada
 
 **Round-robin** distribui igualmente, cego à carga real — se um backend está lento, ele continua

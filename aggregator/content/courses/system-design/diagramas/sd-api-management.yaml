@@ -1,0 +1,22 @@
+id: sd-api-management
+tipo: topologia
+titulo: "API management: o gateway cuida do transversal, a regra de negócio fica no serviço"
+descricao: >
+  O parceiro se registra no portal do desenvolvedor, onde vê a sua cota e a documentação.
+  Nas chamadas, ele se identifica como cliente OAuth2, com escopo por operação. O gateway
+  valida o token, aplica a cota do plano e mede o uso, que alimenta o faturamento e por
+  isso é contabilidade, não log. A decisão de negócio, se aquele cliente pode fazer aquela
+  operação naquele valor, fica no serviço, perto do código que a implementa.
+nos:
+  - { id: parceiro, rotulo: "parceiro (TPP)", col: 0, row: 1, papel: externo }
+  - { id: portal, rotulo: "portal do desenvolvedor", col: 0, row: 0 }
+  - { id: gateway, rotulo: "gateway", col: 1, row: 1, papel: destaque }
+  - { id: cota, rotulo: "cota do plano", col: 1, row: 2 }
+  - { id: servico, rotulo: "serviço: regra", col: 2, row: 1 }
+  - { id: medicao, rotulo: "medição → faturamento", col: 2, row: 2 }
+arestas:
+  - { de: parceiro, para: portal, rotulo: "registra" }
+  - { de: parceiro, para: gateway, rotulo: "OAuth2 + escopo" }
+  - { de: gateway, para: cota }
+  - { de: gateway, para: servico }
+  - { de: gateway, para: medicao, rotulo: "uso" }

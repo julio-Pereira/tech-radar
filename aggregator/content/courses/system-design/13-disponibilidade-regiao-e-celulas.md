@@ -69,6 +69,10 @@ tenants a células de um jeito que minimiza a chance de dois tenants específico
 exatamente o mesmo conjunto de células — reduzindo a correlação de impacto entre clientes que, à
 primeira vista, não têm relação nenhuma entre si.
 
+```diagrama
+sd-celulas
+```
+
 ## Estabilidade estática: o plano de controle não pode ser dependência de disponibilidade
 
 **Plano de controle** (o que decide configuração, rotas, scaling) e **plano de dados** (o que de

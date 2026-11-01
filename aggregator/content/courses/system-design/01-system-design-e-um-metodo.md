@@ -17,8 +17,8 @@ encurtador de URL, assim se projeta um feed". Isso falha no primeiro requisito q
 modelo decorado. O que esta trilha ensina é um **método**: um ciclo fixo de perguntas que, repetido
 em qualquer domínio, produz um desenho defensável.
 
-```
-requisito → número → corte → contrato → estado → fluxo → falha → evolução → defesa escrita
+```diagrama
+sd-metodo
 ```
 
 A ordem importa porque cada etapa é insumo da próxima. Cortar o sistema (bloco B) antes de ter os

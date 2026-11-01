@@ -1,0 +1,23 @@
+id: sd-celulas
+tipo: topologia
+titulo: "Células: cada uma serve um subconjunto de tenants, e uma falha atinge no máximo 1/N"
+descricao: >
+  Uma célula é uma réplica completa e independente da pilha, que serve um subconjunto de
+  tenants. Um roteador fino, sem dependência de plano de controle para funcionar, manda
+  cada tenant para a sua célula. Com quatro células do mesmo tamanho, uma falha atinge no
+  máximo um quarto dos tenants: esse é o raio de explosão. As duas regiões abrigam células,
+  e a disponibilidade de uma região não depende da outra estar no ar.
+grupos:
+  - { id: regiao-a, rotulo: "região A", col: 1, row: 0, cols: 1, rows: 2 }
+  - { id: regiao-b, rotulo: "região B", col: 1, row: 2, cols: 1, rows: 2 }
+nos:
+  - { id: roteador, rotulo: "roteador de células", col: 0, row: 1, papel: destaque }
+  - { id: c1, rotulo: "célula 1", grupo: regiao-a, col: 1, row: 0 }
+  - { id: c2, rotulo: "célula 2 · falhou", grupo: regiao-a, col: 1, row: 1, papel: externo }
+  - { id: c3, rotulo: "célula 3", grupo: regiao-b, col: 1, row: 2 }
+  - { id: c4, rotulo: "célula 4", grupo: regiao-b, col: 1, row: 3 }
+arestas:
+  - { de: roteador, para: c1 }
+  - { de: roteador, para: c2, rotulo: "1/4 afetado", estilo: tracejada }
+  - { de: roteador, para: c3, via: [{ col: 0, row: 2 }] }
+  - { de: roteador, para: c4, via: [{ col: 0, row: 3 }] }

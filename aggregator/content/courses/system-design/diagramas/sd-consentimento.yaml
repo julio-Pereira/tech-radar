@@ -1,0 +1,20 @@
+id: sd-consentimento
+tipo: estados
+titulo: "O consentimento é consultado centenas de vezes e morre por expiração ou revogação"
+descricao: >
+  O cliente autoriza um TPP a acessar um conjunto específico de dados por um período. Durante
+  a validade, o TPP consulta o mesmo consentimento centenas de vezes, e por isso a leitura é
+  cacheada, com um limite de obsolescência declarado. O consentimento termina por expiração
+  natural ou por revogação explícita do cliente, a qualquer momento; a revogação se propaga
+  por evento para invalidar o cache, porque o TTL sozinho só garante o limite superior. Os
+  estados oficiais da especificação do Open Finance estão na trilha open-finance-brasil.
+estados:
+  - { id: autorizado, rotulo: "autorizado", col: 0, row: 0, papel: destaque }
+  - { id: expirado, rotulo: "expirado", col: 1, row: 0 }
+  - { id: revogado, rotulo: "revogado", col: 1, row: 1 }
+inicial: autorizado
+finais: [expirado, revogado]
+transicoes:
+  - { de: autorizado, para: autorizado, evento: "consulta do TPP" }
+  - { de: autorizado, para: expirado, evento: "fim da validade" }
+  - { de: autorizado, para: revogado, evento: "cliente revoga" }
