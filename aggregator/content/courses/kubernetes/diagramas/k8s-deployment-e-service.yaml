@@ -1,0 +1,20 @@
+id: k8s-deployment-e-service
+tipo: topologia
+titulo: "Deployment → ReplicaSet → Pod, e o Service acha os pods por label, não por nome"
+descricao: >
+  O Deployment cuida de versões e rollout: numa imagem nova, cria um ReplicaSet novo e
+  desce o antigo, que fica com zero réplicas e torna o rollback instantâneo. O ReplicaSet
+  cuida da contagem de réplicas e cria os pods, a unidade de execução, descartáveis por
+  design. O Service não sabe o nome de nenhum pod: tem um selector de labels, e o
+  conjunto de pods que casa com ele é resolvido continuamente.
+nos:
+  - { id: deploy, rotulo: "Deployment", col: 0, row: 0, papel: destaque }
+  - { id: rs-novo, rotulo: "ReplicaSet v2 · 3", col: 1, row: 0 }
+  - { id: rs-antigo, rotulo: "ReplicaSet v1 · 0", col: 1, row: 1, papel: externo }
+  - { id: pods, rotulo: "pods app=pix-gateway", col: 2, row: 0 }
+  - { id: svc, rotulo: "Service", col: 3, row: 0 }
+arestas:
+  - { de: deploy, para: rs-novo, rotulo: "rollout" }
+  - { de: deploy, para: rs-antigo, rotulo: "rollback: reescala", estilo: tracejada }
+  - { de: rs-novo, para: pods, rotulo: "3 réplicas" }
+  - { de: svc, para: pods, rotulo: "selector" }

@@ -1,0 +1,22 @@
+id: k8s-operator
+tipo: fluxo
+titulo: "O operator é o laço do marco 01 com conhecimento operacional: reinicia e espera o ISR"
+descricao: >
+  O operator reconcilia um tipo novo, definido por um CRD, como o recurso Kafka do Strimzi
+  com 3 réplicas e min.insync.replicas igual a 2. Ele observa o cluster real e compara com
+  o declarado. Quando precisa de um rolling restart, reinicia um broker por vez e, antes
+  do próximo, espera o ISR se recompor, o que um StatefulSet cru não sabe fazer: ele só
+  garante identidade, ordem e disco. O conhecimento operacional vira código que
+  reconcilia, em vez de um runbook executado às 3h.
+passos:
+  - { id: crd, rotulo: "Kafka (CRD): 3 réplicas", col: 0, row: 0, papel: externo }
+  - { id: observa, rotulo: "observa o cluster", col: 1, row: 0 }
+  - { id: compara, rotulo: "difere do desejado?", col: 2, row: 0 }
+  - { id: reinicia, rotulo: "reinicia 1 broker", col: 2, row: 1, papel: destaque }
+  - { id: isr, rotulo: "espera o ISR recompor", col: 1, row: 1 }
+arestas:
+  - { de: crd, para: observa, rotulo: "spec" }
+  - { de: observa, para: compara }
+  - { de: compara, para: reinicia, rotulo: "sim" }
+  - { de: reinicia, para: isr }
+  - { de: isr, para: observa, rotulo: "próximo" }

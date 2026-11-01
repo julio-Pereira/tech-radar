@@ -1,0 +1,23 @@
+id: k8s-default-deny-e-mtls
+tipo: topologia
+titulo: "Default-deny no namespace: só passa o que tem egress na origem e ingress no destino"
+descricao: >
+  No namespace payments, a policy default-deny isola todos os pods: nada entra e nada sai.
+  Depois abre-se o necessário. O pix-gateway recebe tráfego da borda e fala com o
+  ledger-core, o que exige egress no gateway e ingress no ledger, e com o mesh o salto vai
+  em mTLS, com identidade criptográfica em vez de IP. A saída para o DNS também precisa
+  ser liberada, ou é a primeira coisa que quebra. Um outro pod do namespace, sem policy
+  que o permita, não alcança o ledger-core.
+grupos:
+  - { id: ns, rotulo: "payments · default-deny", col: 1, row: 0, cols: 2, rows: 2 }
+nos:
+  - { id: borda, rotulo: "Gateway (borda)", col: 0, row: 0, papel: externo }
+  - { id: gateway, rotulo: "pix-gateway", grupo: ns, col: 1, row: 0, papel: destaque }
+  - { id: ledger, rotulo: "ledger-core", grupo: ns, col: 2, row: 0 }
+  - { id: outro, rotulo: "outro pod", grupo: ns, col: 2, row: 1 }
+  - { id: dns, rotulo: "kube-dns", col: 0, row: 1, papel: externo }
+arestas:
+  - { de: borda, para: gateway, rotulo: "ingress" }
+  - { de: gateway, para: ledger, rotulo: "mTLS, permitido" }
+  - { de: outro, para: ledger, rotulo: "bloqueado", estilo: tracejada }
+  - { de: gateway, para: dns, rotulo: "egress 53" }

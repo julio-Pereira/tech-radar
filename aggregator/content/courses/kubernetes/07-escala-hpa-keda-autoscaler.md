@@ -109,6 +109,10 @@ Os tempos reais, que definem o que é possível:
 **De 2 a 7 minutos** entre o pico começar e a capacidade nova atender. Se o seu pico sobe
 em 30 segundos, o autoscaler **não vai te salvar** — e nenhuma configuração conserta isso.
 
+```diagrama
+k8s-escala-por-lag
+```
+
 **Scale-to-zero** (só com KEDA) é ótimo para consumidor de fila esporádica e péssimo para
 API síncrona: a primeira requisição depois do zero espera o pod inteiro subir. Serve para
 o job de conciliação noturna, não para a autorização.

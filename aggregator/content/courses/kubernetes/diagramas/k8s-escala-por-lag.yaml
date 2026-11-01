@@ -1,0 +1,46 @@
+id: k8s-escala-por-lag
+tipo: fluxo
+titulo: "Do lag ao pod pronto: HPA sem capacidade de nó não escala, e o tempo total se soma"
+descricao: >
+  O lag do consumer group ledger-projector cresce. O KEDA expõe esse lag ao HPA como
+  métrica externa, e o HPA pede mais réplicas, no máximo o número de partições do tópico.
+  Sem capacidade nos nós, os pods novos ficam Pending, e só então o autoscaler de nós
+  reage e provisiona uma máquina, o que leva de 1 a 4 minutos. Com o nó pronto, os pods
+  são agendados, baixam a imagem e sobem. Entre o pico começar e a capacidade nova atender
+  passam de 2 a 7 minutos: o tempo total é a soma das etapas.
+passos:
+  - { id: lag, rotulo: "lag acima de 1000", col: 0, row: 0 }
+  - { id: keda, rotulo: "KEDA", col: 1, row: 0 }
+  - { id: hpa, rotulo: "HPA", col: 2, row: 0 }
+  - { id: pending, rotulo: "pods Pending", col: 2, row: 1 }
+  - { id: autoscaler, rotulo: "autoscaler de nós", col: 1, row: 1 }
+  - { id: no, rotulo: "nó novo", col: 0, row: 1 }
+  - { id: prontos, rotulo: "pods prontos", col: 0, row: 2, papel: destaque }
+arestas:
+  - { de: lag, para: keda, rotulo: "métrica" }
+  - { de: keda, para: hpa, rotulo: "réplicas" }
+  - { de: hpa, para: pending, rotulo: "sem nó livre" }
+  - { de: pending, para: autoscaler, rotulo: "dispara" }
+  - { de: autoscaler, para: no, rotulo: "provisiona" }
+  - { de: no, para: prontos, rotulo: "agenda e sobe" }
+animacao:
+  - legenda: "O lag do consumer group cresce: o trabalho está ficando para trás"
+  - legenda: "O KEDA expõe o lag ao HPA como métrica externa"
+    estados: { lag: falha, keda: ativo }
+    fluxos: [ { de: lag, para: keda } ]
+  - legenda: "O HPA pede mais réplicas, no máximo o número de partições do tópico"
+    estados: { hpa: ativo }
+    fluxos: [ { de: keda, para: hpa } ]
+  - legenda: "Sem capacidade nos nós, os pods novos ficam Pending"
+    estados: { pending: novo }
+    fluxos: [ { de: hpa, para: pending } ]
+    anotacao: "15 a 60 s até aqui"
+  - legenda: "Só então o autoscaler de nós reage e pede uma máquina"
+    estados: { autoscaler: ativo }
+    fluxos: [ { de: pending, para: autoscaler } ]
+  - legenda: "O nó novo entra em 1 a 4 minutos"
+    estados: { no: novo }
+    fluxos: [ { de: autoscaler, para: no } ]
+  - legenda: "Os pods são agendados, baixam a imagem e sobem: 2 a 7 min desde o pico"
+    estados: { no: ativo, pending: removido, prontos: ativo, lag: ativo }
+    fluxos: [ { de: no, para: prontos } ]

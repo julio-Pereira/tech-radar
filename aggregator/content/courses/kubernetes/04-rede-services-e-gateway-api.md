@@ -84,6 +84,10 @@ e a plataforma controla o que pode ser anexado ao Gateway. Roteamento por header
 split por peso e timeouts são **campos da spec**, não anotações — o que os torna
 revisáveis num PR e verificáveis por policy.
 
+```diagrama
+k8s-gateway-api
+```
+
 E há o fato consumado do marco 01: **o Ingress NGINX foi aposentado pelo projeto em
 março de 2026**. Não há caminho "esperar para ver". Conteúdo novo se escreve em
 Gateway API.

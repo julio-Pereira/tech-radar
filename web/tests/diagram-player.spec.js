@@ -141,10 +141,17 @@ test('diagram-player.js is not downloaded for a track without animation', async 
   const page = await browser.newPage();
   const requested = [];
   page.on('request', (r) => { if (r.url().includes('diagram-player.js')) requested.push(r.url()); });
-  await page.goto('/#/learn/spring-boot');
-  const node = page.locator('.timeline-node').filter({ has: page.locator('figure[data-diagrama="spring-boot/sb-modulith"]') });
+  // A track with diagrams but no animated one, picked from the data.
+  const fs = require('fs');
+  const path = require('path');
+  const dir = path.join(__dirname, '..', 'data', 'diagramas');
+  const slug = fs.readdirSync(dir).map((f) => f.slice(0, -5))
+    .find((s) => !fs.readFileSync(path.join(dir, `${s}.json`), 'utf8').includes('"animacao"'));
+  test.skip(!slug, 'every track with diagrams has an animated one');
+  await page.goto(`/#/learn/${slug}`);
+  const node = page.locator('.timeline-node').filter({ has: page.locator('figure.diagrama') }).first();
   await node.locator('.node-toggle').click();
-  await expect(node.locator('figure.diagrama svg')).toHaveCount(1);
+  await expect(node.locator('figure.diagrama svg').first()).toBeVisible();
   expect(requested).toEqual([]);
   await page.close();
 });

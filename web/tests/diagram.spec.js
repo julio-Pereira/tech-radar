@@ -174,7 +174,16 @@ test.describe('Carga sob demanda', () => {
     const page = await browser.newPage();
     const requested = [];
     page.on('request', (r) => { if (r.url().includes('diagram.js') || r.url().includes('/data/diagramas/')) requested.push(r.url()); });
-    await page.goto('/#/learn/go-fintech');
+    // Any track the build left without diagrams (picked from the data, so
+    // the test survives each phase of the retrofit).
+    const fs = require('fs');
+    const path = require('path');
+    const dir = path.join(__dirname, '..', 'data', 'courses');
+    const slug = fs.readdirSync(dir).filter((f) => f.endsWith('.json') && f !== 'index.json')
+      .map((f) => f.slice(0, -5))
+      .find((s) => !fs.readFileSync(path.join(dir, `${s}.json`), 'utf8').includes('data-diagrama='));
+    test.skip(!slug, 'every track has diagrams now');
+    await page.goto(`/#/learn/${slug}`);
     await page.locator('.timeline-node').first().locator('.node-toggle').click();
     await expect(page.locator('.timeline-node').first().locator('.milestone-body')).toBeVisible();
     expect(requested).toEqual([]);

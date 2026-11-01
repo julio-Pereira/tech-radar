@@ -1,0 +1,22 @@
+id: k8s-gitops
+tipo: topologia
+titulo: "GitOps: o Argo CD puxa do Git, e o CI nunca tem credencial do cluster"
+descricao: >
+  O deploy deixa de ser empurrado pelo pipeline. O CI abre um PR no repositório de
+  configuração, separado do da aplicação, e não tem credencial de produção. O PR tem autor
+  e revisor diferentes, e o merge é a mudança. O Argo CD, dentro do cluster, puxa o estado
+  desejado do Git e reconcilia. Uma edição feita à mão vira drift: o Argo mostra
+  OutOfSync e, com selfHeal, reverte. O rollback é um git revert, com autor e motivo.
+nos:
+  - { id: ci, rotulo: "CI: sem credencial", col: 0, row: 1, papel: externo }
+  - { id: pr, rotulo: "PR: autor ≠ revisor", col: 0, row: 0 }
+  - { id: repo, rotulo: "repo de config (Git)", col: 1, row: 0 }
+  - { id: argo, rotulo: "Argo CD", col: 2, row: 0, papel: destaque }
+  - { id: cluster, rotulo: "cluster", col: 3, row: 0 }
+  - { id: manual, rotulo: "kubectl edit à mão", col: 3, row: 1, papel: externo }
+arestas:
+  - { de: ci, para: pr, rotulo: "abre com a tag" }
+  - { de: pr, para: repo, rotulo: "merge" }
+  - { de: argo, para: repo, rotulo: "puxa" }
+  - { de: argo, para: cluster, rotulo: "reconcilia" }
+  - { de: manual, para: cluster, rotulo: "drift: selfHeal reverte", estilo: tracejada }

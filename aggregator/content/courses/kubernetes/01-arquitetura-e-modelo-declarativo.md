@@ -58,6 +58,10 @@ está vendo?"**. A resposta quase sempre está em `kubectl describe` e nos event
 - **Controller-manager** — a coleção de controllers embutidos (Deployment, ReplicaSet,
   Node, Job…), cada um rodando o laço acima.
 
+```diagrama
+k8s-control-plane
+```
+
 **Em cada nó:**
 
 - **kubelet** — o agente que assiste os pods atribuídos ao seu nó, pede ao runtime que

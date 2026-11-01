@@ -112,6 +112,10 @@ CRD (`KafkaTopic`, `KafkaUser`).
 É o padrão da trilha inteira aparecendo mais uma vez: o conhecimento operacional vira
 **código que reconcilia**, em vez de um runbook que alguém executa às 3h.
 
+```diagrama
+k8s-operator
+```
+
 O critério para adotar um operator: ele é mantido, tem base de usuários real, e você
 consegue entender o que ele faz quando falha. Operator abandonado é pior que nenhum —
 você herdou um sistema distribuído que ninguém conhece.
