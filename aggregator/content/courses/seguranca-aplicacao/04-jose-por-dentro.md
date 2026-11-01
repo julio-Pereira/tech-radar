@@ -67,6 +67,10 @@ tokens assinados com a antiga ainda não expiraram. O verificador lê o `kid` do
 recebido e escolhe a chave correspondente no JWKS; nenhum token em voo quebra. Esse é
 exatamente o padrão que volta, com mais detalhe operacional, no marco 10.
 
+```diagrama
+sa-verificar-jws
+```
+
 ## As claims não são opcionais
 
 Um JWS validado (assinatura íntegra, algoritmo correto, chave certa) ainda pode ser um

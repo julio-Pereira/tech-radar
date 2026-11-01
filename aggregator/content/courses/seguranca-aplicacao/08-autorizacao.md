@@ -76,6 +76,10 @@ autorização mora onde o caso de uso mora** — dentro do serviço de aplicaç�
 não numa anotação da camada de entrada. Toda entrada (HTTP, mensagem, job) invoca o mesmo
 caso de uso, que aplica a mesma verificação, uma vez, no mesmo lugar.
 
+```diagrama
+sa-autorizacao
+```
+
 ## Multi-tenancy: o filtro esquecido
 
 Numa aplicação multi-tenant, o bug mais caro e mais silencioso é o **filtro de tenant

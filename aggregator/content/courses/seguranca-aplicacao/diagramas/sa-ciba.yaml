@@ -1,0 +1,35 @@
+id: sa-ciba
+tipo: sequencia
+titulo: "CIBA: o Pix nasce no balcão e é aprovado no celular do titular"
+descricao: >
+  O atendente inicia um Pix no sistema interno, o client. O client faz o pedido de
+  autenticação ao servidor de autorização pelo back-channel e recebe um auth_req_id. O
+  servidor de autorização pede a aprovação no celular do titular, outro canal, e o titular
+  aprova. Enquanto isso, o client consulta o resultado com o auth_req_id, no modo poll, até
+  receber os tokens. O canal onde a transação nasce não é o canal onde o titular autoriza.
+participantes:
+  - { id: atendente, rotulo: "atendente", papel: externo }
+  - { id: client, rotulo: "sistema interno", papel: destaque }
+  - { id: as, rotulo: "servidor de autorização" }
+  - { id: celular, rotulo: "celular do titular", papel: externo }
+mensagens:
+  - { de: atendente, para: client, rotulo: "inicia o Pix" }
+  - { de: client, para: as, rotulo: "pedido (back-channel)" }
+  - { de: as, para: client, rotulo: "auth_req_id", tipo: reply }
+  - { de: as, para: celular, rotulo: "pede aprovação", tipo: async }
+  - { de: client, para: as, rotulo: "poll com auth_req_id" }
+  - { de: as, para: client, rotulo: "ainda pendente", tipo: reply }
+  - { de: celular, para: as, rotulo: "titular aprova" }
+  - { de: client, para: as, rotulo: "poll com auth_req_id" }
+  - { de: as, para: client, rotulo: "tokens", tipo: reply }
+animacao:
+  - legenda: "O atendente inicia o Pix no sistema interno"
+    ate: 1
+  - legenda: "O client pede a autenticação por back-channel e recebe um auth_req_id"
+    ate: 3
+  - legenda: "A aprovação vai para o celular do titular, outro canal"
+    ate: 4
+  - legenda: "O client consulta com o auth_req_id: ainda pendente"
+    ate: 6
+  - legenda: "O titular aprova no celular, e o próximo poll recebe os tokens"
+    ate: 9

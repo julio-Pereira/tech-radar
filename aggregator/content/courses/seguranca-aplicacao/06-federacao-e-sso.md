@@ -46,6 +46,10 @@ aparecem quando existe broker:
   usados na autenticação original. Um RP que exige MFA para uma operação sensível pode e
   deve checar `amr`, em vez de presumir que "veio do broker" já significa "teve MFA".
 
+```diagrama
+sa-broker
+```
+
 ## SAML sem romantismo
 
 **SAML** não é um capítulo de história — ele continua vivo em praticamente toda

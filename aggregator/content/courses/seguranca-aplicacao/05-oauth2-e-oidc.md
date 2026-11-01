@@ -96,6 +96,10 @@ parâmetros de URL — manipuláveis no navegador do usuário —, o client a en
 antecipadamente, por back-channel, e recebe uma referência opaca para usar no redirect.
 Menos superfície manipulável no front-channel, menos classe de ataque inteira.
 
+```diagrama
+sa-code-pkce-par
+```
+
 ## Refresh token: rotação e detecção de reuso
 
 Um refresh token de vida longa é um alvo valioso. A prática atual é **rotação a cada

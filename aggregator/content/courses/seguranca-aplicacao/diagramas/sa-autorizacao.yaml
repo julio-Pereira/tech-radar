@@ -1,0 +1,27 @@
+id: sa-autorizacao
+tipo: fluxo
+titulo: "A decisão de autorização mora no caso de uso: HTTP, Kafka e job passam pela mesma regra"
+descricao: >
+  Um PreAuthorize no controller protege só a chamada HTTP. O mesmo caso de uso também é
+  invocado por um consumidor Kafka e por um job agendado, e por isso a decisão mora dentro
+  dele: toda entrada passa pela mesma verificação. O corte grosso é RBAC, o papel de
+  operador; o fino combina ABAC, como transação abaixo de R$ 10 mil, e ReBAC, se o usuário é
+  gerente da conta consultada, a pergunta que papel nunca responde. A claim de papel vinda
+  do IdP é entrada da decisão, não a decisão.
+passos:
+  - { id: http, rotulo: "HTTP", col: 0, row: 0, papel: externo }
+  - { id: kafka, rotulo: "consumidor Kafka", col: 0, row: 1, papel: externo }
+  - { id: job, rotulo: "job agendado", col: 0, row: 2, papel: externo }
+  - { id: caso, rotulo: "caso de uso", col: 1, row: 1, papel: destaque }
+  - { id: rbac, rotulo: "RBAC: é operador?", col: 2, row: 1 }
+  - { id: abac, rotulo: "ABAC: < R$ 10 mil?", col: 3, row: 1 }
+  - { id: rebac, rotulo: "ReBAC: gerente da conta?", col: 3, row: 2 }
+  - { id: permite, rotulo: "permite", col: 2, row: 2 }
+arestas:
+  - { de: http, para: caso }
+  - { de: kafka, para: caso }
+  - { de: job, para: caso }
+  - { de: caso, para: rbac }
+  - { de: rbac, para: abac }
+  - { de: abac, para: rebac }
+  - { de: rebac, para: permite, rotulo: "sim" }

@@ -1,0 +1,21 @@
+id: sa-ssrf
+tipo: sequencia
+titulo: "SSRF: a URL de callback do parceiro faz o servidor buscar a própria credencial"
+descricao: >
+  O parceiro cadastra uma URL de callback, e ela aponta para o endpoint de metadados da
+  nuvem, em 169.254.169.254. Quando o pix-gateway chama o callback, é o próprio servidor que
+  faz a requisição, de dentro da rede, e o endpoint devolve a credencial da instância. A
+  mitigação que funciona é a egress allowlist aplicada na rede: o serviço só abre conexão
+  para destinos permitidos. Regex na URL não basta, porque o DNS pode mudar entre a
+  validação e a chamada e um redirect contorna a checagem.
+participantes:
+  - { id: parceiro, rotulo: "parceiro (atacante)", papel: externo }
+  - { id: gateway, rotulo: "pix-gateway", papel: destaque }
+  - { id: egress, rotulo: "egress allowlist" }
+  - { id: metadados, rotulo: "metadados da nuvem" }
+mensagens:
+  - { de: parceiro, para: gateway, rotulo: "cadastra o callback", nota: "aponta para 169.254.169.254" }
+  - { de: gateway, para: metadados, rotulo: "POST no callback", nota: "sem allowlist: o servidor chama" }
+  - { de: metadados, para: gateway, rotulo: "credencial da instância", tipo: reply }
+  - { de: gateway, para: egress, rotulo: "POST no callback", nota: "com allowlist na rede" }
+  - { de: egress, para: gateway, rotulo: "bloqueado", tipo: reply, nota: "destino fora da lista" }

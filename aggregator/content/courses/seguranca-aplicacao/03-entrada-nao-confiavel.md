@@ -72,6 +72,10 @@ mesma ideia aplicada à chamada HTTP de saída da aplicação. **Regex em URL n�
 real**: resolução de DNS pode mudar entre a validação e a chamada (TOCTOU), e um redirect
 302 para o destino proibido contorna qualquer checagem feita só na URL original.
 
+```diagrama
+sa-ssrf
+```
+
 ## Desserialização, path traversal, XXE e zip bomb
 
 **Desserialização insegura** é o vetor por trás de boa parte dos gadget chains críticos em

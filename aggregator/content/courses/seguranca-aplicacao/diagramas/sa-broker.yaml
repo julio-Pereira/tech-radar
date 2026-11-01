@@ -1,0 +1,19 @@
+id: sa-broker
+tipo: topologia
+titulo: "O RP confia no broker, que confia no IdP: a política de MFA vem junto, confira o amr"
+descricao: >
+  Com federação, a aplicação, o Relying Party, confia num broker de identidade, como o
+  Keycloak, e o broker confia nos IdPs upstream. Pelo domínio do e-mail, o home realm
+  discovery decide se o titular vai para o IdP corporativo ou para o IdP do parceiro. A
+  confiança é transitiva: o RP herda a política de senha e de MFA do IdP upstream. Para uma
+  operação sensível, o RP confere as claims amr e acr do token em vez de presumir que vir
+  do broker significa ter tido MFA.
+nos:
+  - { id: rp, rotulo: "aplicação (RP)", col: 0, row: 1 }
+  - { id: broker, rotulo: "broker (Keycloak)", col: 1, row: 1, papel: destaque }
+  - { id: corp, rotulo: "IdP corporativo", col: 2, row: 0, papel: externo }
+  - { id: parceiro, rotulo: "IdP do parceiro", col: 2, row: 2, papel: externo }
+arestas:
+  - { de: rp, para: broker, rotulo: "confere amr/acr" }
+  - { de: broker, para: corp, rotulo: "e-mail @acme" }
+  - { de: broker, para: parceiro, rotulo: "e-mail @parceiro" }

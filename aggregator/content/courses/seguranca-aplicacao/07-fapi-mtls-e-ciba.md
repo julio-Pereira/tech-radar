@@ -103,6 +103,10 @@ direto). CIBA existe em pagamento porque **o canal onde a transação nasce não
 onde o titular autoriza** — um atendente inicia um Pix no sistema interno, e é o celular do
 titular, em outro canal inteiramente, que recebe e aprova a solicitação.
 
+```diagrama
+sa-ciba
+```
+
 ## Exemplo numa fintech
 
 O Open Finance Brasil adota **FAPI 1.0 Advanced** como perfil de conformidade obrigatório,

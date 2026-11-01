@@ -1,0 +1,23 @@
+id: sa-ciclo-da-chave
+tipo: estados
+titulo: "Ciclo de vida da chave: duas versões válidas na rotação, e o vazamento por outro caminho"
+descricao: >
+  A chave é gerada e passa a assinar. Na rotação, a chave nova assume a assinatura e a
+  anterior continua publicada só para verificar, enquanto houver token em voo assinado
+  por ela, identificada pelo kid: duas versões válidas ao mesmo tempo, sem downtime.
+  Expirados esses tokens, a chave antiga é destruída. Um vazamento segue outro caminho: a
+  chave é revogada de emergência, por um playbook escrito antes, e o relógio de exposição
+  começou no vazamento, não na descoberta.
+estados:
+  - { id: gerada, rotulo: "gerada", col: 0, row: 0 }
+  - { id: ativa, rotulo: "ativa: assina", col: 1, row: 0, papel: destaque }
+  - { id: verifica, rotulo: "n-1: só verifica", col: 2, row: 0 }
+  - { id: destruida, rotulo: "destruída", col: 3, row: 0 }
+  - { id: revogada, rotulo: "revogada", col: 1, row: 1 }
+inicial: gerada
+finais: [destruida, revogada]
+transicoes:
+  - { de: gerada, para: ativa, evento: "publicada" }
+  - { de: ativa, para: verifica, evento: "rotação" }
+  - { de: verifica, para: destruida, evento: "tokens expiraram" }
+  - { de: ativa, para: revogada, evento: "vazou" }
