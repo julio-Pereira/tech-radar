@@ -22,3 +22,14 @@ mensagens:
   - { de: pg, para: gw, rotulo: "commit", tipo: reply }
   - { de: gw, para: pg, rotulo: "fecha o pool" }
   - { de: gw, para: k8s, rotulo: "processo sai", tipo: reply, nota: "antes do terminationGracePeriod" }
+animacao:
+  - legenda: "O Kubernetes manda SIGTERM ao pod, depois do preStop"
+    ate: 1
+  - legenda: "A readiness sai e o pod deixa os endpoints: tráfego novo vai a outros pods"
+    ate: 3
+  - legenda: "O servidor recusa requisição nova, mas não corta as que estão em voo"
+    ate: 4
+  - legenda: "As transações em voo terminam com commit, em até 30 s"
+    ate: 6
+  - legenda: "Só então o pool fecha e o processo sai, antes do grace period"
+    ate: 8

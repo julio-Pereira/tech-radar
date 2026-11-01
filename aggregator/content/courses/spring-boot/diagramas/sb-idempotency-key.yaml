@@ -21,3 +21,14 @@ mensagens:
   - { de: pg, para: b, rotulo: "DuplicateKeyException", tipo: reply, nota: "rollback: nada processado" }
   - { de: b, para: pg, rotulo: "SELECT response_body" }
   - { de: pg, para: b, rotulo: "{paymentId: P}", tipo: reply, nota: "B devolve o mesmo 201" }
+animacao:
+  - legenda: "A requisição A reserva a chave K e abre a transação"
+    ate: 1
+  - legenda: "B chega com a mesma chave e fica bloqueada no INSERT, esperando A"
+    ate: 2
+  - legenda: "A processa pagamento e outbox, grava a resposta e faz commit"
+    ate: 5
+  - legenda: "O INSERT de B colide com a constraint única: rollback, nada processado"
+    ate: 6
+  - legenda: "B lê a resposta gravada e devolve o mesmo 201 de A"
+    ate: 8
