@@ -1,0 +1,23 @@
+id: go-observabilidade
+tipo: topologia
+titulo: "payments-api: trace propagado pelo context, logs com trace ID e métricas de negócio"
+descricao: >
+  O tracing com OpenTelemetry é propagado pelo context entre os três serviços: do
+  payments-bff ao payments-api e dele ao fraud-check, por gRPC. O payments-api emite três
+  sinais. Os logs estruturados com slog saem em JSON no stdout, com request ID, trace ID e
+  user ID em todo registro. As métricas no Prometheus incluem as de negócio, como TPV e
+  taxa de aprovação, ao lado de latência e CPU. E os spans do trace mostram onde o tempo
+  de cada pagamento foi gasto.
+nos:
+  - { id: bff, rotulo: "payments-bff", col: 0, row: 0 }
+  - { id: api, rotulo: "payments-api", col: 1, row: 0, papel: destaque }
+  - { id: fraud, rotulo: "fraud-check", col: 2, row: 0 }
+  - { id: logs, rotulo: "stdout: JSON (slog)", col: 0, row: 1 }
+  - { id: metricas, rotulo: "/metrics: TPV, aprovação", col: 1, row: 1 }
+  - { id: spans, rotulo: "spans OpenTelemetry", col: 2, row: 1 }
+arestas:
+  - { de: bff, para: api, rotulo: "traceparent" }
+  - { de: api, para: fraud, rotulo: "context (gRPC)" }
+  - { de: api, para: logs, rotulo: "trace ID" }
+  - { de: api, para: metricas }
+  - { de: api, para: spans }

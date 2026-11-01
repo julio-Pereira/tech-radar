@@ -1,0 +1,39 @@
+id: k8s-terminacao-do-pod
+tipo: sequencia
+titulo: "Kubelet e rede reagem em paralelo: o preStop espera a rede antes do SIGTERM"
+descricao: >
+  Quando o pod é deletado, duas coisas acontecem em paralelo e sem sincronia. O kubelet
+  roda o preStop, depois envia SIGTERM, espera o grace period e, se ele estourar, envia
+  SIGKILL. Ao mesmo tempo, o pod sai do EndpointSlice, e o kube-proxy de cada nó atualiza
+  as suas regras, o que leva de centenas de milissegundos a segundos. Nesse intervalo,
+  requisições novas ainda chegam ao pod. O preStop que espera 10 segundos dá tempo para a
+  rede convergir antes de a aplicação começar a drenar. O grace period precisa cobrir o
+  preStop mais a requisição mais longa em voo.
+participantes:
+  - { id: cliente, rotulo: "cliente", papel: externo }
+  - { id: proxy, rotulo: "kube-proxy (cada nó)" }
+  - { id: api, rotulo: "API server" }
+  - { id: kubelet, rotulo: "kubelet" }
+  - { id: pod, rotulo: "pod pix-gateway", papel: destaque }
+mensagens:
+  - { de: api, para: kubelet, rotulo: "pod deletado" }
+  - { de: api, para: proxy, rotulo: "tira do EndpointSlice", tipo: async, nota: "em paralelo, sem sincronia" }
+  - { de: kubelet, para: pod, rotulo: "preStop: sleep 10" }
+  - { de: cliente, para: pod, rotulo: "requisição nova", nota: "a regra antiga ainda vale" }
+  - { de: proxy, para: proxy, rotulo: "atualiza as regras", nota: "centenas de ms a segundos" }
+  - { de: kubelet, para: pod, rotulo: "SIGTERM", nota: "a rede já convergiu" }
+  - { de: pod, para: pod, rotulo: "drena as em voo" }
+  - { de: kubelet, para: pod, rotulo: "SIGKILL, se estourar", nota: "grace ≥ preStop + a mais longa em voo" }
+animacao:
+  - legenda: "O pod é deletado: kubelet e EndpointSlice reagem em paralelo, sem sincronia"
+    ate: 2
+  - legenda: "O preStop espera 10 s antes de qualquer sinal à aplicação"
+    ate: 3
+  - legenda: "Requisições novas ainda chegam: a regra antiga vale em alguns nós"
+    ate: 4
+  - legenda: "O kube-proxy de cada nó atualiza as regras, e o tráfego novo para"
+    ate: 5
+  - legenda: "Só agora vem o SIGTERM, e a aplicação drena o que está em voo"
+    ate: 7
+  - legenda: "Se o grace period estoura, vem o SIGKILL e a transação morre no meio"
+    ate: 8

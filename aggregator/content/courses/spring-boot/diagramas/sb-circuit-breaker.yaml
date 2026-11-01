@@ -18,3 +18,24 @@ transicoes:
   - { de: open, para: half, evento: "wait-duration" }
   - { de: half, para: closed, evento: "testes ok" }
   - { de: half, para: open, evento: "teste falhou" }
+animacao:
+  - legenda: "Fechado: as chamadas passam, e a taxa de falha é medida na janela"
+    atual: closed
+  - legenda: "A falha chega a 50% na janela: o circuito abre"
+    atual: open
+    transicao: { de: closed, para: open }
+  - legenda: "Aberto: cada chamada falha na hora, sem chegar ao PSP"
+    atual: open
+    transicao: { de: open, para: open }
+  - legenda: "Passado o wait-duration, deixa passar poucas chamadas de teste"
+    atual: half
+    transicao: { de: open, para: half }
+  - legenda: "Um teste falhou: o circuito volta a abrir e espera de novo"
+    atual: open
+    transicao: { de: half, para: open }
+  - legenda: "Depois de outro wait-duration, nova rodada de testes"
+    atual: half
+    transicao: { de: open, para: half }
+  - legenda: "Os testes deram certo: o circuito fecha e o tráfego volta ao PSP"
+    atual: closed
+    transicao: { de: half, para: closed }

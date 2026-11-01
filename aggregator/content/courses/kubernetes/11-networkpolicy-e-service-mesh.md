@@ -55,6 +55,10 @@ E as regras são **por direção**: liberar a saída de A não libera a entrada 
 conexão precisa de egress na origem **e** ingress no destino. Metade dos "por que não
 funciona" é isso.
 
+```diagrama
+k8s-default-deny-e-mtls
+```
+
 ## O DNS é a primeira coisa que quebra
 
 Aplique default-deny e observe: tudo para de funcionar, com erro de resolução de nome. O

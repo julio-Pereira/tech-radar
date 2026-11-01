@@ -53,10 +53,8 @@ Aqui está o detalhe que produz 5xx em deploy mesmo com tudo "configurado direit
 
 Quando um pod é deletado, **duas coisas acontecem em paralelo, sem sincronia entre si**:
 
-```
-1. kubelet:    preStop  →  SIGTERM  →  (grace period)  →  SIGKILL
-2. controller: remove o pod do EndpointSlice  →  kube-proxy de CADA nó
-                                                  atualiza suas regras
+```diagrama
+k8s-terminacao-do-pod
 ```
 
 O caminho 2 é **assíncrono e distribuído**. Entre o SIGTERM e a última regra de iptables

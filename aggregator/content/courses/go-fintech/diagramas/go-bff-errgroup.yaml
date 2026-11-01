@@ -1,0 +1,25 @@
+id: go-bff-errgroup
+tipo: sequencia
+titulo: "O BFF chama em paralelo com errgroup; o primeiro erro cancela as outras chamadas"
+descricao: >
+  O app pede a home ao payments-bff, que precisa do saldo, do status de KYC e da cotação.
+  Em vez de chamar em série e somar as latências, o BFF dispara as três em paralelo com
+  errgroup, todas com o mesmo context, que carrega o deadline da requisição. Quando o
+  serviço de KYC falha, o context é cancelado e as chamadas ainda em curso são
+  interrompidas. O BFF devolve ao app um erro no formato RFC 7807, um contrato estável e
+  auditável.
+participantes:
+  - { id: app, rotulo: "app", papel: externo }
+  - { id: bff, rotulo: "payments-bff", papel: destaque }
+  - { id: api, rotulo: "payments-api" }
+  - { id: kyc, rotulo: "KYC" }
+  - { id: cotacao, rotulo: "cotação", papel: externo }
+mensagens:
+  - { de: app, para: bff, rotulo: "GET /home" }
+  - { de: bff, para: api, rotulo: "Balance(ctx)", nota: "as três em paralelo, mesmo ctx" }
+  - { de: bff, para: kyc, rotulo: "Status(ctx)" }
+  - { de: bff, para: cotacao, rotulo: "Quote(ctx)" }
+  - { de: kyc, para: bff, rotulo: "erro", tipo: reply }
+  - { de: bff, para: api, rotulo: "ctx cancelado", tipo: async }
+  - { de: bff, para: cotacao, rotulo: "ctx cancelado", tipo: async }
+  - { de: bff, para: app, rotulo: "problem+json", tipo: reply, nota: "RFC 7807" }

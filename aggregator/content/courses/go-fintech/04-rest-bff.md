@@ -55,6 +55,10 @@ if err := g.Wait(); err != nil { // qualquer falha cancela as demais
 }
 ```
 
+```diagrama
+go-bff-errgroup
+```
+
 Sobre segurança, aplique o básico de OWASP: JWT com `golang-jwt`, validação rigorosa de
 input (limites de valor, CPF, conta), `Idempotency-Key` persistida com TTL, rate
 limiting por usuário e por IP, e — crucial — **mascaramento em logs**. Nunca logue PAN,

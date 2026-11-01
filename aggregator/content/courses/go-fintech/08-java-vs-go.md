@@ -45,12 +45,12 @@ organizacional, não técnica.
 
 ## O padrão emergente em fintechs maduras
 
-```text
-Go            → borda e serviços de alto throughput
-Java/Kotlin   → core de domínio complexo
-Python        → data / ML
-Rust          → nichos de performance crítica
-```
+| Linguagem | Camada |
+| --- | --- |
+| Go | borda e serviços de alto throughput |
+| Java/Kotlin | core de domínio complexo |
+| Python | data / ML |
+| Rust | nichos de performance crítica |
 
 Saber Go bem coloca você exatamente na camada que mais cresce — a da borda e do alto
 throughput. Mas o valor real do curso é conseguir desenhar essa tabela para o **seu**

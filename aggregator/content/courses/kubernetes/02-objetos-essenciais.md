@@ -21,10 +21,8 @@ pod nunca é reiniciado no lugar nem movido de nó; ele morre e outro nasce com 
 Por isso você quase nunca cria um Pod diretamente. A pilha é uma cadeia de controllers,
 cada um reconciliando o próximo:
 
-```
-Deployment  →  ReplicaSet  →  Pod
-(versões e     (contagem      (execução)
- rollout)       de réplicas)
+```diagrama
+k8s-deployment-e-service
 ```
 
 O **Deployment** gerencia ReplicaSets para dar rollout e rollback: numa mudança de

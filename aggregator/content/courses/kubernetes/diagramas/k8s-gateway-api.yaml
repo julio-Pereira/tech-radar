@@ -1,0 +1,24 @@
+id: k8s-gateway-api
+tipo: topologia
+titulo: "Gateway API: a plataforma é dona do Gateway, o time é dono da HTTPRoute"
+descricao: >
+  A Gateway API divide a entrada em objetos com donos diferentes. A plataforma declara a
+  GatewayClass, que escolhe a implementação, e o Gateway, com os listeners, a porta, o
+  certificado e quem pode anexar rotas. O time de pagamentos declara a HTTPRoute no seu
+  namespace, anexada ao Gateway, com hostname, path, header, peso e o Service de destino,
+  que seleciona os pods. Roteamento e timeouts são campos da spec, revisáveis num PR, e o
+  time nunca toca no que é compartilhado.
+grupos:
+  - { id: plataforma, rotulo: "plataforma", col: 0, row: 0, cols: 2, rows: 1 }
+  - { id: time, rotulo: "time de pagamentos", col: 0, row: 1, cols: 4, rows: 1 }
+nos:
+  - { id: classe, rotulo: "GatewayClass", grupo: plataforma, col: 0, row: 0 }
+  - { id: gateway, rotulo: "Gateway", grupo: plataforma, col: 1, row: 0, papel: destaque }
+  - { id: rota, rotulo: "HTTPRoute", grupo: time, col: 1, row: 1, papel: destaque }
+  - { id: svc, rotulo: "Service", grupo: time, col: 2, row: 1 }
+  - { id: pods, rotulo: "pods", grupo: time, col: 3, row: 1 }
+arestas:
+  - { de: classe, para: gateway, rotulo: "implementa" }
+  - { de: gateway, para: rota }
+  - { de: rota, para: svc, rotulo: "backendRef" }
+  - { de: svc, para: pods, rotulo: "selector" }

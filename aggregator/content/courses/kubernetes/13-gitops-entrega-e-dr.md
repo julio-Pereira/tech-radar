@@ -39,6 +39,10 @@ não é quem aprova; ninguém aplica à mão porque só o Argo tem permissão de
 controle que a auditoria pede vira consequência do fluxo, em vez de um processo que
 alguém precisa lembrar de seguir.
 
+```diagrama
+k8s-gitops
+```
+
 Cuidados que a prática ensina:
 
 - **Repo de app separado do repo de config.** Senão o commit de imagem nova polui o

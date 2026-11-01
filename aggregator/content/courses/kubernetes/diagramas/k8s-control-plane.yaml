@@ -1,0 +1,28 @@
+id: k8s-control-plane
+tipo: topologia
+titulo: "Tudo passa pelo API server: só ele fala com o etcd, e cada controller roda o seu laço"
+descricao: >
+  Você declara o estado desejado com kubectl apply, e o API server, a única porta de
+  entrada, autentica, autoriza, valida e persiste a declaração no etcd, o único componente
+  com estado. O scheduler observa os pods sem nó e só escreve o campo nodeName. Os
+  controllers do controller-manager comparam o desejado com o observado e agem para
+  aproximar os dois. No nó de trabalho, o kubelet observa os pods atribuídos a ele e cria
+  os containers. Nenhum componente fala com o etcd sem passar pelo API server.
+grupos:
+  - { id: cp, rotulo: "control plane", col: 1, row: 0, cols: 2, rows: 2 }
+  - { id: no, rotulo: "nó de trabalho", col: 1, row: 3, cols: 2, rows: 1 }
+nos:
+  - { id: kubectl, rotulo: "kubectl apply", col: 0, row: 1, papel: externo }
+  - { id: etcd, rotulo: "etcd", grupo: cp, col: 1, row: 0 }
+  - { id: api, rotulo: "API server", grupo: cp, col: 1, row: 1, papel: destaque }
+  - { id: scheduler, rotulo: "scheduler", grupo: cp, col: 2, row: 0 }
+  - { id: controllers, rotulo: "controller-manager", grupo: cp, col: 2, row: 1 }
+  - { id: kubelet, rotulo: "kubelet", grupo: no, col: 1, row: 3 }
+  - { id: pod, rotulo: "containers do pod", grupo: no, col: 2, row: 3 }
+arestas:
+  - { de: kubectl, para: api, rotulo: "declara" }
+  - { de: api, para: etcd, rotulo: "persiste" }
+  - { de: scheduler, para: api, rotulo: "nodeName" }
+  - { de: controllers, para: api, rotulo: "observa e age" }
+  - { de: kubelet, para: api, rotulo: "observa o nó" }
+  - { de: kubelet, para: pod, rotulo: "cria" }
