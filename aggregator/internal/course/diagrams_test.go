@@ -316,13 +316,15 @@ func TestCompileCourseDiagramas(t *testing.T) {
 	}
 }
 
-func TestWarnASCIIDiagrams(t *testing.T) {
-	body := []byte("```\nA ──▶ B\n```\n\n```java\nint x = 1;\n```\n\n```diagrama\nfixture\n```\n")
-	var logs bytes.Buffer
-	log.SetOutput(&logs)
-	defer log.SetOutput(os.Stderr)
-	if n := warnASCIIDiagrams(body, "t/01"); n != 1 {
-		t.Fatalf("want 1 ASCII diagram, got %d", n)
+func TestASCIIDiagramIsAnError(t *testing.T) {
+	body := []byte("```\nA ──▶ B\n```\n\n```java\nint x = 1; // a --> b\n```\n\n```diagrama\nfixture\n```\n")
+	if n := countASCIIDiagrams(body); n != 1 {
+		t.Fatalf("want 1 ASCII diagram (the java comment and the diagrama block don't count), got %d", n)
+	}
+	dir := writeCourse(t, "Texto.\n\n```\nA ──▶ B\n```\n", nil)
+	_, _, err := compileCourse(dir, bridgeIndex{}, nil, nil, nil)
+	if err == nil || !strings.Contains(err.Error(), "diagrama(s) ASCII") {
+		t.Fatalf("an ASCII diagram must fail the course, got %v", err)
 	}
 }
 

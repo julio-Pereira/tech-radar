@@ -45,7 +45,7 @@ var (
 	// The marker paragraph after rendering and sanitizing.
 	diagramaBlockRe = regexp.MustCompile(`<p>⟦diagrama:([^⟧<]*)⟧</p>`)
 	// Fenced blocks in the markdown source, to find "diagrama" references
-	// and to warn about new ASCII diagrams.
+	// and to refuse ASCII diagrams.
 	fencedRe = regexp.MustCompile("(?ms)^```([a-zA-Z0-9-]*)[ \t]*\n(.*?)^```[ \t]*$")
 	// Box-drawing characters and arrows that mark an ASCII diagram (the same
 	// set the diagram plan's inventory counts).
@@ -720,14 +720,12 @@ func applyDiagramas(htmlBody *string, sections []Section, slug string, diagramas
 	return uniq
 }
 
-// warnASCIIDiagrams logs fenced blocks that look like hand-drawn ASCII
-// diagrams (section 5: new ASCII diagrams are not allowed; a warning, not an
-// error, until every track is converted).
-func warnASCIIDiagrams(body []byte, where string) int {
+// countASCIIDiagrams counts fenced blocks that look like hand-drawn ASCII
+// diagrams. ASCII diagrams live in fences without a language (or "text"); an
+// arrow inside a sql or java comment is code, not a drawing.
+func countASCIIDiagrams(body []byte) int {
 	n := 0
 	for _, m := range fencedRe.FindAllSubmatch(body, -1) {
-		// ASCII diagrams live in fences without a language (or "text"); an
-		// arrow inside a sql or java comment is code, not a drawing.
 		if lang := string(m[1]); lang != "" && lang != "text" {
 			continue
 		}
@@ -735,10 +733,16 @@ func warnASCIIDiagrams(body []byte, where string) int {
 			n++
 		}
 	}
-	if n > 0 {
-		log.Printf("WARN %s: %d diagrama(s) ASCII — converta para um bloco ```diagrama", where, n)
-	}
 	return n
+}
+
+// checkASCIIDiagrams is the permanent rule (Fase 5): every track was
+// converted, so a new ASCII diagram fails the build instead of shipping.
+func checkASCIIDiagrams(body []byte) error {
+	if n := countASCIIDiagrams(body); n > 0 {
+		return fmt.Errorf("%d diagrama(s) ASCII: converta para um bloco ```diagrama (README, seção Diagramas)", n)
+	}
+	return nil
 }
 
 // Ilustrações (D8): local, authored images under the course's assets/.
