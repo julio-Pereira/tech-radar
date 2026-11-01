@@ -1,0 +1,38 @@
+id: dd-expand-contract
+tipo: fluxo
+titulo: "Expand/contract: quatro fases, cada uma um deploy reversível; só a remoção não volta"
+descricao: >
+  A migração sem parar tem quatro fases, cada uma um deploy independente que não quebra a
+  versão anterior. Primeiro expandir: coluna nova, anulável. Depois escrever nos dois,
+  lendo ainda do antigo. Então o backfill preenche o novo para as linhas antigas e a
+  verificação prova que os dois estão iguais. Por fim a leitura passa ao novo, por feature
+  flag, e só depois, num deploy separado, o antigo é removido: a única fase irreversível.
+passos:
+  - { id: expandir, rotulo: "1. expandir", col: 0, row: 0 }
+  - { id: dois, rotulo: "2. escrever nos dois", col: 1, row: 0 }
+  - { id: backfill, rotulo: "3. backfill e verificação", col: 2, row: 0 }
+  - { id: ler, rotulo: "4. ler do novo (flag)", col: 2, row: 1 }
+  - { id: remover, rotulo: "remover o antigo", col: 1, row: 1, papel: destaque }
+arestas:
+  - { de: expandir, para: dois }
+  - { de: dois, para: backfill }
+  - { de: backfill, para: ler, rotulo: "iguais" }
+  - { de: ler, para: remover, rotulo: "deploy separado" }
+animacao:
+  - legenda: "Antes de começar: a aplicação lê e escreve só no campo antigo"
+  - legenda: "Expandir: coluna nova, anulável; a versão antiga nem percebe"
+    estados: { expandir: ativo }
+  - legenda: "Escrever nos dois, lendo ainda do antigo; o rollback é voltar o deploy"
+    estados: { dois: ativo }
+    fluxos: [ { de: expandir, para: dois } ]
+  - legenda: "Backfill das linhas antigas, e a verificação prova que os dois batem"
+    estados: { backfill: ativo }
+    fluxos: [ { de: dois, para: backfill } ]
+    anotacao: "a fase onde o tempo é gasto"
+  - legenda: "A leitura passa ao novo por feature flag; o rollback é desligá-la"
+    estados: { ler: ativo }
+    fluxos: [ { de: backfill, para: ler } ]
+  - legenda: "Só então, num deploy separado, o antigo sai: a única fase irreversível"
+    estados: { remover: removido }
+    rotulos: { remover: "antigo removido" }
+    fluxos: [ { de: ler, para: remover } ]

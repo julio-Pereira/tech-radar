@@ -47,6 +47,11 @@ mostra (`observabilidade/04`).
 Cassandra, RocksDB, o storage do Kafka e a maioria dos motores de chave-valor são LSM. Postgres,
 MySQL/InnoDB e Oracle são B-tree. Não existe vencedor: existe padrão de acesso.
 
+```diagrama
+dd-btree
+dd-lsm
+```
+
 ## As três amplificações
 
 Esta é a lente para comparar storage engines sem religião, e para prever custo de disco antes de

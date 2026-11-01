@@ -129,6 +129,11 @@ Materializar o conflito é o truque menos conhecido e o mais útil: o write skew
 havia uma linha em comum para colidir. Crie uma — a linha do grupo — e trave-a. O conflito
 invisível vira um conflito de escrita que o banco sabe resolver.
 
+```diagrama
+dd-write-skew
+dd-serializable
+```
+
 ## Deadlock no banco
 
 Toda transferência entre duas linhas quaisquer é candidata a **deadlock**: a sessão A trava a

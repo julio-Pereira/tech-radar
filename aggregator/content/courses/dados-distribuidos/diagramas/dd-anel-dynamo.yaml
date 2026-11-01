@@ -1,0 +1,28 @@
+id: dd-anel-dynamo
+tipo: topologia
+titulo: "Anel de hash consistente: a chave mora em N réplicas, e R + W > N garante sobreposição"
+descricao: >
+  Na linhagem Dynamo os nós formam um anel de hash consistente, cada um responsável por
+  faixas da chave. A chave K é replicada nos três nós seguintes do anel, com N igual a 3, e
+  qualquer réplica aceita leitura e escrita, sem líder. Com W igual a 2 réplicas confirmando
+  a escrita e R igual a 2 consultadas na leitura, R + W > N garante que a leitura vê a
+  escrita mais recente. A fórmula não cobre o sloppy quorum, a escrita concorrente nem o
+  relógio decidindo quem vence.
+nos:
+  - { id: n1, rotulo: "nó 1", col: 1, row: 0 }
+  - { id: n2, rotulo: "nó 2 · réplica", col: 2, row: 0, papel: destaque }
+  - { id: n3, rotulo: "nó 3 · réplica", col: 3, row: 1, papel: destaque }
+  - { id: n4, rotulo: "nó 4 · réplica", col: 2, row: 2, papel: destaque }
+  - { id: n5, rotulo: "nó 5", col: 1, row: 2 }
+  - { id: n6, rotulo: "nó 6", col: 0, row: 1 }
+  - { id: chave, rotulo: "chave K: N=3", col: 1, row: 1, papel: externo }
+arestas:
+  - { de: n1, para: n2 }
+  - { de: n2, para: n3 }
+  - { de: n3, para: n4 }
+  - { de: n4, para: n5 }
+  - { de: n5, para: n6 }
+  - { de: n6, para: n1 }
+  - { de: chave, para: n2, estilo: tracejada }
+  - { de: chave, para: n3, rotulo: "W=2, R=2", estilo: tracejada }
+  - { de: chave, para: n4, estilo: tracejada }

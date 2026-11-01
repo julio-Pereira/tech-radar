@@ -72,6 +72,10 @@ Três critérios, nesta ordem:
   e o shard dele está quente enquanto os outros dormem. As saídas são chave composta
   (`accountId + bucket`), shard dedicado, ou tratar a conta grande como caso especial declarado.
 
+```diagrama
+dd-chave-de-shard
+```
+
 > **Reencontro — `kafka/06`.** A partição quente do broker e o shard quente do banco são o
 > mesmo problema: a chave de distribuição não é uniforme no mundo real. O que muda é o custo do
 > conserto — no broker você reparticiona um tópico, no banco você move dados.

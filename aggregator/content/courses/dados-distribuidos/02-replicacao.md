@@ -65,6 +65,10 @@ As mitigações, do mais grosso ao mais fino:
    a réplica espera alcançá-lo, ou o roteador escolhe uma réplica que já passou dele. É a
    solução correta e a que exige mais do código de aplicação.
 
+```diagrama
+dd-replicacao
+```
+
 > **Reencontro — `arquitetura-eventos/04`.** Lá, a janela de inconsistência era uma decisão de
 > modelagem, com dono e número. Aqui é a mesma janela, vista pelo outro lado: o lag de réplica
 > é o mecanismo que **produz** o número que você declarou.

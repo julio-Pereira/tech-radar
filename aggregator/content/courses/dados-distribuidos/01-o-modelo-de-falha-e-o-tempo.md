@@ -113,6 +113,10 @@ Contabilidade e regulação trabalham com o primeiro; consistência e replay tra
 segundo. Misturar os dois num campo só é o bug de modelagem que aparece meses depois, no
 primeiro estorno retroativo.
 
+```diagrama
+dd-ordem-do-ledger
+```
+
 ## Exemplo numa fintech
 
 Um estorno chega do PSP com `occurredAt` **40 segundos anterior** ao débito que ele estorna —

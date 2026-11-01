@@ -1,0 +1,21 @@
+id: dd-serializable
+tipo: sequencia
+titulo: "SERIALIZABLE: o Postgres aborta uma, e o retry encontra o limite real"
+descricao: >
+  Com SERIALIZABLE, o Postgres roda as duas sessões em snapshot isolation e monitora as
+  dependências entre elas. As duas leem zero e inserem, mas no commit da segunda ele
+  detecta um padrão que nenhuma execução serial produziria e aborta com could not
+  serialize. A aplicação refaz: agora a soma é 6.000, os 6.000 novos não cabem no limite de
+  10.000, e a transferência é recusada. O custo é abort, não lock, e toda a aplicação
+  precisa saber fazer retry.
+participantes:
+  - { id: a, rotulo: "sessão A (6.000)" }
+  - { id: pg, rotulo: "Postgres", papel: destaque }
+  - { id: b, rotulo: "sessão B (6.000)" }
+mensagens:
+  - { de: a, para: pg, rotulo: "SELECT sum(uso)" }
+  - { de: b, para: pg, rotulo: "SELECT sum(uso)" }
+  - { de: a, para: pg, rotulo: "INSERT 6000, COMMIT" }
+  - { de: b, para: pg, rotulo: "INSERT 6000, COMMIT" }
+  - { de: pg, para: b, rotulo: "could not serialize", tipo: reply }
+  - { de: b, para: pg, rotulo: "retry: soma = 6000", nota: "não cabe: recusada" }

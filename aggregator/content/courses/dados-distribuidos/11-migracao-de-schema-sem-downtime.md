@@ -42,6 +42,10 @@ restore.
 > planejado sem alguém decidir, você está no antipadrão — não por escrever nos dois, mas por não
 > ter terminado.
 
+```diagrama
+dd-expand-contract
+```
+
 ## O DDL que trava a fintech
 
 Todo `ALTER TABLE` precisa de um lock, e a categoria importa mais que a duração. `ACCESS

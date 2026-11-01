@@ -74,6 +74,10 @@ recovery_target_time = '2026-08-18 14:32:00-03'
 inteiro desde o último backup. O preço é operar o arquivamento de WAL — e monitorá-lo, porque
 arquivamento parado é backup quebrado que continua reportando verde por dias.
 
+```diagrama
+dd-pitr
+```
+
 ## A falha que a réplica não protege
 
 Réplica protege contra **falha física**: disco, máquina, zona. Ela não protege contra **corrupção

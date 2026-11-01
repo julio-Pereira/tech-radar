@@ -1,0 +1,18 @@
+id: dd-ordem-do-ledger
+tipo: sequencia
+titulo: "A ordem do ledger é a sequência que ele atribui, não o relógio de quem enviou"
+descricao: >
+  O pix-gateway registra um débito com occurredAt às 10:00:40. Depois o PSP envia o estorno
+  desse débito, com occurredAt às 10:00:00, 40 segundos antes, porque um dos relógios está
+  errado e ninguém sabe qual. O fin-store atribui a cada fato um número de sequência no
+  momento do commit: o débito recebe 101 e o estorno 102. O extrato ordenado pela sequência
+  mostra débito e depois estorno, como aconteceu; ordenado por occurredAt, o dinheiro
+  voltaria antes de sair.
+participantes:
+  - { id: gateway, rotulo: "pix-gateway" }
+  - { id: psp, rotulo: "PSP", papel: externo }
+  - { id: store, rotulo: "fin-store (ledger)", papel: destaque }
+mensagens:
+  - { de: gateway, para: store, rotulo: "débito, às 10:00:40", nota: "seq 101" }
+  - { de: psp, para: store, rotulo: "estorno, às 10:00:00", nota: "relógio de alguém mente; seq 102" }
+  - { de: store, para: store, rotulo: "extrato por seq", nota: "débito, depois estorno" }
