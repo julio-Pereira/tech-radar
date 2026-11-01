@@ -8,6 +8,8 @@ YAML do diagrama. Uso:
     python3 tools/diagramas/curvas.py little
     python3 tools/diagramas/curvas.py montecarlo
     python3 tools/diagramas/curvas.py price-sac
+    python3 tools/diagramas/curvas.py escada
+    python3 tools/diagramas/curvas.py psi
 """
 import random
 import sys
@@ -76,5 +78,27 @@ def price_sac():
     print(f"juros price {juros_price:.2f}; juros sac {sum(sac) - p:.2f}")
 
 
+def escada():
+    # credito-e-risco/10: escada de liquidez de 12 meses (R$ milhões,
+    # dados ilustrativos). Entradas das parcelas: 42/mês no cenário base; no
+    # estresse, 5% a menos (pico de atraso). Saídas: a captação que vence a
+    # cada mês. Reserva inicial de 6. Imprime a cobertura acumulada.
+    saidas = [38, 38, 39, 40, 40, 41, 46, 46, 44, 43, 43, 42]
+    for nome, entrada in (("base", 42.0), ("estresse", 42.0 * 0.95)):
+        acc, pts = 6.0, []
+        for mes, s_ in enumerate(saidas, 1):
+            acc += entrada - s_
+            pts.append(f"[{mes}, {fmt(acc)}]")
+        print(f"{nome}: [{', '.join(pts)}]")
+
+
+def psi():
+    # credito-e-risco/06: PSI = Σ (atual − ref) × ln(atual / ref).
+    import math
+    ref, atual = [0.3, 0.4, 0.3], [0.2, 0.4, 0.4]
+    v = sum((a - r) * math.log(a / r) for a, r in zip(atual, ref))
+    print(f"psi: {v:.4f}")
+
+
 if __name__ == "__main__":
-    {"amdahl": amdahl, "little": little, "montecarlo": montecarlo, "price-sac": price_sac}[sys.argv[1]]()
+    {"amdahl": amdahl, "little": little, "montecarlo": montecarlo, "price-sac": price_sac, "escada": escada, "psi": psi}[sys.argv[1]]()

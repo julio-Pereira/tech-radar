@@ -1,0 +1,22 @@
+id: cr-politica
+tipo: fluxo
+titulo: "A política em camadas: cada camada que recusa deixa o seu motivo"
+descricao: >
+  A proposta passa pelas camadas sempre na mesma ordem. As regras de corte recusam primeiro,
+  sem consulta cara: documento inválido, restrição grave. A capacidade de pagamento confere
+  comprometimento de renda e relação parcela por renda. O score aplica faixas e cutoffs. A
+  tabela de estratégia cruza faixa de score e renda e devolve limite, taxa e prazo. Qualquer
+  camada pode recusar, e a recusa leva o código de motivo daquela camada.
+passos:
+  - { id: knock, rotulo: "regras de corte", col: 0, row: 0 }
+  - { id: capacidade, rotulo: "capacidade de pagamento", col: 1, row: 0 }
+  - { id: score, rotulo: "score e cutoff", col: 2, row: 0 }
+  - { id: tabela, rotulo: "tabela de estratégia", col: 3, row: 0, papel: destaque }
+  - { id: recusa, rotulo: "recusa + motivo", col: 1, row: 1 }
+arestas:
+  - { de: knock, para: capacidade }
+  - { de: capacidade, para: score }
+  - { de: score, para: tabela }
+  - { de: knock, para: recusa, tipo: falha }
+  - { de: capacidade, para: recusa, tipo: falha }
+  - { de: score, para: recusa, tipo: falha }

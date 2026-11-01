@@ -1,0 +1,49 @@
+questions:
+  - question: "O motor de decisão do `fin-lend` lê a hora do sistema para aplicar uma regra de 'promoção de fim de mês'. Seis meses depois, o replay de uma decisão dá resultado diferente. Segundo este marco, qual é a causa?"
+    options:
+      - "A função de decisão deixou de ser pura: leu algo fora das entradas (o relógio), em vez de receber a data como parâmetro"
+      - "O replay foi rodado com uma versão mais nova da biblioteca de datas, que trata fusos horários de outro jeito"
+      - "Promoções não podem existir numa política de crédito, porque toda regra de preço precisa ser fixa durante a vigência do produto"
+      - "O log de decisão foi corrompido, já que uma decisão gravada corretamente sempre se reproduz"
+    answer: 0
+    explanation: "A decisão é função pura de (proposta, instantâneo, versão, data). Ler o relógio do sistema quebra exatamente isso. A biblioteca de datas e a corrupção do log não são a causa descrita, e o marco não proíbe regras de preço por data, desde que a data seja uma entrada."
+  - question: "Um teste gera milhares de propostas e verifica que, aumentando apenas a renda, a decisão nunca piora. Segundo este marco, o que esse teste protege?"
+    options:
+      - "Garante que a política aprova todo cliente com renda acima de um valor mínimo fixo, independentemente do score"
+      - "Mede a taxa de aprovação da carteira, que precisa crescer sempre que a renda média dos clientes cresce, como indicador de saúde comercial da política"
+      - "A monotonicidade: um perfil melhor, com o resto igual, nunca recebe decisão pior — um erro de tabela que inverta isso aparece no teste"
+      - "Verifica o desempenho do motor sob carga, já que milhares de propostas simulam o volume de pico"
+    answer: 2
+    explanation: "É a invariante de monotonicidade, testada por propriedade. Ela não impõe aprovação acima de uma renda fixa, não mede taxa de aprovação da carteira e não é teste de carga."
+  - question: "A política removeu o campo 'CEP' da lista de entradas, por ser proxy de um atributo proibido. Mas a variável 'tempo de deslocamento ao trabalho' ficou, com correlação alta com o mesmo atributo no conjunto sintético. Segundo este marco, o que falta?"
+    options:
+      - "Nada falta: a função não lê mais o CEP, e isso é tudo o que o teste de atributo proibido exige"
+      - "O teste estatístico: nenhuma variável usada pode ter correlação acima do limite com o atributo proibido; essa variável é outro proxy"
+      - "Remover também o atributo proibido do cadastro do cliente, para que ele não exista em nenhuma base da instituição"
+      - "Trocar o score por um modelo mais complexo, que aprenda sozinho a ignorar as correlações com atributos proibidos durante o treino, sem precisar de nenhum teste adicional"
+    answer: 1
+    explanation: "O marco separa dois testes: acesso (a função não lê o campo) e estatístico (nenhuma variável usada correlaciona acima do limite). A variável descrita é um proxy. Apagar o atributo do cadastro não remove o proxy, e um modelo mais complexo não é garantia de nada sem o teste."
+  - question: "Um analista quer aprovar uma proposta que a política recusou, por um erro evidente de cadastro. O sistema só tem o botão 'aprovar mesmo assim', usado por ele mesmo. Segundo este marco, o que está errado?"
+    options:
+      - "Override não deveria existir: a política é imutável e nenhuma pessoa pode decidir contra ela"
+      - "O certo seria editar a versão vigente da política para incluir esse caso específico de erro de cadastro, e então reprocessar a proposta pelo motor"
+      - "Falta registrar o override num sistema separado do log de decisão, para não poluir as métricas da política"
+      - "O override exige dupla aprovação (quem pede não aprova) e registro no log com o motivo; sem a segunda aprovação, é recusado"
+    answer: 3
+    explanation: "Override é permitido, mas com dupla aprovação e registro no mesmo log. A política imutável não proíbe override; editar a versão vigente viola a imutabilidade; e registrar fora do log de decisão perde a auditoria."
+  - question: "A área de crédito quer trocar a política v1 pela v2, mais restritiva, e saber o impacto antes. Segundo este marco, como fazer?"
+    options:
+      - "Rodar a v2 como desafiante em modo sombra: ela decide toda proposta e grava, sem aplicar, enquanto a v1 continua decidindo de fato"
+      - "Publicar a v2 para 100% das propostas numa sexta à noite, quando o volume é menor, e reverter se a taxa de aprovação cair, com um alerta configurado no painel"
+      - "Editar a v1 aos poucos, um cutoff por semana, até que ela fique igual à v2, sem publicar uma nova versão"
+      - "Simular a v2 numa planilha com uma amostra de 100 propostas antigas e decidir pela média"
+    answer: 0
+    explanation: "Campeã e desafiante em sombra mostram quantas decisões mudariam sem risco. Publicar para 100% aposta a carteira, editar a v1 viola a imutabilidade, e uma planilha com 100 casos não mede o fluxo real."
+  - question: "O bureau cai e o motor do `fin-lend` passa a aprovar tudo, porque o timeout da biblioteca HTTP retorna 'sem restrição' por padrão. Segundo este marco, qual é a falha?"
+    options:
+      - "A falha é de infraestrutura: o timeout da biblioteca estava curto demais e precisa ser aumentado para não disparar"
+      - "Nenhuma: na ausência de restrição conhecida, aprovar é a decisão mais justa com o cliente"
+      - "A degradação foi decidida implicitamente pela biblioteca; ela é decisão de risco, escrita na política (recusar, aprovar menor ou fila manual) e testada"
+      - "O motor deveria ter parado de aceitar propostas até o bureau voltar, devolvendo erro 503 ao canal, porque decidir sem todos os dados é sempre pior do que não decidir"
+    answer: 2
+    explanation: "O marco é explícito: a degradação é decisão de risco, declarada e testada, nunca efeito colateral de um timeout. Aumentar o timeout adia o problema, 'aprovar tudo' não é uma regra de risco escolhida, e parar o motor também seria uma escolha a declarar, não um padrão."

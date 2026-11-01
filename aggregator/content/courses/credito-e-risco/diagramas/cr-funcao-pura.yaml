@@ -1,0 +1,21 @@
+id: cr-funcao-pura
+tipo: topologia
+titulo: "A decisão é uma função pura, e o log permite repeti-la"
+descricao: >
+  A função de decisão recebe só quatro entradas: a proposta, o instantâneo dos dados que ela
+  viu, a versão da política e a data. Ela devolve a decisão e os códigos de motivo, que vão
+  para o log de decisão, imutável, junto com as entradas. Um replay lê o log, chama a mesma
+  função com a mesma versão e reproduz decisão e motivos; rodar com a versão nova mostra o
+  que mudaria, sem alterar nenhuma decisão passada.
+nos:
+  - { id: entradas, rotulo: "proposta + instantâneo", col: 0, row: 0 }
+  - { id: versao, rotulo: "versão + data", col: 0, row: 1 }
+  - { id: funcao, rotulo: "função de decisão", col: 1, row: 0, papel: destaque }
+  - { id: log, rotulo: "log de decisão", col: 2, row: 0 }
+  - { id: replay, rotulo: "replay", col: 2, row: 1, papel: externo }
+arestas:
+  - { de: entradas, para: funcao }
+  - { de: versao, para: funcao }
+  - { de: funcao, para: log, rotulo: "decisão + motivos" }
+  - { de: replay, para: log, rotulo: "lê", estilo: tracejada }
+  - { de: replay, para: funcao, rotulo: "chama de novo", estilo: tracejada }

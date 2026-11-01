@@ -1,0 +1,27 @@
+id: cr-buckets
+tipo: estados
+titulo: "Faixas de atraso: cada faixa decide a régua, a provisão e o que vem depois"
+descricao: >
+  O contrato em dia passa para a faixa de 1 a 30 dias quando uma parcela vence sem pagamento.
+  A cada 30 dias sem regularizar, ele rola para a faixa seguinte, até passar de 90 dias,
+  quando vira candidato a baixa para prejuízo. Pagando, ele volta a estar em dia. Na faixa de
+  31 a 60, uma renegociação liquida o contrato e origina outro, sem zerar o histórico de
+  atraso para a provisão.
+estados:
+  - { id: emdia, rotulo: "EM DIA", col: 0, row: 0 }
+  - { id: f1, rotulo: "1–30", col: 1, row: 0 }
+  - { id: f2, rotulo: "31–60", col: 2, row: 0, papel: destaque }
+  - { id: f3, rotulo: "61–90", col: 3, row: 0 }
+  - { id: f4, rotulo: "ACIMA DE 90", col: 3, row: 1 }
+  - { id: baixado, rotulo: "BAIXADO", col: 2, row: 1 }
+  - { id: renegociado, rotulo: "RENEGOCIADO", col: 1, row: 1 }
+inicial: emdia
+finais: [baixado, renegociado]
+transicoes:
+  - { de: emdia, para: f1, evento: "venceu" }
+  - { de: f1, para: emdia, evento: "pagou" }
+  - { de: f1, para: f2, evento: "+30 d" }
+  - { de: f2, para: f3, evento: "+30 d" }
+  - { de: f3, para: f4, evento: "+30 d" }
+  - { de: f4, para: baixado, evento: "baixa" }
+  - { de: f2, para: renegociado, evento: "renegocia" }

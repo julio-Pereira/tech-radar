@@ -1,0 +1,16 @@
+id: cr-psi
+tipo: grafico
+titulo: "PSI ≈ 0,069: a população mudou de faixa, abaixo dos limiares habituais"
+descricao: >
+  A distribuição de score da população de referência era 30% na faixa baixa, 40% na média e
+  30% na alta. Hoje é 20%, 40% e 40%: a população subiu de faixa. O PSI soma, faixa a faixa,
+  a diferença entre atual e referência vezes o logaritmo da razão entre elas, e dá cerca de
+  0,069, abaixo dos limiares habituais de alerta, a conferir na política. O valor foi
+  calculado por tools/diagramas/curvas.py psi.
+forma: barra
+eixo_x: { rotulo: "faixa de score", tipo: categoria }
+eixo_y: { rotulo: "propostas (%)", min: 0, max: 50 }
+series:
+  - { id: referencia, rotulo: "referência", pontos: [["baixa", 30], ["média", 40], ["alta", 30]] }
+  - { id: atual, rotulo: "atual", pontos: [["baixa", 20], ["média", 40], ["alta", 40]] }
+fonte: "dados ilustrativos"

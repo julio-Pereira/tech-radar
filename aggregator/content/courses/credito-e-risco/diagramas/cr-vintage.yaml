@@ -1,0 +1,17 @@
+id: cr-vintage
+tipo: grafico
+titulo: "Vintage: aos 3 meses, a safra de março está 40% acima da de dezembro"
+descricao: >
+  Cada curva é a inadimplência acumulada de uma safra em função da idade dos contratos. A
+  safra de dezembro chega a 2,0% aos 3 meses e a 3,8% aos 6. A de março, na mesma idade de 3
+  meses, já está em 2,8%, 40% acima. Comparar na mesma idade separa o efeito da população que
+  entrou do efeito do tempo, e mostra a piora na originação muito antes do total da carteira.
+forma: linha
+eixo_x: { rotulo: "idade da safra (meses)", tipo: numero }
+eixo_y: { rotulo: "inadimplência acumulada (%)", min: 0, max: 5 }
+series:
+  - { id: dez, rotulo: "safra de dezembro", pontos: [[1, 0.5], [2, 1.2], [3, 2.0], [4, 2.7], [5, 3.3], [6, 3.8]] }
+  - { id: mar, rotulo: "safra de março", pontos: [[1, 0.7], [2, 1.7], [3, 2.8]] }
+anotacoes:
+  - { tipo: linha-x, valor: 3, rotulo: "3 meses", papel: destaque }
+fonte: "dados ilustrativos"

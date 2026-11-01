@@ -1,0 +1,22 @@
+id: cr-provisao-fechamento
+tipo: fluxo
+titulo: "Da ECL de cada contrato ao lançamento no fechamento, explicado ao centavo"
+descricao: >
+  Para cada contrato, o estágio define o horizonte, e a ECL é PD vezes LGD vezes EAD,
+  descontada e ponderada pelos cenários. A soma das ECLs dá a provisão da carteira. A variação
+  em relação ao período anterior vira um lançamento balanceado, entre a despesa de provisão e
+  a conta redutora do ativo. O período fecha, e uma correção posterior entra só no período
+  seguinte. O relatório de auditoria por contrato soma exatamente o lançamento.
+passos:
+  - { id: estagio, rotulo: "estágio por contrato", col: 0, row: 0 }
+  - { id: ecl, rotulo: "ECL por cenário", col: 1, row: 0 }
+  - { id: soma, rotulo: "Σ provisão", col: 2, row: 0 }
+  - { id: lanca, rotulo: "lançamento balanceado", col: 3, row: 0, papel: destaque }
+  - { id: fecha, rotulo: "período fechado", col: 3, row: 1 }
+  - { id: relatorio, rotulo: "relatório = lançamento", col: 2, row: 1 }
+arestas:
+  - { de: estagio, para: ecl }
+  - { de: ecl, para: soma }
+  - { de: soma, para: lanca }
+  - { de: lanca, para: fecha }
+  - { de: fecha, para: relatorio }

@@ -1,0 +1,23 @@
+id: cr-estagios
+tipo: estados
+titulo: "Estágios da perda esperada: piora rápido, cura devagar"
+descricao: >
+  O contrato nasce no estágio 1, com provisão da perda esperada em 12 meses. Um aumento
+  significativo de risco de crédito, por um gatilho declarado como atraso acima de 30 dias,
+  leva ao estágio 2, com provisão pela vida inteira. O default leva ao estágio 3, de ativo
+  problemático. A cura, o caminho de volta, só acontece depois de um período de observação
+  sem o gatilho. Do estágio 3, o crédito pode ir para baixa. Nomes e gatilhos simplificados;
+  confira a norma brasileira vigente sobre perda esperada.
+estados:
+  - { id: e1, rotulo: "ESTÁGIO 1 · 12 meses", col: 0, row: 0 }
+  - { id: e2, rotulo: "ESTÁGIO 2 · vida inteira", col: 1, row: 0, papel: destaque }
+  - { id: e3, rotulo: "ESTÁGIO 3 · problemático", col: 2, row: 0 }
+  - { id: baixa, rotulo: "BAIXADO", col: 2, row: 1 }
+inicial: e1
+finais: [baixa]
+transicoes:
+  - { de: e1, para: e2, evento: "SICR" }
+  - { de: e2, para: e3, evento: "default" }
+  - { de: e2, para: e1, evento: "cura", guarda: "observação" }
+  - { de: e3, para: e2, evento: "cura", guarda: "observação" }
+  - { de: e3, para: baixa, evento: "baixa" }

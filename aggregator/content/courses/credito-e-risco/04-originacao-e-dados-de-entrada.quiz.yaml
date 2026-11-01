@@ -1,0 +1,33 @@
+questions:
+  - question: "O `fin-lend` consulta o bureau (R$ 0,80, 4 s) para toda proposta, inclusive as que o dado interno já classifica como claramente aprovadas ou recusadas. Segundo este marco, o que muda com a consulta em cascata?"
+    options:
+      - "A cascata consulta todas as fontes em paralelo para reduzir o tempo total, sem alterar o custo de cada proposta"
+      - "As fontes são consultadas da mais barata à mais cara, e o bureau só entra quando a pré-decisão cai na faixa de dúvida"
+      - "O bureau passa a ser a primeira fonte consultada, porque é a mais confiável, e o dado interno só confirma"
+      - "Nada muda na prática: o custo de consulta é irrelevante perto do valor emprestado, então consultar tudo continua sendo o recomendado"
+    answer: 1
+    explanation: "A cascata ordena as fontes do mais barato ao mais caro e só desce um degrau na faixa de dúvida, com orçamento de custo e de tempo. Paralelizar tudo mantém o custo; pôr o bureau primeiro é o oposto da cascata; e o marco trata custo e latência de consulta como decisões de engenharia, não detalhes."
+  - question: "A renda vinda de Open Finance não chega para uma proposta, e o código grava 0 no campo. O score lê 'renda zero' e recusa. Segundo este marco, qual é o problema?"
+    options:
+      - "O problema é só de desempenho: o score deveria ter esperado mais tempo pela resposta antes de decidir"
+      - "Não há problema: renda ausente é, por definição, o mesmo que renda zero para fins de crédito"
+      - "A regra para campo faltante ficou implícita no código; ela precisa ser declarada por campo, antes (ausente, recusa, pedir documento, fonte conservadora)"
+      - "O problema é que Open Finance nunca deveria ser usado como fonte de renda numa decisão de crédito, com ou sem consentimento, porque é um dado de terceiros que a instituição não consegue auditar"
+    answer: 2
+    explanation: "O marco cita exatamente esse erro: um 0 no lugar de 'não sei' é uma regra implícita que muda a decisão. A regra de tratamento é declarada por campo, antes. Esperar mais não resolve o caso em que o dado não existe, ausente não é zero, e Open Finance é uma fonte legítima com consentimento válido."
+  - question: "Os dados de Open Finance de um cliente estão armazenados no `fin-lend`, mas o consentimento que cobria 'análise de crédito' foi revogado ontem. Uma nova proposta dele chega hoje. Segundo este marco, o que acontece com esse dado?"
+    options:
+      - "Ele não entra na decisão: sem consentimento válido para a finalidade, o dado não é usado, mesmo estando armazenado"
+      - "Ele entra normalmente, já que foi coletado quando o consentimento ainda era válido e continua armazenado"
+      - "Ele entra, mas com peso reduzido no score, como forma de equilibrar a revogação com o histórico disponível do cliente"
+      - "A proposta é recusada automaticamente, porque a revogação indica que o cliente não quer mais crédito"
+    answer: 0
+    explanation: "Sem consentimento válido cobrindo a finalidade, o dado não entra — e o marco pede um teste de ausência justamente com o dado presente no armazenamento. Estar armazenado não autoriza o uso; reduzir o peso continua usando o dado; e revogar consentimento de dados não é pedido de recusa da proposta."
+  - question: "Seis meses depois, um auditor pede para reproduzir a decisão de uma proposta. O log guardou 'bureau consultado às 14h02', sem os valores. Segundo este marco, por que isso não basta?"
+    options:
+      - "Porque o horário da consulta precisa estar em UTC, e sem o fuso o auditor não consegue localizar a resposta original do bureau"
+      - "Porque a fonte muda: repetir a consulta hoje devolveria outra coisa; a decisão precisa guardar um instantâneo dos valores exatos que viu"
+      - "Porque o auditor não tem permissão para consultar o bureau, e por isso a decisão nunca pode ser reproduzida"
+      - "Não há problema: com o horário registrado, basta consultar o bureau de novo e pedir a resposta que ele daria naquele momento, já que bureaus guardam todo o histórico"
+    answer: 1
+    explanation: "O marco é direto: o que se guarda é um instantâneo dos valores que a função de decisão viu, com a data; uma referência não basta porque a fonte muda. O fuso não resolve a falta dos valores; a permissão do auditor é outro assunto; e uma fonte externa não devolve 'a resposta daquele momento'."

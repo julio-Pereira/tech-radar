@@ -1,0 +1,22 @@
+id: cr-portao-contato
+tipo: fluxo
+titulo: "Um único portão de contato: proteção, canal, janela e limite antes de sair"
+descricao: >
+  Todo passo da régua gera uma mensagem, e toda mensagem passa pelo mesmo portão antes de
+  sair. Se o cliente está em proteção, como numa negociação de superendividamento em curso, a
+  cobrança ativa é suspensa. Se o canal não tem consentimento, a mensagem não sai por ele. Se
+  está fora da janela de horário ou acima do limite diário, a mensagem é adiada para a próxima
+  janela válida. Só então ela é enviada, e tudo fica registrado.
+passos:
+  - { id: regua, rotulo: "passo da régua", col: 0, row: 0 }
+  - { id: protecao, rotulo: "em proteção?", col: 1, row: 0 }
+  - { id: janela, rotulo: "canal, janela, limite", col: 2, row: 0, papel: destaque }
+  - { id: envia, rotulo: "envia e registra", col: 3, row: 0 }
+  - { id: suspende, rotulo: "suspende cobrança", col: 1, row: 1 }
+  - { id: adia, rotulo: "adia para a janela", col: 2, row: 1 }
+arestas:
+  - { de: regua, para: protecao }
+  - { de: protecao, para: janela, rotulo: "não" }
+  - { de: janela, para: envia, rotulo: "ok" }
+  - { de: protecao, para: suspende, rotulo: "sim", tipo: falha }
+  - { de: janela, para: adia, rotulo: "fora", tipo: falha }
