@@ -1,0 +1,16 @@
+id: as-ciclo-quebrado
+tipo: topologia
+titulo: "Extraindo a interface: as duas setas apontam para o contrato, e o ciclo some"
+descricao: >
+  Para quebrar o ciclo, o ledger passa a depender de uma interface de status, num módulo
+  mais estável, e o módulo de pagamentos a implementa. Pagamentos continua chamando o
+  ledger, mas o ledger não conhece mais pagamentos: as dependências convergem para o
+  contrato. A outra saída é trocar a chamada de volta por um evento.
+nos:
+  - { id: pagamentos, rotulo: "pagamentos", col: 0, row: 0 }
+  - { id: ledger, rotulo: "ledger", col: 1, row: 0 }
+  - { id: contrato, rotulo: "StatusPagamento", col: 1, row: 1, papel: destaque }
+arestas:
+  - { de: pagamentos, para: ledger, rotulo: "lança" }
+  - { de: ledger, para: contrato, rotulo: "depende" }
+  - { de: pagamentos, para: contrato, rotulo: "implementa" }

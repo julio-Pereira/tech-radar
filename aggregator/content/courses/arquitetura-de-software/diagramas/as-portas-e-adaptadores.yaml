@@ -1,0 +1,24 @@
+id: as-portas-e-adaptadores
+tipo: topologia
+titulo: "Portas e adaptadores: o núcleo define a porta, e o mesmo teste prova os dois adaptadores"
+descricao: >
+  O adaptador HTTP chama o caso de uso, a porta de entrada, mapeando o DTO para o domínio. As setas de baixo significam implementa.
+  O núcleo usa a porta de saída de persistência, que ele mesmo declara. Três adaptadores a
+  implementam: o SQL, o em memória usado nos testes do núcleo, e a ACL que fala com o
+  legado. O mesmo teste de contrato roda contra o adaptador em memória e o SQL; se os dois
+  passam, o núcleo de fato não percebe a diferença.
+grupos:
+  - { id: nucleo, rotulo: "núcleo", col: 1, row: 0, cols: 2, rows: 1 }
+nos:
+  - { id: http, rotulo: "adaptador HTTP", col: 0, row: 0, papel: externo }
+  - { id: caso, rotulo: "caso de uso", grupo: nucleo, col: 1, row: 0 }
+  - { id: porta, rotulo: "porta de saída", grupo: nucleo, col: 2, row: 0, papel: destaque }
+  - { id: sql, rotulo: "adaptador SQL", col: 1, row: 1, papel: externo }
+  - { id: memoria, rotulo: "adaptador em memória", col: 2, row: 1, papel: externo }
+  - { id: acl, rotulo: "ACL do legado", col: 3, row: 1, papel: externo }
+arestas:
+  - { de: http, para: caso, rotulo: "DTO" }
+  - { de: caso, para: porta, rotulo: "usa" }
+  - { de: sql, para: porta }
+  - { de: memoria, para: porta, rotulo: "implementa" }
+  - { de: acl, para: porta }

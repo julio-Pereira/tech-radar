@@ -1,0 +1,13 @@
+id: as-ciclo
+tipo: topologia
+titulo: "Ciclo: pagamentos e ledger só se entendem e mudam juntos"
+descricao: >
+  O módulo de pagamentos chama o ledger para lançar, e o ledger chama pagamentos de volta
+  para consultar o status. Mesmo compilando e funcionando, o ciclo faz dos dois um módulo
+  só: nenhum pode ser entendido, testado ou mudado isoladamente.
+nos:
+  - { id: pagamentos, rotulo: "pagamentos", col: 0, row: 0 }
+  - { id: ledger, rotulo: "ledger", col: 1, row: 0, papel: destaque }
+arestas:
+  - { de: pagamentos, para: ledger, rotulo: "lança" }
+  - { de: ledger, para: pagamentos, rotulo: "consulta status" }

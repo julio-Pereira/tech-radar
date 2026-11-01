@@ -1,0 +1,18 @@
+id: as-camadas
+tipo: topologia
+titulo: "Em camadas: cada uma chama a de baixo, e o domínio depende dos dados"
+descricao: >
+  Na arquitetura em camadas, a apresentação chama a aplicação, que chama o domínio, que
+  chama a camada de dados. A dependência desce até o banco: o domínio conhece a
+  persistência. Os vícios recorrentes aparecem nessa pilha: o sinkhole, em que a chamada
+  atravessa camadas só repassando parâmetros, e a camada de passagem, que todo mundo pula
+  para ir direto aos dados.
+nos:
+  - { id: apresentacao, rotulo: "apresentação", col: 0, row: 0 }
+  - { id: aplicacao, rotulo: "aplicação", col: 0, row: 1 }
+  - { id: dominio, rotulo: "domínio", col: 0, row: 2, papel: destaque }
+  - { id: dados, rotulo: "dados (SQL)", col: 0, row: 3 }
+arestas:
+  - { de: apresentacao, para: aplicacao, rotulo: "chama" }
+  - { de: aplicacao, para: dominio, rotulo: "chama" }
+  - { de: dominio, para: dados, rotulo: "depende" }
