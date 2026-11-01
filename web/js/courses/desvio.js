@@ -13,6 +13,7 @@
 // - While a detour is open, "Continuar de onde parou" is left alone: routes
 //   opened by a detour don't record themselves as the last course/marco.
 import { suppressFocusPreview } from './conceitos.js';
+import { diagramsReady } from './sections.js';
 
 /**
  * @typedef {{
@@ -226,6 +227,13 @@ export function returnToPoint(timeline, marcoId, conceito) {
   target.focus({ preventScroll: true });
   target.classList.add('conceito-retorno');
   window.setTimeout(() => target.classList.remove('conceito-retorno'), HIGHLIGHT_MS);
+  // Diagrams above the term — in this milestone or an earlier open one —
+  // are drawn asynchronously and push it down: once they all have their
+  // height, center it again.
+  const pending = [...timeline.querySelectorAll('.milestone-body')]
+    .map((body) => diagramsReady.get(/** @type {HTMLElement} */ (body)))
+    .filter(Boolean);
+  if (pending.length) Promise.all(pending).then(() => target.scrollIntoView({ behavior: 'auto', block: 'center' }));
   return true;
 }
 

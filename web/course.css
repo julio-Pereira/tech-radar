@@ -1612,3 +1612,7 @@ a.diagrama-conceito.conceito-retorno .diagrama-no-caixa { stroke: var(--accent-h
 @media (prefers-reduced-motion: no-preference) {
   .diagrama-no, .diagrama-no-caixa, .diagrama-aresta, .diagrama-mensagem { transition: opacity 0.3s, stroke 0.3s, stroke-width 0.3s; }
 }
+/* Alignment classes must win over the chart text classes above, which set
+   text-anchor: middle and come later in this file. */
+.diagrama-svg .diagrama-rotulo-inicio { text-anchor: start; }
+.diagrama-svg .diagrama-rotulo-fim { text-anchor: end; }
