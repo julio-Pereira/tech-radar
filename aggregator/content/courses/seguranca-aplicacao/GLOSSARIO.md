@@ -147,13 +147,13 @@ mitigação lado a lado.
 **Em uma frase:** a identidade do cliente, que se cadastra e consente, com escopo e validade declarados — o eixo dos marcos 05 e 08.
 **No fin-platform:** o titular da conta que autoriza um pagamento via `pix-gateway`.
 **Erro comum:** tratar o consentimento do cliente como um detalhe de UX, quando ele é, na prática, o limite legal da autorização.
-**Onde na prática:** marcos 05, 06 e 08.
+**Onde na prática:** marco 05, também nos marcos 06 e 08.
 
 ### Workload identity
 **Em uma frase:** a identidade de um serviço, que nunca faz login — autentica por `client_credentials`, `private_key_jwt` ou mTLS.
 **No fin-platform:** o próprio `pix-gateway`, autenticando perante o `fin-idp` como client, não como usuário.
 **Erro comum:** tentar encaixar workload identity num fluxo de SSO — serviço não faz SSO, ponto que `kubernetes/10` aprofunda para identidade de workload em cluster.
-**Onde na prática:** marcos 05, 06 e 07.
+**Onde na prática:** marco 05, também nos marcos 06 e 07.
 
 ### `acr` / `amr`
 **Em uma frase:** Authentication Context Class Reference e Authentication Methods References — claims que declaram, respectivamente, o nível e os métodos de autenticação usados no login original.
@@ -191,7 +191,7 @@ mitigação lado a lado.
 **Em uma frase:** JSON Web Key Set — o documento publicado pelo emissor com as chaves públicas de verificação, cada uma identificada por um `kid`.
 **No fin-platform:** o `fin-idp` publica seu JWKS com duas chaves simultâneas durante rotação, para nenhum token em voo ser invalidado.
 **Erro comum:** cachear o JWKS sem TTL, perdendo uma chave nova por horas depois de uma rotação de emergência.
-**Onde na prática:** marcos 04 e 10.
+**Onde na prática:** marco 04, também no marco 10.
 
 ## OAuth2 e OIDC
 
@@ -205,7 +205,7 @@ mitigação lado a lado.
 **Em uma frase:** Pushed Authorization Request — o client envia a requisição de autorização inteira por back-channel antes do redirect, recebendo uma referência opaca para usar no navegador.
 **No fin-platform:** reduz a superfície manipulável no front-channel do `pix-gateway`, remédio estrutural contra mix-up attack e manipulação de parâmetro.
 **Erro comum:** achar que PAR substitui a validação de redirect URI — os dois problemas são relacionados, mas distintos.
-**Onde na prática:** marcos 05 e 07.
+**Onde na prática:** marco 05, também no marco 07.
 
 ## FAPI e prova de posse
 
@@ -251,7 +251,7 @@ mitigação lado a lado.
 **Em uma frase:** exigir um nível maior de garantia de autenticação para uma operação específica, com base no valor ou no risco dela.
 **No fin-platform:** uma transferência de valor alto exige segundo fator adicional que uma consulta de saldo não exige.
 **Erro comum:** aplicar step-up à sessão inteira em vez de à transação específica que o disparou — o marco 14 retoma esse detalhe.
-**Onde na prática:** marcos 08 e 14.
+**Onde na prática:** marco 08, também no marco 14.
 
 ### Quebra-vidro
 **Em uma frase:** acesso emergencial que quebra a segregação de funções normal, permitido mas registrado de forma destacada e auditável, com justificativa exigida no momento do uso.
@@ -315,7 +315,7 @@ mitigação lado a lado.
 **Em uma frase:** o critério que verifica se a função vulnerável de uma CVE está de fato no caminho de código que o sistema chama, e não apenas presente na árvore de dependência.
 **No fin-platform:** o gate de pipeline do marco 12 só bloqueia build por CVE alcançável e com EPSS alto — não por qualquer CVE presente na árvore.
 **Erro comum:** tratar toda CVE na árvore de dependência como igualmente urgente, ignorando se o código vulnerável é de fato invocado.
-**Onde na prática:** marcos 02 e 12.
+**Onde na prática:** marco 12, também no marco 02.
 
 ### Account takeover
 **Em uma frase:** um atacante assume o controle da conta de outra pessoa usando credencial roubada, SIM swap ou engenharia social — sem violar nenhum controle de autenticação ou autorização do sistema.
@@ -329,7 +329,7 @@ mitigação lado a lado.
 **Em uma frase:** a garantia de que uma ação, uma vez registrada, não pode ser negada por quem a praticou.
 **No fin-platform:** a trilha de auditoria append-only, com encadeamento por hash, é o mecanismo que sustenta essa garantia.
 **Erro comum:** usar MAC (HMAC) onde a situação exige não repúdio perante terceiro — MAC só prova algo para quem já tem o segredo, não convence um auditor externo.
-**Onde na prática:** marcos 09 e 15.
+**Onde na prática:** marco 09, também no marco 15.
 
 ### Honeytoken
 **Em uma frase:** um valor plantado deliberadamente que nunca deveria ser usado em operação legítima — qualquer uso dele só pode significar acesso indevido.

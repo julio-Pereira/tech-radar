@@ -307,6 +307,7 @@ a real milestone (`Onde na prática: marco NN`, with NN existing in the track). 
 the spaced review (`#/revisar` shows cards from completed milestones only). The same numbers are
 pinned by a golden file (`internal/course/testdata/glossario-cobertura.golden`); changing them
 is deliberate: `UPDATE_GOLDEN=1 go test ./internal/course -run TestCoberturaGlossarioGolden`.
+A floor test (`TestCoberturaGlossarioPiso`) fails the build if any track drops below 95%.
 
 **Planning a new track.** The plan's table of milestones gets a **"diagrama"** column: for
 each milestone, the diagram it will have (type and one-line idea) or "—" when the prose

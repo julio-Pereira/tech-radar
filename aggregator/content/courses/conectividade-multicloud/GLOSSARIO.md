@@ -205,7 +205,7 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 **Em uma frase:** o identificador que o Azure devolve ao criar o circuito e que o provedor usa para saber qual circuito ligar.
 **No fin-platform:** entra na conexão do Fabric para o Azure como chave de autenticação, saída do próprio recurso do circuito.
 **Erro comum:** emitir a chave muito antes de usá-la: a cobrança do circuito começa ali.
-**Onde na prática:** marcos 04 e 06.
+**Onde na prática:** marco 04, também no marco 06.
 
 ### Private peering
 **Em uma frase:** a sessão BGP do circuito ExpressRoute que leva às redes privadas (VNets) do Azure.
@@ -235,7 +235,7 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 **Em uma frase:** a chave que o Google devolve ao criar o VLAN attachment e que o provedor usa para achá-lo; termina em /1 ou /2.
 **No fin-platform:** chega por e-mail do fornecedor e entra no código como variável, com a data de validade.
 **Erro comum:** deixar a chave vencer enquanto o resto do caminho não fica pronto.
-**Onde na prática:** marcos 04 e 06.
+**Onde na prática:** marco 04, também no marco 06.
 
 ### Cloud Router
 **Em uma frase:** o roteador gerenciado do Google Cloud que fala BGP com o lado de fora; no Partner Interconnect, usa o ASN 16550.
@@ -347,7 +347,7 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 **Em uma frase:** o registro, por nuvem, de quem falou com quem, quando e quanto.
 **No fin-platform:** a evidência de que o fornecedor acessou só o que devia.
 **Erro comum:** não guardar pelo prazo da política de retenção.
-**Onde na prática:** marcos 08 e 11.
+**Onde na prática:** marco 08, também no marco 11.
 
 ## Fornecedor
 
@@ -399,7 +399,7 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 **Em uma frase:** a disponibilidade de um caminho calculada das peças: produto em série, complemento do produto das falhas em paralelo.
 **No fin-platform:** o caminho em série fica abaixo da peça mais fraca; as pernas em paralelo passam de 99,99%, mas o gateway compartilhado, em série, limita o conjunto.
 **Erro comum:** somar caminhos em paralelo que compartilham o metro como se fossem independentes.
-**Onde na prática:** marcos 09 e 10.
+**Onde na prática:** marco 10, também no marco 09.
 
 ### Sonda ativa
 **Em uma frase:** uma chamada sintética contínua pelo caminho, que mede alcance e latência mesmo sem tráfego real.

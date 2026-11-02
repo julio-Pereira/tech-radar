@@ -37,7 +37,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** a direção permitida de importação entre módulos, verificada por teste de arquitetura.
 **No fin-platform:** "o domínio nunca importa infraestrutura", verificada por ArchUnit em Java e `go list -deps` em Go.
 **Erro comum:** ter a regra escrita num documento, mas nenhum teste que a faça falhar de propósito.
-**Onde na prática:** marcos 01 e 04.
+**Onde na prática:** marco 04, também no marco 01.
 
 ### Vertical slice
 **Em uma frase:** organizar o código por funcionalidade, não por camada técnica.

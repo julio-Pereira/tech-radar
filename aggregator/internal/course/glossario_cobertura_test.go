@@ -72,7 +72,8 @@ func TestCoberturaGlossarioCountsOnlyResolvedMarcos(t *testing.T) {
 //	UPDATE_GOLDEN=1 go test ./internal/course -run TestCoberturaGlossarioGolden
 //
 // and commit testdata/glossario-cobertura.golden with the content change that
-// moved the numbers. It does not set a floor yet (TASK revisão espaçada, §4).
+// moved the numbers. The floor below keeps a regeneration from lowering a
+// trilha under pisoGlossario.
 func TestCoberturaGlossarioGolden(t *testing.T) {
 	var catalog GlossaryCatalog
 	readJSON(t, filepath.Join(compiledRealData(t), "glossary.json"), &catalog)
@@ -91,5 +92,21 @@ func TestCoberturaGlossarioGolden(t *testing.T) {
 	}
 	if got != string(want) {
 		t.Errorf("glossary coverage changed; if on purpose, regenerate with UPDATE_GOLDEN=1.\n--- got\n%s--- want\n%s", got, want)
+	}
+}
+
+// pisoGlossario is the minimum share of verbetes, per trilha, that resolve to
+// a real marco (TASK revisão espaçada, §4). A verbete without one never
+// reaches #/revisar, so coverage may rise but not fall below this.
+const pisoGlossario = 95
+
+func TestCoberturaGlossarioPiso(t *testing.T) {
+	var catalog GlossaryCatalog
+	readJSON(t, filepath.Join(compiledRealData(t), "glossary.json"), &catalog)
+	for _, r := range CoberturaGlossario(catalog.Entries) {
+		if r.Percentual() < pisoGlossario {
+			t.Errorf("%s: %d%% dos verbetes com marco resolvido (%d/%d), piso %d%%: comece \"Onde na prática\" por \"marco NN\" (o marco que ensina o termo)",
+				r.Slug, r.Percentual(), r.ComMarco, r.Total, pisoGlossario)
+		}
 	}
 }

@@ -8,19 +8,19 @@ os marcos usam estes termos sem redefini-los a cada vez.
 **Em uma frase:** o container do Spring — guarda as definições de bean, cria os objetos, injeta as dependências e controla o ciclo de vida de cada um.
 **No fin-platform:** o contexto do pix-gateway sobe uma vez, no boot; se o `PspProperties` não validar, ele nem termina de subir.
 **Erro comum:** achar que um erro de configuração vai aparecer "quando o código rodar" — com o contexto, ele aparece no deploy.
-**Onde na prática:** marcos 01, 04.
+**Onde na prática:** marco 01, também no marco 04.
 
 ### Bean
 **Em uma frase:** um objeto criado e gerenciado pelo container, injetado onde for pedido; por padrão, uma instância única (*singleton*) por contexto.
 **No fin-platform:** `PaymentInitiationService` é um bean singleton que atende todas as requisições ao mesmo tempo.
 **Erro comum:** guardar estado de uma requisição num campo de um bean singleton — vira bug de concorrência sob carga.
-**Onde na prática:** marcos 01, 04.
+**Onde na prática:** marco 04, também no marco 01.
 
 ### Starter
 **Em uma frase:** uma dependência "casca" que amarra a auto-configuração e as bibliotecas de uma capacidade numa coordenada Maven só.
 **No fin-platform:** `spring-boot-starter-webmvc` traz o Tomcat, o Spring MVC e o Jackson; o `fintech-audit-spring-boot-starter` traz o filtro de correlação.
 **Erro comum:** no Boot 4, esperar que um starter grande traga tudo — `RestClient`, Flyway e AOP agora pedem starter próprio.
-**Onde na prática:** marcos 01, 02.
+**Onde na prática:** marco 02, também no marco 01.
 
 ### Auto-configuração
 **Em uma frase:** uma classe `@AutoConfiguration` que registra beans condicionalmente, olhando o classpath, os beans já existentes e as propriedades.
@@ -44,7 +44,7 @@ os marcos usam estes termos sem redefini-los a cada vez.
 **Em uma frase:** um nome (`dev`, `prod`, `drill`) que ativa um conjunto de arquivos de configuração e de beans anotados com `@Profile`.
 **No fin-platform:** o perfil `drill` registra o endpoint lento e o `JwtDecoder` local do exercício de shutdown; em produção, nenhum dos dois existe.
 **Erro comum:** usar profile para diferença de valor (uma URL) — isso é variável de ambiente; profile é para diferença de estrutura (um bean ou outro).
-**Onde na prática:** marcos 03, 12.
+**Onde na prática:** marco 03, também no marco 12.
 
 ### Proxy (JDK e CGLIB)
 **Em uma frase:** o objeto que o container injeta no lugar do seu bean para executar comportamento em volta dos métodos (transação, cache, `@Async`); no Boot, por padrão, uma subclasse gerada pelo CGLIB.
@@ -94,7 +94,7 @@ os marcos usam estes termos sem redefini-los a cada vez.
 **Em uma frase:** um script SQL versionado (`V1__...`, `V2__...`) aplicado em ordem no startup, que faz do schema código auditável.
 **No fin-platform:** `V2__idempotency_and_outbox.sql` cria as tabelas do marco 06 em todo ambiente, na mesma ordem.
 **Erro comum:** no Boot 4, ter só o `flyway-core` — sem o `spring-boot-starter-flyway`, nenhuma migração roda e nada avisa.
-**Onde na prática:** marcos 05, 12.
+**Onde na prática:** marco 05, também no marco 12.
 
 ## Idempotência e eventos
 
@@ -102,7 +102,7 @@ os marcos usam estes termos sem redefini-los a cada vez.
 **Em uma frase:** a chave única por intenção que o cliente envia num header para que repetir a requisição não repita o efeito.
 **No fin-platform:** o mesmo `POST /payments` enviado duas vezes com a mesma chave gera um pagamento e devolve a mesma resposta.
 **Erro comum:** consultar a chave antes de gravar — duas requisições simultâneas não acham nada e as duas processam.
-**Onde na prática:** marcos 06, 08.
+**Onde na prática:** marco 06, também no marco 08.
 
 ### Dual-write
 **Em uma frase:** gravar em dois sistemas sem transação comum (banco e Kafka) e torcer para os dois darem certo.
@@ -152,7 +152,7 @@ os marcos usam estes termos sem redefini-los a cada vez.
 **Em uma frase:** o conjunto fixo de conexões abertas com o banco (o HikariCP, no Boot) que as transações tomam emprestado e devolvem.
 **No fin-platform:** com 5 conexões e a transação segurando cada uma durante o I/O, o gauge `hikaricp.connections.pending` subiu para 190.
 **Erro comum:** aumentar o pool para "resolver" a espera, em vez de tirar o I/O de dentro da transação.
-**Onde na prática:** marcos 05, 07.
+**Onde na prática:** marco 05, também no marco 07.
 
 ### Retry com backoff e jitter
 **Em uma frase:** repetir uma chamada que falhou esperando cada vez mais (backoff) e com um pouco de aleatoriedade (jitter), para não sincronizar os clientes.
@@ -210,13 +210,13 @@ os marcos usam estes termos sem redefini-los a cada vez.
 **Em uma frase:** a probe que responde "estou vivo ou preciso ser reiniciado?"; quando falha, o Kubernetes reinicia o pod.
 **No fin-platform:** só cai por estado interno irrecuperável, nunca porque o antifraude saiu do ar.
 **Erro comum:** ligar a liveness a uma dependência externa — ela oscila e a frota inteira entra em reinício.
-**Onde na prática:** marcos 10, 12.
+**Onde na prática:** marco 10, também no marco 12.
 
 ### Readiness
 **Em uma frase:** a probe que responde "posso atender agora?"; quando falha, o pod sai do balanceador mas continua vivo.
 **No fin-platform:** sai de "pronto" no início do shutdown, antes de o graceful shutdown drenar as requisições em voo.
 **Erro comum:** incluir uma dependência compartilhada — com ela fora, todos os pods saem do balanceador juntos.
-**Onde na prática:** marcos 01, 10, 12.
+**Onde na prática:** marco 10, também nos marcos 01 e 12.
 
 ### Health group
 **Em uma frase:** um conjunto nomeado de indicadores de saúde exposto num endpoint próprio, como `/actuator/health/readiness`.
@@ -234,13 +234,13 @@ os marcos usam estes termos sem redefini-los a cada vez.
 **Em uma frase:** a biblioteca que sobe dependências reais (Postgres, Kafka) em containers Docker durante o teste; com `@ServiceConnection`, o Boot aponta a aplicação para elas sozinho.
 **No fin-platform:** o teste de replay de idempotência prova um pagamento e um evento contra Postgres e Kafka de verdade.
 **Erro comum:** testar contra H2 "em modo PostgreSQL" — ele recusa o DDL real ou aceita e grava outra coisa.
-**Onde na prática:** marcos 04, 06, 11.
+**Onde na prática:** marco 11, também nos marcos 04 e 06.
 
 ### Slice test
 **Em uma frase:** o teste que sobe só uma camada do contexto — `@WebMvcTest` para a web, `@DataJpaTest` para o JPA — e por isso é rápido e focado.
 **No fin-platform:** `PaymentSecurityTest` prova 401, 403 e 201 com o controller, a segurança e o serviço trocado por mock.
 **Erro comum:** mockar o sujeito do teste em vez da fronteira — o teste vira tautologia.
-**Onde na prática:** marcos 09, 11.
+**Onde na prática:** marco 09, também no marco 11.
 
 ### Graceful shutdown
 **Em uma frase:** ao receber o sinal de parada, o servidor recusa requisições novas e espera as em andamento terminarem, até um limite.
