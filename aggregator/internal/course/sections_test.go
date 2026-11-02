@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 194, "desafio": 236, "invariantes": 233, "complemento": 218, "checagem": 235, "gabarito": 5,
+		"tutorial": 197, "desafio": 239, "invariantes": 236, "complemento": 221, "checagem": 238, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -425,18 +425,15 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	wantNoSection := []string{
 		// conectividade-multicloud is written block by block: these are
 		// placeholder bodies until their block's content PR.
-		"conectividade-multicloud/bgp-para-aplicacao",
 		"conectividade-multicloud/conectividade-com-fornecedores",
 		"conectividade-multicloud/criptografia-sobre-link-privado",
 		"conectividade-multicloud/custo-e-capacidade-de-interconexao",
-		"conectividade-multicloud/enderecamento-e-sobreposicao",
 		"conectividade-multicloud/fabric-cloud-router",
 		"conectividade-multicloud/game-day-e-revisao-da-interconexao",
 		"conectividade-multicloud/ha-e-failover-de-interconexao",
 		"conectividade-multicloud/interconexao-como-codigo",
 		"conectividade-multicloud/observabilidade-da-interconexao",
 		"conectividade-multicloud/on-ramps-de-nuvem",
-		"conectividade-multicloud/por-que-interconectar",
 		"conectividade-multicloud/segmentacao-e-anuncio-minimo",
 		"go-fintech/java-vs-go",
 	}

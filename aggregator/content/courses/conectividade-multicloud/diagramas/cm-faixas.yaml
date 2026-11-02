@@ -1,0 +1,23 @@
+id: cm-faixas
+tipo: topologia
+titulo: "Mesma faixa dos dois lados: o NAT dá a cada um uma faixa nova para enxergar o outro"
+descricao: >
+  A VNet de produção do fin-platform e a VPC do fornecedor usam a mesma faixa, 10.0.0.0/16, e
+  ninguém aceita renumerar. O NAT na borda do fin-platform resolve a colisão: o ledger-core chama o
+  fornecedor em 100.64.10.0/28, e o fornecedor enxerga o fin-platform em 100.64.20.0/28. Os dois
+  /28 vêm do espaço 100.64.0.0/10 e entram no IPAM com dono, ambiente e propósito. O custo é a
+  rastreabilidade: o log do fornecedor mostra o endereço traduzido.
+grupos:
+  - { id: vnet, rotulo: "VNet 10.0.0.0/16", col: 0, row: 0, cols: 1, rows: 1 }
+  - { id: vpc, rotulo: "VPC fornecedor 10.0.0.0/16", col: 2, row: 0, cols: 1, rows: 1 }
+nos:
+  - { id: ledger, rotulo: "ledger-core", grupo: vnet, col: 0, row: 0 }
+  - { id: nat, rotulo: "NAT na borda", col: 1, row: 0, papel: destaque }
+  - { id: api, rotulo: "API de score", grupo: vpc, col: 2, row: 0, papel: externo }
+  - { id: visto, rotulo: "fornecedor: 100.64.10.0/28", col: 1, row: 1 }
+  - { id: vemos, rotulo: "fin-platform: 100.64.20.0/28", col: 2, row: 1 }
+arestas:
+  - { de: ledger, para: nat, rotulo: "→ 100.64.10.5" }
+  - { de: nat, para: api, rotulo: "traduz" }
+  - { de: nat, para: visto, estilo: tracejada }
+  - { de: api, para: vemos, estilo: tracejada }

@@ -1,0 +1,49 @@
+questions:
+  - question: "O tráfego para um parceiro chega pelo agregado 10.40.0.0/16 via o link primário. O fornecedor passa a anunciar, por engano, 10.40.7.0/24. Segundo este marco, o que acontece com o tráfego para 10.40.7.0/24?"
+    options:
+      - "Continua no link primário, porque a local preference do primário é maior e decide antes do prefixo"
+      - "Divide-se entre os dois caminhos em ECMP, já que os dois anúncios cobrem o mesmo destino final"
+      - "Fica sem rota, porque o roteador descarta anúncios que se sobrepõem a um agregado já instalado"
+      - "Passa a ir pelo fornecedor: o prefixo mais específico vence antes de qualquer atributo"
+    answer: 3
+    explanation: "O prefixo mais específico vence antes de local preference ou AS path; é o mecanismo do vazamento descrito no marco. Não há ECMP entre prefixos de tamanhos diferentes, e o roteador não descarta o específico."
+  - question: "O fin-platform tem filtro de entrada na sessão com o fornecedor, mas nenhum filtro de saída. O argumento é que 'o fornecedor também filtra'. Segundo este marco, qual é o risco?"
+    options:
+      - "Nenhum: um filtro em cada lado é suficiente, desde que cada um filtre a entrada do seu roteador"
+      - "Só um risco de desempenho: anunciar rotas demais aumenta o tamanho da tabela do próprio fin-platform"
+      - "Sem filtro de saída, a rede corporativa inteira fica à disposição do vizinho, e um erro de redistribuição do seu lado vaza rotas"
+      - "O risco é a sessão não subir, porque o BGP exige filtro de saída configurado nos dois lados para chegar a Established"
+    answer: 2
+    explanation: "O filtro de saída decide o que você anuncia; depender do filtro do vizinho deixa a sua rede exposta ao erro de qualquer lado. Não é questão de desempenho, e a sessão sobe mesmo sem filtro."
+  - question: "Um vizinho com defeito começa a anunciar 4 mil prefixos numa sessão com max-prefix de 50. Segundo este marco, o que deveria acontecer, e por quê?"
+    options:
+      - "A sessão cai: é uma queda deliberada, preferível a aceitar milhares de rotas de um vizinho com defeito"
+      - "O roteador aceita os 50 primeiros prefixos e descarta os demais, mantendo a sessão de pé"
+      - "Nada muda até o hold timer expirar, porque o max-prefix só é avaliado na abertura da sessão"
+      - "O roteador passa a anunciar o max-prefix de volta ao vizinho, pedindo que ele reduza os anúncios"
+    answer: 0
+    explanation: "O max-prefix é um disjuntor: estourou, a sessão cai (no FCR, com reset por alguns minutos). Ele não aceita parcialmente, não espera o hold timer e não negocia com o vizinho."
+  - question: "O fin-platform quer que o fornecedor prefira o caminho primário para chegar até ele, e use o secundário só se o primário cair. Segundo este marco, qual mecanismo serve para isso?"
+    options:
+      - "Aumentar a local preference no roteador do fin-platform, que o fornecedor recebe e respeita na hora de escolher"
+      - "Anunciar pelo secundário um prefixo mais específico, para que ele vença sempre que estiver disponível"
+      - "Aplicar prepend no anúncio pelo secundário: o AS path mais longo torna esse caminho menos preferido do outro lado"
+      - "Desligar o BFD no secundário, para que ele demore a ser detectado e fique fora da seleção enquanto o primário está de pé"
+    answer: 2
+    explanation: "O prepend alonga o AS path e influencia o vizinho. A local preference vale só dentro do seu AS e não é enviada ao vizinho por eBGP; anunciar um específico pelo secundário faria o contrário; e desligar o BFD só atrasa a detecção."
+  - question: "Num failover, a sessão primária leva cerca de 90 segundos para cair depois que o link morre, e as requisições do antifraude falham nesse tempo. Segundo este marco, o que reduz esse tempo?"
+    options:
+      - "Graceful restart, que mantém as rotas do vizinho morto até a sessão secundária subir"
+      - "BFD, que detecta a queda do vizinho em frações de segundo e avisa o BGP"
+      - "Aumentar o hold timer, para que o roteador espere mais antes de declarar o vizinho morto"
+      - "Trocar o filtro de entrada por um route-map, que recalcula as rotas mais rápido"
+    answer: 1
+    explanation: "Com os temporizadores padrão, perceber a queda leva dezenas de segundos; o BFD encurta para frações de segundo. Graceful restart serve para reinício planejado (e manteria rota para um vizinho morto), aumentar o hold timer piora, e o tipo de filtro não muda a detecção."
+  - question: "Depois de um failover, as requisições ao fornecedor saem pelo caminho secundário, mas as respostas voltam pelo primário, que já se recuperou. O firewall com estado começa a descartar respostas. Segundo este marco, o que está acontecendo?"
+    options:
+      - "Vazamento de rota: o fornecedor está anunciando o prefixo do fin-platform para um terceiro"
+      - "Estouro de max-prefix no primário, que derruba a sessão e invalida as conexões em curso"
+      - "Rota assimétrica: o firewall vê a resposta de uma conexão que nunca viu abrir e a descarta"
+      - "Falha de autenticação MD5, porque a senha da sessão secundária não foi replicada para o primário"
+    answer: 2
+    explanation: "Ida por um caminho e volta por outro é rota assimétrica, e o firewall com estado descarta o que não viu abrir. Não há vazamento descrito, o max-prefix não está envolvido, e falha de MD5 impediria a sessão de subir."

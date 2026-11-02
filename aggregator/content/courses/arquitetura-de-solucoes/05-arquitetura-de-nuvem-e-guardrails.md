@@ -64,6 +64,10 @@ eficiente. Multinuvem vale quando há uma razão concreta (resiliência a falha 
 requisito regulatório específico) — não como seguro genérico contra uma situação hipotética que nunca
 foi avaliada com número.
 
+Quando a razão existe e as nuvens precisam se falar por rede privada — inclusive com um
+fornecedor hospedado em outra nuvem —, endereçamento, BGP e interconexão estão em
+`conectividade-multicloud/01`.
+
 ## Estratégia de saída: inventário, substituto, exportação
 
 Para cada serviço gerenciado adotado, uma estratégia de saída documentada: um **substituto**
