@@ -422,7 +422,24 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	wantNoSection := []string{"go-fintech/java-vs-go"}
+	wantNoSection := []string{
+		// conectividade-multicloud is written block by block: these are
+		// placeholder bodies until their block's content PR.
+		"conectividade-multicloud/bgp-para-aplicacao",
+		"conectividade-multicloud/conectividade-com-fornecedores",
+		"conectividade-multicloud/criptografia-sobre-link-privado",
+		"conectividade-multicloud/custo-e-capacidade-de-interconexao",
+		"conectividade-multicloud/enderecamento-e-sobreposicao",
+		"conectividade-multicloud/fabric-cloud-router",
+		"conectividade-multicloud/game-day-e-revisao-da-interconexao",
+		"conectividade-multicloud/ha-e-failover-de-interconexao",
+		"conectividade-multicloud/interconexao-como-codigo",
+		"conectividade-multicloud/observabilidade-da-interconexao",
+		"conectividade-multicloud/on-ramps-de-nuvem",
+		"conectividade-multicloud/por-que-interconectar",
+		"conectividade-multicloud/segmentacao-e-anuncio-minimo",
+		"go-fintech/java-vs-go",
+	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}
