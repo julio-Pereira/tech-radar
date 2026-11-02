@@ -1137,6 +1137,24 @@
   margin-bottom: 0.6rem;
 }
 
+.review-card-marco-link,
+.review-view .empty a {
+  color: var(--accent-hover);
+}
+
+.review-card-marco-link {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.review-scope {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
 .review-glossary-term {
   font-size: 1.1rem;
   font-weight: 700;

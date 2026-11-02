@@ -2,29 +2,39 @@
 // UX platform melhoria 5 (revisão espaçada): #/revisar, a Leitner spaced-
 // repetition session over quiz questions and glossary terms. The deck is
 // built fresh each visit from quiz-bank.json + glossary.json (both already
-// used elsewhere, lazy-loaded here too) — never a separately authored file.
+// used elsewhere, lazy-loaded here too) — never a separately authored file —
+// and holds only cards from milestones the reader has completed
+// (review-deck.js buildEligibleDeck): review means recalling what was
+// studied, not a random quiz over every trilha.
 // Review outcomes live only in tr:review:v1: this never touches
 // tr:progress:/tr:quiz:, so it never affects a milestone's completion gate
 // or its own quiz history.
 import { announceRoute } from '../announce.js';
-import { buildLoading, buildError, buildEmpty } from '../dom-helpers.js';
-import { cyrb53 } from '../hash.js';
+import { buildLoading, buildError, buildEmpty, localDateISO } from '../dom-helpers.js';
+import { buildEligibleDeck, isNewCardDue } from '../review-deck.js';
 import { schedule, isDue } from '../review-scheduler.js';
-import { getReviewState, setDailyLimit, recordReview, DEFAULT_DAILY_LIMIT } from '../storage.js';
+import {
+  getReviewState, setDailyLimit, recordReview, DEFAULT_DAILY_LIMIT, getProgress, getQuizHistory,
+} from '../storage.js';
 
 export async function renderReview() {
   const view = document.getElementById('view-learn');
   view.innerHTML = '';
   view.appendChild(buildLoading('Carregando revisão…'));
 
-  let quizBank, glossary;
+  let quizBank, glossary, trackTitles = {};
   try {
-    const [quizResp, glossaryResp] = await Promise.all([
+    const [quizResp, glossaryResp, indexResp] = await Promise.all([
       fetch('./data/quiz-bank.json'),
       fetch('./data/glossary.json'),
+      fetch('./data/courses/index.json'),
     ]);
     quizBank = quizResp.ok ? await quizResp.json() : { items: [] };
     glossary = glossaryResp.ok ? await glossaryResp.json() : { entries: [] };
+    if (indexResp.ok) {
+      const index = await indexResp.json();
+      for (const c of index.courses || []) trackTitles[c.slug] = c.title;
+    }
   } catch (err) {
     view.innerHTML = '';
     view.appendChild(buildError(`Falha ao carregar a revisão: ${err.message}`));
@@ -32,37 +42,16 @@ export async function renderReview() {
   }
 
   view.innerHTML = '';
-  view.appendChild(buildReviewView(buildDeck(quizBank, glossary)));
+  const { deck, stats } = buildEligibleDeck(quizBank, glossary, getProgress, getQuizHistory, trackTitles);
+  if (stats.excludedGlossaryNoMarco > 0) {
+    // Content debt (a glossary entry with no "marco NN"), not the reader's: never shown in the UI.
+    console.debug(`revisão: ${stats.excludedGlossaryNoMarco} verbetes sem marco ficaram fora do baralho`);
+  }
+  view.appendChild(buildReviewView(deck, stats));
   announceRoute('Revisão espaçada', true);
 }
 
-/** Stable id = cyrb53(slug|context-key|text) — changing the text changes the id, restarting that card's box on purpose (documented, not a bug). */
-function buildDeck(quizBank, glossary) {
-  const deck = [];
-  for (const q of quizBank.items || []) {
-    deck.push({
-      id: String(cyrb53(`${q.slug}|${q.marcoId}|${q.question}`)),
-      kind: 'quiz',
-      track: q.milestoneTitle,
-      question: q.question,
-      options: q.options,
-      answer: q.answer,
-      explanation: q.explanation,
-    });
-  }
-  for (const g of glossary.entries || []) {
-    deck.push({
-      id: String(cyrb53(`${g.slug}|${g.anchor}|${g.term}`)),
-      kind: 'glossary',
-      track: g.track,
-      term: g.term,
-      summary: g.summary,
-    });
-  }
-  return deck;
-}
-
-function buildReviewView(deck) {
+function buildReviewView(deck, stats) {
   const root = document.createElement('div');
   root.className = 'course-view review-view';
 
@@ -73,13 +62,14 @@ function buildReviewView(deck) {
   h2.textContent = 'Revisão espaçada';
   const sub = document.createElement('p');
   sub.className = 'learn-subtitle';
-  sub.textContent = 'Perguntas de quiz e verbetes do glossário de todas as trilhas, com repetição espaçada. Não afeta a conclusão de nenhum marco.';
+  sub.textContent = 'Perguntas e verbetes dos marcos que você já concluiu, com repetição espaçada. Não afeta a conclusão de nenhum marco.';
   heading.appendChild(h2);
   heading.appendChild(sub);
   root.appendChild(heading);
 
   let reviewState = getReviewState();
   const today = new Date();
+  const todayLocal = localDateISO(today);
 
   const limitWrap = document.createElement('div');
   limitWrap.className = 'review-limit';
@@ -94,6 +84,11 @@ function buildReviewView(deck) {
   limitInput.value = String(reviewState.dailyLimit);
   limitWrap.append(limitLabel, limitInput);
   root.appendChild(limitWrap);
+
+  const scope = document.createElement('p');
+  scope.className = 'review-scope';
+  scope.textContent = scopeText(deck.length, stats);
+  root.appendChild(scope);
 
   const status = document.createElement('p');
   status.className = 'review-status';
@@ -112,9 +107,28 @@ function buildReviewView(deck) {
     renderNext();
   });
 
+  // A card with saved state follows the Leitner schedule; a card never
+  // reviewed is due unless it waits for the day after its marco's quiz
+  // (notBefore), so finishing a quiz never replays the same questions the
+  // same day.
+  function cardIsDue(card) {
+    const state = reviewState.cards[card.id];
+    return state ? isDue(state, today) : isNewCardDue(card, todayLocal);
+  }
+
+  function nextDueDate() {
+    let next = '';
+    for (const card of deck) {
+      const state = reviewState.cards[card.id];
+      const due = state ? state.dueAt : card.notBefore;
+      if (due && (!next || due < next)) next = due;
+    }
+    return next;
+  }
+
   function dueQueue() {
     return deck
-      .filter((card) => isDue(reviewState.cards[card.id], today))
+      .filter(cardIsDue)
       // Oldest-due (or never-reviewed, "") first, so a backlog clears
       // before fresh cards pile on top of it.
       .sort((a, b) => {
@@ -129,8 +143,12 @@ function buildReviewView(deck) {
     const remaining = reviewState.dailyLimit - reviewState.todayCount;
     status.textContent = `${reviewState.todayCount} de ${reviewState.dailyLimit} revisados hoje`;
 
+    if (stats.completedMarcos === 0) {
+      cardSlot.appendChild(buildNoProgress());
+      return;
+    }
     if (deck.length === 0) {
-      cardSlot.appendChild(buildEmpty('Nenhum conteúdo de quiz ou glossário disponível ainda.'));
+      cardSlot.appendChild(buildEmpty('Os marcos que você concluiu ainda não têm perguntas de quiz nem verbetes ligados a eles. Conclua outro marco para ter o que revisar.'));
       return;
     }
     if (remaining <= 0) {
@@ -139,7 +157,12 @@ function buildReviewView(deck) {
     }
     const queue = dueQueue();
     if (queue.length === 0) {
-      cardSlot.appendChild(buildEmpty('Nenhum cartão para revisar agora. Volte mais tarde.'));
+      const next = nextDueDate();
+      cardSlot.appendChild(buildEmpty(
+        next
+          ? `Nenhum cartão para revisar agora. O próximo vence em ${formatDate(next)}.`
+          : 'Nenhum cartão para revisar agora. Volte mais tarde.',
+      ));
       return;
     }
 
@@ -165,10 +188,7 @@ function buildQuizCard(card, onAnswer) {
   const wrap = document.createElement('div');
   wrap.className = 'review-card';
 
-  const track = document.createElement('p');
-  track.className = 'review-card-track';
-  track.textContent = card.track;
-  wrap.appendChild(track);
+  wrap.appendChild(buildOrigin(card));
 
   const fieldset = document.createElement('fieldset');
   fieldset.className = 'quiz-question';
@@ -235,10 +255,7 @@ function buildGlossaryCard(card, onAnswer) {
   const wrap = document.createElement('div');
   wrap.className = 'review-card review-glossary-card';
 
-  const track = document.createElement('p');
-  track.className = 'review-card-track';
-  track.textContent = card.track;
-  wrap.appendChild(track);
+  wrap.appendChild(buildOrigin(card));
 
   const term = document.createElement('p');
   term.className = 'review-glossary-term';
@@ -279,4 +296,40 @@ function buildGlossaryCard(card, onAnswer) {
   forgotBtn.addEventListener('click', () => onAnswer(false));
 
   return wrap;
+}
+
+/** Trilha and marco the card comes from, with a link back to the marco (opening it records no answer). */
+function buildOrigin(card) {
+  const origin = document.createElement('p');
+  origin.className = 'review-card-track';
+  origin.textContent = card.milestoneTitle ? `${card.trackTitle} · ${card.milestoneTitle} ` : `${card.trackTitle} `;
+  const link = document.createElement('a');
+  link.className = 'review-card-marco-link';
+  link.href = `#/learn/${card.slug}/${card.marcoId}`;
+  link.textContent = 'rever o marco';
+  origin.appendChild(link);
+  return origin;
+}
+
+function buildNoProgress() {
+  const el = document.createElement('p');
+  el.className = 'empty';
+  el.append('Conclua um marco para começar a revisar. ');
+  const link = document.createElement('a');
+  link.href = '#/learn';
+  link.textContent = 'Ver as trilhas';
+  el.appendChild(link);
+  return el;
+}
+
+function scopeText(cards, stats) {
+  if (stats.completedMarcos === 0) return 'Você ainda não concluiu nenhum marco.';
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  return `${plural(cards, 'cartão', 'cartões')} de ${plural(stats.completedMarcos, 'marco concluído', 'marcos concluídos')} em ${plural(stats.tracks, 'trilha', 'trilhas')}`;
+}
+
+/** "YYYY-MM-DD" → "DD/MM/YYYY". */
+function formatDate(iso) {
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
 }
