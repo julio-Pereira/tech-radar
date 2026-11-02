@@ -81,7 +81,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** um conjunto de estágios compartilhado entre repositórios, mudado num lugar e propagado.
 **No fin-platform:** o modelo de pipeline conforme do marco 10, usado por todo serviço novo do `fin-platform`.
 **Erro comum:** copiar e colar a mesma pipeline em cada repositório, deixando cada cópia divergir silenciosamente.
-**Onde na prática:** marcos 02 e 10.
+**Onde na prática:** marco 02, também no marco 10.
 
 ## Integração
 

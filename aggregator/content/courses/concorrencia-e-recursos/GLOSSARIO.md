@@ -19,7 +19,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** ler um valor, decidir com base nele, e escrever depois, sem que a sequência inteira seja atômica.
 **No fin-platform:** verificar o limite disponível e só então debitar, com outra thread no meio.
 **Erro comum:** proteger a leitura e a escrita separadamente, achando que isso protege a decisão entre elas.
-**Onde na prática:** marcos 01 e 03.
+**Onde na prática:** marco 01, também no marco 03.
 
 ### Estado compartilhado mutável
 **Em uma frase:** a origem de todo bug desta trilha — dado que mais de uma thread pode ler e escrever ao mesmo tempo.
@@ -31,7 +31,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** a garantia de que uma operação acontece por inteiro ou não acontece — nunca pela metade, visível a outra thread.
 **No fin-platform:** `compareAndSet` sendo atômico mesmo quando `contador++` não é.
 **Erro comum:** achar que `volatile` torna uma operação composta atômica.
-**Onde na prática:** marcos 01 e 02.
+**Onde na prática:** marco 01, também no marco 02.
 
 ### Visibilidade e ordenação
 **Em uma frase:** se uma thread vê a escrita de outra (visibilidade), e se vê várias escritas na ordem em que aconteceram (ordenação).
@@ -201,7 +201,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** uma unidade de trabalho segura uma conexão e pede uma segunda do mesmo pool antes de devolver a primeira.
 **No fin-platform:** `REQUIRES_NEW` chamado de dentro de uma transação já aberta, com pool pequeno demais.
 **Erro comum:** procurar um lock de memória quando o impasse real é por conexões, não por seção crítica.
-**Onde na prática:** marcos 04 e 07.
+**Onde na prática:** marco 04, também no marco 07.
 
 ### Deadlock distribuído
 **Em uma frase:** serviço A espera resposta de B que está esperando resposta de A — sem detecção de ciclo possível sem coordenador global.
@@ -239,7 +239,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** concorrência média = taxa de chegada × tempo médio de permanência no sistema.
 **No fin-platform:** a fórmula que conecta TPS e tempo de retenção ao tamanho necessário de um pool ou executor.
 **Erro comum:** dimensionar por intuição em vez de medir taxa e tempo de permanência.
-**Onde na prática:** marcos 05 e 07.
+**Onde na prática:** marco 05, também no marco 07.
 
 ### Tempo de retenção
 **Em uma frase:** quanto tempo uma unidade de trabalho segura um recurso finito (thread, conexão) antes de devolvê-lo.
@@ -289,7 +289,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** a thread de plataforma sobre a qual a JVM monta uma virtual thread para executá-la; quando a virtual thread bloqueia, ela desmonta e a carrier fica livre para outra.
 **No fin-platform:** poucas carriers executam as milhares de virtual threads das requisições ao gateway.
 **Erro comum:** ler um `jcmd Thread.print` num serviço em virtual threads e achar que as carriers são todas as threads que existem — as virtual threads só aparecem no `Thread.dump_to_file`.
-**Onde na prática:** marcos 06, 09.
+**Onde na prática:** marco 06, também no marco 09.
 
 ### StructuredTaskScope
 **Em uma frase:** a API de *structured concurrency* que amarra o tempo de vida das subtarefas a um bloco: uma falha cancela as irmãs, e nenhuma sobrevive ao fim do bloco (JEP 505).
@@ -333,7 +333,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** instrumentação que acusa um data race que de fato ocorreu numa execução — não prova ausência geral.
 **No fin-platform:** `go test -race` sobre a suíte do `fin-contention`.
 **Erro comum:** achar que "zero race reportado" prova que não há race condition lógica nenhuma.
-**Onde na prática:** marcos 01 e 08.
+**Onde na prática:** marco 01, também no marco 08.
 
 ### Linearizabilidade
 **Em uma frase:** existe uma ordem sequencial legal, respeitando os intervalos de tempo de cada operação, que explica os resultados observados.
@@ -345,7 +345,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** remover deliberadamente uma proteção e confirmar que a suíte de testes falha — prova de que o teste testa o que acha que testa.
 **No fin-platform:** remover o lock de um caminho de escrita do débito e ver se o CI fica vermelho.
 **Erro comum:** confiar numa suíte verde sem nunca ter provado que ela detectaria a ausência da proteção.
-**Onde na prática:** marcos 08 e 10.
+**Onde na prática:** marco 08, também no marco 10.
 
 ### Thread dump
 **Em uma frase:** um instantâneo do estado de todas as threads de um processo Java num dado momento (`jstack`, `jcmd Thread.print`).

@@ -13,7 +13,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** a instituição que detém o dado do cliente e o expõe mediante consentimento.
 **No fin-platform:** o `fake-transmissor` simula esse papel para os testes da trilha.
 **Erro comum:** assumir que a transmissora se comporta melhor do que uma instituição real se comportaria.
-**Onde na prática:** marcos 01 e 02.
+**Onde na prática:** marco 01, também no marco 02.
 
 ### Consentimento
 **Em uma frase:** dado de primeira classe — identificador, titular, grupos de dados, finalidade, validade, estado.
@@ -25,7 +25,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** o propósito declarado para o qual um consentimento autoriza o uso do dado.
 **No fin-platform:** "oferta de crédito pessoal" não autoriza uso para "pesquisa de mercado".
 **Erro comum:** reutilizar dado coletado para uma finalidade em outro contexto não autorizado.
-**Onde na prática:** marcos 03 e 10.
+**Onde na prática:** marco 03, também no marco 10.
 
 ### Validade
 **Em uma frase:** o prazo pelo qual um consentimento vale, compatível com a finalidade.
@@ -37,13 +37,13 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** o encerramento explícito de um consentimento, a qualquer momento, por qualquer canal autorizado.
 **No fin-platform:** precisa propagar a todas as camadas do `fin-insight` dentro de um SLO declarado.
 **Erro comum:** esquecer cache ou cópia de homologação na propagação.
-**Onde na prática:** marcos 03 e 10.
+**Onde na prática:** marco 03, também no marco 10.
 
 ### `consentId`
 **Em uma frase:** o identificador do consentimento, presente em todo registro de dado derivado dele.
 **No fin-platform:** a linhagem que permite responder "quais dados entraram sob este consentimento".
 **Erro comum:** ter registros sem `consentId` válido entrando silenciosamente no bruto.
-**Onde na prática:** marcos 03 e 10.
+**Onde na prática:** marco 03, também no marco 10.
 
 ### Permissões / grupos de dados
 **Em uma frase:** as categorias específicas de dado (conta, cartão, crédito) que um consentimento autoriza, separadamente.
@@ -81,7 +81,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** a fonte externa muda schema, tipo ou unidade sem aviso prévio ao contrato formal.
 **No fin-platform:** a transmissora troca centavos por reais, e o ingestor precisa detectar.
 **Erro comum:** seguir processando com um valor que pode estar na unidade errada.
-**Onde na prática:** marcos 02 e 08.
+**Onde na prática:** marco 08, também no marco 02.
 
 ### Desduplicação por chave de negócio
 **Em uma frase:** deduplicar pelo par (transmissora, id), nunca pelo id isolado.
@@ -101,7 +101,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** aplicar uma operação uma vez ou várias vezes produz o mesmo resultado.
 **No fin-platform:** o alicerce que torna retry e backfill seguros, sem risco de duplicar.
 **Erro comum:** confiar que o orquestrador torna uma tarefa idempotente sozinho.
-**Onde na prática:** marcos 01, 06 e 07.
+**Onde na prática:** marco 01, também nos marcos 06 e 07.
 
 ### Reexecução
 **Em uma frase:** rodar de novo um passo de pipeline, seja por retry ou por decisão deliberada.
@@ -113,7 +113,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** reprocessar um intervalo de tempo já processado, para corrigir ou aplicar mudança retroativa.
 **No fin-platform:** rodado 2× precisa dar o mesmo resultado.
 **Erro comum:** disparar backfill grande sem limite de paralelismo contra uma API externa.
-**Onde na prática:** marcos 06 e 07.
+**Onde na prática:** marco 06, também no marco 07.
 
 ### *Write-audit-publish*
 **Em uma frase:** escrever em staging, auditar com testes, e só então publicar ao consumidor.
@@ -245,7 +245,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** por quanto tempo um dado pode ficar guardado, mesmo com consentimento válido.
 **No fin-platform:** parâmetro configurável e testado, nunca hardcoded.
 **Erro comum:** guardar indefinidamente "porque pode ser útil depois".
-**Onde na prática:** marcos 01 e 10.
+**Onde na prática:** marco 10, também no marco 01.
 
 ### Pseudonimização
 **Em uma frase:** substituir um valor real por identificador não trivialmente reversível, preservando capacidade de join.
@@ -269,7 +269,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** finalidade, validade e retenção como arquivos de configuração versionados e testados.
 **No fin-platform:** mudar a norma vira mudar um parâmetro e rodar a suíte, não reinterpretar texto.
 **Erro comum:** registrar política como texto em ADR em vez de configuração executável.
-**Onde na prática:** marcos 03 e 10.
+**Onde na prática:** marco 03, também no marco 10.
 
 ## Tempo
 

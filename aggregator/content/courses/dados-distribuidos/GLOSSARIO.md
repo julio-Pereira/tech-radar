@@ -14,7 +14,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** o nó responde, e responde errado.
 **No fin-platform:** o PSP que reporta um pagamento que nunca aconteceu.
 **Erro comum:** achar que só existe em blockchain — na fronteira com o parceiro ela é rotina, e a defesa é conciliação, não consenso.
-**Onde na prática:** marcos 01 e 08.
+**Onde na prática:** marco 01, também no marco 08.
 
 ### Clock skew
 **Em uma frase:** a diferença entre os relógios de parede de dois hosts, que o NTP corrige aos saltos, inclusive para trás.
@@ -32,13 +32,13 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** um número que só cresce, entregue a quem assume a liderança ou o lock, e verificado pelo storage.
 **No fin-platform:** o que impede o nó pausado por GC de escrever no ledger depois de já ter perdido o lock.
 **Erro comum:** confiar num timeout menor em vez do token — timeout não distingue lento de morto.
-**Onde na prática:** marcos 01 e 10.
+**Onde na prática:** marco 10, também no marco 01.
 
 ### Split-brain
 **Em uma frase:** dois nós convencidos de que são o leader, ambos aceitando escrita.
 **No fin-platform:** o failover automático disparado por uma pausa de rede de 20 segundos.
 **Erro comum:** tratar como problema de configuração; é consequência de a detecção de falha ser um palpite.
-**Onde na prática:** marcos 01 e 02.
+**Onde na prática:** marco 01, também no marco 02.
 
 ## Replicação e distribuição
 
@@ -46,7 +46,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** a distância entre o que o leader já gravou e o que a réplica já aplicou.
 **No fin-platform:** 8 segundos no pico das 18h, com autovacuum ativo.
 **Erro comum:** medir em bytes de WAL e alertar como se fosse tempo — ou não alertar.
-**Onde na prática:** marcos 02 e 15.
+**Onde na prática:** marco 02, também no marco 15.
 
 ### Leitura não-monotônica
 **Em uma frase:** duas leituras seguidas caem em réplicas com lags diferentes e o valor volta no tempo.
@@ -58,13 +58,13 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** a garantia de que quem escreveu enxerga a própria escrita na leitura seguinte.
 **No fin-platform:** o cliente que paga, vê o extrato sem o pagamento e paga de novo.
 **Erro comum:** resolver com sticky routing, que garante monotonicidade e não garante isto.
-**Onde na prática:** marcos 02 e 15.
+**Onde na prática:** marco 02, também no marco 15.
 
 ### RPO
 **Em uma frase:** quanto dado você aceita perder, medido em tempo de escrita.
 **No fin-platform:** o número que decide entre replicação síncrona e assíncrona.
 **Erro comum:** declarar RPO zero com replicação assíncrona configurada.
-**Onde na prática:** marcos 02 e 12.
+**Onde na prática:** marco 12, também no marco 02.
 
 ### RTO
 **Em uma frase:** quanto tempo você aceita ficar fora até voltar a operar.
@@ -76,7 +76,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** leituras e escritas se sobrepõem em pelo menos um nó, então a leitura vê a escrita mais recente.
 **No fin-platform:** a mesma aritmética do `min.insync.replicas` do `pix-stream`.
 **Erro comum:** manter a fórmula na cabeça depois de ativar sloppy quorum, que a invalida.
-**Onde na prática:** marcos 02 e 15.
+**Onde na prática:** marco 02, também no marco 15.
 
 ### LWW (last write wins)
 **Em uma frase:** resolução de conflito que mantém a escrita com timestamp maior e descarta a outra.
@@ -100,7 +100,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** uma chave concentra tráfego desproporcional e satura o shard ou a partição que a hospeda.
 **No fin-platform:** o marketplace que responde por 30% dos lançamentos.
 **Erro comum:** confiar em cardinalidade alta como se fosse distribuição uniforme.
-**Onde na prática:** marcos 03 e 09.
+**Onde na prática:** marco 03, também no marco 09.
 
 ### Scatter-gather
 **Em uma frase:** consultar todos os shards e juntar os resultados; a latência é a do shard mais lento.
@@ -120,13 +120,13 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** duas transações leem o mesmo valor, calculam sobre ele e a segunda escrita apaga a primeira.
 **No fin-platform:** `saldo = saldo - 100` em duas sessões, e um dos débitos some.
 **Erro comum:** achar que `READ COMMITTED` protege — ele não protege.
-**Onde na prática:** marcos 04 e 10.
+**Onde na prática:** marco 04, também no marco 10.
 
 ### MVCC
 **Em uma frase:** cada escrita cria uma nova versão da linha, e cada transação lê o snapshot que lhe cabe.
 **No fin-platform:** o relatório longo que lê sem travar a autorização de pagamento.
 **Erro comum:** ignorar o preço — bloat, vacuum e a transação longa que segura a limpeza do banco inteiro.
-**Onde na prática:** marcos 04 e 07.
+**Onde na prática:** marco 04, também no marco 07.
 
 ### SSI (serializable snapshot isolation)
 **Em uma frase:** o `SERIALIZABLE` do Postgres, que roda como snapshot e aborta transações cujo entrelaçamento não teria ordem serial equivalente.
@@ -144,7 +144,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** assim que uma escrita termina, toda leitura seguinte a enxerga — é recência, e é o C do CAP.
 **No fin-platform:** o que a autorização exige do saldo, e o motivo de ela não ler de réplica.
 **Erro comum:** confundir com serializabilidade, que é sobre equivalência a alguma ordem serial e nada diz sobre recência.
-**Onde na prática:** marcos 04 e 15.
+**Onde na prática:** marco 04, também no marco 15.
 
 ### 2PC / XA
 **Em uma frase:** protocolo de commit em duas fases entre recursos distintos, com um coordenador.
@@ -182,7 +182,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** o índice contém todas as colunas da query, e o banco não precisa visitar a tabela.
 **No fin-platform:** o que faz o extrato por conta e período caber no alvo de p99.
 **Erro comum:** criar um índice por query nova, esquecendo que todo índice é imposto cobrado em cada `INSERT`.
-**Onde na prática:** marcos 05 e 07.
+**Onde na prática:** marco 05, também no marco 07.
 
 ### Bloat e autovacuum
 **Em uma frase:** o espaço ocupado por versões mortas de linha, e o processo que as recolhe.
@@ -232,7 +232,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** lock distribuído com prazo e número crescente, verificado por quem escreve.
 **No fin-platform:** o que protege o job de fechamento de rodar duas vezes em paralelo.
 **Erro comum:** confiar no Redlock puro, cuja crítica é justamente a ausência do token.
-**Onde na prática:** marcos 01 e 10.
+**Onde na prática:** marco 01, também no marco 10.
 
 ## Operar e evoluir
 
@@ -320,13 +320,13 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** o botão do MongoDB que decide de qual nó do replica set uma leitura é servida.
 **No fin-platform:** `secondaryPreferred` no relatório mensal, que tolera segundos de lag.
 **Erro comum:** usar `secondaryPreferred` no saldo exibido logo após um pagamento.
-**Onde na prática:** marcos 15 e 16.
+**Onde na prática:** marco 15, também no marco 16.
 
 ### Session token
 **Em uma frase:** o identificador que o Cosmos DB devolve após uma escrita, e que a leitura seguinte precisa apresentar para ver aquela versão.
 **No fin-platform:** o token que precisa atravessar o balanceador entre a escrita do pagamento e a leitura do extrato.
 **Erro comum:** não propagar o token entre instâncias stateless — a garantia de Session vira Eventual sem erro nenhum.
-**Onde na prática:** marcos 15 e 16.
+**Onde na prática:** marco 15, também no marco 16.
 
 ### Bounded staleness
 **Em uma frase:** garantia de que a réplica nunca fica mais que *K* versões ou *T* tempo atrás do líder.
@@ -418,7 +418,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** cifrar a coluna sensível com uma chave por titular, de forma que apagar a chave torna o conteúdo irrecuperável sem tocar o arquivo.
 **No fin-platform:** a saída de menor custo para o direito de exclusão da LGPD num arquivo colunar com bilhões de linhas de todos os titulares.
 **Erro comum:** tentar resolver o apagar por reescrita completa do arquivo quando o volume não permite, sem considerar a alternativa de chave por titular.
-**Onde na prática:** marcos 13 e 17.
+**Onde na prática:** marco 13, também no marco 17.
 
 ## Wide-column e família Dynamo
 
@@ -486,7 +486,7 @@ o Bloco A cria o vocabulário e os blocos seguintes o reencontram, sempre com o 
 **Em uma frase:** resolução de conflito por timestamp, que descarta a escrita "perdedora" sem erro, sem log e sem aviso.
 **No fin-platform:** aceitável para um histórico de eventos append-only; inaceitável para saldo, onde é perda de dado silenciosa.
 **Erro comum:** usar multi-leader ou wide-column com LWW para qualquer valor que sofre escrita concorrente real, como saldo.
-**Onde na prática:** marcos 02 e 18.
+**Onde na prática:** marco 02, também no marco 18.
 
 ### Escrita condicional
 **Em uma frase:** uma escrita que só se aplica se uma condição sobre o estado atual for verdadeira — concorrência otimista sem lock.

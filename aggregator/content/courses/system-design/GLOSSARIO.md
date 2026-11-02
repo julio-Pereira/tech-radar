@@ -51,7 +51,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** concorrência média = taxa de chegada × tempo de permanência.
 **No fin-platform:** 500 iniciações/s × 300 ms de permanência = 150 iniciações em voo, em média.
 **Erro comum:** dimensionar capacidade sem medir o tempo de permanência real.
-**Onde na prática:** marcos 02 e 08.
+**Onde na prática:** marco 02, também no marco 08.
 
 ### Percentil (p99)
 **Em uma frase:** o valor abaixo do qual 99% das observações caem — a cauda, não a média.
@@ -63,7 +63,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** o tempo total tolerável distribuído entre os saltos de um fluxo, com folga desigual.
 **No fin-platform:** 1 segundo total, mais folga para o salto historicamente mais variável.
 **Erro comum:** dividir o orçamento igualmente entre saltos, sem considerar variabilidade real.
-**Onde na prática:** marcos 02 e 09.
+**Onde na prática:** marco 02, também no marco 09.
 
 ### Amplificação de cauda
 **Em uma frase:** mais saltos num fluxo aumentam a chance de que pelo menos um esteja no seu p99.
@@ -145,7 +145,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** chave que o cliente gera por tentativa lógica, garantindo a mesma resposta em reenvio.
 **No fin-platform:** evita que um retry de rede duplique um débito, sem o cliente saber se chegou.
 **Erro comum:** não propagar a chave até o ledger, deixando a defesa só na borda da API.
-**Onde na prática:** marcos 05 e 09.
+**Onde na prática:** marco 05, também no marco 09.
 
 ### Problem Details (RFC 9457)
 **Em uma frase:** formato padronizado de erro HTTP — `type`, `title`, `status`, `detail`, `instance`.
@@ -169,7 +169,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** cabeçalho HTTP que sinaliza a data de desativação de uma versão de API.
 **No fin-platform:** a v1 da API de pagamento é servida com `Sunset` declarado durante a transição para v2.
 **Erro comum:** remover uma versão sem nenhum sinal técnico prévio, só um aviso em changelog que ninguém lê.
-**Onde na prática:** marcos 05 e 14.
+**Onde na prática:** marco 05, também no marco 14.
 
 ## Gestão de API
 

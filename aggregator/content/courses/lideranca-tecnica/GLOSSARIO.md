@@ -343,7 +343,7 @@ uma decisão precisa ser revisada.
 **No fin-platform:** "se a previsão P85 ultrapassar a data comprometida" é um gatilho; "se as coisas
 piorarem" não é.
 **Erro comum:** declarar um gatilho vago demais para ser observado objetivamente.
-**Onde na prática:** marcos 05 e 06.
+**Onde na prática:** marco 06, também no marco 05.
 
 ### Status (relatório de programa)
 **Em uma frase:** a cor (verde/amarelo/vermelho) de um programa, válida apenas quando acompanhada de
@@ -537,7 +537,7 @@ impacto causado, sem julgar caráter.
 de propor ideias" é SBI; "você é arrogante" não é.
 **Erro comum:** descrever intenção ou caráter ("você não se importa") em vez de comportamento
 observável.
-**Onde na prática:** marcos 07 e 09.
+**Onde na prática:** marco 07, também no marco 09.
 
 ### Segurança psicológica
 **Em uma frase:** a crença compartilhada de que o time é seguro para risco interpessoal — admitir

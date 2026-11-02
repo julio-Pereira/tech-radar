@@ -31,7 +31,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** posiciona capacidades de genesis a commodity, como ferramenta de conversa sobre o que vale construir.
 **No fin-platform:** usado para decidir, no marco 04, o que é diferenciador e o que é commodity.
 **Erro comum:** tratar o mapa como medição precisa, em vez de ferramenta de discussão.
-**Onde na prática:** marcos 01 e 04.
+**Onde na prática:** marco 01, também no marco 04.
 
 ## Integração
 
@@ -63,7 +63,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** o período em que uma integração por arquivo gera e espera o resultado, sensível a fuso e relógio.
 **No fin-platform:** "o arquivo do dia" do `fake-core`, cujo significado muda conforme o fuso e o calendário bancário.
 **Erro comum:** assumir que "o dia" tem o mesmo início e fim em todos os sistemas envolvidos na integração.
-**Onde na prática:** marcos 02 e 03.
+**Onde na prática:** marco 02, também no marco 03.
 
 ### Propriedade do contrato (de integração)
 **Em uma frase:** quem é dono de um contrato entre sistemas, responsável por coordenar mudanças e avisar os dois lados.

@@ -57,7 +57,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** control plane processa pedidos e reconcilia; o que já está em execução não deveria depender dele.
 **No fin-platform:** um workload já implantado continua saudável mesmo com a API da plataforma fora do ar.
 **Erro comum:** projetar um serviço que consulta o control plane em tempo de execução, criando dependência indevida.
-**Onde na prática:** marcos 02 e 07.
+**Onde na prática:** marco 02, também no marco 07.
 
 ### Reconciliação
 **Em uma frase:** o mecanismo que faz o estado real convergir continuamente para o estado desejado.
@@ -165,7 +165,7 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Em uma frase:** algo que continua existindo e custando, mas que ninguém mais usa.
 **No fin-platform:** detectado ativamente, não descoberto só quando a fatura do mês revela o problema.
 **Erro comum:** esperar revisão manual de custo para encontrar zumbis, em vez de detecção automatizada contínua.
-**Onde na prática:** marcos 05 e 08.
+**Onde na prática:** marco 05, também no marco 08.
 
 ## Segurança
 
