@@ -1,6 +1,5 @@
-// Typed diagrams, imported only for a figure.diagrama (which already holds
-// title, description, data). createElementNS, CSS classes only (style-src
-// 'self'). 10 KB gzip budget with diagram-svg.js: no type annotations.
+// Typed diagrams for a figure.diagrama. createElementNS, CSS classes only
+// (CSP). 10 KB gzip with diagram-svg.js: no type annotations.
 import { el, label, rect, arrowDefs, edgeBetween, clipToBox } from './diagram-svg.js';
 import { startDesvio, returnToPoint } from './desvio.js';
 
@@ -420,8 +419,8 @@ function niceStep(span) {
   return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p;
 }
 
-// Maps [lo, hi] onto [a, b] in pixels, extended to round ticks.
-function axisScale(lo, hi, log, a, b) {
+// [lo, hi] → [a, b] px, out to round ticks; pin: stop at a declared max.
+function axisScale(lo, hi, log, a, b, pin) {
   if (log) {
     const l0 = Math.floor(Math.log10(lo));
     const l1 = Math.max(l0 + 1, Math.ceil(Math.log10(hi)));
@@ -433,9 +432,9 @@ function axisScale(lo, hi, log, a, b) {
   }
   const step = niceStep(hi - lo || Math.abs(hi) || 1);
   const t0 = Math.floor(lo / step) * step;
-  const t1 = Math.max(t0 + step, Math.ceil(hi / step) * step);
+  const t1 = pin ? hi : Math.max(t0 + step, Math.ceil(hi / step) * step);
   const ticks = [];
-  for (let t = t0; t <= t1 + step / 2; t += step) ticks.push(Number(t.toPrecision(12)));
+  for (let t = t0; t <= t1 + step / 1e6; t += step) ticks.push(Number(t.toPrecision(12)));
   return { f: (v) => a + ((v - t0) / (t1 - t0)) * (b - a), ticks };
 }
 
@@ -457,7 +456,7 @@ function drawChart(spec) {
   const ys = series.flatMap((s) => s.pontos.map((p) => p[1]));
   const yLog = spec.eixo_y.escala === 'log';
   const yLo = spec.eixo_y.min ?? (spec.forma !== 'linha' && !yLog ? Math.min(0, ...ys) : Math.min(...ys));
-  const Y = axisScale(yLo, spec.eixo_y.max ?? Math.max(...ys), yLog, bottom, top);
+  const Y = axisScale(yLo, spec.eixo_y.max ?? Math.max(...ys), yLog, bottom, top, spec.eixo_y.max != null);
 
   let X;
   let xTicks;
@@ -468,7 +467,7 @@ function drawChart(spec) {
     xTicks = cats.map((c) => [X(c), c]);
   } else {
     const xs = series.flatMap((s) => s.pontos.map((p) => p[0]));
-    const sx = axisScale(spec.eixo_x.min ?? Math.min(...xs), spec.eixo_x.max ?? Math.max(...xs), spec.eixo_x.escala === 'log', left, right);
+    const sx = axisScale(spec.eixo_x.min ?? Math.min(...xs), spec.eixo_x.max ?? Math.max(...xs), spec.eixo_x.escala === 'log', left, right, spec.eixo_x.max != null);
     X = sx.f;
     xTicks = sx.ticks.map((t) => [X(t), fmt(t)]);
   }
