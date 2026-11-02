@@ -1,0 +1,33 @@
+questions:
+  - question: "No código da interconexão, a conexão do Fabric para o Azure recebe como chave um valor digitado à mão, e não a saída do recurso do circuito. Segundo este marco, o que se perde?"
+    options:
+      - "Nada: o Terraform descobre a dependência sozinho pelo nome dos recursos no mesmo módulo"
+      - "Só a legibilidade do código; o plano e a ordem de criação continuam exatamente os mesmos"
+      - "A dependência no grafo: o Terraform pode criar a conexão sem saber que ela vem depois do circuito"
+      - "A criptografia do estado remoto, porque valores digitados à mão nunca são marcados como sensíveis pelo provider"
+    answer: 2
+    explanation: "A ordem do marco 04 vira dependência quando a conexão referencia a service key do circuito. Valor digitado quebra essa ligação, e o Terraform não infere dependência por nome."
+  - question: "O time quer provar no CI que a conexão do Fabric está ligada à service key do circuito, sem conta em nenhum provedor. Segundo este marco, o que o terraform test com mock_provider prova e o que não prova?"
+    options:
+      - "Prova que o código liga as peças na ordem certa; não prova que a Equinix aceita a conexão nem que o BGP sobe"
+      - "Prova que a sessão BGP sobe com os ASNs certos dos dois lados; não prova que a cobrança começa só com a service key"
+      - "Prova tudo o que o apply real provaria, porque o mock reproduz o comportamento dos três provedores"
+      - "Não prova nada útil, porque sem conta os recursos não existem e as asserções sempre passam"
+    answer: 0
+    explanation: "O mock dá valores falsos aos recursos e permite verificar as ligações entre eles. Protocolo se prova no laboratório e produto na documentação; o mock não reproduz os provedores."
+  - question: "Um PR acrescenta uma conexão para um parceiro novo no FCR, sem filtro de saída. O revisor estava com pressa e aprovou. Segundo este marco, onde isso deveria ter sido barrado?"
+    options:
+      - "No apply, que recusa criar qualquer conexão do Fabric sem um filtro de saída configurado"
+      - "No terraform test, porque o mock_provider rejeita conexão sem filtro de saída"
+      - "Na varredura de segredos, que também verifica as configurações de roteamento"
+      - "Na política sobre o plano, que reprova conexão sem filtro antes de qualquer apply"
+    answer: 3
+    explanation: "A política lê o plano em JSON e reprova conexão sem filtro de saída sem depender do revisor. O provider não recusa, o mock não valida isso, e a varredura de segredos procura credenciais."
+  - question: "Durante um incidente, alguém mudou um filtro de rota direto no portal do Fabric. Segundo este marco, como isso aparece e qual é o caminho de volta?"
+    options:
+      - "Aparece só no próximo PR de alguém, e o caminho é apagar o estado e importar tudo de novo"
+      - "Um plan agendado acusa a diferença, e a volta é um PR que adota a mudança ou a desfaz"
+      - "O provider equinix bloqueia mudanças pelo portal em recursos geridos por Terraform"
+      - "Não aparece: o portal e o código compartilham o mesmo estado e ficam sempre iguais"
+    answer: 1
+    explanation: "Drift só aparece se alguém compara o código com o mundo real; um plan agendado que falha na diferença faz isso. A volta é um PR com revisão, não apagar o estado. O portal não é bloqueado."

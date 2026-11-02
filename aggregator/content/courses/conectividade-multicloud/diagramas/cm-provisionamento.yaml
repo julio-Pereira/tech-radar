@@ -1,0 +1,27 @@
+id: cm-provisionamento
+tipo: sequencia
+titulo: "Duas chaves, duas organizações: a ordem que leva do pedido à rota anunciada"
+descricao: >
+  O fin-platform cria o circuito ExpressRoute e recebe a service key, e a cobrança começa ali. Do
+  outro lado, o fornecedor cria o VLAN attachment na organização dele e manda a pairing key, que tem
+  validade limitada. Com as duas chaves, o fin-platform cria as duas conexões do Fabric. O Azure
+  passa o circuito a Provisioned; o attachment vai a PENDING_CUSTOMER e só o fornecedor o ativa.
+  Por último vêm o private peering e a ligação do gateway: só então há rota.
+participantes:
+  - { id: fin, rotulo: "fin-platform" }
+  - { id: azure, rotulo: "Azure" }
+  - { id: fabric, rotulo: "Equinix Fabric", papel: destaque }
+  - { id: gcp, rotulo: "Google Cloud", papel: externo }
+  - { id: forn, rotulo: "fornecedor", papel: externo }
+mensagens:
+  - { de: fin, para: azure, rotulo: "cria circuito ER", tipo: sync }
+  - { de: azure, para: fin, rotulo: "service key", tipo: reply, nota: "a cobrança começa aqui" }
+  - { de: forn, para: gcp, rotulo: "cria VLAN attachment", tipo: sync }
+  - { de: gcp, para: forn, rotulo: "pairing key /1", tipo: reply }
+  - { de: forn, para: fin, rotulo: "envia pairing key", tipo: async, nota: "validade limitada (conferir)" }
+  - { de: fin, para: fabric, rotulo: "conexão com service key", tipo: sync }
+  - { de: fabric, para: azure, rotulo: "provisiona circuito", tipo: sync, nota: "Provisioned" }
+  - { de: fin, para: fabric, rotulo: "conexão com pairing key", tipo: sync }
+  - { de: fabric, para: gcp, rotulo: "configura attachment", tipo: sync, nota: "PENDING_CUSTOMER" }
+  - { de: forn, para: gcp, rotulo: "ativa attachment", tipo: sync, nota: "ACTIVE" }
+  - { de: fin, para: azure, rotulo: "private peering e gateway", tipo: sync, nota: "só agora há rota" }

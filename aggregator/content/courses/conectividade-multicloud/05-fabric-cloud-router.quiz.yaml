@@ -1,0 +1,49 @@
+questions:
+  - question: "O fin-platform já tem as duas pernas prontas: o circuito ExpressRoute e o attachment do Partner Interconnect, ambos chegando ao Equinix Fabric. Segundo este marco, o que o FCR acrescenta?"
+    options:
+      - "Ele roteia entre as conexões: recebe as rotas do Azure por uma e as do Google por outra"
+      - "Ele cifra o tráfego entre as duas nuvens, o que dispensa IPsec e mTLS no caminho"
+      - "Ele traduz endereços entre as nuvens, o que resolve sozinho a colisão de faixas"
+      - "Nada além de banda: as duas pernas já se alcançam ao chegar ao mesmo metro do Equinix Fabric"
+    answer: 0
+    explanation: "As pernas sozinhas só chegam ao Fabric; quem faz uma rede alcançar a outra é o FCR roteando entre as conexões. Cifrar e traduzir não são funções do FCR descritas no marco."
+  - question: "O FCR tem três conexões: Azure, o fornecedor de score e um parceiro novo. Nenhuma tem filtro de saída. Segundo este marco, o que acontece?"
+    options:
+      - "Nada: o FCR só anuncia a cada conexão as rotas da nuvem a que ela está ligada"
+      - "O FCR recusa subir a sessão BGP de qualquer conexão que ainda não tenha um filtro de saída configurado"
+      - "Só o Azure aprende rotas, porque o FCR anuncia apenas para perfis de serviço de nuvem"
+      - "O parceiro novo aprende a rota do fornecedor de score, e o fornecedor aprende a do parceiro"
+    answer: 3
+    explanation: "Por padrão um roteador anuncia a cada vizinho o que aprendeu dos outros; sem filtro de saída por conexão, os parceiros se enxergam. O FCR não recusa a sessão nem restringe o anúncio sozinho."
+  - question: "A colisão de faixas do marco 02 precisa de NAT no meio do caminho. Segundo este marco, onde essa função costuma entrar no desenho com a Equinix?"
+    options:
+      - "Em qualquer pacote do FCR, ativada por uma opção simples na conexão com o Google"
+      - "No circuito ExpressRoute, que traduz endereços antes de chegar ao Fabric"
+      - "Num appliance virtual no Network Edge, a conferir contra o que o FCR oferece"
+      - "No Cloud Router do fornecedor, que traduz tudo o que recebe do Fabric"
+    answer: 2
+    explanation: "O FCR roteia; função como NAT ou firewall com estado costuma ir para um appliance no Network Edge, e o marco pede para conferir. Nem o circuito nem o Cloud Router fazem essa tradução."
+  - question: "O fornecedor está em GCP São Paulo e o fin-platform em Azure São Paulo. O orçamento de rede do score é de 40 ms. Segundo este marco, como escolher o metro do FCR?"
+    options:
+      - "Medindo a latência do metro até as duas regiões, porque o tráfego entre as nuvens passa por ele"
+      - "Pelo pacote: o Advanced só existe em alguns metros e, por isso, é ele que define a escolha do lugar do FCR"
+      - "Pelo metro mais barato, já que o FCR não acrescenta latência ao caminho entre nuvens"
+      - "Pela região do fin-platform, porque quem paga o FCR é que define onde ele fica"
+    answer: 0
+    explanation: "Todo o tráfego entre as nuvens atravessa o FCR, então o metro entra no orçamento de latência e deve ser escolhido medindo até as duas regiões, não por preço, pacote ou por quem paga."
+  - question: "O FCR é um serviço gerenciado pela Equinix. Segundo este marco, o que continua sendo responsabilidade do fin-platform?"
+    options:
+      - "Só a escolha do pacote; a Equinix configura BGP, filtros e limites de cada conexão"
+      - "Configurar cada conexão (ASN, MD5, limite de rotas e filtros) e decidir o que cada parceiro vê"
+      - "Operar a infraestrutura do metro e garantir a disponibilidade da plataforma do Fabric"
+      - "Nada, desde que o contrato tenha SLA; o roteamento de cada conexão passa a ser obrigação da Equinix"
+    answer: 1
+    explanation: "A Equinix opera a plataforma e cumpre o SLA; o que é anunciado, filtrado e aceito em cada conexão continua sendo configuração sua. É a tese do marco: serviço gerenciado não transfere o roteamento."
+  - question: "O fin-platform tem hoje um só parceiro privado e prevê mais dois. Segundo este marco, por que o FCR fica mais vantajoso à medida que os parceiros aumentam?"
+    options:
+      - "Porque o preço de cada conexão cai pela metade a cada parceiro novo ligado ao mesmo roteador"
+      - "Porque, a partir de três parceiros, a Equinix assume a configuração dos filtros de cada conexão"
+      - "Porque o pacote Lab passa a ser aceito em produção quando há mais de dois parceiros ligados"
+      - "Porque cada parceiro novo entra com mais uma conexão no mesmo roteador, sem projeto novo"
+    answer: 3
+    explanation: "O ganho é o 1 × N: com o FCR montado, um parceiro novo é só mais uma conexão, com seus filtros. Preço, responsabilidade pelos filtros e uso do pacote Lab não mudam com o número de parceiros."

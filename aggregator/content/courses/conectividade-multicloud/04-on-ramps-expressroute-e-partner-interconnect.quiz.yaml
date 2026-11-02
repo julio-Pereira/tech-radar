@@ -1,0 +1,33 @@
+questions:
+  - question: "O fin-platform criou o circuito ExpressRoute e o fornecedor criou o VLAN attachment. Segundo este marco, qual chave cada um entrega ao provedor do Fabric, e quem a emite?"
+    options:
+      - "As duas chaves são emitidas pela Equinix no momento em que o FCR é criado, uma para cada nuvem ligada a ele"
+      - "A pairing key é emitida pelo Azure e a service key pelo Google, e as duas chegam ao provedor pelo próprio portal"
+      - "Só existe uma chave, a service key, porque o Partner Interconnect usa a mesma chave do circuito ExpressRoute"
+      - "A service key é emitida pelo Azure ao criar o circuito; a pairing key, pelo Google ao criar o attachment"
+    answer: 3
+    explanation: "Cada nuvem emite a sua: o Azure devolve a service key com o circuito, o Google devolve a pairing key com o attachment. A Equinix recebe as duas; não as emite, e uma não substitui a outra."
+  - question: "A VPC do FornecedorScore fica em outra organização do Google Cloud. Segundo este marco, quem cria o VLAN attachment e quem o ativa?"
+    options:
+      - "O fornecedor cria e o fornecedor ativa, depois de o provedor configurar o attachment"
+      - "O fin-platform cria e ativa, porque é ele quem paga o FCR e todas as conexões do Fabric no metro"
+      - "A Equinix cria o attachment ao receber a conexão e o ativa automaticamente"
+      - "O fin-platform cria com a service key, e o fornecedor só aprova a sessão BGP"
+    answer: 0
+    explanation: "O attachment é recurso da VPC do fornecedor: ele cria, recebe a pairing key e, quando o estado chega a PENDING_CUSTOMER, ativa. O fin-platform só cria a conexão do Fabric com a chave recebida."
+  - question: "Para economizar, o time propõe configurar o private peering só na conexão primária do circuito ExpressRoute. Segundo este marco, qual é o problema?"
+    options:
+      - "Nenhum: a conexão secundária só existe nos circuitos do tipo Premium e é cobrada à parte"
+      - "O circuito tem duas conexões por desenho; com uma só ativa ele fica degradado, não mais barato"
+      - "O Azure recusa criar o circuito sem as duas sessões BGP já configuradas e estabelecidas"
+      - "A conexão primária usa o AS 12076 e a secundária usa outro ASN, então as duas sessões são obrigatórias"
+    answer: 1
+    explanation: "As duas conexões fazem parte do mesmo circuito e da mesma cobrança; usar uma só tira a redundância sem tirar custo. O Azure não exige as duas sessões para criar o circuito, e o ASN é o mesmo."
+  - question: "A pairing key do fornecedor termina em /2. Segundo este marco, o que esse sufixo indica, e o que a redundância real exige?"
+    options:
+      - "Que é a segunda tentativa de pareamento, e a redundância exige gerar uma terceira chave de reserva"
+      - "Que o attachment aceita duas conexões do Fabric, e a redundância exige usar as duas na mesma chave"
+      - "O edge availability domain do attachment; a redundância exige um attachment em cada domínio"
+      - "A versão do protocolo de pareamento, e a redundância exige que as duas pontas usem a versão 2"
+    answer: 2
+    explanation: "O /1 ou /2 indica o edge availability domain, que tem manutenção separada. Redundância real pede um attachment em cada domínio do metro, cada um com a sua pairing key."
