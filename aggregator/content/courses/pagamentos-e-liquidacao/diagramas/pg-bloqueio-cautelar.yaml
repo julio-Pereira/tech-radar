@@ -1,0 +1,22 @@
+id: pg-bloqueio-cautelar
+tipo: estados
+titulo: "Bloqueio cautelar: o recebedor retém um Pix suspeito antes de o valor ficar disponível"
+descricao: >
+  O PSP recebedor avalia o risco de cada Pix que chega. Se nada chama a atenção, o valor fica
+  disponível ao destinatário. Se a avaliação aponta suspeita de fraude, o recebedor aplica o
+  bloqueio cautelar no próprio recebimento, antes de o valor ficar disponível, e tem até 72
+  horas para analisar: libera o valor ao destinatário ou o devolve ao pagador. É um fluxo
+  preventivo e separado do MED, que começa depois do crédito, a partir da reclamação da vítima.
+  Prazo e condições a conferir no regulamento vigente do Pix.
+estados:
+  - { id: recebido, rotulo: "RECEBIDO", col: 0, row: 0 }
+  - { id: cautelar, rotulo: "BLOQUEIO CAUTELAR", col: 1, row: 1, papel: destaque }
+  - { id: liberado, rotulo: "LIBERADO", col: 2, row: 0 }
+  - { id: devolvido, rotulo: "DEVOLVIDO AO PAGADOR", col: 2, row: 1 }
+inicial: recebido
+finais: [liberado, devolvido]
+transicoes:
+  - { de: recebido, para: liberado, evento: "sem suspeita" }
+  - { de: recebido, para: cautelar, evento: "suspeita" }
+  - { de: cautelar, para: liberado, evento: "análise ok", guarda: "até 72 h" }
+  - { de: cautelar, para: devolvido, evento: "fraude", guarda: "até 72 h" }
