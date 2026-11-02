@@ -101,10 +101,11 @@ Provoque cada cenário e escreva um post-mortem de uma página — inclusive qua
 6. **Contrato encerrado.** O desligamento remove tudo? Sobrou alguma rota, regra ou credencial?
 7. **Rota assimétrica**: ida por um caminho, volta pelo outro, e o firewall com estado descarta. Como evitar e como detectar?
 
-## Fase 0: fatos de produto conferidos
+## Fatos de produto conferidos (Fase 0 e escrita dos marcos)
 
-Conferidos em 02/11/2026, por busca nas fontes oficiais (a documentação muda; **confira** de novo ao
-escrever cada marco). O que não foi confirmado fica marcado e não pode entrar no texto como fato.
+Conferidos em 02/11/2026, na Fase 0 e durante a escrita dos marcos, por busca nas fontes oficiais (a
+documentação muda; **confira** de novo antes de usar). O que não foi confirmado fica marcado e não
+pode entrar no texto como fato.
 
 | Fato | Situação | Fonte |
 | --- | --- | --- |
@@ -126,6 +127,13 @@ escrever cada marco). O que não foi confirmado fica marcado e não pode entrar 
 | Cross-Cloud Interconnect: AWS, Azure, Oracle Cloud e Alibaba Cloud | confirmado | [CCI](https://docs.cloud.google.com/network-connectivity/docs/interconnect/concepts/cci-overview) |
 | `mock_provider` no `terraform test`: Terraform 1.7 ou mais novo | confirmado (fontes secundárias) | [mocking](https://developer.hashicorp.com/terraform/language/tests/mocking) |
 | `mock_provider` no `tofu test` (OpenTofu): versão exata | **não confirmado** | — |
+| Partner Interconnect: estados do attachment `PENDING_PARTNER` → `PENDING_CUSTOMER` → `ACTIVE`; a ativação exige `PENDING_CUSTOMER`, e a pré-ativação pula esse passo (conferido nas Fases 2 a 4) | confirmado | [ativar conexões](https://docs.cloud.google.com/network-connectivity/docs/interconnect/how-to/partner/activating-connections) |
+| Partner Interconnect: prazo de validade da *pairing key* | **não confirmado** (só fonte não oficial) | — |
+| ExpressRoute: a cobrança do circuito começa quando a *service key* é emitida | confirmado | [workflows](https://learn.microsoft.com/azure/expressroute/expressroute-workflows) |
+| Equinix Fabric: a conexão para o Azure recebe a *service key* do circuito como chave de autenticação; para o Google, a *pairing key* do domínio (/1 ou /2) | confirmado | [Terraform guide](https://docs.equinix.com/terraform/guides/equinix_fabric_cloud_providers) |
+| Módulos Terraform de exemplo da Equinix para conexões com o Google: manutenção e status | **não confirmado** (projetos de laboratório) | — |
+| Termos do SLA do ExpressRoute com uma só conexão ativa; limites de prefixos do *private peering* | **não confirmados** | — |
+| Valores recomendados de MTU e MSS dos gateways de VPN das duas nuvens | **não confirmados** | — |
 
 As URLs de interconexão do Google migraram de `cloud.google.com` para `docs.cloud.google.com`
 (redirecionamento 301), e a documentação do FCR tem endereço novo em
