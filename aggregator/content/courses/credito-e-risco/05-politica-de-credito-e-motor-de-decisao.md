@@ -73,6 +73,10 @@ aplicável — **conferir**). Proibir não é só "não ler o campo": uma variá
 correlacionada com o atributo proibido funciona como **proxy** e reintroduz o mesmo efeito. Os dois
 testes são diferentes: um de **acesso** (a função não lê o campo) e um **estatístico** (nenhuma
 variável usada tem correlação acima de um limite com o atributo proibido no conjunto sintético).
+A correlação é um **piso**, não uma prova: ela não pega um *proxy* não linear, nem a combinação de
+duas variáveis que, juntas, revelam o atributo. Um teste mais forte treina um modelo simples que
+tenta **prever o atributo proibido** a partir das variáveis que a política usa; se ele acerta bem
+acima do acaso, há *proxy*, mesmo sem nenhuma correlação individual alta.
 
 ## Degradação: uma decisão de risco
 
@@ -104,8 +108,10 @@ sobre a carteira sintética, com um relatório de decisões divergentes.
    (propriedade sobre propostas geradas).
 3. ***Replay*** de qualquer decisão do log, com a versão registrada, reproduz decisão e motivos.
 4. Toda recusa traz **≥ 1 código de motivo**, mapeado a um texto legível.
-5. Nenhum **atributo proibido** é lido pela função (teste de acesso), e nenhuma variável usada tem
-   correlação acima do limite declarado com ele no conjunto sintético (teste estatístico).
+5. Nenhum **atributo proibido** é lido pela função (teste de acesso); nenhuma variável usada tem
+   correlação acima do limite declarado com ele no conjunto sintético; e um modelo que tenta prever
+   o atributo a partir das variáveis usadas não passa de um limite declarado acima do acaso (testes
+   estatísticos).
 6. Um ***override*** sem segunda aprovação é **recusado**.
 7. Uma versão de política publicada é **imutável**: alterar exige publicar outra versão.
 8. Com a consulta externa indisponível, a decisão segue a **regra de degradação declarada** —

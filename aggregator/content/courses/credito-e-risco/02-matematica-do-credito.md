@@ -63,7 +63,7 @@ parcelas de crédito.
 O **CET** é a taxa que iguala o valor **líquido** efetivamente recebido pelo cliente ao valor
 presente de todas as parcelas — incorporando tarifas, seguros e tributos no cálculo, não só a taxa
 de juros nominal (**conferir** a composição exata e a fórmula na norma vigente, que especifica o
-que entra e o que não entra). No exemplo anterior, com uma tarifa de R$ 150,00 financiada à parte
+que entra e o que não entra). No exemplo anterior, com uma tarifa de R$ 150,00 descontada do valor liberado
 (o cliente recebe líquido R$ 9.850,00, mas paga as parcelas calculadas sobre R$ 10.000,00), o CET
 mensal sobe de 2,00% para aproximadamente **2,25%** (cerca de 30,6% a.a.) — a tarifa, embora pequena
 em relação ao principal, desloca visivelmente o custo real da operação.
@@ -98,7 +98,7 @@ estatísticos (risco, Bloco C), nunca em dinheiro.
 
 R$ 10.000,00 a 2,00% a.m. em 12 parcelas pela Tabela Price: parcela **R$ 945,60**, juros totais
 **R$ 1.347,15**. No SAC, amortização constante de **R$ 833,33**, juros totais **R$ 1.300,00**. Com
-uma tarifa de R$ 150,00 financiada à parte, o CET mensal passa de 2,00% para aproximadamente
+uma tarifa de R$ 150,00 descontada do valor liberado, o CET mensal passa de 2,00% para aproximadamente
 **2,25%**. *(Valores calculados e conferidos por script; reconfira contra o gabarito ao
 implementar.)*
 
