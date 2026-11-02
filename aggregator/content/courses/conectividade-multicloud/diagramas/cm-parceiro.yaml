@@ -1,0 +1,23 @@
+id: cm-parceiro
+tipo: estados
+titulo: "O ciclo de vida de um parceiro conectado termina em desligado, provado, não em esquecido"
+descricao: >
+  Um parceiro começa proposto e só passa a contratado quando o contrato mínimo de conectividade está
+  completo: prefixos, ASN, NOC, janelas, criptografia e data de revisão. O onboarding provado o leva
+  a conectado. A data de revisão o põe em revisão, de onde volta renovado ou segue para desligado. O
+  desligamento remove rota, filtro, regra, DNS, segredo e certificado, e um teste prova que o
+  parceiro ficou inalcançável.
+estados:
+  - { id: proposto, rotulo: "PROPOSTO", col: 0, row: 0 }
+  - { id: contratado, rotulo: "CONTRATADO", col: 1, row: 0 }
+  - { id: conectado, rotulo: "CONECTADO", col: 2, row: 0, papel: destaque }
+  - { id: revisao, rotulo: "EM REVISÃO", col: 2, row: 1 }
+  - { id: desligado, rotulo: "DESLIGADO", col: 1, row: 1 }
+inicial: proposto
+transicoes:
+  - { de: proposto, para: contratado, evento: "contrato mínimo ok" }
+  - { de: contratado, para: conectado, evento: "onboarding provado" }
+  - { de: conectado, para: revisao, evento: "data de revisão" }
+  - { de: revisao, para: conectado, evento: "renovado" }
+  - { de: revisao, para: desligado, evento: "encerrado" }
+  - { de: conectado, para: desligado, evento: "offboarding provado" }

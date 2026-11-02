@@ -1,0 +1,34 @@
+id: cm-camadas
+tipo: sequencia
+titulo: "TLS dentro de IPsec dentro do link privado: cada camada esconde algo de alguém"
+descricao: >
+  O ledger-core abre uma conexão mTLS com a API de score: o CPF já sai cifrado pelo TLS, e a API
+  exige o certificado do cliente. Na borda Azure, o gateway VPN encapsula o pacote em ESP, e o
+  cabeçalho interno some. No link privado, o FCR só enxerga os endereços externos dos dois gateways.
+  Na borda Google, o HA VPN decifra o ESP e entrega o TLS intacto à API, que valida o certificado e
+  responde pelo mesmo caminho. Se o túnel cai, o tráfego para, em vez de seguir em claro.
+participantes:
+  - { id: ledger, rotulo: "ledger-core" }
+  - { id: vpnaz, rotulo: "VPN Gateway (Azure)" }
+  - { id: fcr, rotulo: "FCR", papel: destaque }
+  - { id: vpngc, rotulo: "HA VPN (Google)" }
+  - { id: api, rotulo: "API de score", papel: externo }
+mensagens:
+  - { de: ledger, para: api, rotulo: "handshake mTLS", tipo: sync, nota: "certificado do cliente" }
+  - { de: ledger, para: vpnaz, rotulo: "HTTP dentro de TLS", tipo: sync, nota: "o CPF já vai cifrado" }
+  - { de: vpnaz, para: fcr, rotulo: "ESP (IPsec)", tipo: sync, nota: "cabeçalho interno oculto" }
+  - { de: fcr, para: vpngc, rotulo: "ESP no link privado", tipo: sync, nota: "o FCR vê só os IPs dos gateways" }
+  - { de: vpngc, para: api, rotulo: "TLS intacto", tipo: sync, nota: "ESP decifrado na borda" }
+  - { de: api, para: api, rotulo: "valida certificado", nota: "sem certificado: rejeita" }
+  - { de: api, para: ledger, rotulo: "score", tipo: reply, nota: "volta pelo mesmo túnel" }
+animacao:
+  - legenda: "O ledger-core abre mTLS com a API: o CPF sai cifrado da aplicação"
+    ate: 2
+  - legenda: "Na borda Azure, o gateway envolve o pacote em ESP e esconde o cabeçalho"
+    ate: 3
+  - legenda: "No link privado, o FCR roteia sem ver o conteúdo nem os IPs internos"
+    ate: 4
+  - legenda: "Na borda Google, o ESP é aberto, mas o TLS segue fechado até a API"
+    ate: 5
+  - legenda: "A API valida o certificado do cliente e responde pelo mesmo túnel"
+    ate: 7
