@@ -180,3 +180,115 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 **No fin-platform:** aparece depois do failover, quando o primário volta antes do outro lado perceber.
 **Erro comum:** achar que é problema só do BGP; é o firewall com estado que descarta.
 **Onde na prática:** marco 03, retomado no 10.
+
+## Peças
+
+### ExpressRoute
+**Em uma frase:** a porta privada do Azure: um circuito contratado com um provedor numa peering location, com sessões BGP até a Microsoft.
+**No fin-platform:** a perna Azure do caminho até o FCR, no metro de São Paulo.
+**Erro comum:** tratar o circuito como pronto quando o provedor ainda está em NotProvisioned.
+**Onde na prática:** marco 04.
+
+### Circuito ExpressRoute
+**Em uma frase:** a conexão lógica entre a sua rede e a Microsoft, com duas conexões (primária e secundária) e estado próprio do provedor.
+**No fin-platform:** um circuito com a Equinix como provedor, ligado ao FCR.
+**Erro comum:** usar só uma das duas conexões e chamar isso de economia.
+**Onde na prática:** marco 04.
+
+### Peering location
+**Em uma frase:** o ponto físico onde o provedor encontra a Microsoft, como São Paulo.
+**No fin-platform:** a mesma cidade do metro do FCR, para não somar latência.
+**Erro comum:** escolher a peering location sem olhar onde fica o resto do caminho.
+**Onde na prática:** marco 04.
+
+### Service key
+**Em uma frase:** o identificador que o Azure devolve ao criar o circuito e que o provedor usa para saber qual circuito ligar.
+**No fin-platform:** entra na conexão do Fabric para o Azure como chave de autenticação, saída do próprio recurso do circuito.
+**Erro comum:** emitir a chave muito antes de usá-la: a cobrança do circuito começa ali.
+**Onde na prática:** marcos 04 e 06.
+
+### Private peering
+**Em uma frase:** a sessão BGP do circuito ExpressRoute que leva às redes privadas (VNets) do Azure.
+**No fin-platform:** a sessão entre o FCR e os roteadores da Microsoft, no AS 12076.
+**Erro comum:** escolher para o seu lado um ASN que o Azure reserva (65515 a 65520).
+**Onde na prática:** marco 04.
+
+### ExpressRoute Gateway
+**Em uma frase:** o gateway na VNet que liga o circuito à rede virtual, com SKUs de banda e limites diferentes.
+**No fin-platform:** a saída do ledger-core rumo ao circuito.
+**Erro comum:** esquecer que o circuito sozinho não chega a nenhuma VNet.
+**Onde na prática:** marco 04.
+
+### Partner Interconnect
+**Em uma frase:** a porta privada do Google Cloud para quem chega por um provedor parceiro, como a Equinix.
+**No fin-platform:** a perna Google do caminho, do lado do fornecedor.
+**Erro comum:** confundir com o Dedicated Interconnect, que exige porta física própria em colocation.
+**Onde na prática:** marco 04.
+
+### VLAN attachment
+**Em uma frase:** o recurso do Google Cloud que liga uma VPC ao Partner Interconnect, preso a um Cloud Router e a uma região.
+**No fin-platform:** criado pelo fornecedor, na organização dele; o fin-platform só recebe a pairing key.
+**Erro comum:** esquecer de ativar: o attachment fica parado em PENDING_CUSTOMER.
+**Onde na prática:** marco 04.
+
+### Pairing key
+**Em uma frase:** a chave que o Google devolve ao criar o VLAN attachment e que o provedor usa para achá-lo; termina em /1 ou /2.
+**No fin-platform:** chega por e-mail do fornecedor e entra no código como variável, com a data de validade.
+**Erro comum:** deixar a chave vencer enquanto o resto do caminho não fica pronto.
+**Onde na prática:** marcos 04 e 06.
+
+### Cloud Router
+**Em uma frase:** o roteador gerenciado do Google Cloud que fala BGP com o lado de fora; no Partner Interconnect, usa o ASN 16550.
+**No fin-platform:** o vizinho BGP do FCR na perna do fornecedor.
+**Erro comum:** deixar o anúncio padrão, que manda todas as sub-redes da VPC.
+**Onde na prática:** marco 04.
+
+### Edge availability domain
+**Em uma frase:** cada um dos dois domínios de borda de um metro do Google, com manutenção separada.
+**No fin-platform:** o fornecedor precisa de um attachment em cada domínio para a redundância contar.
+**Erro comum:** pôr os dois attachments no mesmo domínio e perder os dois na mesma manutenção.
+**Onde na prática:** marco 04.
+
+### Equinix Fabric
+**Em uma frase:** a plataforma de interconexão da Equinix, onde vivem as conexões, os perfis de serviço e o FCR.
+**No fin-platform:** o lugar onde as duas pernas se encontram.
+**Erro comum:** achar que chegar ao Fabric já liga as duas nuvens: falta quem roteie entre elas.
+**Onde na prática:** marco 05.
+
+### Service profile
+**Em uma frase:** a forma como uma nuvem ou um fornecedor aparece no Equinix Fabric para receber conexões.
+**No fin-platform:** os perfis do Azure ExpressRoute e do Google Partner Interconnect, um por domínio de borda.
+**Erro comum:** não perguntar se o fornecedor tem perfil próprio no Marketplace.
+**Onde na prática:** marco 05.
+
+### Network Edge
+**Em uma frase:** appliances virtuais de fabricantes de rede rodando no Equinix Fabric, para funções que o FCR não tem.
+**No fin-platform:** candidato para o NAT do marco 02, se a função for necessária no meio do caminho.
+**Erro comum:** pôr um appliance por hábito: é mais uma peça para operar e licenciar.
+**Onde na prática:** marco 05.
+
+### Pacote do FCR
+**Em uma frase:** o nível contratado do FCR, que limita conexões, banda e rotas.
+**No fin-platform:** Standard para produção; o Lab só para experimentar.
+**Erro comum:** usar o Lab em produção e descobrir o limite de banda no teste de carga.
+**Onde na prática:** marco 05.
+
+## Como código
+
+### Mock provider
+**Em uma frase:** um provider falso no terraform test, que dá valores aos recursos sem chamar nenhuma API.
+**No fin-platform:** prova a ligação entre a service key e a conexão do Fabric sem conta em nenhum provedor.
+**Erro comum:** achar que o teste com mock prova que o provedor aceita o recurso.
+**Onde na prática:** marco 06.
+
+### Política sobre o plano
+**Em uma frase:** regras que leem o plano do Terraform em JSON e reprovam a mudança antes do apply.
+**No fin-platform:** reprova conexão sem filtro de saída, caminho único, anúncio amplo e recurso sem dono.
+**Erro comum:** escrever a regra sem uma fixture que a viole, e nunca saber se ela reprova.
+**Onde na prática:** marco 06.
+
+### Drift
+**Em uma frase:** a diferença entre o que o código declara e o que existe de fato no provedor.
+**No fin-platform:** um plan agendado acusa o filtro mudado no portal durante um incidente.
+**Erro comum:** corrigir no portal de novo, em vez de voltar por PR.
+**Onde na prática:** marco 06.

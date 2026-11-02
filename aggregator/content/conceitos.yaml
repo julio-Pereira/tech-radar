@@ -205,3 +205,19 @@
   termo: "BGP"
   dono: conectividade-multicloud/03
   apelidos: ["BGP"]
+- id: asn
+  termo: "ASN"
+  dono: conectividade-multicloud/03
+  apelidos: ["ASN"]
+- id: expressroute
+  termo: "ExpressRoute"
+  dono: conectividade-multicloud/04
+  apelidos: ["ExpressRoute"]
+- id: partner-interconnect
+  termo: "Partner Interconnect"
+  dono: conectividade-multicloud/04
+  apelidos: ["Partner Interconnect"]
+- id: fabric-cloud-router
+  termo: "Fabric Cloud Router"
+  dono: conectividade-multicloud/05
+  apelidos: ["Fabric Cloud Router", "FCR"]

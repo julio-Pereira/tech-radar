@@ -1,0 +1,28 @@
+id: cm-caminho
+tipo: topologia
+titulo: "O caminho privado do ledger-core ao score: o FCR é o único salto que roteia entre nuvens"
+descricao: >
+  O ledger-core, na VNet do fin-platform, sai pelo ExpressRoute Gateway e pelo circuito até o Fabric
+  Cloud Router, no metro de São Paulo. O FCR entrega o tráfego à perna do Google: o VLAN attachment e
+  o Cloud Router na VPC do fornecedor, onde está a API de score. Um segundo parceiro entra com mais
+  uma conexão no mesmo FCR, e o filtro por conexão impede que ele enxergue o fornecedor.
+grupos:
+  - { id: az, rotulo: "Azure (fin-platform)", col: 0, row: 0, cols: 3, rows: 1 }
+  - { id: gc, rotulo: "Google Cloud (fornecedor)", col: 0, row: 1, cols: 3, rows: 1 }
+nos:
+  - { id: ledger, rotulo: "ledger-core", grupo: az, col: 0, row: 0 }
+  - { id: ergw, rotulo: "ExpressRoute Gateway", grupo: az, col: 1, row: 0 }
+  - { id: circ, rotulo: "circuito ER", grupo: az, col: 2, row: 0 }
+  - { id: fcr, rotulo: "Fabric Cloud Router", col: 3, row: 0, papel: destaque }
+  - { id: p2, rotulo: "parceiro 2", col: 3, row: 1, papel: externo }
+  - { id: att, rotulo: "VLAN attachment", grupo: gc, col: 2, row: 1 }
+  - { id: cr, rotulo: "Cloud Router", grupo: gc, col: 1, row: 1 }
+  - { id: api, rotulo: "API de score", grupo: gc, col: 0, row: 1, papel: externo }
+arestas:
+  - { de: ledger, para: ergw }
+  - { de: ergw, para: circ }
+  - { de: circ, para: fcr, rotulo: "AS 12076" }
+  - { de: fcr, para: att, rotulo: "AS 16550" }
+  - { de: att, para: cr }
+  - { de: cr, para: api }
+  - { de: fcr, para: p2, rotulo: "filtro", estilo: tracejada }

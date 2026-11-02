@@ -1,0 +1,21 @@
+id: cm-iac
+tipo: fluxo
+titulo: "A interconexão muda por PR: teste offline e política antes de qualquer plano real"
+descricao: >
+  Toda mudança na interconexão começa num pull request. O terraform test roda com mock_provider,
+  sem credencial, e confere a ordem de dependência entre os três provedores. A política lê o plano e
+  reprova conexão sem filtro de saída, caminho único, anúncio amplo e recurso sem dono. Só depois
+  vem o plano real, revisado por um humano, e a aplicação. Qualquer reprovação volta ao PR.
+passos:
+  - { id: pr, rotulo: "pull request", col: 0, row: 0 }
+  - { id: teste, rotulo: "terraform test (mock)", col: 1, row: 0 }
+  - { id: politica, rotulo: "política sobre o plano", col: 2, row: 0, papel: destaque }
+  - { id: apply, rotulo: "plano revisado e apply", col: 3, row: 0 }
+  - { id: volta, rotulo: "reprovado: volta ao PR", col: 1, row: 1, papel: externo }
+arestas:
+  - { de: pr, para: teste }
+  - { de: teste, para: politica, rotulo: "passa" }
+  - { de: politica, para: apply, rotulo: "passa" }
+  - { de: teste, para: volta, rotulo: "falha" }
+  - { de: politica, para: volta, rotulo: "viola" }
+  - { de: volta, para: pr }
