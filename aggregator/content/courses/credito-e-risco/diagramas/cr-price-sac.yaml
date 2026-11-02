@@ -8,7 +8,7 @@ descricao: >
   mais rápido. Os juros totais são R$ 1.347,15 na Price e R$ 1.300,00 no SAC. Pontos calculados
   por tools/diagramas/curvas.py a partir da fórmula, com o exemplo do marco.
 forma: linha
-eixo_x: { rotulo: "parcela", tipo: numero }
+eixo_x: { rotulo: "parcela", tipo: numero, max: 12 }
 eixo_y: { rotulo: "valor da parcela (R$)", min: 800, max: 1100 }
 series:
   - { id: price, rotulo: "Price", pontos: [[1, 945.6], [2, 945.6], [3, 945.6], [4, 945.6], [5, 945.6], [6, 945.6], [7, 945.6], [8, 945.6], [9, 945.6], [10, 945.6], [11, 945.6], [12, 945.55]] }
