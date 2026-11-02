@@ -1,0 +1,33 @@
+questions:
+  - question: "O roteiro do game day diz: 'derrubar o primário e ver o que acontece'. Segundo este marco, o que falta para o cenário ser testável?"
+    options:
+      - "Uma hipótese escrita: o que deve acontecer, em quanto tempo e com que sinal"
+      - "Uma janela de manutenção real do provedor, porque só falha real conta"
+      - "A presença de todo o time de aplicação, para validar o resultado em produção"
+      - "Nada: ver o que acontece é exatamente o objetivo de um experimento de caos"
+    answer: 0
+    explanation: "Sem hipótese com tempo e sinal, não há como dizer se o cenário passou. Falha real não é requisito, o time inteiro não é critério, e experimento sem hipótese não é teste."
+  - question: "No game day, o cenário de failover passou sem nenhum problema. Segundo este marco, o que fazer com ele?"
+    options:
+      - "Nada: post-mortem só se escreve quando algo quebra, para não gerar documento à toa"
+      - "Escrever o post-mortem de uma página mesmo assim, registrando por que funcionou"
+      - "Repetir o cenário até ele falhar, porque um game day só termina com uma falha achada"
+      - "Retirar o cenário do roteiro, porque ele já está provado e não precisa ser repetido"
+    answer: 1
+    explanation: "Funcionou também é resultado: documentar por que protege contra a mudança que vai quebrá-lo. Forçar falha não é o objetivo, e cenário provado continua no game day periódico."
+  - question: "O game day achou dois problemas: um alerta sem runbook e um filtro de entrada que aceitaria um vazamento. Segundo este marco, como priorizar?"
+    options:
+      - "Pelo que é mais rápido de corrigir, para mostrar progresso na semana do game day"
+      - "Pela ordem em que apareceram no game day, para manter a rastreabilidade do roteiro"
+      - "Por impacto, probabilidade e facilidade de reversão: o vazamento vem antes do runbook"
+      - "Pelo dono: o que for do time de redes primeiro, o que for de outros times depois"
+    answer: 2
+    explanation: "Impacto alto e reversão lenta põem o vazamento na frente. Velocidade de correção, ordem de aparecimento e dono não medem risco."
+  - question: "O make interconnect-review mostra os testes que falharam como avisos e termina com sucesso. Segundo este marco, por que isso é um defeito?"
+    options:
+      - "Porque avisos deixam o relatório mais longo, e o relatório precisa caber numa página"
+      - "Porque o comando deveria rodar só os testes que já passaram antes, para ficar mais rápido no CI"
+      - "Porque o relatório precisa ser diferente a cada execução, para mostrar a data atual"
+      - "Porque o comando precisa falhar se qualquer prova falhar; aviso que não quebra ninguém lê"
+    answer: 3
+    explanation: "O comando é confiável porque falha de verdade, é determinístico e lista riscos com dono. Tamanho do relatório e velocidade não são o ponto, e relatório com data muda a cada execução, o que quebra o determinismo."

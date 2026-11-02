@@ -1,0 +1,46 @@
+id: cm-failover
+tipo: topologia
+titulo: "Dois caminhos independentes: o primário cai, o BFD avisa e nada sai pela internet"
+descricao: >
+  O ledger-core alcança a API de score por dois caminhos independentes: a conexão primária do
+  circuito, o FCR 1 e o attachment no domínio 1; e a conexão secundária, o FCR 2 e o attachment no
+  domínio 2. Em regime, o local preference faz o tráfego ir pelo primário. Quando o primário cai, o
+  BFD detecta em menos de um segundo, a sessão BGP cai junto e o tráfego converge para o
+  secundário, ida e volta pelo mesmo caminho. A VPN pela internet existe no desenho só para dizer
+  que o contrato a proíbe: nenhum pacote sai por ela.
+nos:
+  - { id: ledger, rotulo: "ledger-core", col: 0, row: 1 }
+  - { id: er1, rotulo: "ER primária", col: 1, row: 0 }
+  - { id: fcr1, rotulo: "FCR 1", col: 2, row: 0 }
+  - { id: att1, rotulo: "attachment dom. 1", col: 3, row: 0 }
+  - { id: inet, rotulo: "VPN pela internet", col: 1, row: 1, papel: externo }
+  - { id: api, rotulo: "API de score", col: 3, row: 1, papel: destaque }
+  - { id: er2, rotulo: "ER secundária", col: 1, row: 2 }
+  - { id: fcr2, rotulo: "FCR 2", col: 2, row: 2 }
+  - { id: att2, rotulo: "attachment dom. 2", col: 3, row: 2 }
+arestas:
+  - { de: ledger, para: er1, rotulo: "preferido" }
+  - { de: er1, para: fcr1 }
+  - { de: fcr1, para: att1 }
+  - { de: att1, para: api }
+  - { de: ledger, para: er2 }
+  - { de: er2, para: fcr2 }
+  - { de: fcr2, para: att2 }
+  - { de: att2, para: api }
+  - { de: ledger, para: inet, rotulo: "proibida", estilo: tracejada }
+animacao:
+  - legenda: "Em regime, o tráfego vai pelo primário; o secundário está pronto, sem uso"
+    fluxos: [ { de: ledger, para: er1 }, { de: er1, para: fcr1 }, { de: fcr1, para: att1 }, { de: att1, para: api } ]
+  - legenda: "O link primário cai; sem BFD, o BGP levaria dezenas de segundos para notar"
+    estados: { er1: falha }
+    fluxos: [ { de: ledger, para: er1 } ]
+    anotacao: "pacotes perdidos até a detecção"
+  - legenda: "O BFD detecta em menos de um segundo e derruba a sessão do primário"
+    estados: { er1: falha, fcr1: inativo, att1: inativo }
+    anotacao: "detecção abaixo do alvo declarado"
+  - legenda: "O BGP converge: ida e volta pelo secundário, sem assimetria"
+    estados: { er1: falha, fcr1: inativo, att1: inativo, er2: ativo, fcr2: ativo, att2: ativo }
+    fluxos: [ { de: ledger, para: er2 }, { de: er2, para: fcr2 }, { de: fcr2, para: att2 }, { de: att2, para: api } ]
+  - legenda: "Durante toda a falha, nenhum pacote saiu pela internet"
+    estados: { er1: falha, fcr1: inativo, att1: inativo, er2: ativo, fcr2: ativo, att2: ativo, inet: removido }
+    fluxos: [ { de: ledger, para: er2 }, { de: er2, para: fcr2 }, { de: fcr2, para: att2 }, { de: att2, para: api } ]

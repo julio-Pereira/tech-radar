@@ -1,0 +1,20 @@
+id: cm-custo
+tipo: grafico
+titulo: "Custo fixo alto, marginal baixo: a VPN ganha até 45 TB por mês, e o FCR depois disso"
+descricao: >
+  Com preços fictícios, declarados como tais, a VPN custa 150 por mês mais 50 por TB, o caminho pelo
+  FCR custa 1.500 mais 20 por TB, e o Cross-Cloud Interconnect custa 2.400 mais 10 por TB. Até 45
+  TB por mês, a VPN é a mais barata; dali em diante, o FCR. Acima de 90 TB, o Cross-Cloud
+  Interconnect passaria o FCR, se servisse ao caso, mas ele não liga uma VPC de outra empresa. O
+  ponto de equilíbrio muda com cada parâmetro, e por isso o modelo tem análise de sensibilidade.
+forma: linha
+eixo_x: { rotulo: "volume (TB/mês)", tipo: numero, min: 0, max: 100 }
+eixo_y: { rotulo: "custo mensal (fictício)", min: 0, max: 6000 }
+series:
+  - { id: vpn, rotulo: "VPN", pontos: [[0, 150], [10, 650], [20, 1150], [30, 1650], [40, 2150], [50, 2650], [60, 3150], [70, 3650], [80, 4150], [90, 4650], [100, 5150]] }
+  - { id: fcr, rotulo: "FCR", pontos: [[0, 1500], [10, 1700], [20, 1900], [30, 2100], [40, 2300], [50, 2500], [60, 2700], [70, 2900], [80, 3100], [90, 3300], [100, 3500]] }
+  - { id: cci, rotulo: "Cross-Cloud Interconnect", pontos: [[0, 2400], [10, 2500], [20, 2600], [30, 2700], [40, 2800], [50, 2900], [60, 3000], [70, 3100], [80, 3200], [90, 3300], [100, 3400]] }
+anotacoes:
+  - { tipo: linha-x, valor: 45, rotulo: "VPN = FCR", papel: destaque }
+  - { tipo: linha-x, valor: 90, rotulo: "FCR = CCI" }
+fonte: "dados ilustrativos"

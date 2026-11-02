@@ -1,0 +1,23 @@
+id: cm-game-day
+tipo: fluxo
+titulo: "Game day: hipótese, falha provocada, sinal, post-mortem e ajuste, mesmo sem quebra"
+descricao: >
+  Cada cenário do game day começa com uma hipótese escrita: o que deve acontecer e em quanto tempo.
+  A falha é provocada de propósito, e o time observa o sinal. Se o sinal sai do limite combinado, o
+  experimento é abortado e o caminho restaurado. Nos dois casos há um post-mortem de uma página, sem
+  culpa, e um ajuste com dono e prazo, que vira a hipótese do próximo game day.
+passos:
+  - { id: hipotese, rotulo: "hipótese escrita", col: 0, row: 0 }
+  - { id: provoca, rotulo: "falha provocada", col: 1, row: 0 }
+  - { id: sinal, rotulo: "sinal no limite?", col: 2, row: 0, papel: destaque }
+  - { id: aborta, rotulo: "aborta e restaura", col: 3, row: 0, papel: externo }
+  - { id: pm, rotulo: "post-mortem", col: 1, row: 1 }
+  - { id: ajuste, rotulo: "ajuste com dono", col: 0, row: 1 }
+arestas:
+  - { de: hipotese, para: provoca }
+  - { de: provoca, para: sinal }
+  - { de: sinal, para: aborta, rotulo: "não" }
+  - { de: sinal, para: pm, rotulo: "sim" }
+  - { de: aborta, para: pm }
+  - { de: pm, para: ajuste }
+  - { de: ajuste, para: hipotese }

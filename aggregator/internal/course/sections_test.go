@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 203, "desafio": 245, "invariantes": 242, "complemento": 227, "checagem": 244, "gabarito": 5,
+		"tutorial": 207, "desafio": 249, "invariantes": 246, "complemento": 231, "checagem": 248, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -423,12 +423,6 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	}
 
 	wantNoSection := []string{
-		// conectividade-multicloud is written block by block: these are
-		// placeholder bodies until their block's content PR.
-		"conectividade-multicloud/custo-e-capacidade-de-interconexao",
-		"conectividade-multicloud/game-day-e-revisao-da-interconexao",
-		"conectividade-multicloud/ha-e-failover-de-interconexao",
-		"conectividade-multicloud/observabilidade-da-interconexao",
 		"go-fintech/java-vs-go",
 	}
 	if !equalStrings(noSection, wantNoSection) {
