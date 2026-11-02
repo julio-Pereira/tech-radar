@@ -1,0 +1,47 @@
+slug: conectividade-multicloud
+title: "Conectividade Multicloud e com Fornecedores: Interconexão Privada com Equinix Fabric Cloud Router"
+subtitle: "De Azure a GCP sem passar pela internet: endereçamento, BGP, ExpressRoute, Partner Interconnect e FCR — com criptografia, anúncio mínimo, failover testado e o fornecedor como parte com contrato."
+category: "Infraestrutura"
+tags: [multicloud, interconexao, equinix-fabric, fabric-cloud-router, expressroute, partner-interconnect, bgp, ipsec, terraform, fornecedores, alta-disponibilidade, fintech]
+level: advanced
+lang: pt-BR
+# 13 marcos, 825 min. A regra é ~2x a soma dos estimatedMinutes: 825 x 2 / 60 = 27,5 -> 28.
+estimatedHours: 28
+glossary: GLOSSARIO.md
+sources:
+  - { title: "Equinix Fabric Cloud Router — documentação", url: https://docs.equinix.com/fabric-cloud-router }
+  - { title: "Equinix Fabric — Terraform guide (cloud providers)", url: https://docs.equinix.com/terraform/guides/equinix_fabric_cloud_providers }
+  - { title: "Terraform provider equinix", url: https://registry.terraform.io/providers/equinix/equinix/latest/docs }
+  - { title: "Azure ExpressRoute — documentação", url: https://learn.microsoft.com/azure/expressroute/ }
+  - { title: "Google Cloud Partner Interconnect — documentação", url: https://docs.cloud.google.com/network-connectivity/docs/interconnect/concepts/partner-overview }
+  - { title: "Google Cloud — HA VPN over Cloud Interconnect", url: https://docs.cloud.google.com/network-connectivity/docs/interconnect/concepts/ha-vpn-interconnect }
+  - { title: "Google Cloud — Cross-Cloud Interconnect", url: https://docs.cloud.google.com/network-connectivity/docs/interconnect/concepts/cci-overview }
+  - { title: "RFC 4271 — BGP-4", url: https://www.rfc-editor.org/rfc/rfc4271 }
+  - { title: "RFC 6996 — ASNs privados", url: https://www.rfc-editor.org/rfc/rfc6996 }
+  - { title: "RFC 1918 — endereçamento privado", url: https://www.rfc-editor.org/rfc/rfc1918 }
+  - { title: "RFC 5880 — BFD", url: https://www.rfc-editor.org/rfc/rfc5880 }
+  - { title: "MANRS — boas práticas de roteamento", url: https://www.manrs.org/ }
+  - { title: "containerlab", url: https://containerlab.dev/ }
+  - { title: "FRRouting — documentação", url: https://docs.frrouting.org/ }
+  - { title: "strongSwan — documentação", url: https://docs.strongswan.org/ }
+  - { title: "Terraform — testes com mock providers", url: https://developer.hashicorp.com/terraform/language/tests/mocking }
+  - { title: "Banco Central do Brasil — normas (nuvem, terceiros, segurança cibernética)", url: https://www.bcb.gov.br/estabilidadefinanceira/buscanormas }
+milestones:
+  # Bloco A — Fundamentos que a nuvem esconde
+  - 01-por-que-interconectar.md
+  - 02-enderecamento-e-sobreposicao.md
+  - 03-bgp-para-quem-constroi-aplicacao.md
+  # Bloco B — As peças e como montá-las
+  - 04-on-ramps-expressroute-e-partner-interconnect.md
+  - 05-fabric-cloud-router.md
+  - 06-interconexao-como-codigo.md
+  # Bloco C — Segurança
+  - 07-criptografia-sobre-link-privado.md
+  - 08-segmentacao-e-anuncio-minimo.md
+  # Bloco D — O fornecedor
+  - 09-conectividade-com-fornecedores.md
+  # Bloco E — Operar e fechar
+  - 10-alta-disponibilidade-e-failover.md
+  - 11-observabilidade-da-interconexao.md
+  - 12-custo-e-capacidade.md
+  - 13-game-day-e-revisao-da-interconexao.md
