@@ -1,8 +1,5 @@
 # `fin-interconnect` — projeto guia da trilha `conectividade-multicloud`
 
-> **Stub.** Os marcos desta trilha ainda são placeholders; o conteúdo chega bloco a bloco. Este
-> `PROJETO.md` já traz a especificação do projeto e o que a Fase 0 conferiu.
-
 `fin-interconnect` é a **interconexão privada do `fin-platform`**: liga o `fin-platform` (Azure) ao
 `FornecedorScore` (GCP) por um caminho privado via Equinix Fabric Cloud Router (FCR) — num
 laboratório local que se comporta como a topologia real, mais a infraestrutura como código real

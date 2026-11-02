@@ -1,0 +1,33 @@
+questions:
+  - question: "Com um só parceiro e 20 TB por mês, o modelo diz que a VPN custa menos que o FCR. Segundo este marco, por que isso pode mudar no ano seguinte?"
+    options:
+      - "Porque o preço da VPN dobra a cada ano por contrato, e o do FCR fica congelado"
+      - "Porque o FCR fica mais barato com o tempo, à medida que a Equinix amortiza o pacote contratado"
+      - "Porque a VPN tem limite de 20 TB por mês, e acima disso não aceita mais tráfego"
+      - "Porque o FCR tem fixo alto e marginal baixo: com mais volume e parceiros, o fixo se dilui"
+    answer: 3
+    explanation: "O ponto de equilíbrio depende do volume e do número de parceiros que dividem o fixo. Os preços não seguem essas regras ditas nas outras opções, e a VPN não tem limite de volume desse tipo."
+  - question: "No modelo de custo da interconexão, uma linha cresce quase proporcionalmente ao volume. Segundo este marco, qual é ela, e por que vigiá-la?"
+    options:
+      - "O pacote do FCR, que é cobrado por gigabyte trafegado entre as conexões"
+      - "O gateway do ExpressRoute, que é cobrado por gigabyte que atravessa a VNet"
+      - "A saída de dados de cada nuvem, que cresce com o volume e tem tarifa própria"
+      - "A conexão do Fabric, cobrada por gigabyte, sem relação com a banda contratada"
+    answer: 2
+    explanation: "A saída de dados é a linha que cresce com o volume, com tarifa própria por interconexão (conferir). O pacote é fixo, o gateway é por hora e a conexão é cobrada pela banda contratada."
+  - question: "O tráfego da interconexão tem rajadas curtas três vezes acima da média, alguns minutos por dia. Segundo este marco, por que usar o 95º percentil para planejar capacidade?"
+    options:
+      - "Porque ele é sempre igual à média, e a média é mais fácil de explicar ao financeiro"
+      - "Porque ele descarta os 5% de amostras mais altas: ignora picos curtos, não o uso sustentado"
+      - "Porque ele mede só os picos, que são o que o pacote do FCR limita na prática"
+      - "Porque é a única métrica de banda que as nuvens publicam nos seus painéis"
+    answer: 1
+    explanation: "O 95º percentil descarta os 5% mais altos e olha o maior valor restante: não é a média, nem só o pico. É a medida usual de uso sustentado e, em alguns provedores, de cobrança."
+  - question: "A análise de sensibilidade mostra que, com 20% a mais de volume, a escolha entre VPN e FCR se inverte. Segundo este marco, o que isso quer dizer?"
+    options:
+      - "Que a decisão está no fio da navalha e precisa de revisão periódica com o volume real"
+      - "Que o modelo está errado, porque uma decisão boa nunca depende do volume previsto"
+      - "Que se deve escolher sempre a opção mais cara, para ter folga no crescimento"
+      - "Que a análise deve ser descartada e substituída pelo preço de tabela do fornecedor"
+    answer: 0
+    explanation: "Sensibilidade diz se a decisão está firme: se 20% invertem a escolha, ela precisa de revisão. Isso não invalida o modelo nem manda escolher a mais cara; mostra onde está o risco."

@@ -1,0 +1,19 @@
+id: cm-p99
+tipo: grafico
+titulo: "O p99 do score subiu às duas da manhã e não voltou: o tráfego ficou no caminho secundário"
+descricao: >
+  O p99 da chamada de score fica em torno de 15 ms enquanto o tráfego usa o caminho primário, com o
+  FCR no mesmo metro das duas regiões. Às duas da manhã, a manutenção programada do provedor
+  derruba o primário, e o failover leva o tráfego para o secundário, em outro metro, onde o p99
+  sobe para cerca de 90 ms, acima do orçamento de 40 ms. A manutenção termina, mas o tráfego não
+  volta sozinho. Sem um painel que mostre o caminho ativo ao lado da latência, o alerta de manhã
+  aponta para o fornecedor. Dados ilustrativos.
+forma: linha
+eixo_x: { rotulo: "hora da madrugada", tipo: numero, min: 0, max: 8 }
+eixo_y: { rotulo: "p99 do score (ms)", min: 0, max: 100 }
+series:
+  - { id: p99, rotulo: "p99 (ms)", pontos: [[0, 15], [0.5, 16], [1, 15], [1.5, 14], [2, 90], [2.5, 92], [3, 89], [3.5, 91], [4, 88], [4.5, 90], [5, 93], [5.5, 89], [6, 91], [6.5, 90], [7, 88], [7.5, 92], [8, 90]] }
+anotacoes:
+  - { tipo: linha-y, valor: 40, rotulo: "orçamento: 40 ms", papel: destaque }
+  - { tipo: faixa-x, de: 2, ate: 8, rotulo: "caminho secundário" }
+fonte: "dados ilustrativos"

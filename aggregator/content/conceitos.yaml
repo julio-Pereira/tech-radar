@@ -230,3 +230,7 @@
   dono: conectividade-multicloud/08
   apelidos: ["anúncio mínimo"]
   ignorarCaixa: true
+- id: sla-composto
+  termo: "SLA composto"
+  dono: conectividade-multicloud/10
+  apelidos: ["SLA composto"]

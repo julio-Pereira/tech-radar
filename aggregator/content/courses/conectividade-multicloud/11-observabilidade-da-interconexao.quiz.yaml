@@ -1,0 +1,33 @@
+questions:
+  - question: "A sessão BGP com o fornecedor está em Established, mas o antifraude reporta timeouts. Segundo este marco, por que a sessão sozinha não basta como SLI?"
+    options:
+      - "Porque a sessão BGP só existe no FCR, e o SLI precisa ser medido dentro da nuvem"
+      - "Porque a sessão pode estar de pé com o caminho perdendo pacotes; a sonda mede o que a aplicação vê"
+      - "Porque o estado Established é instável e muda a cada keepalive, o que gera falso alerta"
+      - "Porque SLI só pode ser medido sobre tráfego real, e a sessão BGP não carrega tráfego"
+    answer: 1
+    explanation: "Sessão de pé não garante caminho bom; o SLI de conectividade vem de sonda ativa pelo caminho, e a sessão é auxiliar. O SLI não precisa de tráfego real, e Established não muda a cada keepalive."
+  - question: "O fornecedor anunciava dois prefixos e, numa terça, passou a anunciar trinta, ainda abaixo do max-prefix. Segundo este marco, o que isso deveria disparar?"
+    options:
+      - "Nada, enquanto o max-prefix não for atingido a sessão está saudável e não há o que olhar"
+      - "A queda imediata da sessão, porque qualquer prefixo novo é tratado como vazamento"
+      - "Uma ampliação automática do max-prefix, para não derrubar a sessão no próximo anúncio"
+      - "Um alerta de variação de prefixos recebidos, porque o vizinho mudou o que anuncia"
+    answer: 3
+    explanation: "A variação de prefixos é o sinal mais barato de vazamento: deve alertar antes de o max-prefix derrubar a sessão. Ignorar, derrubar sem análise ou ampliar o limite automaticamente são respostas erradas."
+  - question: "O p99 do score subiu de 15 para 90 ms e o time de aplicação culpa o fornecedor. Segundo este marco, qual é o primeiro sinal a olhar?"
+    options:
+      - "A sonda pelo caminho privado e o caminho ativo, para separar rede de fornecedor"
+      - "O código do ledger-core, porque timeouts quase sempre nascem no cliente da API"
+      - "O contrato com o fornecedor, para saber se o SLA do serviço de score foi violado"
+      - "Os registros de fluxo do mês anterior, para comparar com o volume de hoje"
+    answer: 0
+    explanation: "O caminho de investigação começa pela sonda e pelo caminho ativo: no exemplo, o tráfego estava no secundário desde a manutenção. Código, contrato e histórico vêm depois, se a rede estiver boa."
+  - question: "A auditoria pergunta se o fornecedor acessou só os destinos combinados no último trimestre. Segundo este marco, de onde vem a evidência, e qual é o custo dela?"
+    options:
+      - "Do estado da sessão BGP, que registra cada conexão aberta pelo fornecedor, sem custo extra"
+      - "Do painel de latência, que mostra cada chamada do fornecedor com destino e porta"
+      - "Dos registros de fluxo de cada nuvem, com custo de volume e retenção a decidir"
+      - "Do contrato mínimo, que já lista os destinos e dispensa evidência de tráfego"
+    answer: 2
+    explanation: "Registros de fluxo dizem quem falou com quem, quando e quanto; servem à auditoria e custam volume e retenção. BGP e latência não registram conexões, e o contrato diz o permitido, não o acontecido."

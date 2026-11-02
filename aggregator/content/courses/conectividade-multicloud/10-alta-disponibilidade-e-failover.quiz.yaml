@@ -1,0 +1,49 @@
+questions:
+  - question: "O fin-platform tem duas conexões até o fornecedor, ambas ligadas ao mesmo FCR. Segundo este marco, que falha esse desenho não cobre?"
+    options:
+      - "A queda de um dos dois links físicos, porque o FCR não consegue trocar de conexão sozinho"
+      - "Nenhuma: duas conexões já são redundância completa, qualquer que seja o caminho"
+      - "A queda do FCR ou do metro, porque os dois caminhos compartilham esse domínio de falha"
+      - "A queda do ledger-core, porque a redundância de rede depende da aplicação"
+    answer: 2
+    explanation: "Redundância é não compartilhar o domínio de falha a cobrir; com um FCR só, ele e o metro derrubam os dois caminhos. Um link caído é coberto pela outra conexão, e a aplicação é outro assunto."
+  - question: "O failover do fin-platform leva 90 segundos entre a queda do link e o tráfego no secundário. Segundo este marco, o que mais encurta esse tempo?"
+    options:
+      - "O BFD, que detecta a queda em frações de segundo e derruba a sessão BGP junto"
+      - "Aumentar o hold timer do BGP, para que a sessão espere mais antes de cair"
+      - "Trocar o pacote do FCR por um maior, com mais banda nas duas conexões"
+      - "Desligar o prepend no secundário, para que ele já carregue parte do tráfego normal"
+    answer: 0
+    explanation: "A demora está na detecção: o hold timer padrão leva dezenas de segundos, e o BFD detecta em frações. Hold timer maior piora, banda não muda a detecção, e mexer no prepend cria assimetria."
+  - question: "O time quer usar os dois caminhos em ativo/ativo com ECMP, cada um com o próprio firewall com estado. Segundo este marco, qual é o risco?"
+    options:
+      - "Nenhum: o ECMP sempre manda ida e volta pelo mesmo caminho, por definição do próprio protocolo"
+      - "O ECMP desliga o BFD, e a detecção de falha volta a depender só do hold timer"
+      - "O FCR não aceita ECMP com mais de uma conexão para o mesmo destino na nuvem"
+      - "A volta de uma conexão pode ir pelo outro caminho, e o firewall descarta o que não viu abrir"
+    answer: 3
+    explanation: "Com ECMP a ida e a volta podem divergir; o firewall com estado descarta a resposta de uma conexão que não viu. Ativo/ativo exige estado compartilhado ou hashing simétrico; primário/secundário é o seguro."
+  - question: "No teste de failover, o tráfego de ida passa para o secundário, mas a volta continua tentando o primário. Segundo este marco, qual é a causa provável?"
+    options:
+      - "O BFD está ligado só no primário, então o secundário nunca recebe tráfego de volta"
+      - "O prepend ou a preferência foi configurado só de um lado, e os dois sentidos divergem"
+      - "O pacote do FCR limita o tráfego de volta a metade da banda da conexão de ida"
+      - "O certificado do mTLS do fornecedor expirou durante a troca de caminho no failover"
+    answer: 1
+    explanation: "Assimetria aparece quando um lado converge e o outro não, tipicamente por prepend ou preferência de um lado só. BFD, pacote e certificado não explicam a volta pelo caminho errado."
+  - question: "Dois caminhos independentes, cada um com 99,84% de disponibilidade, ficam em paralelo. Segundo este marco, o que vale para o SLA composto do par?"
+    options:
+      - "Fica em 99,84%, porque o par nunca consegue ser melhor que o caminho individual mais fraco"
+      - "Fica na média dos dois caminhos, 99,84%, porque eles têm a mesma disponibilidade"
+      - "Cai para cerca de 99,68%, porque dois caminhos somam as indisponibilidades"
+      - "Passa de 99,99%, se os caminhos forem de fato independentes, sem domínio de falha comum"
+    answer: 3
+    explanation: "Em paralelo, o par só cai se os dois caírem juntos: a indisponibilidade é o produto, cerca de 0,0003%. Mas só se os caminhos forem independentes. O limite da peça mais fraca vale para série, não paralelo."
+  - question: "Alguém propõe uma VPN pela internet como backup automático do caminho privado. O contrato do FornecedorScore exige que o tráfego não passe pela internet. Segundo este marco, o que fazer?"
+    options:
+      - "Ligar a VPN sem avisar: backup é sempre melhor que indisponibilidade, e o contrato é só comercial"
+      - "Decidir explicitamente: rever o contrato ou proibir e provar que nenhum pacote sai pela internet"
+      - "Ligar a VPN só durante as janelas de manutenção do provedor, que o contrato não cobre"
+      - "Trocar o caminho privado pela VPN, que já cumpre o contrato por ser cifrada de ponta a ponta"
+    answer: 1
+    explanation: "A VPN de backup viola o contrato no pior momento; a decisão precisa ser explícita, com contrato revisto ou com a proibição provada. Manutenção não é exceção, e cifrado não é privado."

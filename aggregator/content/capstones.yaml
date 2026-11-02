@@ -133,3 +133,9 @@
   depends_on: [fin-books, fin-rails, pix-gateway]
   artifacts:
     - { path: "fin-opengate/", check: exists }
+
+- track: conectividade-multicloud
+  component: fin-interconnect
+  depends_on: [ledger-core, fin-landscape, fin-pipeline]
+  artifacts:
+    - { path: "fin-interconnect/", check: exists }

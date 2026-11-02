@@ -374,3 +374,65 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 **No fin-platform:** o FornecedorScore processa CPF e entra no inventário de terceiros.
 **Erro comum:** tratar a certificação do fornecedor como substituta da sua avaliação.
 **Onde na prática:** marco 09.
+
+## Operação
+
+### Domínio de falha
+**Em uma frase:** tudo o que, ao falhar, derruba mais de um caminho de uma vez: link, porta, roteador, FCR, metro, provedor.
+**No fin-platform:** os dois caminhos usam FCRs diferentes para não compartilhar o roteador.
+**Erro comum:** chamar de redundante dois links que passam pelo mesmo FCR.
+**Onde na prática:** marco 10.
+
+### Alvo de convergência
+**Em uma frase:** o tempo máximo declarado entre a queda de um caminho e o tráfego estável no outro.
+**No fin-platform:** medido por sonda contínua no game day de failover.
+**Erro comum:** nunca medir e descobrir o número real no primeiro incidente.
+**Onde na prática:** marco 10.
+
+### ECMP
+**Em uma frase:** múltiplos caminhos de custo igual, com o tráfego dividido entre eles.
+**No fin-platform:** descartado no desenho inicial por causa dos firewalls com estado.
+**Erro comum:** usar ECMP com firewalls que não compartilham estado e quebrar a volta.
+**Onde na prática:** marco 10.
+
+### SLA composto
+**Em uma frase:** a disponibilidade de um caminho calculada das peças: produto em série, complemento do produto das falhas em paralelo.
+**No fin-platform:** o caminho em série fica abaixo da peça mais fraca; os dois caminhos em paralelo passam de 99,99%.
+**Erro comum:** somar caminhos em paralelo que compartilham o metro como se fossem independentes.
+**Onde na prática:** marcos 09 e 10.
+
+### Sonda ativa
+**Em uma frase:** uma chamada sintética contínua pelo caminho, que mede alcance e latência mesmo sem tráfego real.
+**No fin-platform:** a fonte do SLI de conectividade do ledger-core até a API de score.
+**Erro comum:** medir só o tráfego real, que de madrugada é pouco demais.
+**Onde na prática:** marco 11.
+
+### SLI de conectividade
+**Em uma frase:** a fração do tempo em que o destino é alcançável pelo caminho privado dentro do orçamento de latência.
+**No fin-platform:** calculado da sonda, com SLO e orçamento de erro.
+**Erro comum:** usar o estado da sessão BGP como único sinal.
+**Onde na prática:** marco 11.
+
+### 95º percentil
+**Em uma frase:** o maior valor que sobra depois de descartar os 5% de amostras mais altas de um período.
+**No fin-platform:** comparado com a banda contratada para planejar capacidade.
+**Erro comum:** planejar pela média, que esconde o uso sustentado alto.
+**Onde na prática:** marco 12.
+
+### Ponto de equilíbrio
+**Em uma frase:** o volume em que duas opções de custo fixo e marginal diferentes custam o mesmo.
+**No fin-platform:** a VPN empata com o FCR em 45 TB por mês no modelo fictício.
+**Erro comum:** decidir por um ponto só, sem análise de sensibilidade.
+**Onde na prática:** marco 12.
+
+### Showback
+**Em uma frase:** a atribuição do custo compartilhado a cada parceiro ou time, sem cobrança efetiva.
+**No fin-platform:** o fixo do FCR dividido entre os parceiros, e a soma fechando com o total.
+**Erro comum:** deixar o custo da interconexão sem dono, até ninguém saber quando desligar.
+**Onde na prática:** marco 12.
+
+### Game day
+**Em uma frase:** um exercício em que se provoca uma falha de propósito, com hipótese, sinal e post-mortem.
+**No fin-platform:** os sete cenários da interconexão, rodados no laboratório.
+**Erro comum:** rodar sem hipótese escrita e chamar qualquer resultado de sucesso.
+**Onde na prática:** marco 13.
