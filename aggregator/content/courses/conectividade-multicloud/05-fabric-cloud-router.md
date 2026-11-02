@@ -53,16 +53,26 @@ nomenclatura na API vigente). Em cada conexão você configura o roteamento:
 - **BGP**: a sessão com o vizinho do outro lado, com ASN, autenticação MD5 e o limite de rotas
   recebidas. Estourou o limite, o FCR reseta a sessão por 5 minutos antes de tentar de novo;
 - **filtros de rota** de entrada e de saída, ligados à conexão, e políticas de agregação;
-- *AS-path prepend* e *AS override*, para influenciar o caminho do outro lado.
+- *AS-path prepend*, para influenciar o caminho do outro lado;
+- *AS override*, que substitui o ASN do vizinho no AS path anunciado, para que sites com o mesmo
+  ASN aceitem as rotas um do outro. Serve para evitar o descarte por laço, não para preferência de
+  caminho.
 
 É o marco 03 aplicado peça a peça: cada conexão é uma sessão eBGP, e cada uma precisa do próprio
 filtro de entrada, filtro de saída e limite de prefixos.
 
 ## Filtro por conexão: o que o FCR aprende não é o que ele anuncia
 
-Por padrão, um roteador anuncia a cada vizinho o que aprendeu dos outros. Num FCR com o Azure, o
-Google e um segundo parceiro, isso significa que o parceiro novo aprende a rota do fornecedor de
-score — e o fornecedor aprende a do parceiro. Nenhum dos dois devia enxergar o outro.
+Sem filtro de saída, um roteador BGP anuncia a cada vizinho o que aprendeu dos outros — é para isso
+que o FCR existe, e é o que faz o Azure enxergar o Google (**conferir** o padrão de anúncio do FCR
+por conexão). Num FCR com o Azure, o Google e um segundo parceiro, isso significa que o parceiro novo
+aprende a rota do fornecedor de score — e o fornecedor aprende a do parceiro. Nenhum dos dois devia
+enxergar o outro.
+
+O laboratório tem uma armadilha aqui: o FRR segue o RFC 8212 e, em eBGP, não anuncia nada sem
+política. Um teste de "o parceiro não enxerga o fornecedor" passaria mesmo sem filtro nenhum. Por
+isso o teste negativo começa provando o vazamento com uma política permissiva, e só então aplica o
+filtro.
 
 O **filtro de saída por conexão** é o que impede: para a conexão do parceiro, anuncie só as faixas
 do `fin-platform` que ele precisa; para a do fornecedor, idem. O FCR passa a ser um ponto central
@@ -93,7 +103,7 @@ duas regiões, não pelo nome.
 O FCR roteia. Se você precisa de uma função que ele não oferece — NAT para a colisão do marco 02,
 firewall com estado, um túnel IPsec terminado no meio do caminho —, a resposta usual da Equinix é o
 **Network Edge**: appliances virtuais de fabricantes de rede rodando no Fabric (**conferir** quais
-funções o FCR oferece hoje e quais exigem appliance; a Fase 0 não confirmou). Um appliance é mais
+funções o FCR oferece hoje e quais exigem appliance; a documentação consultada não confirmou). Um appliance é mais
 uma peça para operar, com licença e atualização. Use quando a função for necessária, não por
 hábito.
 
@@ -153,7 +163,8 @@ para que ele alcance só o `fin-platform`.
    saltos, não só sobre a resposta).
 2. Desligar a conexão do `fcr` com o `gcp-edge` torna o fornecedor **inalcançável**: não existe
    outro caminho.
-3. O parceiro novo **não** enxerga o fornecedor: nem rota na tabela, nem resposta a ping.
+3. Com uma política de saída permissiva, o parceiro novo **enxerga** o fornecedor (o teste prova
+   o vazamento); com o filtro por conexão, **não** enxerga: nem rota na tabela, nem resposta a ping.
 4. Os prefixos na tabela do `fcr` são a união dos permitidos por conexão, nada além.
 5. A configuração do `fcr` é gerada do `topologia.yaml`: o teste regera e compara, e falha se alguém
    editou à mão.

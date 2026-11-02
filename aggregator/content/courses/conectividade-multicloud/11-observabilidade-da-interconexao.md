@@ -93,8 +93,8 @@ precisa ser acionado junto. Um alerta sem runbook acorda alguém que não sabe o
 Às 9h, o p99 do score está em 90 ms, e o time de aplicação abre chamado contra o fornecedor. O
 painel da interconexão mostra outra história: o tráfego está no caminho secundário desde as 2h,
 quando a manutenção da Equinix derrubou o primário. A manutenção terminou às 4h, a sessão do
-primário voltou, mas o tráfego não voltou — o *local preference* do primário tinha sido zerado numa
-mudança antiga e ninguém percebeu, porque o primário sempre esteve de pé. O alerta "tráfego no
+primário voltou, mas o tráfego não voltou — o FCR 1 continuava anunciando com o *prepend* usado para
+drenar o tráfego antes da manutenção, e ninguém o retirou. O alerta "tráfego no
 secundário fora de falha declarada" teria disparado às 4h.
 
 ## Hands-on

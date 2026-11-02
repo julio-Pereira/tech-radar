@@ -85,8 +85,8 @@ valores suportados — **conferir**) e as **rotas anunciadas** pelo Cloud Router
 anuncia as sub-redes da VPC, e o anúncio customizado é como você limita o que sai.
 
 A disponibilidade de 99,9% pede attachments nos dois edge availability domains de um metro; a de
-99,99% envolve mais de uma região (**conferir** a topologia exata, que a Fase 0 não confirmou em
-detalhe).
+99,99% envolve mais de uma região (**conferir** a topologia exata, que a documentação consultada
+não detalhou).
 
 ## Quem é dono de cada passo
 

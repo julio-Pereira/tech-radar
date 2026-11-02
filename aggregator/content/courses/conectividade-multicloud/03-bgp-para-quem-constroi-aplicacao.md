@@ -32,7 +32,7 @@ trilha não precisa). Dois roteadores abrem uma **sessão** sobre TCP na porta 1
 estados até `Established`: só ali trocam rotas. Depois, mandam **keepalives** periódicos; se o
 **hold timer** expira sem notícia do vizinho, a sessão cai e todas as rotas aprendidas dele somem de
 uma vez. Saber ler o estado da sessão é o primeiro passo de qualquer incidente de interconexão:
-"a sessão está em `Active`" quer dizer que nem o TCP fechou.
+"a sessão está em `Active`" quer dizer que nem o TCP se estabeleceu.
 
 ```diagrama
 cm-bgp-sessao
@@ -47,17 +47,21 @@ anúncio que parou, um filtro que mudou ou uma sessão que caiu.
 
 ## Seleção de melhor caminho, no que importa aqui
 
-Quando o mesmo destino chega por mais de um caminho, o BGP escolhe um, numa ordem de critérios. Para
-interconexão, quatro bastam:
+Antes de qualquer critério do BGP, vale uma regra do encaminhamento: o pacote segue a rota de
+**prefixo mais específico** (*longest match*). Um /24 e um /16 que o contém são rotas diferentes, as
+duas ficam na tabela, e o /24 ganha para os endereços dele, qualquer que seja o atributo do /16. É
+também o mecanismo do vazamento mais perigoso.
 
-- **Prefixo mais específico** vence sempre, antes de qualquer atributo: um /24 ganha de um /16
-  que o contém. É também o mecanismo do vazamento mais perigoso.
+A **seleção de melhor caminho** só compara caminhos para o **mesmo** prefixo, numa ordem de
+critérios. Para interconexão, três bastam:
+
 - **Local preference** (maior vence) é a preferência que você declara para a saída; é a forma
   normal de dizer "este é o primário".
 - **AS path** (mais curto vence). O **prepend** repete o próprio ASN no anúncio para alongar o
   caminho e tornar uma rota menos preferida *do outro lado* — é como você sugere ao vizinho qual
   caminho usar para chegar até você.
-- **MED** é uma dica entre dois vizinhos sobre por onde entrar, com peso menor.
+- **MED** é uma dica de um vizinho sobre por onde entrar na rede dele; vem depois do AS path e, por
+  padrão, só é comparado entre caminhos que vêm do mesmo AS vizinho.
 
 ## Filtros, nos dois sentidos
 
@@ -71,20 +75,21 @@ filtro de saída é a sua rede corporativa inteira à disposição do vizinho.
 
 O **`max-prefix`** limita quantos prefixos um vizinho pode anunciar. Passou do limite, a sessão cai
 — uma queda deliberada, preferível a aceitar milhares de rotas de um vizinho com defeito. No FCR,
-por exemplo, estourar o limite reseta a sessão por alguns minutos antes de ela voltar (**conferir**
-o comportamento de cada peça).
+por exemplo, estourar o limite reseta a sessão por 5 minutos antes de ela voltar (**conferir** o
+comportamento de cada peça).
 
 ## Autenticação da sessão
 
 Uma sessão BGP aceita qualquer roteador que fale o protocolo no endereço certo, a menos que haja
-autenticação: a senha **MD5** na sessão TCP (ou o TCP-AO, mais moderno) e o **GTSM**, que exige que
-os pacotes cheguem com TTL máximo, ou seja, de um vizinho diretamente ligado. O suporte varia por
-peça (**conferir**); o FCR, por exemplo, aceita MD5.
+autenticação: a senha **MD5** na sessão TCP (ou o TCP-AO, mais moderno), em toda sessão. O **GTSM**,
+que exige que os pacotes cheguem com TTL máximo (ou seja, de um vizinho diretamente ligado), é uma
+proteção adicional, não autenticação: só restringe o ataque a quem está no mesmo enlace. O suporte
+varia por peça (**conferir**); o FCR, por exemplo, aceita MD5.
 
 ## BFD e *graceful restart*
 
-Com os temporizadores padrão, uma sessão pode levar dezenas de segundos para perceber que o vizinho
-morreu. O **BFD** é um protocolo leve de detecção que avisa o BGP em frações de segundo — a
+Com os temporizadores padrão (um *hold time* de 90 s a 3 minutos, conforme a implementação), uma
+sessão pode levar minutos para perceber que o vizinho morreu. O **BFD** é um protocolo leve de detecção que avisa o BGP em frações de segundo — a
 diferença entre um failover que ninguém percebe e um que derruba requisições (marco 10). O
 *graceful restart* faz o contrário: mantém as rotas por um tempo quando o vizinho reinicia só o
 processo de controle, para não interromper o tráfego por uma reinicialização planejada.
@@ -112,7 +117,9 @@ derrubado a sessão se o vazamento fosse grande.
 ## Hands-on
 
 **Tutorial.** No `lab/`, suba dois roteadores FRR em eBGP, com ASNs privados, e leia
-`show bgp summary` e `show ip bgp` dos dois lados.
+`show bgp summary` e `show ip bgp` dos dois lados. Repare que, sem política, a sessão chega a
+`Established` com zero prefixos: o FRR segue o RFC 8212 e, em eBGP, não aceita nem anuncia nada sem
+uma política de entrada e de saída. É um padrão seguro; nem toda peça o segue (**conferir**).
 
 **Desafio.** Configure filtros de entrada e de saída por *prefix-list* e o `max-prefix`, e injete
 anúncios para ver cada um agir.
@@ -131,7 +138,8 @@ sistema autônomo no meio.
 
 **Checagem**
 
-1. Por que um prefixo mais específico vence qualquer outro atributo, e por que isso é perigoso?
+1. Por que o prefixo mais específico decide antes de qualquer atributo do BGP, e por que isso é
+   perigoso?
 2. Para que serve o filtro de saída, se o vizinho também filtra?
 3. Por que derrubar a sessão no `max-prefix` é melhor que aceitar as rotas?
 4. Como o *prepend* influencia o caminho do outro lado?
@@ -151,8 +159,8 @@ serviço.
   os delas.
 - A sessão só troca rotas em `Established`; o hold timer e o BFD decidem quanto tempo um vizinho
   morto leva para sumir.
-- Prefixo mais específico vence tudo; *local preference* e *prepend* dizem qual caminho é o
-  primário.
+- O prefixo mais específico decide o encaminhamento; entre caminhos do mesmo prefixo, *local
+  preference* e *prepend* dizem qual é o primário.
 - Filtro de entrada e de saída, `max-prefix` e autenticação em toda sessão.
 - Vazamento de rota muda o caminho sem ninguém mexer do seu lado; assimetria quebra firewall com
   estado.

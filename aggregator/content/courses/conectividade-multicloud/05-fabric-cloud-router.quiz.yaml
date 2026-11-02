@@ -14,7 +14,7 @@ questions:
       - "Só o Azure aprende rotas, porque o FCR anuncia apenas para perfis de serviço de nuvem"
       - "O parceiro novo aprende a rota do fornecedor de score, e o fornecedor aprende a do parceiro"
     answer: 3
-    explanation: "Por padrão um roteador anuncia a cada vizinho o que aprendeu dos outros; sem filtro de saída por conexão, os parceiros se enxergam. O FCR não recusa a sessão nem restringe o anúncio sozinho."
+    explanation: "Sem filtro de saída, o FCR anuncia a cada conexão o que aprendeu das outras (é assim que o Azure enxerga o Google); sem filtro por conexão, os parceiros se enxergam. O FCR não recusa a sessão nem restringe o anúncio sozinho."
   - question: "A colisão de faixas do marco 02 precisa de NAT no meio do caminho. Segundo este marco, onde essa função costuma entrar no desenho com a Equinix?"
     options:
       - "Em qualquer pacote do FCR, ativada por uma opção simples na conexão com o Google"
