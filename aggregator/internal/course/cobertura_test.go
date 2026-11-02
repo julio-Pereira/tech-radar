@@ -53,6 +53,23 @@ func TestCoberturaCountsWhatTheReaderSees(t *testing.T) {
 	}
 }
 
+func TestSinaisDeGatilho(t *testing.T) {
+	cases := []struct{ body, want string }{
+		{"Só prosa, sem nada que lembre um fluxo.\n", ""},
+		{"```yaml\na: 1\n```\n\n```bash\nkubectl apply\n```\n", "2 blocos de configuração"},
+		{"1. o app envia\n2. o broker grava\n3. o consumidor lê\n4. o ledger aplica\n", "lista de passos"},
+		{"A → B → C → D → E\n", "4 setas"},
+		{"estado estado estado estado estado transição\n", "6 termos de estado"},
+		// Lists in the hands-on never count: every milestone has them.
+		{"Texto.\n\n## Hands-on\n\n1. envia\n2. grava\n3. lê\n4. aplica\n", ""},
+	}
+	for _, c := range cases {
+		if got := sinaisDeGatilho([]byte(c.body)); got != c.want {
+			t.Errorf("sinaisDeGatilho(%q) = %q, want %q", c.body, got, c.want)
+		}
+	}
+}
+
 // The real content: every track appears in the report, and none has an
 // ASCII diagram left (the compiler already refuses them; this names them).
 func TestCoberturaRealContent(t *testing.T) {

@@ -85,6 +85,10 @@ combinação possível, e ela é fácil de escrever por acidente. Os headers de 
 que torna a DLQ investigável: eles dizem de qual tópico, partição e offset veio a
 mensagem e qual exceção ocorreu.
 
+```diagrama
+kafka-connect-pipeline
+```
+
 ## O antipadrão do conector caseiro
 
 O reflexo comum ao ver Connect é: "isso eu escrevo em duas horas com um consumidor". Para

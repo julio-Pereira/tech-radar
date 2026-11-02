@@ -118,6 +118,10 @@ No `kind` não há provedor de nuvem, então o conteúdo aqui é conceitual — 
 subjacente (`projected` volume com token OIDC) você **pode** ver localmente, e o tutorial
 faz isso.
 
+```diagrama
+k8s-rbac-e-identidade
+```
+
 ## Audit log: o insumo que o regulador pede
 
 O API server pode registrar toda requisição: quem, o quê, quando, em qual objeto, de qual

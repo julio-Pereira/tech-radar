@@ -1,0 +1,29 @@
+id: k8s-rbac-e-identidade
+tipo: topologia
+titulo: "RBAC e identidade de workload: o que o pix-gateway pode no cluster, e fora dele"
+descricao: >
+  Dentro do cluster, a identidade do pix-gateway é a sua ServiceAccount. Um RoleBinding no
+  namespace pix aponta para um ClusterRole leitor, definido uma vez e concedido namespace a
+  namespace, e o resultado é só o verbo e o recurso que faltavam, como get em configmaps. Fora
+  do cluster, nenhuma chave estática: o kubelet monta no pod um token OIDC projetado, de vida
+  curta e com audience específica; o IAM do provedor confia no emissor do cluster e troca o token
+  por uma credencial temporária, que lê o Secret Manager ou o bucket.
+grupos:
+  - { id: cluster, rotulo: "RBAC no cluster", col: 0, row: 0, cols: 4, rows: 1 }
+nos:
+  - { id: sa, rotulo: "SA pix-gateway", grupo: cluster, col: 0, row: 0, papel: destaque }
+  - { id: rb, rotulo: "RoleBinding (ns pix)", grupo: cluster, col: 1, row: 0 }
+  - { id: cr, rotulo: "ClusterRole leitor", grupo: cluster, col: 2, row: 0 }
+  - { id: recursos, rotulo: "get configmaps em pix", grupo: cluster, col: 3, row: 0 }
+  - { id: token, rotulo: "token OIDC projetado", col: 0, row: 1 }
+  - { id: iam, rotulo: "IAM do provedor", col: 1, row: 1, papel: externo }
+  - { id: cred, rotulo: "credencial temporária", col: 2, row: 1 }
+  - { id: cofre, rotulo: "Secret Manager", col: 3, row: 1, papel: externo }
+arestas:
+  - { de: rb, para: sa }
+  - { de: rb, para: cr }
+  - { de: cr, para: recursos }
+  - { de: sa, para: token, rotulo: "kubelet monta" }
+  - { de: token, para: iam, rotulo: "troca" }
+  - { de: iam, para: cred }
+  - { de: cred, para: cofre, rotulo: "lê" }
