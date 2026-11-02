@@ -123,7 +123,7 @@ prazo.
 **Em uma frase:** a taxa que iguala o valor líquido recebido ao valor presente das parcelas,
 incorporando tarifas e custos adicionais.
 **No fin-lend:** o CET calculado no exemplo sobe de 2,00% para ≈2,25% a.m. com uma tarifa
-financiada.
+descontada do valor liberado.
 **Erro comum:** reportar a taxa nominal como se fosse o custo real da operação, ignorando
 tarifas e seguros.
 **Onde na prática:** marco 02.

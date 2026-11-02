@@ -49,8 +49,9 @@ sem o gatilho, para que um único pagamento em dia não desfaça um aumento de r
 A **ECL** (*expected credit loss*) de cada contrato é PD × LGD × EAD (marco 06), com a PD do
 **horizonte do estágio** e cada fluxo **descontado** a valor presente. Os parâmetros dependem de
 **cenários macroeconômicos** — otimista, base, pessimista —, e a ECL final é a média ponderada pela
-probabilidade de cada cenário. Por construção, o cenário pessimista nunca dá provisão menor que o
-base.
+probabilidade de cada cenário. Os parâmetros de cada cenário são declarados de forma que a PD e a
+LGD do pessimista nunca fiquem abaixo das do base; é isso, e não o nome do cenário, que garante
+que o pessimista nunca dá provisão menor que o base — e é por isso que essa ordem vira teste.
 
 ## O lançamento e o fechamento
 

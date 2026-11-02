@@ -7,14 +7,14 @@ questions:
       - "A diferença só existe se o contrato tiver um período de carência, nunca em um cronograma sem carência"
     answer: 0
     explanation: "O marco explica exatamente esse mecanismo: no SAC, a amortização constante faz o saldo devedor cair mais rápido no início do contrato, reduzindo os juros acumulados ao longo do tempo comparado ao Price, onde a parcela constante mantém uma dinâmica diferente de amortização. No exemplo do marco, os totais são diferentes (R$ 1.347,15 no Price vs. R$ 1.300,00 no SAC) para a mesma taxa nominal de 2,00% a.m. — a diferença não vem de taxa diferente, e ocorre mesmo sem período de carência."
-  - question: "Um contrato tem uma tarifa de R$ 150,00 financiada à parte, fazendo o cliente receber líquido R$ 9.850,00 enquanto paga parcelas calculadas sobre R$ 10.000,00 a uma taxa nominal de 2,00% a.m. Segundo este marco, o que o CET calculado para esse contrato deveria refletir?"
+  - question: "Um contrato tem uma tarifa de R$ 150,00 descontada do valor liberado, fazendo o cliente receber líquido R$ 9.850,00 enquanto paga parcelas calculadas sobre R$ 10.000,00 a uma taxa nominal de 2,00% a.m. Segundo este marco, o que o CET calculado para esse contrato deveria refletir?"
     options:
       - "Um valor maior que a taxa nominal de 2,00% a.m. — o CET incorpora tarifas, seguros e tributos, igualando o valor líquido recebido ao valor presente das parcelas, por isso sobe para aproximadamente 2,25% a.m. no exemplo do marco"
       - "Exatamente 2,00% a.m., já que o CET é, por definição, idêntico à taxa nominal de juros em qualquer contrato"
-      - "Um valor menor que 2,00% a.m., já que a tarifa financiada reduz o custo efetivo do contrato para o cliente"
-      - "O CET não pode ser calculado quando há uma tarifa financiada à parte do principal"
+      - "Um valor menor que 2,00% a.m., já que a tarifa descontada reduz o custo efetivo do contrato para o cliente"
+      - "O CET não pode ser calculado quando há uma tarifa descontada do valor liberado"
     answer: 0
-    explanation: "O marco é direto: CET é a taxa que iguala o valor líquido recebido ao valor presente das parcelas, incorporando tarifas — no exemplo específico, a tarifa de R$ 150,00 eleva o CET mensal de 2,00% para aproximadamente 2,25%. O CET não é idêntico à taxa nominal quando há custos adicionais (é sempre maior ou igual), uma tarifa financiada aumenta o custo efetivo (não reduz), e o CET é perfeitamente calculável nesse cenário — é exatamente o caso que o marco usa como exemplo central."
+    explanation: "O marco é direto: CET é a taxa que iguala o valor líquido recebido ao valor presente das parcelas, incorporando tarifas — no exemplo específico, a tarifa de R$ 150,00 eleva o CET mensal de 2,00% para aproximadamente 2,25%. O CET não é idêntico à taxa nominal quando há custos adicionais (é sempre maior ou igual), uma tarifa descontada aumenta o custo efetivo (não reduz), e o CET é perfeitamente calculável nesse cenário — é exatamente o caso que o marco usa como exemplo central."
   - question: "Uma função que converte uma taxa mensal para sua equivalente anual, e depois converte o resultado de volta para mensal, não devolve exatamente a taxa mensal original — a diferença excede qualquer tolerância razoável de arredondamento. Segundo este marco, o que esse resultado indica?"
     options:
       - "Um provável erro na implementação da equivalência de taxas — a conversão ida e volta deveria devolver a taxa original dentro de uma tolerância declarada, já que o regime é composto e a equivalência precisa ser matematicamente consistente"
