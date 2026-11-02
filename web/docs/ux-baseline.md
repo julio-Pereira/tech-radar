@@ -390,6 +390,24 @@ a plain message, axe clean on an open quiz card. Full suite: 101/101 (Playwright
 to box 0 regardless of starting box, due date is never in the past across leap-year/month/year
 boundaries, determinism, `isDue` boundary cases).
 
+### Revisão só com o que já foi estudado (TASK revisão espaçada, 2026-11)
+
+The deck used to hold every quiz question and every glossary term, so a reader with two
+milestones done got cards from twenty tracks — a random quiz, not a review. Now
+`web/js/review-deck.js` (`buildEligibleDeck`, pure, `node --test` in `review-deck.test.js`)
+keeps a card only if its **source milestone is completed** (`tr:progress:<slug>` has its
+`marcoId`). Glossary entries without a resolved `marcoId` stay out (content debt, counted and
+logged with `console.debug`, never shown; `go run ./cmd/cobertura` and a golden file in the
+aggregator track it per trilha). A quiz card never reviewed waits for the **local day after**
+the last attempt of that milestone's quiz (`tr:quiz:` `lastAttemptAt` → `notBefore`), so
+finishing a quiz never replays it the same day; glossary cards are due at once. Card ids are
+unchanged (`cyrb53(slug|marcoId|question)`, `cyrb53(slug|anchor|term)`), so every saved box
+survives; un-completing a milestone only hides its cards, and re-completing brings them back
+in the box they were in. The view shows the scope ("N cartões de M marcos concluídos em T
+trilhas"), each card's trilha and milestone with a "rever o marco" link, and three distinct
+empty states: nothing completed (link to `#/learn`), completed milestones without linked
+cards, and nothing due (with the next due date).
+
 ## Melhoria 7 — mapa de capstones do fin-platform, fase 1 (`TASK-plat-melhorias-lideranca.md` §7)
 
 Map and data only — the `fin-check` verifier CLI is explicitly phase 2, not scheduled yet

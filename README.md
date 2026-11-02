@@ -302,6 +302,11 @@ A last section lists **milestones without a diagram that show a sign of the trig
 more config or shell blocks in the prose, a list of four or more steps with flow verbs, four or
 more arrows, or six or more state terms. The trigger is the author's judgment, so this list is a
 prompt to look, never a failure.
+The report ends with the **glossary coverage**: per track, how many glossary entries resolve to
+a real milestone (`Onde na prática: marco NN`, with NN existing in the track). Only those enter
+the spaced review (`#/revisar` shows cards from completed milestones only). The same numbers are
+pinned by a golden file (`internal/course/testdata/glossario-cobertura.golden`); changing them
+is deliberate: `UPDATE_GOLDEN=1 go test ./internal/course -run TestCoberturaGlossarioGolden`.
 
 **Planning a new track.** The plan's table of milestones gets a **"diagrama"** column: for
 each milestone, the diagram it will have (type and one-line idea) or "—" when the prose
