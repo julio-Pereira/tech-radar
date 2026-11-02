@@ -1,0 +1,33 @@
+questions:
+  - question: "O fornecedor de score recebe 40 chamadas por minuto, o contrato não proíbe a internet e não há outros parceiros previstos. O time de redes propõe um Fabric Cloud Router. Segundo este marco, qual é a escolha mais provável?"
+    options:
+      - "O FCR mesmo assim, porque um caminho privado é sempre mais seguro e o custo fixo se dilui com o tempo"
+      - "Uma conexão física dedicada em colocation, para o fin-platform controlar os próprios roteadores desde o primeiro dia"
+      - "Cross-Cloud Interconnect, porque liga Azure e Google Cloud diretamente, sem intermediário de colocation"
+      - "API pública com mTLS: sem exigência de rede privada, com volume baixo e um parceiro só, ela resolve em dias"
+    answer: 3
+    explanation: "Sem proibição de internet, com volume baixo e um parceiro, a API com mTLS resolve. O FCR não se paga nesse cenário; o link dedicado é o extremo de custo; e o Cross-Cloud Interconnect liga duas redes suas, não a do fornecedor."
+  - question: "O fin-platform tem uma VPC própria no Google Cloud, na mesma região do fornecedor, e o fornecedor oferece expor o score como serviço. Segundo este marco, o que essa opção evita?"
+    options:
+      - "Evita a necessidade de mTLS, porque o serviço publicado já autentica o cliente pela identidade da VPC"
+      - "Evita anunciar faixas de rede de um lado para o outro: só um endpoint do serviço aparece do seu lado"
+      - "Evita o custo de saída de dados, que deixa de existir quando o tráfego fica dentro do mesmo provedor"
+      - "Nada relevante: serviço publicado e rede roteada expõem as mesmas faixas, só que com nomes diferentes"
+    answer: 1
+    explanation: "O serviço publicado (Private Service Connect, Private Link) expõe um endpoint sem que ninguém anuncie redes. Ele não substitui a autenticação da aplicação, e o marco não diz que elimina o custo de saída."
+  - question: "Hoje há um fornecedor em GCP; o roadmap traz mais dois parceiros, um em AWS e outro em Oracle Cloud, nos próximos 12 meses. O contrato proíbe internet. Segundo este marco, por que isso pesa a favor do FCR?"
+    options:
+      - "Porque o FCR é o único produto que suporta AWS e Oracle Cloud, e as outras opções ficam limitadas ao Google"
+      - "Porque, com o FCR, os parceiros novos dispensam BGP e entram só com uma regra de firewall no lado do Azure"
+      - "Porque cada parceiro novo vira mais uma conexão no mesmo roteador, e não um projeto de rede novo do zero"
+      - "Porque o custo do FCR cai à medida que parceiros entram, já que a Equinix cobra por parceiro conectado"
+    answer: 2
+    explanation: "É o argumento 1 × N do marco: o parceiro novo é mais uma conexão. As outras alternativas inventam exclusividade, ausência de BGP e um modelo de cobrança que o marco não afirma."
+  - question: "Uma integração passa a ter, por contrato, a exigência de que o dado não trafegue pela internet. Ela usava uma VPN site a site. Segundo este marco, o que muda?"
+    options:
+      - "A VPN deixa de servir: o túnel é cifrado, mas ainda passa pela internet, e o requisito é binário"
+      - "Nada, porque o IPsec da VPN cifra o tráfego, e cifrado é o mesmo que privado para fins de contrato"
+      - "Basta trocar a VPN por uma API pública com mTLS, que tem autenticação mais forte que o IPsec"
+      - "A VPN continua válida desde que o túnel seja reconfigurado para usar só endereços do RFC 1918"
+    answer: 0
+    explanation: "A exigência elimina as opções que passam pela internet, por mais baratas que sejam. Cifrar não torna o caminho privado, a API pública também usa a internet, e endereços privados dentro do túnel não mudam por onde ele passa."

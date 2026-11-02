@@ -1,0 +1,30 @@
+id: cm-decisao
+tipo: fluxo
+titulo: "Interconectar ou não: as perguntas que levam da API pública ao Fabric Cloud Router"
+descricao: >
+  A primeira pergunta é se o dado pode passar pela internet. Se pode, e o volume e a latência
+  cabem nela, uma API pública com mTLS resolve; se não cabem, uma VPN site a site. Se o dado não
+  pode passar pela internet e você tem presença na nuvem do fornecedor, ele pode publicar um
+  serviço, sem rota anunciada. Se não, a escolha depende de quantos parceiros e nuvens virão: um
+  só, com as duas pontas suas, pede Cross-Cloud Interconnect; vários, o Fabric Cloud Router.
+passos:
+  - { id: inicio, rotulo: "nova integração", col: 0, row: 0 }
+  - { id: internet, rotulo: "pode usar internet?", col: 1, row: 0, papel: destaque }
+  - { id: cabe, rotulo: "volume e latência cabem?", col: 2, row: 0 }
+  - { id: api, rotulo: "API pública + mTLS", col: 3, row: 0 }
+  - { id: vpn, rotulo: "VPN site a site", col: 2, row: 1 }
+  - { id: servico, rotulo: "serviço na sua nuvem?", col: 1, row: 1 }
+  - { id: psc, rotulo: "PSC / Private Link", col: 0, row: 1 }
+  - { id: parceiros, rotulo: "vários parceiros?", col: 1, row: 2 }
+  - { id: fcr, rotulo: "Fabric Cloud Router", col: 2, row: 2 }
+  - { id: cci, rotulo: "Cross-Cloud Interconnect", col: 0, row: 2 }
+arestas:
+  - { de: inicio, para: internet }
+  - { de: internet, para: cabe, rotulo: "sim" }
+  - { de: cabe, para: api, rotulo: "sim" }
+  - { de: cabe, para: vpn, rotulo: "não" }
+  - { de: internet, para: servico, rotulo: "não" }
+  - { de: servico, para: psc, rotulo: "sim" }
+  - { de: servico, para: parceiros, rotulo: "não" }
+  - { de: parceiros, para: fcr, rotulo: "sim" }
+  - { de: parceiros, para: cci, rotulo: "não" }

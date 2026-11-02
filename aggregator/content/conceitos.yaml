@@ -199,3 +199,9 @@
   apelidos: ["RFC", "RFCs"]
   # "RFC 8705", "RFC 7807"...: citação de norma, não o documento de decisão.
   naoSeguidoDe: ['\s*\d']
+
+# ── Rede e interconexão ──────────────────────────────────────────────────────
+- id: bgp
+  termo: "BGP"
+  dono: conectividade-multicloud/03
+  apelidos: ["BGP"]

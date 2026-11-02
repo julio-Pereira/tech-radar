@@ -1,0 +1,33 @@
+questions:
+  - question: "Três times do fin-platform pegaram, cada um, 'o próximo /24 livre' em pontos diferentes do 10.20.0.0/16 ao longo de um ano. Agora o fornecedor precisa alcançar os três. Segundo este marco, qual é o custo dessa fragmentação?"
+    options:
+      - "Cada fragmento vira uma linha de anúncio a mais para o parceiro, em vez de um agregado único"
+      - "Nenhum custo real: o roteador do parceiro agrega os três /24 sozinho, mesmo sem serem contíguos"
+      - "O custo é só de endereços desperdiçados entre os /24, que deixam de poder ser usados por outros times"
+      - "Os três /24 precisam ser renumerados para o espaço 100.64.0.0/10 antes de qualquer anúncio ao fornecedor"
+    answer: 0
+    explanation: "Sem um bloco contíguo, cada fragmento é anunciado separadamente, e cada anúncio é uma decisão de segurança. O roteador não agrega o que não é contíguo, o desperdício não é o ponto central, e renumerar não é exigência."
+  - question: "O fornecedor usa 10.0.0.0/16, a mesma faixa da VNet de produção. Ninguém aceita renumerar. Segundo este marco, o que uma tradução com NAT exige que se decida e se pague?"
+    options:
+      - "Nada além da regra de NAT: a tradução é transparente para logs, correlação e roteamento dos dois lados"
+      - "Só a licença do appliance de NAT, porque a tradução não muda nada do que o fornecedor enxerga do seu tráfego"
+      - "A migração da VNet de produção para IPv6, que passa a ser obrigatória sempre que se usa NAT entre duas organizações"
+      - "Onde o NAT fica, e o custo de rastreabilidade: o fornecedor vê o endereço traduzido, e a tabela de tradução precisa ser guardada"
+    answer: 3
+    explanation: "O marco lista o lugar do NAT e seu custo: log com endereço traduzido, tabela a guardar e sensibilidade à assimetria. A tradução não é transparente, e IPv6 não é exigido."
+  - question: "Um engenheiro propõe usar 100.64.0.0/10 para a interconexão com o fornecedor, sem consultar ninguém, porque 'ninguém usa essa faixa'. Segundo este marco, o que falta?"
+    options:
+      - "Nada: o RFC 6598 reserva essa faixa exatamente para interconexão entre empresas, e ela nunca colide com faixas internas de nenhuma organização"
+      - "Conferir se a sua organização e o fornecedor já usam essa faixa para outra coisa: o uso para interconexão é uma convenção"
+      - "Pedir autorização ao registro regional de endereços, porque a faixa 100.64.0.0/10 é pública e precisa ser alocada"
+      - "Trocar para 172.16.0.0/12, que é a única faixa do RFC 1918 reservada para conexões com terceiros"
+    answer: 1
+    explanation: "100.64.0.0/10 nasceu para redes de operadoras; usá-lo para interconexão é convenção, e pode já estar em uso. Não é reservado para empresas, não exige alocação externa, e nenhuma faixa do RFC 1918 é reservada a terceiros."
+  - question: "O plano de faixas tem uma sub-rede /29 para dois appliances e um balanceador. Segundo este marco, por que esse tamanho pode não caber?"
+    options:
+      - "Porque /29 é pequeno demais para ser anunciado por BGP, e as nuvens descartam qualquer prefixo menor que /24 recebido numa interconexão"
+      - "Porque as nuvens reservam alguns endereços de toda sub-rede, e de 8 endereços sobram poucos para hosts"
+      - "Porque um /29 sempre colide com as sub-redes de peering da interconexão, que usam o mesmo tamanho"
+      - "Porque sub-redes menores que /28 não podem receber NAT, e os appliances precisam de tradução"
+    answer: 1
+    explanation: "As nuvens reservam endereços por sub-rede (conferir quantos); num /29 isso pesa. O marco não fala de prefixo mínimo anunciável, de colisão obrigatória com peering nem de restrição de NAT por tamanho."

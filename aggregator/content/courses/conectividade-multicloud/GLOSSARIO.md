@@ -15,12 +15,78 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 **Erro comum:** achar que, por ser serviço, o roteamento deixa de ser responsabilidade sua.
 **Onde na prática:** marco 05.
 
+### On-ramp
+**Em uma frase:** a porta de entrada privada de uma nuvem para quem vem de fora, como o ExpressRoute no Azure ou o Partner Interconnect no Google.
+**No fin-platform:** as duas pernas do caminho até o Fabric Cloud Router.
+**Erro comum:** achar que uma nuvem aceita a porta da outra; cada uma tem vocabulário e ordem próprios.
+**Onde na prática:** marco 01, retomado no 04.
+
+### Colocation
+**Em uma frase:** um data center neutro onde várias redes e nuvens têm presença física e se interconectam.
+**No fin-platform:** o metro de São Paulo onde o FCR fica, perto das regiões das duas nuvens.
+**Erro comum:** escolher o metro pelo nome, sem medir a latência até as duas regiões.
+**Onde na prática:** marco 01.
+
+### Cross-Cloud Interconnect
+**Em uma frase:** link físico gerenciado pelo Google entre a sua rede no Google Cloud e a sua rede em outra nuvem.
+**No fin-platform:** não serve sozinho para o FornecedorScore, porque a VPC do outro lado é do fornecedor.
+**Erro comum:** usá-lo para ligar uma rede que não é sua.
+**Onde na prática:** marco 01.
+
+### Serviço publicado
+**Em uma frase:** um endpoint que o fornecedor expõe na sua nuvem (Private Service Connect, Private Link) sem anunciar redes.
+**No fin-platform:** seria a saída se o fin-platform tivesse presença no Google Cloud.
+**Erro comum:** abrir uma rede roteada quando só um serviço precisava aparecer.
+**Onde na prática:** marco 01.
+
+### VPN site a site
+**Em uma frase:** túnel IPsec entre dois gateways, cifrado, mas passando pela internet.
+**No fin-platform:** a opção que o contrato do FornecedorScore elimina, por exigir rede privada.
+**Erro comum:** tratar cifrado como privado: o túnel ainda atravessa a internet.
+**Onde na prática:** marco 01.
+
 ## Endereçamento
 
 ### Sobreposição de faixas
 **Em uma frase:** duas redes que precisam se falar usando o mesmo espaço de endereços IP.
 **No fin-platform:** o fornecedor usa 10.0.0.0/16, a mesma faixa da VNet de produção.
 **Erro comum:** descobrir a colisão na véspera do go-live, quando renumerar já não é opção.
+**Onde na prática:** marco 02.
+
+### CIDR
+**Em uma frase:** a notação que diz o começo de uma faixa e quantos bits são fixos, como 10.20.0.0/16.
+**No fin-platform:** o plano de faixas do ipam/ é escrito em CIDR.
+**Erro comum:** confundir o tamanho do prefixo com o número de hosts utilizáveis.
+**Onde na prática:** marco 02.
+
+### Agregação
+**Em uma frase:** anunciar várias sub-redes contíguas de um dono como um bloco só.
+**No fin-platform:** o fin-platform anuncia um agregado por ambiente, não cada /24.
+**Erro comum:** fragmentar o plano e pagar uma linha de anúncio por pedaço.
+**Onde na prática:** marco 02.
+
+### IPAM
+**Em uma frase:** a fonte da verdade do endereçamento: cada faixa com dono, ambiente e propósito.
+**No fin-platform:** o ipam/ em Go detecta sobreposição a cada mudança do plano.
+**Erro comum:** manter o plano numa planilha que ninguém confere contra o que está em produção.
+**Onde na prática:** marco 02.
+
+### RFC 1918
+**Em uma frase:** as três faixas reservadas para redes privadas: 10/8, 172.16/12 e 192.168/16.
+**No fin-platform:** a VNet de produção usa 10.0.0.0/16, a mesma faixa do fornecedor.
+**Erro comum:** achar que privado quer dizer único; são justamente as faixas que mais colidem.
+**Onde na prática:** marco 02.
+
+### Espaço compartilhado (100.64.0.0/10)
+**Em uma frase:** faixa do RFC 6598, criada para redes de operadoras, usada com frequência para interconexão e NAT entre organizações.
+**No fin-platform:** os dois /28 de tradução com o fornecedor vêm dela.
+**Erro comum:** usar sem conferir se a organização ou o fornecedor já a usam para outra coisa.
+**Onde na prática:** marco 02.
+
+### NAT
+**Em uma frase:** tradução de endereços que faz cada lado enxergar o outro por uma faixa diferente da real.
+**No fin-platform:** resolve a colisão de 10.0.0.0/16 com o fornecedor.
+**Erro comum:** ignorar o custo: logs com endereço traduzido, tabela a guardar e sensibilidade à assimetria.
 **Onde na prática:** marco 02.
 
 ## BGP
@@ -30,3 +96,87 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 **No fin-platform:** toda perna da interconexão — ExpressRoute, FCR e Partner Interconnect — troca rotas por BGP.
 **Erro comum:** tratar BGP como assunto só do time de redes e não saber ler o incidente.
 **Onde na prática:** marco 03.
+
+### Sistema autônomo
+**Em uma frase:** uma rede sob uma única política de roteamento, identificada por um ASN.
+**No fin-platform:** o fin-platform, o FCR e cada nuvem são sistemas autônomos diferentes no caminho.
+**Erro comum:** tratar a nuvem inteira como uma rede só, sem perceber os sistemas autônomos no meio.
+**Onde na prática:** marco 03.
+
+### ASN
+**Em uma frase:** o número que identifica um sistema autônomo no BGP; há faixas públicas e privadas.
+**No fin-platform:** o lado do fin-platform usa um ASN privado; o Azure usa 12076 e o Google 16550 nas pernas da interconexão.
+**Erro comum:** escolher um ASN que a nuvem reserva para uso próprio e a sessão não subir.
+**Onde na prática:** marco 03.
+
+### ASN privado
+**Em uma frase:** faixas reservadas pelo RFC 6996 para redes que não falam com a internet: 64512–65534 e 4200000000–4294967294.
+**No fin-platform:** os roteadores emulados do lab/ usam ASNs privados.
+**Erro comum:** usar um ASN público que pertence a outra organização.
+**Onde na prática:** marco 03.
+
+### eBGP
+**Em uma frase:** a sessão BGP entre sistemas autônomos diferentes.
+**No fin-platform:** toda sessão da interconexão é eBGP.
+**Erro comum:** aplicar intuições de iBGP, como confiar em tudo que vem do vizinho.
+**Onde na prática:** marco 03.
+
+### Sessão BGP
+**Em uma frase:** a conexão TCP na porta 179 entre dois roteadores, que só troca rotas em Established.
+**No fin-platform:** uma sessão por perna: Azure–FCR e FCR–Google.
+**Erro comum:** achar que a sessão de pé garante tráfego; o filtro pode estar descartando tudo.
+**Onde na prática:** marco 03.
+
+### Prefixo
+**Em uma frase:** uma faixa anunciada no BGP, como 10.40.0.0/16.
+**No fin-platform:** o FornecedorScore anuncia só os /28 combinados.
+**Erro comum:** anunciar a VNet inteira porque dá menos trabalho.
+**Onde na prática:** marco 03.
+
+### Melhor caminho
+**Em uma frase:** a rota que o BGP escolhe entre várias para o mesmo destino, por uma ordem de critérios.
+**No fin-platform:** o primário vence por local preference; o secundário fica de reserva.
+**Erro comum:** esquecer que o prefixo mais específico vence antes de qualquer atributo.
+**Onde na prática:** marco 03.
+
+### Local preference
+**Em uma frase:** atributo dentro do seu AS que diz por qual saída preferir; maior vence.
+**No fin-platform:** marca o caminho primário até o fornecedor.
+**Erro comum:** esperar que o vizinho a respeite: ela não atravessa o eBGP.
+**Onde na prática:** marco 03.
+
+### AS path prepend
+**Em uma frase:** repetir o próprio ASN num anúncio para alongar o caminho e torná-lo menos preferido do outro lado.
+**No fin-platform:** aplicado no anúncio pelo caminho secundário.
+**Erro comum:** usar prepend para decidir a sua saída, que é papel da local preference.
+**Onde na prática:** marco 03.
+
+### Filtro de rota
+**Em uma frase:** regra que aceita ou descarta prefixos na entrada ou na saída de uma sessão.
+**No fin-platform:** toda sessão tem filtro de entrada e de saída gerado do catálogo de parceiros.
+**Erro comum:** filtrar só a entrada e confiar no vizinho para a saída.
+**Onde na prática:** marco 03.
+
+### max-prefix
+**Em uma frase:** limite de prefixos que um vizinho pode anunciar; ao estourar, a sessão cai.
+**No fin-platform:** derruba a sessão se o fornecedor anunciar um /8 por engano.
+**Erro comum:** achar que derrubar a sessão é pior que aceitar milhares de rotas de um vizinho com defeito.
+**Onde na prática:** marco 03.
+
+### Vazamento de rota
+**Em uma frase:** anunciar adiante uma rota que não devia, desviando tráfego de terceiros.
+**No fin-platform:** o fornecedor anunciando a faixa de outro parceiro do fin-platform.
+**Erro comum:** achar que só acontece na internet pública.
+**Onde na prática:** marco 03.
+
+### BFD
+**Em uma frase:** protocolo leve que detecta a queda de um vizinho em frações de segundo e avisa o BGP.
+**No fin-platform:** ligado nas duas pernas para o failover não depender dos temporizadores do BGP.
+**Erro comum:** contar com o hold timer padrão e perder dezenas de segundos de tráfego.
+**Onde na prática:** marco 03, retomado no 10.
+
+### Rota assimétrica
+**Em uma frase:** a ida por um caminho e a volta por outro.
+**No fin-platform:** aparece depois do failover, quando o primário volta antes do outro lado perceber.
+**Erro comum:** achar que é problema só do BGP; é o firewall com estado que descarta.
+**Onde na prática:** marco 03, retomado no 10.
