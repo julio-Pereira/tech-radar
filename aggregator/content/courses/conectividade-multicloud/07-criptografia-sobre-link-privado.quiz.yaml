@@ -1,0 +1,49 @@
+questions:
+  - question: "A auditoria pergunta se o score, que leva CPF, trafega cifrado até o fornecedor. O time responde: 'é link privado, não passa pela internet'. Segundo este marco, por que a resposta não basta?"
+    options:
+      - "Porque link privado é sempre mais lento que a internet, e a auditoria exige o caminho mais rápido"
+      - "Porque privado diz só que não há internet no caminho; provedor, Equinix e FCR ainda transportam o que recebem"
+      - "Porque o ExpressRoute cifra o tráfego só na ida, e a resposta do fornecedor volta sempre em claro"
+      - "Porque a LGPD proíbe qualquer dado pessoal em links privados, mesmo cifrados de ponta a ponta"
+    answer: 1
+    explanation: "O caminho via provedor transporta em claro o que a aplicação mandar; há operadores em cada trecho. Velocidade não é o ponto, o ExpressRoute não cifra só a ida, e a LGPD não proíbe o link."
+  - question: "No caminho com o FCR no meio, o time compara MACsec, IPsec e mTLS. Segundo este marco, qual das três diz quem está do outro lado da conversa?"
+    options:
+      - "O MACsec, porque autentica os dois equipamentos do enlace e, com eles, as organizações"
+      - "O IPsec, porque os dois gateways trocam chaves e isso identifica o serviço do fornecedor"
+      - "Nenhuma: identidade é problema do contrato comercial, não de nenhuma camada técnica"
+      - "O mTLS, porque cada aplicação apresenta um certificado que a outra valida"
+    answer: 3
+    explanation: "MACsec e IPsec autenticam equipamentos e gateways, não o serviço; só o mTLS identifica a aplicação do outro lado por certificado. Por isso ele fica mesmo com IPsec funcionando."
+  - question: "O gateway IPsec da borda Azure caiu, mas o caminho privado pelo FCR continua de pé. Segundo este marco, o que deve acontecer com o tráfego do ledger-core para o fornecedor?"
+    options:
+      - "Parar: a rota para a API só existe através do túnel, então sem túnel não há caminho"
+      - "Seguir em claro pelo caminho privado até o túnel voltar, para não derrubar o antifraude"
+      - "Seguir pela internet com TLS comum, que é o caminho de contingência previsto no contrato"
+      - "Seguir em claro só para chamadas sem CPF, filtradas automaticamente pelo próprio FCR"
+    answer: 0
+    explanation: "Falha fechada: o roteamento garante que a rota só existe pelo túnel, e a queda do IPsec interrompe o tráfego. Seguir em claro ou pela internet é falha aberta, e o FCR não filtra por conteúdo."
+  - question: "Depois de ligar o IPsec, as chamadas pequenas ao fornecedor funcionam, mas as respostas grandes travam sem erro. Segundo este marco, qual a causa provável e a correção?"
+    options:
+      - "Limite de banda do pacote do FCR; a correção é migrar do pacote Standard para o Advanced"
+      - "Certificado do mTLS vencido, que só é validado quando a resposta passa de certo tamanho"
+      - "Pacotes cheios não cabem no enlace depois do encapsulamento; a correção é ajustar o MSS"
+      - "Filtro de saída do FCR que descarta respostas acima de 1.500 bytes por padrão de fábrica"
+    answer: 2
+    explanation: "O IPsec acrescenta cabeçalhos; pacotes cheios passam do MTU e são descartados, e o aviso ICMP costuma ser filtrado. MSS clamping resolve. Banda, certificado e filtro não explicam o padrão."
+  - question: "O certificado do mTLS da API do fornecedor vence num sábado e a integração para. Segundo este marco, o que evita esse incidente?"
+    options:
+      - "Certificados sem data de validade, emitidos pela CA interna só para integrações privadas"
+      - "Desligar a validação do certificado do cliente nas chamadas que passam pelo link privado"
+      - "Trocar o mTLS por IPsec, cujas chaves pré-compartilhadas não vencem nem precisam rotação"
+      - "Rotação automática a partir do cofre, por ambiente, com alerta antes do vencimento"
+    answer: 3
+    explanation: "Chaves e certificados vencem e precisam de rotação automática com alerta prévio. Certificado eterno, validação desligada ou trocar mTLS por IPsec só trocam o incidente por um risco maior."
+  - question: "O time quer saber se precisa de IPsec, mTLS ou os dois no caminho do score. Segundo este marco, o que decide a exigência?"
+    options:
+      - "O modelo de ameaça e a classificação do dado, que dizem quem pode ler cada trecho e o que isso exige"
+      - "O folheto do produto, que informa se o link privado da nuvem já é considerado seguro pelo fornecedor"
+      - "O pacote do FCR contratado, porque os pacotes maiores já incluem cifra em todas as conexões"
+      - "A latência medida, porque cifra só se justifica quando o orçamento de latência sobra"
+    answer: 0
+    explanation: "Quem decide é o modelo de ameaça, com a classificação do dado (o CPF é dado pessoal). O folheto não decide, os pacotes do FCR não cifram, e latência é custo a pesar, não critério de exigência."

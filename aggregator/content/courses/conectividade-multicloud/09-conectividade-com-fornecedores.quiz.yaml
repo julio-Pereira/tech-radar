@@ -1,0 +1,49 @@
+questions:
+  - question: "O FornecedorScore está em GCP, na organização dele, e o fin-platform tem o FCR. Segundo este marco, nesse modelo de conexão, quem cria cada peça?"
+    options:
+      - "O fin-platform cria tudo, inclusive o attachment, e só pede ao fornecedor a aprovação final"
+      - "A Equinix cria o attachment e o FCR, e os dois clientes só pagam pelas conexões usadas"
+      - "O fornecedor cria o VLAN attachment e manda a pairing key; o fin-platform cria a conexão no Fabric"
+      - "O fornecedor cria a conexão no Fabric, e o fin-platform cria o attachment na VPC dele"
+    answer: 2
+    explanation: "No modelo em que o fornecedor está numa nuvem, ele cria o attachment na organização dele e envia a pairing key; quem tem o FCR cria a conexão do Fabric. A Equinix não cria o attachment."
+  - question: "No caminho entre o fin-platform no Azure e o fornecedor no Google, a resposta do score sai da VPC do fornecedor. Segundo este marco, quem costuma pagar essa saída de dados?"
+    options:
+      - "O fin-platform, porque é quem pediu a interconexão e paga o FCR e as conexões"
+      - "Quem envia: a saída da nuvem do fornecedor costuma ir para a conta do fornecedor"
+      - "A Equinix, que inclui a saída de dados das duas nuvens no preço do pacote do FCR"
+      - "Ninguém: o tráfego pelo link privado é isento de cobrança de saída nas duas nuvens"
+    answer: 1
+    explanation: "Cada lado costuma pagar a saída da própria nuvem, e o contrato deve dizer quem paga cada linha (conferir os modelos vigentes). O pacote do FCR não inclui a saída das nuvens, e o link privado não é isento."
+  - question: "O contrato comercial com o fornecedor já tem preço, prazo e multa. Segundo este marco, o que o contrato mínimo de conectividade acrescenta?"
+    options:
+      - "Só o preço da interconexão, separado do preço do serviço de score, para facilitar a conciliação"
+      - "Uma cláusula de exclusividade, impedindo o fornecedor de se ligar a outros clientes pelo Fabric"
+      - "A topologia completa da rede interna do fin-platform, para o fornecedor configurar os filtros"
+      - "Prefixos, ASN, janelas, aviso prévio, NOC, SLA do caminho, criptografia, auditoria e revisão"
+    answer: 3
+    explanation: "O contrato de conectividade fixa o que a rede precisa: prefixos, ASN, janelas, escalonamento, SLA, criptografia, registros e data de revisão. Entregar a topologia interna contraria o anúncio mínimo."
+  - question: "O contrato do FornecedorScore foi encerrado e o time tirou a chamada do código. Segundo este marco, o que falta para o desligamento estar feito?"
+    options:
+      - "Remover rota, filtro, regra, DNS, credencial, certificado e conexão, e provar que ele ficou inalcançável"
+      - "Nada: sem chamada no código, a rota anunciada não tem efeito e pode ficar até a próxima revisão"
+      - "Avisar a Equinix, que remove sozinha tudo o que for do fornecedor no FCR e nas duas nuvens"
+      - "Trocar a senha MD5 da sessão BGP, o que basta para impedir qualquer tráfego do fornecedor"
+    answer: 0
+    explanation: "Offboarding remove cada peça e prova a inalcançabilidade; rota esquecida continua exposta e cobrando. A Equinix não mexe nas nuvens, e trocar a senha MD5 não remove nada."
+  - question: "O caminho do score passa por três peças em série, com disponibilidades de 99,95%, 99,99% e 99,9%. Segundo este marco, qual é o SLA do caminho?"
+    options:
+      - "99,99%, o da peça mais confiável, porque ela compensa as falhas das outras duas peças"
+      - "No máximo o produto das três, cerca de 99,84%, sempre abaixo da peça mais fraca"
+      - "A média das três, cerca de 99,95%, porque as falhas se distribuem ao longo do ano"
+      - "99,9%, exatamente o da peça mais fraca, porque as outras duas não falham juntas"
+    answer: 1
+    explanation: "Peças em série: o caminho falha se qualquer uma falhar, então a disponibilidade é no máximo o produto, cerca de 99,84%, abaixo da peça mais fraca. A melhor não compensa, e a média não se aplica."
+  - question: "A área de risco pergunta o que a interconexão com o fornecedor tem a ver com a regulação de contratação de serviços. Segundo este marco, o que a trilha ensina sobre isso?"
+    options:
+      - "O texto integral da norma vigente, com a interpretação de cada artigo aplicada ao caso do score"
+      - "Que interconexão privada está fora de qualquer exigência regulatória, por não usar a internet"
+      - "O mecanismo: inventário, avaliação de risco, contrato com cláusulas de saída e prova do desligamento"
+      - "Que basta o fornecedor ter certificação de segurança para dispensar a avaliação de risco própria"
+    answer: 2
+    explanation: "A trilha não interpreta a norma (conferir a vigente); ensina o mecanismo que exigências desse tipo pedem. Link privado não isenta, e certificação do fornecedor não substitui a sua avaliação."

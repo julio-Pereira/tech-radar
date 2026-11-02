@@ -1,0 +1,28 @@
+id: cm-zona-parceiros
+tipo: topologia
+titulo: "Zona de parceiros: anúncio mínimo, filtro em três pontos e firewall que nega por padrão"
+descricao: >
+  O fornecedor alcança só a zona de parceiros, nunca a rede corporativa, que não é anunciada. O
+  firewall da zona nega por padrão e libera só o ledger-core rumo à API de score. A borda Azure
+  anuncia só os /28 combinados; o FCR filtra por conexão e não deixa um parceiro alcançar o outro;
+  o Cloud Router do fornecedor aceita só esses /28. Um erro em um dos três pontos não basta para
+  abrir a rede.
+grupos:
+  - { id: zona, rotulo: "zona de parceiros", col: 1, row: 0, cols: 2, rows: 1 }
+nos:
+  - { id: ledger, rotulo: "ledger-core", col: 0, row: 0 }
+  - { id: fw, rotulo: "firewall: nega tudo", grupo: zona, col: 1, row: 0, papel: destaque }
+  - { id: borda, rotulo: "borda Azure: /28", grupo: zona, col: 2, row: 0 }
+  - { id: fcr, rotulo: "FCR: filtro", col: 3, row: 0 }
+  - { id: corp, rotulo: "rede corporativa", col: 0, row: 1 }
+  - { id: api, rotulo: "API de score", col: 1, row: 1, papel: externo }
+  - { id: cr, rotulo: "Cloud Router: /28", col: 2, row: 1 }
+  - { id: pb, rotulo: "parceiro B", col: 3, row: 1, papel: externo }
+arestas:
+  - { de: ledger, para: fw }
+  - { de: fw, para: borda }
+  - { de: borda, para: fcr }
+  - { de: fcr, para: cr }
+  - { de: cr, para: api }
+  - { de: fcr, para: pb, rotulo: "sem trânsito", estilo: tracejada }
+  - { de: corp, para: fw, rotulo: "não anunciada", estilo: tracejada }

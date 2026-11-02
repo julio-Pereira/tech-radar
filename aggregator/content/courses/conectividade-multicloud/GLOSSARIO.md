@@ -292,3 +292,85 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 **No fin-platform:** um plan agendado acusa o filtro mudado no portal durante um incidente.
 **Erro comum:** corrigir no portal de novo, em vez de voltar por PR.
 **Onde na prática:** marco 06.
+
+## Segurança
+
+### MACsec
+**Em uma frase:** criptografia no enlace, entre dois equipamentos ligados diretamente.
+**No fin-platform:** não vai de ponta a ponta no caminho com o FCR: no Azure só existe no ExpressRoute Direct, e no Partner Interconnect cobre só o trecho Google–provedor.
+**Erro comum:** contar com o MACsec como se cifrasse o caminho inteiro.
+**Onde na prática:** marco 07.
+
+### IPsec
+**Em uma frase:** criptografia do pacote IP entre dois gateways, num túnel que esconde o cabeçalho interno.
+**No fin-platform:** túnel entre as bordas Azure e Google por cima do caminho do FCR, onde o produto permite.
+**Erro comum:** deixar o tráfego seguir em claro quando o túnel cai.
+**Onde na prática:** marco 07.
+
+### MSS clamping
+**Em uma frase:** o gateway reescreve o tamanho máximo de segmento TCP para que o pacote, já encapsulado, caiba no enlace.
+**No fin-platform:** ajustado nos gateways do túnel para que a resposta grande do score atravesse.
+**Erro comum:** não ajustar e ver só as respostas grandes travarem, sem erro.
+**Onde na prática:** marco 07.
+
+### Falha fechada
+**Em uma frase:** quando a proteção cai, o tráfego para, em vez de seguir sem ela.
+**No fin-platform:** sem o túnel IPsec, não há rota para a API do fornecedor.
+**Erro comum:** configurar uma rota alternativa em claro "para não parar o antifraude".
+**Onde na prática:** marco 07.
+
+### Anúncio mínimo
+**Em uma frase:** anunciar ao parceiro só os prefixos que o contrato diz que ele precisa alcançar, e aceitar dele só os combinados.
+**No fin-platform:** só os /28 do catálogo, gerados para cada conexão do FCR.
+**Erro comum:** anunciar a VNet inteira ou o agregado corporativo porque "é mais fácil".
+**Onde na prática:** marco 08.
+
+### Zona de parceiros
+**Em uma frase:** uma VNet ou VPC de trânsito, dedicada a terceiros, entre o caminho privado e as redes de produção.
+**No fin-platform:** concentra firewall, NAT e registros de fluxo de todos os parceiros.
+**Erro comum:** ligar o parceiro direto na VNet de produção.
+**Onde na prática:** marco 08.
+
+### Trânsito indevido
+**Em uma frase:** um parceiro alcançando outro pelo seu roteador, porque você anunciou a rota de um ao outro.
+**No fin-platform:** o filtro por conexão do FCR impede que o FornecedorScore alcance o parceiro de PLD.
+**Erro comum:** achar que o FCR isola os parceiros sozinho.
+**Onde na prática:** marco 08.
+
+### DNS privado
+**Em uma frase:** resolução de nomes que só funciona dentro de uma zona privada, para endereços privados.
+**No fin-platform:** o nome da API do fornecedor resolve para o endereço do caminho privado só dentro da zona.
+**Erro comum:** encaminhar consultas de forma ampla e expor ao fornecedor a zona interna inteira.
+**Onde na prática:** marco 08.
+
+### Registro de fluxo
+**Em uma frase:** o registro, por nuvem, de quem falou com quem, quando e quanto.
+**No fin-platform:** a evidência de que o fornecedor acessou só o que devia.
+**Erro comum:** não guardar pelo prazo da política de retenção.
+**Onde na prática:** marcos 08 e 11.
+
+## Fornecedor
+
+### Contrato mínimo de conectividade
+**Em uma frase:** o anexo técnico ao contrato comercial com prefixos, ASN, janelas, NOC, SLA do caminho, criptografia, auditoria e revisão.
+**No fin-platform:** o lint do catálogo de parceiros reprova quem não tem todos os campos.
+**Erro comum:** achar que o contrato comercial cobre o que a rede precisa.
+**Onde na prática:** marco 09.
+
+### Catálogo de parceiros
+**Em uma frase:** a fonte única de cada parceiro conectado, da qual se geram filtros, regras e DNS.
+**No fin-platform:** parceiros/catalogo.yaml, com dono, NOC, prefixos, ASN, criptografia e data de revisão.
+**Erro comum:** configurar um parceiro à mão, fora do catálogo.
+**Onde na prática:** marco 09.
+
+### Offboarding
+**Em uma frase:** o desligamento de um parceiro: remover rota, filtro, regra, DNS, credencial, certificado e conexão, e provar.
+**No fin-platform:** mudar o estado no catálogo para desligado, regenerar e rodar a prova de inalcançabilidade.
+**Erro comum:** tirar a chamada do código e esquecer a rota anunciada.
+**Onde na prática:** marco 09.
+
+### Risco de terceiro
+**Em uma frase:** o risco que um fornecedor traz à sua operação, avaliado antes de contratar e revisto depois.
+**No fin-platform:** o FornecedorScore processa CPF e entra no inventário de terceiros.
+**Erro comum:** tratar a certificação do fornecedor como substituta da sua avaliação.
+**Onde na prática:** marco 09.

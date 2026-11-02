@@ -1,0 +1,33 @@
+questions:
+  - question: "O fornecedor alcança o /28 do ledger-core porque a rota foi anunciada. Segundo este marco, o que isso ainda não garante?"
+    options:
+      - "Nada: se há rota anunciada, o contrato já autorizou qualquer porta e protocolo naquele /28"
+      - "Que o acesso seja permitido: rota diz o que é alcançável, o firewall diz o que pode passar"
+      - "Que o tráfego seja roteado, porque o anúncio só vale depois de o firewall aprovar a rota"
+      - "Que o DNS resolva o nome, já que o anúncio de rota substitui a zona DNS privada"
+    answer: 1
+    explanation: "Roteamento e firewall respondem perguntas diferentes: alcançável e permitido. Rota não é autorização, o firewall não aprova rotas, e DNS é outra decisão."
+  - question: "O fornecedor aplica as rotas anunciadas customizadas no Cloud Router dele, aceitando só os /28 combinados. Segundo este marco, por que você ainda filtra na borda Azure e no FCR?"
+    options:
+      - "Porque o Cloud Router do Google não aceita filtros configurados pelo fornecedor"
+      - "Porque o FCR rejeita sessões BGP de vizinhos que não filtram nos dois sentidos"
+      - "Porque o filtro do fornecedor é dele, e filtrar em três pontos faz um erro só não abrir a rede"
+      - "Porque filtrar no fornecedor é proibido pelo contrato mínimo de conectividade"
+    answer: 2
+    explanation: "Filtrar só num ponto faz dele o único que não pode errar, e esse ponto é de outra empresa. O Cloud Router aceita filtro, o FCR não exige isso do vizinho, e o contrato deve pedir o filtro, não proibir."
+  - question: "Dois fornecedores estão ligados ao mesmo FCR do fin-platform. Um teste mostra que o fornecedor A responde a ping vindo do fornecedor B. Segundo este marco, qual é a causa e a correção?"
+    options:
+      - "O firewall da zona de parceiros está sem regra de saída; a correção é liberar só o ping"
+      - "O DNS privado resolve o nome de A para B; a correção é separar as zonas de cada parceiro"
+      - "Os dois usam o mesmo ASN privado; a correção é renumerar o ASN de um deles no contrato"
+      - "O FCR anunciou a rota de um ao outro; a correção é o filtro de saída por conexão"
+    answer: 3
+    explanation: "É trânsito indevido: o FCR aprendeu as duas rotas e anunciou uma ao outro. O filtro por conexão impede, e o teste prova. Firewall, DNS e ASN não explicam alcançabilidade entre os dois."
+  - question: "O ledger-core precisa chamar o fornecedor pelo nome. Segundo este marco, qual é o cuidado com o DNS entre as nuvens?"
+    options:
+      - "Resolver o nome só dentro da zona privada, sem expor ao fornecedor a sua zona interna inteira"
+      - "Publicar o nome do fornecedor no DNS público, já que o endereço privado não é alcançável de fora"
+      - "Usar só IPs no código, porque DNS entre nuvens é sempre inseguro e não pode ser filtrado"
+      - "Encaminhar todas as consultas do fornecedor ao seu resolvedor interno, para simplificar"
+    answer: 0
+    explanation: "O nome resolve para o endereço privado só dentro da zona privada, e o encaminhamento não pode expor a zona interna. DNS público vaza o desenho, IP fixo no código é frágil, e encaminhar tudo expõe a zona."

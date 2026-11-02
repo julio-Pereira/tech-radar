@@ -221,3 +221,12 @@
   termo: "Fabric Cloud Router"
   dono: conectividade-multicloud/05
   apelidos: ["Fabric Cloud Router", "FCR"]
+- id: ipsec
+  termo: "IPsec"
+  dono: conectividade-multicloud/07
+  apelidos: ["IPsec"]
+- id: anuncio-minimo
+  termo: "Anúncio mínimo"
+  dono: conectividade-multicloud/08
+  apelidos: ["anúncio mínimo"]
+  ignorarCaixa: true
