@@ -298,6 +298,10 @@ the ASCII left. The floor is **⌈milestones with prose / 2⌉** diagrams; a stu
 (it opens with `> **Stub.**`) doesn't count until its prose exists. CI writes the report
 to the job summary and uploads it as the `cobertura-diagramas` artifact. It informs, it
 doesn't gate: a track below the floor is marked ⚠.
+A last section lists **milestones without a diagram that show a sign of the trigger**: two or
+more config or shell blocks in the prose, a list of four or more steps with flow verbs, four or
+more arrows, or six or more state terms. The trigger is the author's judgment, so this list is a
+prompt to look, never a failure.
 
 **Planning a new track.** The plan's table of milestones gets a **"diagrama"** column: for
 each milestone, the diagram it will have (type and one-line idea) or "—" when the prose

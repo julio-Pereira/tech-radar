@@ -15,14 +15,14 @@ questions:
       - "A soma de devoluções pode legitimamente exceder o valor original, desde que cada pedido individual seja válido"
     answer: 0
     explanation: "O marco é direto: a regra 'soma de devoluções ≤ valor original' precisa de uma verificação atômica, porque pedidos concorrentes de devolução parcial podem, juntos, devolver mais do que foi recebido se cada um for checado isoladamente. O marco não afirma que o primeiro pedido sempre vence automaticamente, não trata concorrência como impossível, e é explícito que a soma nunca pode exceder o original."
-  - question: "Uma vítima de fraude aciona o MED pouco depois de uma transação Pix fraudulenta. Segundo este marco, por que o valor é colocado em bloqueio cautelar ANTES da conclusão da análise formal, em vez de esperar o resultado da análise para agir?"
+  - question: "Uma vítima de fraude aciona o MED pouco depois de uma transação Pix fraudulenta. Segundo este marco, por que o MED bloqueia os recursos na conta de destino ANTES da conclusão da análise formal, em vez de esperar o resultado da análise para agir?"
     options:
       - "Porque esperar a conclusão da análise permitiria ao suposto fraudador retirar o valor da conta de destino antes de qualquer decisão"
-      - "Porque o bloqueio cautelar substitui completamente a necessidade de qualquer análise formal"
-      - "Porque a lei exige bloqueio imediato em toda transação Pix, independentemente de haver notificação de fraude"
-      - "Porque o bloqueio cautelar é apenas uma formalidade sem efeito prático sobre a disponibilidade do valor"
+      - "Porque o bloqueio feito pelo MED substitui completamente a necessidade de qualquer análise formal do caso"
+      - "Porque a lei exige bloqueio imediato em toda transação Pix, independentemente de haver notificação de fraude, para padronizar o tratamento entre os PSPs"
+      - "Porque o bloqueio do MED é apenas uma formalidade sem efeito prático sobre a disponibilidade do valor"
     answer: 0
-    explanation: "O marco explica que o bloqueio cautelar existe precisamente para impedir que o suposto fraudador retire o valor enquanto a análise ainda está em curso — agir antes da conclusão é o que torna o mecanismo útil. O bloqueio não substitui a análise (ela ainda ocorre), não é uma exigência universal para toda transação, e tem efeito prático real sobre a disponibilidade do valor."
+    explanation: "O marco explica que o bloqueio dos recursos dentro do MED existe precisamente para impedir que o suposto fraudador retire o valor enquanto a análise ainda está em curso — agir antes da conclusão é o que torna o mecanismo útil. O bloqueio não substitui a análise (ela ainda ocorre), não é uma exigência universal para toda transação, e tem efeito prático real sobre a disponibilidade do valor."
   - question: "Um sistema de cobrança recorrente processa uma nova cobrança do mesmo cobrador que já cobrou o pagador nos últimos três meses, mas não há registro de autorização prévia válida para esse cobrador específico. Segundo este marco, o que deveria acontecer?"
     options:
       - "A cobrança deveria ser rejeitada — autorização prévia é específica para cada cobrador e precisa estar registrada, não pode ser inferida de cobranças anteriores"
@@ -31,3 +31,11 @@ questions:
       - "A ausência de autorização só importa se o valor da cobrança for maior que as cobranças anteriores"
     answer: 0
     explanation: "O marco exige autorização prévia do pagador, específica para aquele cobrador, como condição para processar uma cobrança recorrente — histórico de cobranças anteriores não substitui esse registro. Processar primeiro e avisar depois, ou processar normalmente com base em cobranças passadas, contradiz diretamente essa exigência, e a ausência de autorização importa independentemente do valor da cobrança."
+  - question: "Um Pix de R$ 8.000 chega à conta de um cliente do `fin-rails` aberta há dois dias, e a avaliação de risco do PSP recebedor aponta suspeita de fraude antes de o valor ficar disponível. Nenhuma vítima reclamou ainda. Segundo este marco, qual mecanismo se aplica?"
+    options:
+      - "O MED, porque qualquer bloqueio de valor suspeito em conta de destino faz parte do Mecanismo Especial de Devolução"
+      - "O bloqueio cautelar: preventivo, iniciado pelo próprio recebedor no recebimento, por até 72 horas"
+      - "Nenhum: sem a reclamação da vítima, o PSP recebedor não pode reter um Pix já liquidado pelo SPI"
+      - "A devolução comum, que o recebedor pode iniciar sozinho sempre que considerar uma transação arriscada"
+    answer: 1
+    explanation: "O bloqueio cautelar é do PSP recebedor, por avaliação própria, no recebimento e antes do crédito, por até 72 horas (a conferir no regulamento vigente). O MED começa depois, pelo PSP do pagador, a partir da reclamação da vítima. O recebedor pode reter sem reclamação, justamente pelo cautelar, e a devolução comum é outra operação, que não serve para suspeita de fraude."

@@ -28,8 +28,10 @@ O modelo de **perda esperada** olha para a frente, em três **estágios**:
 - **Estágio 3** — **ativo problemático** (em default, ou com sinais equivalentes): vida inteira,
   sobre um ativo já problemático.
 
-**Conferir** a norma brasileira vigente sobre perda esperada, seu cronograma de aplicação e como ela
-define estágios e gatilhos para a sua instituição.
+A referência no Brasil é a [Resolução CMN nº 4.966/2021](https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20CMN&numero=4966),
+em vigor desde 1º de janeiro de 2025 e alterada por normas posteriores. **Conferir** o texto
+consolidado vigente, o cronograma de aplicação e como ele define estágios e gatilhos para a sua
+instituição.
 
 ```diagrama
 cr-estagios

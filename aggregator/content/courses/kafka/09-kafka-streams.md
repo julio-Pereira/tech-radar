@@ -68,6 +68,10 @@ As mitigações, e todas têm trade-off:
 - **Manter o estado pequeno** — janelas com retenção curta, `Materialized` só onde é
   preciso.
 
+```diagrama
+kafka-streams-saldo
+```
+
 ## Topologia, tarefas e paralelismo
 
 Você descreve uma **topologia** (o grafo de processadores) e o Streams a divide em

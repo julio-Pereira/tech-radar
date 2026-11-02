@@ -29,11 +29,18 @@ type CoberturaTrilha struct {
 	Stubs       int      // milestones without prose yet
 	ComDiagrama int      // milestones (with prose) that have at least one diagram
 	SemDiagrama []string // milestones with prose and no diagram
+	// Gatilho lists, among SemDiagrama, the milestones whose prose shows a
+	// sign of the convention's trigger (≥ 3 components, message order, life
+	// cycle, pipeline), with the reason. A heuristic, never a gate.
+	Gatilho []Gatilho
 	Diagramas   int      // distinct diagrams referenced
 	Animados    int
 	Graficos    int
 	ASCII       int
 }
+
+// Gatilho is a milestone without a diagram and the signs its prose shows.
+type Gatilho struct{ Marco, Motivo string }
 
 // Minimo is the plan's floor: ⌈milestones with prose / 2⌉ diagrams.
 func (c CoberturaTrilha) Minimo() int { return (c.Marcos - c.Stubs + 1) / 2 }
@@ -92,7 +99,11 @@ func coberturaTrilha(dir string) (CoberturaTrilha, error) {
 		if ids > 0 {
 			row.ComDiagrama++
 		} else {
-			row.SemDiagrama = append(row.SemDiagrama, strings.TrimSuffix(file, ".md"))
+			name := strings.TrimSuffix(file, ".md")
+			row.SemDiagrama = append(row.SemDiagrama, name)
+			if why := sinaisDeGatilho(body); why != "" {
+				row.Gatilho = append(row.Gatilho, Gatilho{name, why})
+			}
 		}
 	}
 	row.Diagramas = len(used)
@@ -116,6 +127,53 @@ func coberturaTrilha(dir string) (CoberturaTrilha, error) {
 		}
 	}
 	return row, nil
+}
+
+var (
+	// The prose before the example and the hands-on: every hands-on has
+	// numbered lists, which would match the step-list signal.
+	gatilhoFimRe = regexp.MustCompile(`(?m)^## (Exemplo numa fintech|Hands-on)`)
+	// Configuration and shell blocks chained in the prose (a manifest, then
+	// the command that applies it) describe components wired together.
+	gatilhoConfigRe = regexp.MustCompile("(?m)^```(ya?ml|json|properties|toml|hcl|xml|ini|bash|sh|shell)[ \t]*$")
+	gatilhoListaRe  = regexp.MustCompile(`(?m)(?:^\d+\. .*\n(?:^ +.*\n)*){4,}`)
+	gatilhoItemRe   = regexp.MustCompile(`(?m)^\d+\. `)
+	gatilhoVerboRe  = regexp.MustCompile(`(?i)\b(envia|recebe|chama|publica|consome|grava|lê|le|valida|retorna|devolve|cria|aplica|executa|dispara|propaga|escreve|consulta|reconcilia|assina|troca|emite|processa)`)
+	gatilhoEstadoRe = regexp.MustCompile(`(?i)\b(estados?|transição|transições)\b`)
+)
+
+// sinaisDeGatilho returns why a milestone without a diagram looks like it
+// should have one, or "". Calibrated on the content at the end of the
+// diagram plan: kubernetes/10, kafka/09 and kafka/11 showed up, and the
+// whole list stayed under 15 milestones.
+func sinaisDeGatilho(body []byte) string {
+	if loc := gatilhoFimRe.FindIndex(body); loc != nil {
+		body = body[:loc[0]]
+	}
+	var why []string
+	if n := len(gatilhoConfigRe.FindAll(body, -1)); n >= 2 {
+		why = append(why, fmt.Sprintf("%d blocos de configuração", n))
+	}
+	for _, lista := range gatilhoListaRe.FindAll(body, -1) {
+		itens := gatilhoItemRe.Split(string(lista), -1)[1:]
+		comVerbo := 0
+		for _, it := range itens {
+			if gatilhoVerboRe.MatchString(it) {
+				comVerbo++
+			}
+		}
+		if comVerbo >= 4 {
+			why = append(why, "lista de passos")
+			break
+		}
+	}
+	if n := strings.Count(string(body), "→"); n >= 4 {
+		why = append(why, fmt.Sprintf("%d setas", n))
+	}
+	if n := len(gatilhoEstadoRe.FindAll(body, -1)); n >= 6 {
+		why = append(why, fmt.Sprintf("%d termos de estado", n))
+	}
+	return strings.Join(why, ", ")
 }
 
 // CoberturaMarkdown renders the report for the CI job summary.
@@ -150,6 +208,18 @@ func CoberturaMarkdown(rows []CoberturaTrilha) string {
 		}
 		any = true
 		fmt.Fprintf(&b, "- `%s` (%d): %s\n", r.Slug, len(r.SemDiagrama), strings.Join(r.SemDiagrama, ", "))
+	}
+	if !any {
+		b.WriteString("Nenhum.\n")
+	}
+	b.WriteString("\n## Marcos sem diagrama com sinal de gatilho\n\n")
+	b.WriteString("Informativo: a prosa tem ≥ 2 blocos de configuração ou shell, uma lista de ≥ 4 passos com verbos de fluxo, ≥ 4 setas ou ≥ 6 termos de estado. O gatilho é julgamento de autor; confira o marco antes de desenhar.\n\n")
+	any = false
+	for _, r := range rows {
+		for _, g := range r.Gatilho {
+			any = true
+			fmt.Fprintf(&b, "- `%s/%s`: %s\n", r.Slug, g.Marco, g.Motivo)
+		}
 	}
 	if !any {
 		b.WriteString("Nenhum.\n")

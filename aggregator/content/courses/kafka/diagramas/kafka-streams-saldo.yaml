@@ -1,0 +1,27 @@
+id: kafka-streams-saldo
+tipo: topologia
+titulo: "Streams com estado: o saldo mora no pod, e o changelog é a cópia durável"
+descricao: >
+  A projeção de saldo do pix-stream lê os lançamentos como KStream, agrupa pela conta e agrega.
+  O estado da agregação fica num state store RocksDB local, no próprio pod, e cada alteração é
+  replicada num changelog topic compactado no Kafka. O resultado é uma KTable de saldos,
+  publicada num tópico compactado que o painel lê. Cada partição da fonte vira uma tarefa; a
+  instância que assume uma partição precisa reler o changelog dela antes de processar, e é esse
+  restore que custa minutos a cada deploy sem standby ou volume persistente.
+grupos:
+  - { id: app, rotulo: "app Streams (por partição)", col: 1, row: 0, cols: 2, rows: 2 }
+nos:
+  - { id: entrada, rotulo: "lançamentos", col: 0, row: 0, papel: externo }
+  - { id: kstream, rotulo: "KStream", grupo: app, col: 1, row: 0 }
+  - { id: agg, rotulo: "groupByKey + aggregate", grupo: app, col: 2, row: 0, papel: destaque }
+  - { id: store, rotulo: "state store (RocksDB)", grupo: app, col: 2, row: 1 }
+  - { id: ktable, rotulo: "KTable de saldos", grupo: app, col: 1, row: 1 }
+  - { id: changelog, rotulo: "changelog compactado", col: 3, row: 1, papel: externo }
+  - { id: saida, rotulo: "saldos (compactado)", col: 0, row: 1, papel: externo }
+arestas:
+  - { de: entrada, para: kstream }
+  - { de: kstream, para: agg }
+  - { de: agg, para: store }
+  - { de: store, para: changelog, rotulo: "replica" }
+  - { de: store, para: ktable }
+  - { de: ktable, para: saida }

@@ -1,0 +1,23 @@
+id: kafka-connect-pipeline
+tipo: fluxo
+titulo: "Connect: do outbox ao Postgres analítico, com SMT na borda e DLQ para o que falha"
+descricao: >
+  Um conector source captura, por CDC, os eventos do outbox e publica em payments.authorized. Do
+  outro lado, o conector sink lê o tópico, aplica um SMT que mascara CPF e PAN antes de o dado
+  sair do Kafka e grava no Postgres analítico com insert.mode=upsert e pk.fields=payment_id, para
+  que um replay não duplique linhas. Uma mensagem que falha a conversão ou a transformação, com
+  errors.tolerance=all, vai para a DLQ connect.dlq.payments com os headers de contexto, nunca é
+  descartada em silêncio. Conferir os nomes de propriedade na documentação vigente.
+passos:
+  - { id: source, rotulo: "source (CDC do outbox)", col: 0, row: 0, conceito: cdc }
+  - { id: topico, rotulo: "payments.authorized", col: 1, row: 0 }
+  - { id: smt, rotulo: "SMT: mascara CPF e PAN", col: 2, row: 0 }
+  - { id: sink, rotulo: "sink JDBC (upsert)", col: 3, row: 0, papel: destaque }
+  - { id: dlq, rotulo: "connect.dlq.payments", col: 2, row: 1 }
+  - { id: pg, rotulo: "Postgres analítico", col: 3, row: 1 }
+arestas:
+  - { de: source, para: topico }
+  - { de: topico, para: smt }
+  - { de: smt, para: sink }
+  - { de: sink, para: pg, rotulo: "pk payment_id" }
+  - { de: smt, para: dlq, rotulo: "falhou", tipo: falha }

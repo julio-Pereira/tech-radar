@@ -215,8 +215,8 @@ nova transação que a referencia.
 **Onde na prática:** marco 03.
 
 ### MED
-**Em uma frase:** o Mecanismo Especial de Devolução, acionado em casos de fraude, com bloqueio
-cautelar e análise antes da devolução.
+**Em uma frase:** o Mecanismo Especial de Devolução, acionado pelo PSP do pagador a partir da
+reclamação de fraude, com bloqueio dos recursos e análise antes da devolução.
 **No fin-rails:** o fluxo de MED simulado termina em um único estado terminal, conservando os
 fundos entre bloqueado, devolvido e irrecuperável.
 **Erro comum:** achar que o MED serve para arrependimento de compra — ele é reservado a fraude
@@ -224,12 +224,12 @@ investigada.
 **Onde na prática:** marco 03.
 
 ### Bloqueio cautelar
-**Em uma frase:** reter o valor na conta de destino durante a análise de um MED, antes de
-qualquer decisão final.
-**No fin-rails:** o bloqueio cautelar simulado impede que o valor seja retirado enquanto a análise
-está em andamento.
-**Erro comum:** esperar a conclusão da análise para bloquear — isso daria tempo ao fraudador de
-retirar o valor antes de qualquer ação.
+**Em uma frase:** a retenção preventiva que o PSP recebedor aplica, por avaliação própria de risco,
+no momento do recebimento de um Pix, por até 72 horas, antes de o valor ficar disponível.
+**No fin-rails:** o recebedor simulado retém um Pix suspeito no recebimento e, dentro do prazo,
+libera o valor ou o devolve ao pagador.
+**Erro comum:** confundir o bloqueio cautelar com o bloqueio feito dentro do MED — o cautelar é do
+recebedor, preventivo e anterior ao crédito; o do MED vem depois, a partir da reclamação da vítima.
 **Onde na prática:** marco 03.
 
 ### Pix agendado

@@ -43,9 +43,28 @@ de devolução parcial podem, juntos, devolver mais do que foi recebido.
 
 ## MED: o mecanismo especial de devolução
 
+Antes do MED, um mecanismo distinto: o **bloqueio cautelar**. Quem o aciona é o **PSP recebedor**,
+por iniciativa própria, a partir da sua avaliação de risco; ele acontece **no recebimento** do Pix,
+antes de o valor ficar disponível ao destinatário; e dura **até 72 horas**, prazo em que o recebedor
+analisa e libera o valor ou o devolve (**conferir** o prazo e as condições no regulamento vigente).
+É **preventivo**: age sobre uma suspeita, sem reclamação de ninguém. O cautelar é a última chance de
+reter o dinheiro **antes** do crédito; o MED é o caminho **depois** dele.
+
+```diagrama
+pg-bloqueio-cautelar
+```
+
+| | Bloqueio cautelar | MED |
+| --- | --- | --- |
+| Quem inicia | PSP recebedor, por avaliação própria de risco | PSP do pagador, a partir da reclamação da vítima |
+| Quando | No recebimento, antes de o valor ficar disponível | Depois da transação concluída e do valor creditado |
+| Natureza | Preventiva: suspeita de fraude | Recuperação: fraude reclamada |
+| Prazo | Até 72 horas (**conferir**) | Prazos próprios do fluxo do MED (**conferir**) |
+
 O **MED** existe para o caso em que uma transação foi genuinamente fraudulenta — a vítima notifica
-a fraude, o valor é colocado em **bloqueio cautelar** na conta de destino (impedindo que o suposto
-fraudador o retire enquanto a análise corre), uma análise formal ocorre, e o resultado é devolução
+a fraude ao seu PSP, e os recursos ainda disponíveis na conta de destino são **bloqueados dentro do
+MED** (impedindo que o suposto fraudador os retire enquanto a análise corre), uma análise formal
+ocorre, e o resultado é devolução
 (total ou parcial, conforme o que ainda está disponível) ou liberação do bloqueio. O MED também
 pode envolver **rastreio de fundos** entre contas, quando o valor já foi movido para além da conta
 de destino original — um processo mais lento e mais caro do que qualquer devolução comum, e
@@ -86,9 +105,12 @@ dinheiro saiu, recuperá-lo de volta nunca é garantido.
 ## Exemplo numa fintech
 
 Um golpe de engenharia social convence a vítima a transferir R$ 5.000 via Pix. A vítima aciona o
-MED imediatamente; o valor ainda não sacado é colocado em bloqueio cautelar na conta de destino; a
+MED imediatamente; o valor ainda não sacado é bloqueado pelo MED na conta de destino; a
 análise confirma a fraude; e o valor disponível é devolvido — mas a parte que o fraudador já havia
-sacado ou transferido para outra conta permanece, na prática, irrecuperável por esse mecanismo.
+sacado ou transferido para outra conta permanece, na prática, irrecuperável por esse mecanismo. Se o
+PSP recebedor tivesse reconhecido o padrão no recebimento (uma conta nova recebendo, em minutos,
+transferências de valor alto de pessoas sem relação prévia), o bloqueio cautelar poderia ter retido
+o valor antes de ele ficar disponível.
 
 ## Hands-on
 
@@ -123,8 +145,8 @@ pedida pela própria vítima de uma tentativa do fraudador de reverter uma trans
    simplesmente tentar de novo indefinidamente?
 2. Por que a soma de devoluções de uma transação precisa de uma verificação atômica, e não apenas
    de uma checagem feita antes de cada pedido individual?
-3. Por que o MED envolve bloqueio cautelar antes da análise, em vez de aguardar a conclusão da
-   análise para agir?
+3. Por que o MED bloqueia os recursos antes de concluir a análise, em vez de aguardar a conclusão
+   para agir? E por que esse bloqueio não é o mesmo que o bloqueio cautelar?
 4. Por que a irrevogabilidade do Pix torna a prevenção estruturalmente mais importante do que num
    sistema onde o estorno é fácil?
 
@@ -143,8 +165,10 @@ de fraude em vez de a uma falha técnica.
   tentativas silenciosas sem limite.
 - A soma de devoluções de uma transação nunca pode exceder o valor original, mesmo sob pedidos
   concorrentes — isso exige verificação atômica, não checagem isolada por pedido.
-- O MED bloqueia cautelarmente antes de concluir a análise, porque esperar permitiria ao
+- O MED bloqueia os recursos antes de concluir a análise, porque esperar permitiria ao
   fraudador sacar o valor antes de qualquer decisão.
+- O bloqueio cautelar é outro mecanismo: preventivo, do PSP recebedor, no recebimento e por até
+  72 horas; o MED vem depois do crédito, a partir da reclamação da vítima.
 - Uma cobrança recorrente sem autorização prévia registrada não deveria ser processada, mesmo que
   cobranças anteriores tenham sido aceitas.
 - A irrevogabilidade do Pix torna prevenção estruturalmente mais importante do que em sistemas
