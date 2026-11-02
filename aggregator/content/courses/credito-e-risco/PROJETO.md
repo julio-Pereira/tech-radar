@@ -64,3 +64,22 @@ janelas; (e) provisão por estágio no fechamento; (f) relatório de carteira re
 
 `estimatedHours` ≈ 2 × Σ `estimatedMinutes`: 720 min viram ~24h porque o hands-on é escrever e
 provar cada parte.
+
+## Versão de referência dos diagramas
+
+Os diagramas de provisão seguem, de forma simplificada, o modelo de perda esperada da
+**Resolução CMN nº 4.966/2021**, em vigor desde 1º de janeiro de 2025. Ela foi alterada depois,
+entre outras, pela Resolução CMN nº 5.100/2023 e pela Resolução BCB nº 352/2023; **confira** o
+texto consolidado vigente no portal de normas do Banco Central antes de implementar.
+
+| Diagrama | Marco | O que simplifica |
+| --- | --- | --- |
+| `cr-estagios` | 09 | Três estágios (12 meses, vida inteira, problemático), cura com período de observação e baixa; não mostra as exceções nem os critérios completos de ativo problemático |
+| `cr-provisao-fechamento` | 09 | Da ECL por contrato ao lançamento no fechamento; não mostra desconto, cenários nem as contas contábeis exatas |
+| `cr-perda-esperada` | 06 | EL = PD × LGD × EAD num único horizonte, sem desconto a valor presente |
+| `cr-buckets` | 08 | Faixas de atraso e renegociação; as faixas são as usuais de mercado, não as de uma norma específica |
+
+Os **valores** usados nos diagramas e nos exemplos são **ilustrativos** e, na prática, declarados
+pela política de cada instituição: o gatilho de SICR de "atraso acima de 30 dias", a PD de vida
+inteira de 15% do exemplo do marco 09, os limiares de PSI e as faixas de atraso. Se a norma ou a
+política mudar, atualize os diagramas junto com o código.
