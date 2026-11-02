@@ -4,7 +4,8 @@ titulo: "A sessão BGP só troca rotas em ESTABLISHED, e o max-prefix a derruba 
 descricao: >
   A sessão começa em IDLE e tenta abrir o TCP na porta 179, em CONNECT. Se o TCP falha, espera em
   ACTIVE e tenta de novo; uma senha errada costuma deixar a sessão presa aqui. Com o TCP aberto, os
-  roteadores trocam a mensagem OPEN, com ASN e parâmetros, e confirmam com um KEEPALIVE. Só em
+  roteadores trocam a mensagem OPEN, com ASN e parâmetros; um ASN ou parâmetro errado faz o vizinho
+  rejeitar o OPEN e a sessão volta a IDLE. Aceito o OPEN, confirmam com um KEEPALIVE. Só em
   ESTABLISHED as rotas são trocadas. Estourar o max-prefix ou deixar o hold timer expirar devolve a
   sessão a IDLE, e todas as rotas aprendidas do vizinho somem de uma vez.
 estados:
@@ -22,5 +23,6 @@ transicoes:
   - { de: connect, para: opensent, evento: "TCP ok" }
   - { de: active, para: opensent, evento: "TCP ok" }
   - { de: opensent, para: openconfirm, evento: "OPEN aceito" }
+  - { de: opensent, para: idle, evento: "OPEN rejeitado" }
   - { de: openconfirm, para: established, evento: "KEEPALIVE" }
   - { de: established, para: idle, evento: "max-prefix / hold" }

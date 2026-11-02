@@ -78,7 +78,7 @@ da Equinix nem a aprovação de conexões; não é um curso de roteador.
 ## Definição de pronto (capstone)
 
 - [ ] Nenhuma faixa IP se sobrepõe entre `fin-platform` e fornecedor; o detector prova (e pega a injetada)
-- [ ] Cada sessão BGP tem filtro de entrada e de saída, `max-prefix` e senha ou TTL de segurança configurados
+- [ ] Cada sessão BGP tem filtro de entrada e de saída, `max-prefix` e senha (MD5 ou TCP-AO) configurados; GTSM onde houver suporte
 - [ ] O tráfego `ledger-core` → `FornecedorScore` passa **só** pelo FCR (prova por traceroute e captura)
 - [ ] O caminho é cifrado (IPsec) **e** autenticado na aplicação (mTLS); a captura não tem texto claro
 - [ ] Só os prefixos combinados no contrato são anunciados, nos dois sentidos; o firewall nega por padrão

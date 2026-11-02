@@ -38,7 +38,7 @@ questions:
       - "Trocar o mTLS por IPsec, cujas chaves pré-compartilhadas não vencem nem precisam rotação"
       - "Rotação automática a partir do cofre, por ambiente, com alerta antes do vencimento"
     answer: 3
-    explanation: "Chaves e certificados vencem e precisam de rotação automática com alerta prévio. Certificado eterno, validação desligada ou trocar mTLS por IPsec só trocam o incidente por um risco maior."
+    explanation: "Certificados vencem e chaves precisam de rotação, inclusive as pré-compartilhadas do IPsec, que não vencem; a rotação é automática, com alerta prévio. Certificado eterno, validação desligada ou trocar mTLS por IPsec só trocam o incidente por um risco maior."
   - question: "O time quer saber se precisa de IPsec, mTLS ou os dois no caminho do score. Segundo este marco, o que decide a exigência?"
     options:
       - "O modelo de ameaça e a classificação do dado, que dizem quem pode ler cada trecho e o que isso exige"

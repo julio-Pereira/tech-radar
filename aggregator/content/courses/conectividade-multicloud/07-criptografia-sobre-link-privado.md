@@ -69,8 +69,11 @@ ameaça cada uma cobre, e qual sobra sem ela":
 
 ## MTU e MSS: o bug clássico
 
-Encapsular custa bytes. O IPsec acrescenta cabeçalhos a cada pacote, e um pacote que cabia nos 1.500
-bytes do enlace deixa de caber. Se nada for ajustado, o resultado é traiçoeiro: requisições pequenas
+Encapsular custa bytes. O IPsec acrescenta cabeçalhos a cada pacote, e um pacote que cabia no enlace
+deixa de caber. E o enlace pode nem ter os 1.500 bytes que se supõem: o VLAN attachment do Partner
+Interconnect usa MTU de 1.440 por padrão, e o attachment cifrado para HA VPN fica em 1.440 (**conferir**
+os valores vigentes), enquanto o lado Azure costuma estar em 1.500. Meça o MTU do caminho inteiro; não
+suponha. Se nada for ajustado, o resultado é traiçoeiro: requisições pequenas
 passam, o handshake TLS às vezes passa, e as **respostas grandes travam**, porque os pacotes cheios
 são descartados e a mensagem ICMP que avisaria do tamanho também é filtrada no caminho.
 
@@ -86,10 +89,17 @@ continua de pé. Isso é uma decisão de roteamento: a rota para a API do fornec
 do túnel, e o caminho sem túnel não a anuncia. Falha aberta — "se o IPsec cair, pelo menos
 funciona" — transforma uma queda do gateway num vazamento de CPF que ninguém percebe.
 
+No Azure há uma armadilha específica: quando o mesmo prefixo chega pelo ExpressRoute e pela VPN, o
+ExpressRoute tende a vencer (**conferir** a precedência vigente). Se o prefixo do fornecedor vazar
+pelo FCR para o circuito, fora do túnel, o tráfego passa a ir em claro sem que nada caia. O filtro do
+FCR precisa impedir que esse prefixo chegue ao circuito, e o teste de captura do Hands-on é o que
+prova.
+
 ## Chaves e certificados
 
-As chaves pré-compartilhadas ou os certificados do IPsec e os certificados do mTLS vencem e precisam
-de rotação: no cofre, por ambiente, com renovação automática e alerta antes do vencimento. Um
+Os certificados do IPsec e do mTLS vencem; as chaves pré-compartilhadas do IPsec não vencem, mas
+precisam de rotação do mesmo jeito. Tudo no cofre, por ambiente, com renovação automática e alerta
+antes do vencimento. Um
 certificado vencido derruba a integração do mesmo jeito que um ataque, e é bem mais comum.
 
 ## O modelo de ameaça decide

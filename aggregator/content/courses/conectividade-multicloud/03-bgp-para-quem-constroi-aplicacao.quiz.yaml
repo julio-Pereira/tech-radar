@@ -4,9 +4,9 @@ questions:
       - "Continua no link primário, porque a local preference do primário é maior e decide antes do prefixo"
       - "Divide-se entre os dois caminhos em ECMP, já que os dois anúncios cobrem o mesmo destino final"
       - "Fica sem rota, porque o roteador descarta anúncios que se sobrepõem a um agregado já instalado"
-      - "Passa a ir pelo fornecedor: o prefixo mais específico vence antes de qualquer atributo"
+      - "Passa a ir pelo fornecedor: o encaminhamento segue o prefixo mais específico, antes de qualquer atributo"
     answer: 3
-    explanation: "O prefixo mais específico vence antes de local preference ou AS path; é o mecanismo do vazamento descrito no marco. Não há ECMP entre prefixos de tamanhos diferentes, e o roteador não descarta o específico."
+    explanation: "O encaminhamento usa o prefixo mais específico (longest match) antes de qualquer atributo do BGP, que só compara caminhos do mesmo prefixo; é o mecanismo do vazamento descrito no marco. Não há ECMP entre prefixos de tamanhos diferentes, e o roteador não descarta o específico."
   - question: "O fin-platform tem filtro de entrada na sessão com o fornecedor, mas nenhum filtro de saída. O argumento é que 'o fornecedor também filtra'. Segundo este marco, qual é o risco?"
     options:
       - "Nenhum: um filtro em cada lado é suficiente, desde que cada um filtre a entrada do seu roteador"

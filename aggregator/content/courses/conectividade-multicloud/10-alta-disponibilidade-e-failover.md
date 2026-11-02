@@ -38,13 +38,20 @@ redundância.
   segundo circuito em outra localização (**conferir** as opções de alta resiliência vigentes).
 - **Partner Interconnect:** dois attachments, um em cada **edge availability domain** do metro,
   cobrem a manutenção de um domínio (o caminho para 99,9%). O nível mais alto envolve mais de um
-  metro (**conferir** a topologia exata, que a Fase 0 não confirmou em detalhe).
+  metro (**conferir** a topologia exata, que a documentação consultada não detalhou).
 - **FCR:** um FCR é um roteador num metro; um FCR só é um ponto único de falha. A forma de cobrir é
   um segundo FCR, cada um com as próprias conexões — ou o modelo de alta disponibilidade que o
-  produto oferecer (**conferir**; a Fase 0 não confirmou).
+  produto oferecer (**conferir**; a documentação consultada não confirmou).
 
-O desenho desta trilha usa dois caminhos completos: conexão primária do circuito, FCR 1 e attachment
-no domínio 1; conexão secundária, FCR 2 e attachment no domínio 2.
+O desenho desta trilha usa dois caminhos completos, em metros diferentes: no metro de São Paulo, o
+circuito ER 1, o FCR 1 e o attachment do fornecedor ali; num segundo metro, o circuito ER 2 (noutra
+peering location), o FCR 2 e um attachment do fornecedor noutra região — perto do desenho de 99,99%
+do Google (**conferir** a topologia suportada, inclusive como os dois circuitos e os dois FCRs se
+ligam no Fabric). Cada circuito tem as próprias duas conexões com a Microsoft.
+
+O que os dois caminhos **ainda compartilham** precisa estar escrito: o ExpressRoute Gateway da VNet
+(um só, com SKUs redundantes por zona — **conferir**), a região do `ledger-core` e a região da API do
+fornecedor. Isso entra na conta do SLA mais abaixo, em série.
 
 ```diagrama
 cm-failover
@@ -54,9 +61,8 @@ cm-failover
 
 Com dois caminhos, há duas formas de usá-los:
 
-- **primário/secundário**: um caminho carrega tudo, o outro espera. Você o declara com *local
-  preference* (maior no primário, para a saída) e com *AS-path prepend* no anúncio do secundário
-  (para o outro lado preferir voltar pelo primário). É simples de raciocinar e de depurar;
+- **primário/secundário**: um caminho carrega tudo, o outro espera. É simples de raciocinar e de
+  depurar;
 - **ativo/ativo** com **ECMP** (múltiplos caminhos de custo igual): o tráfego se divide entre os dois.
   Usa a capacidade dos dois e não deixa um caminho "frio", mas a ida de uma conexão pode ir por um
   caminho e a volta pelo outro.
@@ -66,10 +72,28 @@ mesma conexão. Com ECMP e firewalls diferentes em cada caminho, a resposta cheg
 nunca viu a conexão abrir e é descartada. Ativo/ativo exige estado compartilhado entre os firewalls,
 ou hashing simétrico nos dois sentidos; sem isso, primário/secundário é o desenho seguro.
 
+## Como declarar o primário quando não há roteador seu no meio
+
+O *local preference* do marco 03 só funciona num roteador seu que veja os dois caminhos. Neste
+desenho, esse roteador não existe: o FCR 1 e o FCR 2 têm um caminho cada, e as bordas são da Microsoft
+e do Google. Sem nada declarado, as duas nuvens tendem a usar os dois caminhos em ECMP — o ativo/ativo
+que você queria evitar.
+
+A preferência se expressa no que cada FCR **anuncia**:
+
+- para o **Azure**, o FCR 2 anuncia com *AS-path prepend*, e o caminho mais curto pelo FCR 1 vence; o
+  gateway também aceita um peso por conexão (**conferir** como o ExpressRoute desempata entre
+  circuitos);
+- para o **Google**, o FCR 2 anuncia com *prepend* ou MED, e o Cloud Router prefere o caminho do FCR 1
+  (**conferir** como o Cloud Router desempata, inclusive com a prioridade das rotas anunciadas).
+
+As duas metades precisam ser feitas: a preferência de um lado decide a ida, a do outro decide a
+volta.
+
 ## Detecção e convergência
 
 O failover tem duas partes: **detectar** que o caminho morreu e **convergir** para o outro. Com os
-temporizadores padrão do BGP, detectar pode levar dezenas de segundos, porque a sessão só cai quando
+temporizadores padrão do BGP, detectar pode levar de 90 s a 3 minutos, porque a sessão só cai quando
 o hold timer expira. O **BFD** detecta em frações de segundo e derruba a sessão BGP junto. A
 convergência que segue é rápida: as rotas do caminho morto somem, as do outro já estavam lá.
 
@@ -78,7 +102,8 @@ com uma sonda contínua, enquanto o primário é derrubado de propósito.
 
 ## Assimetria
 
-Em regime e em falha, a ida e a volta precisam usar o mesmo caminho. A assimetria aparece quando um
+Com firewall com estado no caminho, a ida e a volta precisam usar o mesmo caminho, em regime e em
+falha (o ExpressRoute em si não exige simetria; o firewall, sim). A assimetria aparece quando um
 lado converge e o outro não, ou quando o *prepend* foi esquecido em um dos anúncios: a ida vai pelo
 secundário, a volta insiste no primário que já não existe, ou vai por um firewall que não viu a ida.
 O teste de failover verifica os dois sentidos, não só se o ping voltou.
@@ -96,9 +121,15 @@ padrão bloqueada e um teste que prove que nenhum pacote sai pela internet duran
 O marco 09 mostrou que peças em **série** multiplicam as disponibilidades, e o caminho fica abaixo da
 peça mais fraca. Caminhos em **paralelo** fazem o contrário: o conjunto só fica indisponível se os
 dois caírem ao mesmo tempo. Com dois caminhos independentes de 99,84% cada, a indisponibilidade do
-par é o produto das indisponibilidades: 0,16% × 0,16%, cerca de 0,0003%, o que dá um **SLA composto**
-acima de 99,99%. A conta só vale se os caminhos forem de fato **independentes**: se compartilham o
-metro, a manutenção do metro derruba os dois, e o número cai para o do metro.
+par é o produto das indisponibilidades: 0,16% × 0,16%, cerca de 0,0003% — mais de 99,99%.
+
+A conta só vale para a parte que é de fato **independente**. O que os caminhos compartilham fica em
+série com o par. No desenho desta trilha, com números ilustrativos: duas pernas de 99,9% em paralelo
+dão 1 − 0,1% × 0,1% = 99,9999%; multiplicadas pelo gateway compartilhado, de 99,95%, o **SLA
+composto** do caminho fica em cerca de 99,95%. A parte compartilhada domina. Para subir mais, não
+adianta uma terceira perna: é preciso reduzir o que é compartilhado. E se os dois caminhos
+estivessem no mesmo metro, a manutenção do metro derrubaria os dois, e o número cairia para o do
+metro.
 
 ## Manutenção: falha planejada
 
@@ -118,8 +149,8 @@ assimetria em dez minutos.
 ## Hands-on
 
 **Tutorial.** No `lab/`, acrescente o segundo caminho completo: segundos links nas bordas, um
-segundo `fcr` e o segundo attachment emulado, com BFD ligado em todas as sessões. Configure o
-primário com *local preference* e o secundário com *prepend*.
+segundo `fcr` e o segundo attachment emulado, com BFD ligado em todas as sessões. Declare o primário
+pelo que cada `fcr` anuncia: o `fcr` 2 anuncia com *prepend* para as duas bordas.
 
 **Desafio.** Automatize o game day: uma sonda contínua do `ledger-core` à API, a queda provocada do
 primário e a medição do tempo de convergência e do caminho de ida e de volta.
@@ -131,7 +162,8 @@ primário e a medição do tempo de convergência e do caminho de ida e de volta
 2. Durante a falha, **0 pacotes** saem por caminho não autorizado.
 3. Ida e volta usam o mesmo caminho em regime e em falha; assimetria detectada reprova o teste.
 4. Sem BFD, a convergência é **mais lenta** que com BFD (o teste compara a ordem, não um valor).
-5. O SLA composto calculado do `topologia.yaml` bate com o gabarito.
+5. O SLA composto calculado do `topologia.yaml` — partes compartilhadas em série com as pernas em
+   paralelo — bate com o gabarito.
 
 **Complemento.** Quais domínios de falha o seu ambiente real compartilha entre caminhos que você
 chama de redundantes?
@@ -158,7 +190,9 @@ falha provocada, sinal e aprendizado.
 
 - Redundância é não compartilhar o domínio de falha que se quer cobrir, e só existe depois de provada.
 - ExpressRoute tem duas conexões, Partner Interconnect dois domínios; um FCR só é ponto único de
-  falha.
-- Primário/secundário é o desenho seguro com firewall com estado; ativo/ativo exige simetria.
+  falha, e um metro só também.
+- Primário/secundário é o desenho seguro com firewall com estado; sem roteador seu no meio, o
+  primário se declara no que cada FCR anuncia, nos dois sentidos.
 - BFD encurta a detecção; o alvo de convergência é declarado e medido.
-- Em paralelo, o SLA composto sobe — se, e só se, os caminhos forem independentes.
+- Em paralelo, o SLA composto sobe só na parte independente; o que é compartilhado fica em série e
+  domina.

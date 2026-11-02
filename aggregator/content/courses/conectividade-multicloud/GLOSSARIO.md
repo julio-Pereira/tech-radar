@@ -135,19 +135,19 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 
 ### Melhor caminho
 **Em uma frase:** a rota que o BGP escolhe entre várias para o mesmo destino, por uma ordem de critérios.
-**No fin-platform:** o primário vence por local preference; o secundário fica de reserva.
-**Erro comum:** esquecer que o prefixo mais específico vence antes de qualquer atributo.
+**No fin-platform:** o caminho pelo FCR 1 vence porque o FCR 2 anuncia com prepend; o secundário fica de reserva.
+**Erro comum:** esquecer que o encaminhamento segue o prefixo mais específico antes de qualquer atributo do BGP.
 **Onde na prática:** marco 03.
 
 ### Local preference
 **Em uma frase:** atributo dentro do seu AS que diz por qual saída preferir; maior vence.
-**No fin-platform:** marca o caminho primário até o fornecedor.
+**No fin-platform:** só serve num roteador seu que veja os dois caminhos; com dois FCRs, o primário se declara no anúncio (marco 10).
 **Erro comum:** esperar que o vizinho a respeite: ela não atravessa o eBGP.
 **Onde na prática:** marco 03.
 
 ### AS path prepend
 **Em uma frase:** repetir o próprio ASN num anúncio para alongar o caminho e torná-lo menos preferido do outro lado.
-**No fin-platform:** aplicado no anúncio pelo caminho secundário.
+**No fin-platform:** o FCR 2 anuncia com prepend para o Azure e para o Google, e o caminho pelo FCR 1 vira o primário.
 **Erro comum:** usar prepend para decidir a sua saída, que é papel da local preference.
 **Onde na prática:** marco 03.
 
@@ -397,7 +397,7 @@ o marco onde o conceito aparece na prática. Este glossário cresce bloco a bloc
 
 ### SLA composto
 **Em uma frase:** a disponibilidade de um caminho calculada das peças: produto em série, complemento do produto das falhas em paralelo.
-**No fin-platform:** o caminho em série fica abaixo da peça mais fraca; os dois caminhos em paralelo passam de 99,99%.
+**No fin-platform:** o caminho em série fica abaixo da peça mais fraca; as pernas em paralelo passam de 99,99%, mas o gateway compartilhado, em série, limita o conjunto.
 **Erro comum:** somar caminhos em paralelo que compartilham o metro como se fossem independentes.
 **Onde na prática:** marcos 09 e 10.
 
