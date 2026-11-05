@@ -162,6 +162,10 @@ func Compile(contentDir, outDir string) (Index, error) {
 		log.Printf("WARN writing quiz-bank.json: %v", err)
 	}
 
+	// Banco de desafios (jornada de entrevistas), same best-effort policy.
+	index.DesafioErrors = compileDesafios(filepath.Join(filepath.Dir(contentDir), "desafios"),
+		desafioCtx{courses: compiledCourses, bridgeIdx: bridgeIdx, conceitos: conceitos}, dataDir)
+
 	// Capstone map (UX platform melhoria 7, phase 1), same best-effort policy.
 	capstonesPath := filepath.Join(filepath.Dir(contentDir), "capstones.yaml")
 	if err := compileCapstones(capstonesPath, compiledCourses, dataDir); err != nil {

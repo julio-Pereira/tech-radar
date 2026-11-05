@@ -176,6 +176,9 @@ type IndexEntry struct {
 type Index struct {
 	GeneratedAt string       `json:"generatedAt"`
 	Courses     []IndexEntry `json:"courses"`
+	// DesafioErrors are the desafios rejected this build (already logged,
+	// never fatal); TestDesafiosRealContent fails on any of them.
+	DesafioErrors []error `json:"-"`
 }
 
 // PathStep is one entry in a role-based path (content/paths/<slug>.yaml):
