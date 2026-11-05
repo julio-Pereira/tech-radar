@@ -1634,3 +1634,172 @@ a.diagrama-conceito.conceito-retorno .diagrama-no-caixa { stroke: var(--accent-h
    text-anchor: middle and come later in this file. */
 .diagrama-svg .diagrama-rotulo-inicio { text-anchor: start; }
 .diagrama-svg .diagrama-rotulo-fim { text-anchor: end; }
+
+/* ── Banco de desafios (#/desafios) ──────────────────────────────────────── */
+
+.desafios-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.4rem;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  font-size: 0.88rem;
+}
+
+.desafios-filters select {
+  margin-left: 0.3rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.25rem 0.4rem;
+}
+
+.desafio-lock,
+.desafio-unlocked {
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.desafio-unlocked { color: var(--accent-hover); border-color: var(--accent-hover); }
+
+.desafio-card-actions,
+.desafio-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  font-size: 0.88rem;
+}
+
+.desafio-link { color: var(--accent-hover); }
+
+.desafio-prereq-warn {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.6rem;
+}
+
+.desafio-prereq-warn a { color: var(--accent-hover); }
+
+.desafio-section {
+  margin: 1.6rem 0;
+  max-width: 760px;
+}
+
+.desafio-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.desafio-prose { line-height: 1.6; overflow-wrap: anywhere; }
+.desafio-prose code,
+.desafio-codigo code { overflow-wrap: anywhere; }
+
+.desafio-hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+.desafio-links a,
+.desafio-check-list a { color: var(--accent-hover); }
+.desafio-done { color: var(--text-muted); font-size: 0.82rem; }
+
+.desafio-esclarecimentos dt { font-weight: 600; margin-top: 0.6rem; }
+.desafio-esclarecimentos dd { margin: 0.2rem 0 0 1rem; color: var(--text-muted); }
+.desafio-chave { font-size: 0.72rem; font-weight: 600; color: var(--accent-hover); }
+
+.desafio-pergunta { margin-bottom: 0.6rem; }
+.desafio-pergunta button { text-align: left; max-width: 100%; white-space: normal; }
+.desafio-resposta { margin: 0.4rem 0 0 1rem; color: var(--text-muted); }
+
+.desafio-estimativa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.desafio-estimativa label { flex: 1 1 18rem; }
+
+.desafio-estimativa input,
+.desafio-entregavel {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+}
+
+.desafio-estimativa input { width: 9rem; max-width: 100%; }
+
+.desafio-entregavel {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.desafio-timer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  align-items: center;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  max-width: 760px;
+  margin-bottom: 0.4rem;
+}
+
+.desafio-clock {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  margin: 0;
+}
+
+.desafio-reviravolta:not(:empty) {
+  border: 1px solid var(--accent-hover);
+  border-radius: var(--radius);
+  padding: 0.8rem 1rem;
+  margin: 1.2rem 0;
+  max-width: 760px;
+}
+
+.desafio-check,
+.desafio-finish,
+.desafio-export,
+.desafio-twist-btn { margin: 0.4rem 0.6rem 0.4rem 0; }
+
+.desafio-score {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.8rem 1rem;
+  margin: 1.2rem 0;
+  max-width: 760px;
+}
+
+.desafio-score-verificado,
+.desafio-score-auto { font-weight: 700; margin: 0.2rem 0; }
+
+.desafio-check-list { list-style: none; padding-left: 0; }
+.desafio-check-list li { margin-bottom: 0.5rem; line-height: 1.5; }
+.desafio-check-list li.nok { color: var(--text-muted); }
+
+.desafio-rubrica-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.4rem;
+}
+
+.desafio-gabarito { margin: 1.6rem 0; max-width: 760px; }
+.desafio-gabarito summary { cursor: pointer; font-weight: 700; }

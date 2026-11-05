@@ -7,8 +7,9 @@
 // platform melhoria 1, always a guide, never a gate), #/glossario (every
 // term across every trilha), #/glossario/<anchor> (one term's definitions,
 // UX item 16), #/skills (competencies by marco, melhoria 2), #/revisar
-// (spaced review, melhoria 5), and #/fin-platform (capstone component map,
-// melhoria 7 phase 1).
+// (spaced review, melhoria 5), #/fin-platform (capstone component map,
+// melhoria 7 phase 1), and #/desafios, #/desafios/<id>[/estudo/<seed>],
+// #/desafios/<id>/simulado[/<seed>] (banco de desafios, jornada de entrevistas).
 import { announceRoute } from './announce.js';
 import { renderRadar } from './radar.js';
 import { renderCoursesIndex } from './courses/index-view.js';
@@ -18,6 +19,7 @@ import { renderGlossarioIndex, renderGlossarioTerm } from './courses/glossario-v
 import { renderSkills } from './courses/skills-view.js';
 import { renderReview } from './courses/review-view.js';
 import { renderCapstoneMap } from './courses/capstone-view.js';
+import { renderDesafios, renderDesafio, stopTimer as stopDesafioTimer } from './courses/desafios-view.js';
 
 // Whether any route has already been entered. Decided synchronously inside
 // route(), never by timing of the async work a route kicks off — a course
@@ -31,7 +33,7 @@ export function init() {
   route();
 }
 
-/** @returns {{ name: 'radar' | 'learn' | 'course' | 'paths' | 'path' | 'glossario' | 'glossario-term' | 'skills' | 'review' | 'capstone', slug?: string, marcoId?: string, conceitoId?: string }} */
+/** @returns {{ name: 'radar' | 'learn' | 'course' | 'paths' | 'path' | 'glossario' | 'glossario-term' | 'skills' | 'review' | 'capstone' | 'desafios' | 'desafio', slug?: string, marcoId?: string, conceitoId?: string, mode?: 'estudo' | 'simulado', seed?: number }} */
 function parseRoute() {
   const hash = location.hash.replace(/^#/, '');
   const parts = hash.split('/').filter(Boolean); // "#/learn/x/y" → ["learn","x","y"]
@@ -54,6 +56,12 @@ function parseRoute() {
   if (parts[0] === 'fin-platform') {
     return { name: 'capstone' };
   }
+  if (parts[0] === 'desafios') {
+    if (!parts[1]) return { name: 'desafios' };
+    const mode = parts[2] === 'simulado' ? 'simulado' : 'estudo';
+    const seed = Number(parts[3]);
+    return { name: 'desafio', slug: parts[1], mode, seed: Number.isInteger(seed) && seed > 0 ? seed : undefined };
+  }
   return { name: 'radar' };
 }
 
@@ -69,8 +77,10 @@ function route() {
     : r.name === 'skills' ? 'skills'
     : r.name === 'review' ? 'review'
     : r.name === 'capstone' ? 'capstone'
+    : r.name === 'desafios' || r.name === 'desafio' ? 'desafios'
     : 'learn';
   setNavActive(navKey);
+  stopDesafioTimer(); // a simulated round's clock never outlives its page
 
   if (r.name === 'radar') {
     announceRoute('Radar', isFirstNavigation);
@@ -96,6 +106,10 @@ function route() {
     renderReview(); // announces its own title once loaded
   } else if (r.name === 'capstone') {
     renderCapstoneMap(); // announces its own title once loaded
+  } else if (r.name === 'desafios') {
+    renderDesafios(); // announces its own title once loaded
+  } else if (r.name === 'desafio' && r.slug) {
+    renderDesafio(r.slug, r.mode || 'estudo', r.seed); // announces its own title once loaded (or not-found)
   }
 }
 
