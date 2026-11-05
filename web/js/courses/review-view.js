@@ -12,6 +12,7 @@
 import { announceRoute } from '../announce.js';
 import { buildLoading, buildError, buildEmpty, localDateISO } from '../dom-helpers.js';
 import { buildEligibleDeck, isNewCardDue } from '../review-deck.js';
+import { loadDesafiosSafe, buildDesafiosAgenda } from './desafios-agenda-view.js';
 import { schedule, isDue } from '../review-scheduler.js';
 import {
   getReviewState, setDailyLimit, recordReview, DEFAULT_DAILY_LIMIT, getProgress, getQuizHistory,
@@ -49,6 +50,11 @@ export async function renderReview() {
   }
   view.appendChild(buildReviewView(deck, stats));
   announceRoute('Revisão espaçada', true);
+
+  // Desafios (jornada de entrevistas): their own queue and schedule, below
+  // the cards — never mixed into the Leitner boxes.
+  const desafios = await loadDesafiosSafe();
+  if (view.querySelector('.review-view')) view.appendChild(buildDesafiosAgenda(desafios));
 }
 
 function buildReviewView(deck, stats) {

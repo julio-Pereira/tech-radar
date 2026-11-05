@@ -2,6 +2,7 @@
 import { buildBadge, buildLoading, buildError, buildEmpty, levelLabel, percent, buildProgressBar } from '../dom-helpers.js';
 import { getProgress, getLastCourse } from '../storage.js';
 import { downloadExport, parseImport, importProgress } from '../progress-io.js';
+import { loadDesafiosSafe, buildDesafioDaSemanaBanner } from './desafios-agenda-view.js';
 
 /** @typedef {import('../types.js').IndexEntry} IndexEntry */
 
@@ -46,6 +47,16 @@ export async function renderCoursesIndex() {
   if (lastCourse) {
     view.appendChild(buildContinueBanner(lastCourse));
   }
+
+  // "Desafio da semana" (jornada de entrevistas): best-effort, never blocks
+  // the trilhas; it slots in right before the grid once desafios.json loads.
+  const slot = document.createElement('div');
+  slot.className = 'desafio-semana-slot';
+  view.appendChild(slot);
+  loadDesafiosSafe().then((desafios) => {
+    const banner = buildDesafioDaSemanaBanner(desafios);
+    if (banner && slot.isConnected) slot.appendChild(banner);
+  });
 
   const grid = document.createElement('div');
   grid.className = 'course-grid';

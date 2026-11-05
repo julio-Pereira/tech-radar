@@ -180,3 +180,16 @@ export function phaseAt(duracaoMin, elapsedSeg) {
   const ps = phases(duracaoMin);
   return (ps.find((p) => elapsedSeg < p.fimSeg) || ps[ps.length - 1]).nome;
 }
+
+/** Placeholder values for a title shown outside a round: the range, never a drawn value. */
+export function rangeValues(parametros) {
+  const out = {};
+  for (const [k, p] of Object.entries(parametros || {})) {
+    if (Array.isArray(p.valores) && p.valores.length) {
+      out[k] = p.valores.map((v) => (typeof v === 'number' ? formatNumber(v) : v)).join(' ou ');
+    } else {
+      out[k] = `${formatNumber(p.min)}–${formatNumber(p.max)}`;
+    }
+  }
+  return out;
+}

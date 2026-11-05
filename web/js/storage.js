@@ -220,16 +220,19 @@ export function recordReview(cardId, box, dueAt) {
 // every tr:* key, it goes into the local export file, nowhere else.
 const DESAFIOS_KEY = 'tr:desafios:v1';
 
-/** @returns {{ rodadas: Record<string, { seed: number, at: string, verificadoPct: number, autoPct: number }[]>, rascunhos: Record<string, string> }} */
+export const DEFAULT_CADENCIA = 2;
+
+/** @returns {{ rodadas: Record<string, { seed: number, at: string, verificadoPct: number, autoPct: number }[]>, rascunhos: Record<string, string>, cadencia: number }} */
 export function getDesafiosState() {
-  const fresh = { rodadas: {}, rascunhos: {} };
+  const fresh = { rodadas: {}, rascunhos: {}, cadencia: DEFAULT_CADENCIA };
   try {
     const raw = localStorage.getItem(DESAFIOS_KEY);
     if (!raw) return fresh;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return fresh;
     const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
-    return { rodadas: obj(parsed.rodadas), rascunhos: obj(parsed.rascunhos) };
+    const cadencia = Number.isInteger(parsed.cadencia) && parsed.cadencia >= 1 && parsed.cadencia <= 7 ? parsed.cadencia : DEFAULT_CADENCIA;
+    return { rodadas: obj(parsed.rodadas), rascunhos: obj(parsed.rascunhos), cadencia };
   } catch {
     return fresh;
   }
@@ -262,5 +265,12 @@ export function recordDesafioRodada(id, seed, verificadoPct, autoPct) {
   if (i >= 0) list[i] = { ...list[i], verificadoPct, autoPct };
   else list.push(entry);
   state.rodadas[id] = list;
+  saveDesafiosState(state);
+}
+
+/** Weekly practice target (desafios per week), 1 to 7. */
+export function setDesafiosCadencia(n) {
+  const state = getDesafiosState();
+  state.cadencia = Math.max(1, Math.min(7, Math.round(n) || DEFAULT_CADENCIA));
   saveDesafiosState(state);
 }
