@@ -36,7 +36,7 @@ esclarecimentos:
     chave: false
 estimativas:
   - id: storage-total
-    enunciado: "Armazenamento das iniciações em {retencaoAnos} anos, só os dados brutos"
+    enunciado: "Armazenamento das iniciações durante todo o prazo de retenção exigido, só os dados brutos"
     unidade: TB
     formula: "(tpsPico / 3) * 86400 * 365 * retencaoAnos * payloadKb / 1e9"
   - id: particoes
