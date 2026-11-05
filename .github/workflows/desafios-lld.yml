@@ -1,0 +1,46 @@
+name: Desafios LLD
+
+# Banco de desafios (jornada de entrevistas): cada desafio LLD entrega ao
+# leitor um esqueleto e uma suíte de testes. Este job prova as duas metades
+# do contrato: os testes FALHAM no esqueleto e PASSAM na solução de
+# referência (Go com -race, Java com Maven).
+
+on:
+  pull_request:
+    paths:
+      - 'aggregator/content/desafios/**'
+      - 'tools/desafios/**'
+      - '.github/workflows/desafios-lld.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'aggregator/content/desafios/**'
+      - 'tools/desafios/**'
+      - '.github/workflows/desafios-lld.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  lld:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: false
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: 'aggregator/content/desafios/**/pom.xml'
+
+      - name: Skeleton fails, reference passes
+        run: tools/desafios/check-lld.sh aggregator/content/desafios

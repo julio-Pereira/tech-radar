@@ -19,3 +19,6 @@ web/test-results/
 web/playwright-report/
 web/.cache/
 
+
+# Desafios LLD: saídas de build do Maven
+aggregator/content/desafios/**/target/
