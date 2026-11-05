@@ -211,3 +211,56 @@ export function recordReview(cardId, box, dueAt) {
   saveReviewState(state);
   return state;
 }
+
+// Banco de desafios (jornada de entrevistas): one global key. `rodadas`
+// keeps, per desafio, the finished simulated rounds — seed, when, and the
+// VERIFIED and SELF-ASSESSED percentages, always apart. `rascunhos` keeps the
+// entregável drafts by "id|seed". Everything stays in this browser:
+// comportamental answers are personal data (LGPD) and never leave it. Like
+// every tr:* key, it goes into the local export file, nowhere else.
+const DESAFIOS_KEY = 'tr:desafios:v1';
+
+/** @returns {{ rodadas: Record<string, { seed: number, at: string, verificadoPct: number, autoPct: number }[]>, rascunhos: Record<string, string> }} */
+export function getDesafiosState() {
+  const fresh = { rodadas: {}, rascunhos: {} };
+  try {
+    const raw = localStorage.getItem(DESAFIOS_KEY);
+    if (!raw) return fresh;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return fresh;
+    const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+    return { rodadas: obj(parsed.rodadas), rascunhos: obj(parsed.rascunhos) };
+  } catch {
+    return fresh;
+  }
+}
+
+function saveDesafiosState(state) {
+  try {
+    localStorage.setItem(DESAFIOS_KEY, JSON.stringify(state));
+  } catch {
+    // Storage full or unavailable — the round still works, it just won't persist.
+  }
+}
+
+export function getDesafioDraft(id, seed) {
+  return getDesafiosState().rascunhos[`${id}|${seed}`] || '';
+}
+
+export function saveDesafioDraft(id, seed, text) {
+  const state = getDesafiosState();
+  state.rascunhos[`${id}|${seed}`] = text;
+  saveDesafiosState(state);
+}
+
+/** Records (or updates, same seed) a finished simulated round. */
+export function recordDesafioRodada(id, seed, verificadoPct, autoPct) {
+  const state = getDesafiosState();
+  const list = Array.isArray(state.rodadas[id]) ? state.rodadas[id] : [];
+  const entry = { seed, at: new Date().toISOString(), verificadoPct, autoPct };
+  const i = list.findIndex((r) => r.seed === seed);
+  if (i >= 0) list[i] = { ...list[i], verificadoPct, autoPct };
+  else list.push(entry);
+  state.rodadas[id] = list;
+  saveDesafiosState(state);
+}
