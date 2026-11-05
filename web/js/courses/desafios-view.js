@@ -11,7 +11,7 @@ import { announceRoute } from '../announce.js';
 import { buildLoading, buildError, buildEmpty } from '../dom-helpers.js';
 import {
   drawParams, newSeed, fillText, fillHTML, formatNumber, checkEstimativas, checkDecisoes,
-  checkEntregavel, score, missingPrereqs, phases, phaseAt, speakingMinutes,
+  checkEntregavel, score, missingPrereqs, phases, phaseAt, speakingMinutes, rangeValues,
 } from '../desafio-logic.js';
 import {
   getProgress, getDesafioDraft, saveDesafioDraft, recordDesafioRodada,
@@ -41,19 +41,6 @@ function el(tag, className, text) {
   if (className) e.className = className;
   if (text !== undefined) e.textContent = text;
   return e;
-}
-
-/** Placeholder text for a catalog card: the range, not a drawn value. */
-function rangeValues(parametros) {
-  const out = {};
-  for (const [k, p] of Object.entries(parametros || {})) {
-    if (Array.isArray(p.valores) && p.valores.length) {
-      out[k] = p.valores.map((v) => (typeof v === 'number' ? formatNumber(v) : v)).join(' ou ');
-    } else {
-      out[k] = `${formatNumber(p.min)}–${formatNumber(p.max)}`;
-    }
-  }
-  return out;
 }
 
 // ── Catalog ────────────────────────────────────────────────────────────────

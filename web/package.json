@@ -5,7 +5,7 @@
   "scripts": {
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "test:unit": "node --test js/review-scheduler.test.js js/review-deck.test.js js/desafio-logic.test.js"
+    "test:unit": "node --test js/review-scheduler.test.js js/review-deck.test.js js/desafio-logic.test.js js/desafio-agenda.test.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",

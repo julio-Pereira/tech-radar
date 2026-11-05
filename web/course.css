@@ -1803,3 +1803,46 @@ a.diagrama-conceito.conceito-retorno .diagrama-no-caixa { stroke: var(--accent-h
 
 .desafio-gabarito { margin: 1.6rem 0; max-width: 760px; }
 .desafio-gabarito summary { cursor: pointer; font-weight: 700; }
+
+/* ── Agenda dos desafios (#/revisar) e desafio da semana (#/learn) ────────── */
+
+.desafios-agenda {
+  margin-top: 2.4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border);
+  max-width: 760px;
+}
+
+.desafios-agenda-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.6rem; }
+
+.desafios-agenda-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  align-items: center;
+  font-size: 0.88rem;
+  margin-bottom: 0.8rem;
+}
+
+.desafios-agenda-meta input {
+  width: 4rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.25rem 0.4rem;
+}
+
+.desafios-agenda-feitos,
+.desafios-agenda-info,
+.desafios-agenda-vazio,
+.desafios-agenda-ok { color: var(--text-muted); font-size: 0.85rem; }
+
+.desafios-agenda-lista { padding-left: 1.1rem; }
+.desafios-agenda-item { margin-bottom: 0.4rem; }
+.desafios-agenda-item a { color: var(--accent-hover); }
+
+.continue-banner-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
