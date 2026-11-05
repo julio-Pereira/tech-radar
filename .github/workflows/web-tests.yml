@@ -50,6 +50,17 @@ jobs:
           go run ./cmd/cobertura > ../cobertura-diagramas.md
           cat ../cobertura-diagramas.md >> "$GITHUB_STEP_SUMMARY"
 
+      # Desafio formulas reach the browser as an AST walked by a tiny
+      # interpreter (PLANO jornada de entrevistas §5.3): no dynamic code
+      # evaluation anywhere in the front end, ever.
+      - name: No eval / new Function in the front end
+        run: |
+          if grep -rnE '\beval[[:space:]]*\(|new[[:space:]]+Function[[:space:]]*\(|set(Timeout|Interval)[[:space:]]*\([[:space:]]*["'"'"'`]' \
+               web/js web/index.html; then
+            echo "::error::dynamic code evaluation found (see lines above)"
+            exit 1
+          fi
+
       - name: Upload diagram coverage report
         uses: actions/upload-artifact@v4
         with:
