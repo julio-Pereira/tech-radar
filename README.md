@@ -51,6 +51,28 @@ Routes (hash-based, so they work under the `/tech-radar/` Pages prefix):
 | `#/` | Radar (article aggregator) |
 | `#/learn` | Track catalog |
 | `#/learn/<slug>` | A track's timeline |
+| `#/paths/<slug>` | A role-based path over existing milestones (`content/paths/`) |
+| `#/desafios` | Desafio bank: catalog, study mode and timed simulated rounds |
+| `#/revisar` | Spaced review: quiz cards and the desafio queue |
+
+### Banco de desafios e jornada de entrevista
+
+Interview prep is not a track of its own. It is a **path**, `entrevista-senior`, made of
+existing milestones, that ends with the **desafio bank** (`aggregator/content/desafios/`).
+A desafio is recurring practice, not a milestone. It has parameters drawn per round,
+clarifying questions, estimates, decisions, a twist and a deliverable. The parts the
+machine can check are scored apart from the self-assessed rubric:
+
+- Formulas compile to a closed-grammar AST, never `eval`; CI greps for it.
+- LLD desafios ship tests that must fail on the skeleton and pass on a reference
+  solution, in Go (`-race`) and Java.
+- Rounds and drafts live only in the reader's `localStorage`. Behavioural answers never
+  leave the browser.
+
+A desafio unlocks once its prerequisite milestones are done. It then comes back on a
+schedule driven by its verified score. The path shows a readiness radar on five axes:
+HLD, LLD, estimativa, domínio and comportamental. The format, validation rules, schedule
+and radar math are in `aggregator/content/desafios/_schema.md`.
 
 ### Projeto guia (capstone)
 
