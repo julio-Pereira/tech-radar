@@ -112,14 +112,7 @@ func Compile(contentDir, outDir string) (Index, error) {
 	}
 	log.Printf("INFO compiled %d course(s) to %s", len(index.Courses), outDir)
 
-	// Role-based paths (UX platform melhoria 1) are a reading guide over the
-	// courses just compiled above — never fatal to the main build, same
-	// best-effort policy as everything else in this function.
-	pathsDir := filepath.Join(filepath.Dir(contentDir), "paths")
 	dataDir := filepath.Dir(outDir)
-	if err := compilePaths(pathsDir, compiledCourses, bridgeIdx, dataDir); err != nil {
-		log.Printf("WARN compiling paths: %v", err)
-	}
 
 	// Glossary and search index (UX platform melhoria 4 / UX items 15-16),
 	// same best-effort policy: never fatal to the main build.
@@ -163,8 +156,17 @@ func Compile(contentDir, outDir string) (Index, error) {
 	}
 
 	// Banco de desafios (jornada de entrevistas), same best-effort policy.
-	index.DesafioErrors = compileDesafios(filepath.Join(filepath.Dir(contentDir), "desafios"),
+	desafios, desafioErrs := compileDesafios(filepath.Join(filepath.Dir(contentDir), "desafios"),
 		desafioCtx{courses: compiledCourses, bridgeIdx: bridgeIdx, conceitos: conceitos}, dataDir)
+	index.DesafioErrors = desafioErrs
+
+	// Role-based paths (UX platform melhoria 1) are a reading guide over the
+	// courses (and, for the desafios step, the bank) compiled above — never
+	// fatal to the main build, same best-effort policy.
+	pathsDir := filepath.Join(filepath.Dir(contentDir), "paths")
+	if err := compilePaths(pathsDir, compiledCourses, bridgeIdx, desafios, dataDir); err != nil {
+		log.Printf("WARN compiling paths: %v", err)
+	}
 
 	// Capstone map (UX platform melhoria 7, phase 1), same best-effort policy.
 	capstonesPath := filepath.Join(filepath.Dir(contentDir), "capstones.yaml")

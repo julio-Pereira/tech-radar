@@ -1,0 +1,94 @@
+# Jornada de preparação para entrevistas (PLANO-jornada-entrevistas §6,
+# decisão 1 da auditoria em web/docs/AUDITORIA-jornada-entrevistas.md):
+# marcos que já existem, sem duplicar conteúdo, mais a prática contínua
+# com o banco de desafios (content/desafios). O ponto de entrada é o
+# marco de entrevista de system-design (decisão de out 2026: preparação
+# para entrevista não é trilha própria).
+slug: entrevista-senior
+title: "Preparação para entrevistas — Sênior / Tech Lead"
+subtitle: "Fundamentos de HLD, o framework de estudo de caso, código e concorrência, domínio fintech, liderança e, por fim, prática recorrente com o banco de desafios."
+steps:
+  - ref: system-design/15
+    group: "Ponto de entrada"
+    why: "O marco de entrevista mostra o que a banca avalia e o roteiro de 45 minutos que todo desafio do banco segue."
+  - ref: system-design/01
+    group: "Revisar fundamentos de HLD"
+    why: "System design como método: requisitos antes de caixas, a primeira coisa cobrada no começo da entrevista."
+  - ref: system-design/02
+    group: "Revisar fundamentos de HLD"
+    why: "Estimar de cabeça capacidade, banda e armazenamento é a parte que os desafios conferem por máquina."
+  - ref: system-design/03
+    group: "Revisar fundamentos de HLD"
+    why: "Onde cortar o sistema decide as fronteiras que você vai defender diante de cada pergunta da banca."
+  - ref: system-design/07
+    group: "Revisar fundamentos de HLD"
+    why: "Estado como decisão: banco, cache e consistência são o assunto da maior parte das reviravoltas."
+  - ref: system-design/08
+    group: "Revisar fundamentos de HLD"
+    why: "Síncrono ou assíncrono e o orçamento de latência sustentam qualquer resposta de trade-off."
+  - ref: system-design/13
+    group: "Revisar fundamentos de HLD"
+    why: "Disponibilidade, multi-região e células respondem à reviravolta clássica de RPO e RTO."
+  - ref: system-design/09
+    group: "Framework de estudo de caso"
+    why: "O caso Pix aplica o framework de ponta a ponta; o desafio pix-10k-tps é a prática dele."
+  - ref: system-design/10
+    group: "Framework de estudo de caso"
+    why: "O caso de consentimento no Open Finance é a base do desafio de extrato paginado."
+  - ref: system-design/11
+    group: "Framework de estudo de caso"
+    why: "Extrato e notificações treinam fan-out e priorização, cobrados no desafio de notificações em massa."
+  - ref: system-design/12
+    group: "Framework de estudo de caso"
+    why: "Antifraude em tempo real treina o orçamento de 100 ms e a decisão de falhar aberto ou fechado."
+  - ref: arquitetura-de-software/02
+    group: "Código e LLD"
+    why: "Atributos de qualidade e trade-offs dão o vocabulário para justificar escolhas de desenho de código."
+  - ref: arquitetura-de-software/03
+    group: "Código e LLD"
+    why: "DDD tático em código é o que a banca espera ver quando pede para modelar um domínio financeiro."
+  - ref: arquitetura-de-software/04
+    group: "Código e LLD"
+    why: "Hexagonal e clean na prática: separar domínio de infraestrutura num exercício de LLD ao vivo."
+  - ref: concorrencia-e-recursos/03
+    group: "Código e LLD"
+    why: "Locks, atomics e CAS são a matéria-prima do rate limiter concorrente do banco de desafios."
+  - ref: concorrencia-e-recursos/06
+    group: "Código e LLD"
+    why: "Virtual threads e goroutines: a comparação Java e Go que costuma aparecer na entrevista técnica."
+  - ref: concorrencia-e-recursos/08
+    group: "Código e LLD"
+    why: "Testar concorrência, com -race e testes determinísticos, é o critério de aceite dos desafios LLD."
+  - ref: pagamentos-e-liquidacao/02
+    group: "Domínio fintech como diferencial"
+    why: "Conhecer o Pix por dentro transforma uma resposta genérica numa resposta de quem já operou pagamentos."
+  - ref: pagamentos-e-liquidacao/07
+    group: "Domínio fintech como diferencial"
+    why: "Liquidação e liquidez dão contexto ao desafio de conciliação e às perguntas sobre dinheiro em trânsito."
+  - ref: ledger-e-contabilidade/01
+    group: "Domínio fintech como diferencial"
+    why: "Partida dobrada é o invariante que a banca de fintech mais testa em desenho de ledger."
+  - ref: ledger-e-contabilidade/03
+    group: "Domínio fintech como diferencial"
+    why: "Lançamento imutável e estorno: a resposta certa sempre que alguém propõe atualizar um valor."
+  - ref: ledger-e-contabilidade/08
+    group: "Domínio fintech como diferencial"
+    why: "Conciliação é a prova de que o sistema confere com o mundo externo, tema do desafio D+1."
+  - ref: open-finance-brasil/04
+    group: "Domínio fintech como diferencial"
+    why: "Consentimento no transmissor é o diferencial regulatório do desafio de extrato no Open Finance."
+  - ref: lideranca-tecnica/06
+    group: "Liderança e comportamental"
+    why: "Decidir sob incerteza dá estrutura às perguntas comportamentais sobre decisões difíceis."
+  - ref: lideranca-tecnica/08
+    group: "Liderança e comportamental"
+    why: "Escrever para convencer, com ADR e documento de decisão, é a evidência que sustenta uma história STAR."
+  - ref: lideranca-tecnica/10
+    group: "Liderança e comportamental"
+    why: "Liderar incidentes prepara a pergunta sobre a pior falha que você conduziu e o post-mortem dela."
+  - ref: lideranca-tecnica/13
+    group: "Liderança e comportamental"
+    why: "Carreira e impacto ajudam a montar o dossiê privado de evidências que as respostas citam."
+  - desafios: "*"
+    group: "Prática contínua"
+    why: "O banco inteiro, agendado pela revisão espaçada; cada desafio abre quando os pré-requisitos dele estão concluídos."

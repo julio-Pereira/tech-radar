@@ -1846,3 +1846,12 @@ a.diagrama-conceito.conceito-retorno .diagrama-no-caixa { stroke: var(--accent-h
   font-size: 0.8rem;
   color: var(--text-muted);
 }
+
+/* Readiness radar of the entrevista-senior path (desafio-radar.js). */
+.path-radar { margin-top: 1.5rem; }
+.path-radar-svg { display: block; width: 100%; max-width: 400px; height: auto; margin: 0.5rem auto; overflow: visible; }
+.path-radar-grid { fill: none; stroke: var(--border); stroke-width: 1; }
+.path-radar-axis { stroke: var(--border); stroke-width: 1; }
+.path-radar-value { fill: var(--accent); fill-opacity: 0.35; stroke: var(--accent); stroke-width: 2; }
+.path-radar-label { fill: var(--text); font-size: 11px; }
+.path-radar-list { list-style: none; padding: 0; margin: 0.5rem 0 0; display: grid; gap: 0.25rem; }

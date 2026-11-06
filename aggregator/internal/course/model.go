@@ -194,6 +194,11 @@ type PathStep struct {
 	// uses as a sub-heading above consecutive steps that share it. Carried
 	// through unvalidated — grouping is display only, never gating.
 	Group string `yaml:"group"`
+	// Desafios turns the step into continuous practice over the desafio
+	// bank instead of a milestone. Only "*" (the whole bank, each desafio
+	// still gated by its own prerequisites) is accepted; ref and whole
+	// must then be empty.
+	Desafios string `yaml:"desafios"`
 }
 
 // PathManifest maps a content/paths/<slug>.yaml file.
@@ -218,6 +223,8 @@ type CompiledPathStep struct {
 	EstimatedMinutes int    `json:"estimatedMinutes,omitempty"` // milestone steps only
 	EstimatedHours   int    `json:"estimatedHours,omitempty"`   // whole-trilha steps only
 	Group            string `json:"group,omitempty"`
+	Desafios         bool   `json:"desafios,omitempty"`     // desafio-bank step: no course/milestone
+	DesafioCount     int    `json:"desafioCount,omitempty"` // desafio-bank step only
 }
 
 // CompiledPath is one track written into web/data/paths.json's Paths slice.

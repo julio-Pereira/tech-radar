@@ -115,6 +115,12 @@ test('correction: verified and self-assessed are separate numbers, and the round
 
   const state = await page.evaluate(() => JSON.parse(localStorage.getItem('tr:desafios:v1')));
   expect(state.rodadas['pix-10k-tps']).toEqual([expect.objectContaining({ seed, verificadoPct: 100, autoPct: Math.round(100 / rubricas) })]);
+  // Per-part breakdown for the readiness radar: verified items only.
+  expect(state.rodadas['pix-10k-tps'][0].partes).toEqual({
+    estimativas: { acertos: d.estimativas.length, total: d.estimativas.length },
+    decisoes: { acertos: d.decisoes.length, total: d.decisoes.length },
+    entregavel: { acertos: d.entregavel.secoesObrigatorias.length, total: d.entregavel.secoesObrigatorias.length },
+  });
 });
 
 test('a wrong estimate outside the tolerance is marked wrong', async ({ page }) => {

@@ -257,12 +257,12 @@ export function saveDesafioDraft(id, seed, text) {
 }
 
 /** Records (or updates, same seed) a finished simulated round. */
-export function recordDesafioRodada(id, seed, verificadoPct, autoPct) {
+export function recordDesafioRodada(id, seed, verificadoPct, autoPct, partes) {
   const state = getDesafiosState();
   const list = Array.isArray(state.rodadas[id]) ? state.rodadas[id] : [];
-  const entry = { seed, at: new Date().toISOString(), verificadoPct, autoPct };
+  const entry = partes ? { seed, at: new Date().toISOString(), verificadoPct, autoPct, partes } : { seed, at: new Date().toISOString(), verificadoPct, autoPct };
   const i = list.findIndex((r) => r.seed === seed);
-  if (i >= 0) list[i] = { ...list[i], verificadoPct, autoPct };
+  if (i >= 0) list[i] = partes ? { ...list[i], verificadoPct, autoPct, partes } : { ...list[i], verificadoPct, autoPct };
   else list.push(entry);
   state.rodadas[id] = list;
   saveDesafiosState(state);

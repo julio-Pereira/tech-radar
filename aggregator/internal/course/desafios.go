@@ -164,7 +164,15 @@ type CompiledDesafio struct {
 	Entregavel      DesafioEntregavel       `json:"entregavel"`
 	Rubrica         []string                `json:"rubrica"`
 	Codigo          []DesafioCodigo         `json:"codigo,omitempty"`
+	// Dominio is true when some prerequisite sits in a trilha of the
+	// "Domínio financeiro" category; the readiness radar counts the
+	// desafio's decisions on its domain axis.
+	Dominio bool `json:"dominio,omitempty"`
 }
+
+// categoriaDominio is the course.yaml category whose prerequisites put a
+// desafio on the radar's domain axis.
+const categoriaDominio = "Domínio financeiro"
 
 type DesafioCatalog struct {
 	GeneratedAt string            `json:"generatedAt"`
@@ -179,9 +187,10 @@ type desafioCtx struct {
 }
 
 // compileDesafios reads content/desafios/*.md and writes dataDir/desafios.json.
-// A missing directory is an empty bank. Returns one error per rejected
-// desafio (already logged), so the real-content test can fail on them.
-func compileDesafios(dir string, ctx desafioCtx, dataDir string) []error {
+// A missing directory is an empty bank. Returns the compiled bank (paths
+// need it for their desafios step) and one error per rejected desafio
+// (already logged), so the real-content test can fail on them.
+func compileDesafios(dir string, ctx desafioCtx, dataDir string) ([]CompiledDesafio, []error) {
 	var errs []error
 	desafios, loadErrs := loadDesafios(dir, ctx)
 	for _, e := range loadErrs {
@@ -193,7 +202,7 @@ func compileDesafios(dir string, ctx desafioCtx, dataDir string) []error {
 		log.Printf("WARN writing desafios.json: %v", err)
 		errs = append(errs, err)
 	}
-	return errs
+	return desafios, errs
 }
 
 // loadDesafios compiles every desafio in dir, then applies the bank-wide
@@ -298,6 +307,9 @@ func buildDesafio(spec DesafioSpec, body, dir string, ctx desafioCtx) (CompiledD
 			continue
 		}
 		d.Prerequisitos = append(d.Prerequisitos, p)
+		if ctx.courses[p.Slug].Category == categoriaDominio {
+			d.Dominio = true
+		}
 	}
 
 	// Conceitos: ids of conceitos.yaml.

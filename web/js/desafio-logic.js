@@ -144,13 +144,19 @@ export function speakingMinutes(text) {
 
 /**
  * The score, always in two separate parts.
- * @returns {{ verificado: { acertos: number, total: number, pct: number }, autoavaliado: { marcados: number, total: number, pct: number } }}
+ * @returns {{ verificado: { acertos: number, total: number, pct: number, partes: Record<'estimativas'|'decisoes'|'entregavel', { acertos: number, total: number }> }, autoavaliado: { marcados: number, total: number, pct: number } }}
  */
 export function score({ estimativas = [], decisoes = [], entregavel = [] }, rubricaMarcada = 0, rubricaTotal = 0) {
   const items = [...estimativas, ...decisoes, ...entregavel];
   const acertos = items.filter((x) => x.ok).length;
+  /** @param {{ ok: boolean }[]} xs */
+  const parte = (xs) => ({ acertos: xs.filter((x) => x.ok).length, total: xs.length });
   return {
-    verificado: { acertos, total: items.length, pct: items.length ? Math.round((acertos / items.length) * 100) : 0 },
+    verificado: {
+      acertos, total: items.length, pct: items.length ? Math.round((acertos / items.length) * 100) : 0,
+      // Per part, for the readiness radar (desafio-radar.js).
+      partes: { estimativas: parte(estimativas), decisoes: parte(decisoes), entregavel: parte(entregavel) },
+    },
     autoavaliado: { marcados: rubricaMarcada, total: rubricaTotal, pct: rubricaTotal ? Math.round((rubricaMarcada / rubricaTotal) * 100) : 0 },
   };
 }

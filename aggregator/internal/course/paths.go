@@ -24,7 +24,7 @@ const minWhyLength = 20
 // yet) and compiles to an empty catalog, not an error. One bad path file is
 // logged and skipped, same best-effort policy as a broken course — it never
 // aborts the aggregator build.
-func compilePaths(pathsDir string, courses map[string]CompiledCourse, bridgeIdx bridgeIndex, dataDir string) error {
+func compilePaths(pathsDir string, courses map[string]CompiledCourse, bridgeIdx bridgeIndex, desafios []CompiledDesafio, dataDir string) error {
 	entries, err := os.ReadDir(pathsDir)
 	if os.IsNotExist(err) {
 		entries = nil
@@ -39,7 +39,7 @@ func compilePaths(pathsDir string, courses map[string]CompiledCourse, bridgeIdx 
 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".yaml") {
 			continue
 		}
-		compiled, err := compilePath(filepath.Join(pathsDir, e.Name()), courses, bridgeIdx)
+		compiled, err := compilePath(filepath.Join(pathsDir, e.Name()), courses, bridgeIdx, desafios)
 		if err != nil {
 			log.Printf("WARN skipping path %s: %v", e.Name(), err)
 			continue
@@ -71,7 +71,7 @@ func compilePaths(pathsDir string, courses map[string]CompiledCourse, bridgeIdx 
 }
 
 // compilePath parses and validates one content/paths/<slug>.yaml file.
-func compilePath(path string, courses map[string]CompiledCourse, bridgeIdx bridgeIndex) (CompiledPath, error) {
+func compilePath(path string, courses map[string]CompiledCourse, bridgeIdx bridgeIndex, desafios []CompiledDesafio) (CompiledPath, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return CompiledPath{}, err
@@ -96,13 +96,27 @@ func compilePath(path string, courses map[string]CompiledCourse, bridgeIdx bridg
 	totalMinutes, totalWholeHours := 0, 0
 
 	for i, s := range manifest.Steps {
-		if _, dup := seenRefs[s.Ref]; dup {
-			return CompiledPath{}, fmt.Errorf("path %q: duplicate ref %q", manifest.Slug, s.Ref)
+		key := s.Ref
+		if s.Desafios != "" {
+			key = desafiosStepKey
 		}
-		seenRefs[s.Ref] = struct{}{}
+		if _, dup := seenRefs[key]; dup {
+			return CompiledPath{}, fmt.Errorf("path %q: duplicate ref %q", manifest.Slug, key)
+		}
+		seenRefs[key] = struct{}{}
 
 		if utf8.RuneCountInString(strings.TrimSpace(s.Why)) < minWhyLength {
-			return CompiledPath{}, fmt.Errorf("path %q: step %q has a \"why\" shorter than %d characters", manifest.Slug, s.Ref, minWhyLength)
+			return CompiledPath{}, fmt.Errorf("path %q: step %q has a \"why\" shorter than %d characters", manifest.Slug, key, minWhyLength)
+		}
+
+		if s.Desafios != "" {
+			step, err := resolveDesafiosStep(manifest.Slug, s, desafios)
+			if err != nil {
+				return CompiledPath{}, err
+			}
+			totalMinutes += step.EstimatedMinutes
+			steps = append(steps, step)
+			continue
 		}
 
 		step, courseSlug, minutes, wholeHours, err := resolveStep(manifest.Slug, s, courses, bridgeIdx)
@@ -176,6 +190,34 @@ func resolveStep(pathSlug string, s PathStep, courses map[string]CompiledCourse,
 		}
 	}
 	return CompiledPathStep{}, "", 0, 0, fmt.Errorf("path %q: step %q: milestone %s not found in compiled course %s", pathSlug, s.Ref, milestoneID, courseSlug)
+}
+
+// desafiosStepKey is the ref a desafio-bank step compiles to; a path holds
+// at most one.
+const desafiosStepKey = "desafios:*"
+
+// resolveDesafiosStep compiles a `desafios: "*"` step: continuous practice
+// over the whole bank. Its time is one pass through every desafio; the
+// front end gates each desafio by its own prerequisites, so the step never
+// takes part in prerequisite ordering.
+func resolveDesafiosStep(pathSlug string, s PathStep, desafios []CompiledDesafio) (CompiledPathStep, error) {
+	if s.Desafios != "*" {
+		return CompiledPathStep{}, fmt.Errorf("path %q: desafios step must be \"*\" (the whole bank), got %q", pathSlug, s.Desafios)
+	}
+	if s.Ref != "" || s.Whole {
+		return CompiledPathStep{}, fmt.Errorf("path %q: desafios step cannot also have ref or whole", pathSlug)
+	}
+	if len(desafios) == 0 {
+		return CompiledPathStep{}, fmt.Errorf("path %q: desafios step, but the desafio bank is empty", pathSlug)
+	}
+	minutes := 0
+	for _, d := range desafios {
+		minutes += d.DuracaoMin
+	}
+	return CompiledPathStep{
+		Ref: desafiosStepKey, Why: s.Why, Optional: s.Optional, Group: s.Group,
+		Desafios: true, DesafioCount: len(desafios), EstimatedMinutes: minutes,
+	}, nil
 }
 
 // checkPrerequisiteOrder rejects a path that visits a trilha before a

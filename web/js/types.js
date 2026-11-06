@@ -12,7 +12,7 @@
 /** @typedef {{ id: string, title: string, kind: 'prose' | 'handson', html?: string, intro?: string, blocks?: HandsOnBlock[] }} Section */
 /** @typedef {{ id: string, order: number, title: string, summary: string, estimatedMinutes: number, html: string, sections?: Section[], references?: Ref[], quiz?: QuizQuestion[], completion?: string, reviewedAt?: string, reviewDue?: string, usadoEm?: ConceitoMarco[] }} Milestone */
 /** @typedef {{ slug: string, title: string, subtitle: string, category: string, tags: string[], level: string, lang: string, estimatedHours: number, sources?: Ref[], milestones: Milestone[] }} Course */
-/** @typedef {{ ref: string, why: string, optional?: boolean, whole?: boolean, courseSlug: string, courseTitle: string, milestoneId?: string, milestoneTitle?: string, estimatedMinutes?: number, estimatedHours?: number, group?: string }} PathStep */
+/** @typedef {{ ref: string, why: string, optional?: boolean, whole?: boolean, courseSlug: string, courseTitle: string, milestoneId?: string, milestoneTitle?: string, estimatedMinutes?: number, estimatedHours?: number, group?: string, desafios?: boolean, desafioCount?: number }} PathStep */
 /** @typedef {{ slug: string, title: string, subtitle: string, steps: PathStep[], estimatedHours: number }} Path */
 /** @typedef {{ slug: string, marcoId: string, titulo: string, trilha: string, nn: string, minutos?: number }} ConceitoMarco */
 /** @typedef {{ term: string, anchor: string, slug: string, track: string, summary: string, marco?: string, marcoId?: string, conceito?: string, principal?: boolean, conceitoDono?: ConceitoMarco }} GlossaryEntry */
