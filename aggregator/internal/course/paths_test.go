@@ -65,7 +65,7 @@ steps:
 `
 	path := writePathYAML(t, dir, "meu-caminho.yaml", yaml)
 
-	got, err := compilePath(path, courses, bridgeIdx)
+	got, err := compilePath(path, courses, bridgeIdx, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -100,7 +100,7 @@ steps:
     why: "` + longWhy + `"
 `
 	path := writePathYAML(t, dir, "p.yaml", yaml)
-	if _, err := compilePath(path, courses, bridgeIdx); err == nil {
+	if _, err := compilePath(path, courses, bridgeIdx, nil); err == nil {
 		t.Fatal("expected an error for a duplicate ref")
 	}
 }
@@ -116,7 +116,7 @@ steps:
     why: "muito curto"
 `
 	path := writePathYAML(t, dir, "p.yaml", yaml)
-	if _, err := compilePath(path, courses, bridgeIdx); err == nil {
+	if _, err := compilePath(path, courses, bridgeIdx, nil); err == nil {
 		t.Fatal("expected an error for a \"why\" shorter than 20 characters")
 	}
 }
@@ -133,7 +133,7 @@ steps:
     why: "` + longWhy + `"
 `
 	path := writePathYAML(t, dir, "p.yaml", yaml)
-	if _, err := compilePath(path, courses, bridgeIdx); err == nil {
+	if _, err := compilePath(path, courses, bridgeIdx, nil); err == nil {
 		t.Fatal("expected an error: whole:true with a slug/NN ref")
 	}
 }
@@ -149,7 +149,7 @@ steps:
     why: "` + longWhy + `"
 `
 	path := writePathYAML(t, dir, "p.yaml", yaml)
-	if _, err := compilePath(path, courses, bridgeIdx); err == nil {
+	if _, err := compilePath(path, courses, bridgeIdx, nil); err == nil {
 		t.Fatal("expected an error for an unknown trilha")
 	}
 }
@@ -165,7 +165,7 @@ steps:
     why: "` + longWhy + `"
 `
 	path := writePathYAML(t, dir, "p.yaml", yaml)
-	if _, err := compilePath(path, courses, bridgeIdx); err == nil {
+	if _, err := compilePath(path, courses, bridgeIdx, nil); err == nil {
 		t.Fatal("expected an error for a milestone number that doesn't exist")
 	}
 }
@@ -184,7 +184,7 @@ steps:
     why: "` + longWhy + `"
 `
 	path := writePathYAML(t, dir, "p.yaml", yaml)
-	if _, err := compilePath(path, courses, bridgeIdx); err == nil {
+	if _, err := compilePath(path, courses, bridgeIdx, nil); err == nil {
 		t.Fatal("expected an error: trilha-b ordered before its prerequisite trilha-a")
 	}
 }
@@ -202,7 +202,7 @@ steps:
     why: "` + longWhy + `"
 `
 	path := writePathYAML(t, dir, "p.yaml", yaml)
-	if _, err := compilePath(path, courses, bridgeIdx); err != nil {
+	if _, err := compilePath(path, courses, bridgeIdx, nil); err != nil {
 		t.Fatalf("unexpected error with prerequisites in correct order: %v", err)
 	}
 }
@@ -210,7 +210,7 @@ steps:
 func TestCompilePathsMissingDirIsNotAnError(t *testing.T) {
 	courses, bridgeIdx := fixtureCourses()
 	dataDir := t.TempDir()
-	if err := compilePaths(filepath.Join(dataDir, "does-not-exist"), courses, bridgeIdx, dataDir); err != nil {
+	if err := compilePaths(filepath.Join(dataDir, "does-not-exist"), courses, bridgeIdx, nil, dataDir); err != nil {
 		t.Fatalf("missing paths dir should not be an error: %v", err)
 	}
 	data, err := os.ReadFile(filepath.Join(dataDir, "paths.json"))
@@ -240,7 +240,7 @@ steps:
 	writePathYAML(t, pathsDir, "a.yaml", yaml)
 	writePathYAML(t, pathsDir, "b.yaml", yaml)
 
-	if err := compilePaths(pathsDir, courses, bridgeIdx, dataDir); err != nil {
+	if err := compilePaths(pathsDir, courses, bridgeIdx, nil, dataDir); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	data, err := os.ReadFile(filepath.Join(dataDir, "paths.json"))
@@ -253,5 +253,52 @@ steps:
 	}
 	if len(catalog.Paths) != 1 {
 		t.Fatalf("expected exactly one path to survive the duplicate-slug skip, got %d", len(catalog.Paths))
+	}
+}
+
+func TestCompilePathDesafiosStep(t *testing.T) {
+	courses, bridgeIdx := fixtureCourses()
+	dir := t.TempDir()
+	bank := []CompiledDesafio{{ID: "a", DuracaoMin: 45}, {ID: "b", DuracaoMin: 20}}
+	yaml := `
+slug: com-desafios
+title: "Com desafios"
+steps:
+  - ref: trilha-a/01
+    why: "` + longWhy + `"
+  - desafios: "*"
+    group: "Prática contínua"
+    why: "` + longWhy + `"
+`
+	got, err := compilePath(writePathYAML(t, dir, "p.yaml", yaml), courses, bridgeIdx, bank)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	s := got.Steps[1]
+	if !s.Desafios || s.DesafioCount != 2 || s.EstimatedMinutes != 65 || s.CourseSlug != "" || s.Ref != desafiosStepKey {
+		t.Fatalf("desafios step compiled wrong: %+v", s)
+	}
+}
+
+func TestCompilePathDesafiosStepRejected(t *testing.T) {
+	courses, bridgeIdx := fixtureCourses()
+	bank := []CompiledDesafio{{ID: "a", DuracaoMin: 45}}
+	cases := map[string]struct {
+		step string
+		bank []CompiledDesafio
+	}{
+		"valor diferente de *": {`desafios: "pix-10k-tps"`, bank},
+		"com ref":              {"desafios: \"*\"\n    ref: trilha-a/01", bank},
+		"com whole":            {"desafios: \"*\"\n    whole: true", bank},
+		"banco vazio":          {`desafios: "*"`, nil},
+		"duplicado":            {"desafios: \"*\"\n    why: \"" + longWhy + "\"\n  - desafios: \"*\"", bank},
+	}
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			yaml := "slug: x\ntitle: \"X\"\nsteps:\n  - " + c.step + "\n    why: \"" + longWhy + "\"\n"
+			if _, err := compilePath(writePathYAML(t, t.TempDir(), "p.yaml", yaml), courses, bridgeIdx, c.bank); err == nil {
+				t.Fatalf("expected an error")
+			}
+		})
 	}
 }

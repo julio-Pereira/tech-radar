@@ -92,7 +92,10 @@ test('the score keeps verified and self-assessed apart', () => {
     decisoes: [{ ok: true }, { ok: true }],
     entregavel: [{ ok: false }],
   }, 3, 6);
-  assert.deepEqual(s.verificado, { acertos: 3, total: 5, pct: 60 });
+  assert.deepEqual(s.verificado, {
+    acertos: 3, total: 5, pct: 60,
+    partes: { estimativas: { acertos: 1, total: 2 }, decisoes: { acertos: 2, total: 2 }, entregavel: { acertos: 0, total: 1 } },
+  });
   assert.deepEqual(s.autoavaliado, { marcados: 3, total: 6, pct: 50 });
   assert.deepEqual(checkDecisoes([{ correta: 2 }, { correta: 0 }], { 0: 2, 1: 1 }).map((x) => x.ok), [true, false]);
 });

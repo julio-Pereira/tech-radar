@@ -215,4 +215,33 @@ func TestDesafiosRealContent(t *testing.T) {
 	if len(catalog.Desafios) != len(files) {
 		t.Errorf("desafios.json has %d desafios, content/desafios has %d", len(catalog.Desafios), len(files))
 	}
+	dominio := map[string]bool{}
+	for _, d := range catalog.Desafios {
+		dominio[d.ID] = d.Dominio
+	}
+	// Domain axis of the readiness radar: set by a prerequisite in a
+	// "Domínio financeiro" trilha, and only by that.
+	if !dominio["ledger-multimoeda"] || !dominio["extrato-open-finance"] || dominio["rate-limiter-concorrente"] || dominio["decisao-contestada"] {
+		t.Errorf("dominio flags wrong: %v", dominio)
+	}
+
+	// Every content/paths file compiles (a broken one is only a WARN in the
+	// build), and the interview path ends with the desafio-bank step.
+	var paths PathCatalog
+	readJSON(t, filepath.Join(dir, "paths.json"), &paths)
+	yamls, _ := filepath.Glob(filepath.Join(filepath.Dir(contentDir), "paths", "*.yaml"))
+	if len(paths.Paths) != len(yamls) {
+		t.Errorf("paths.json has %d paths, content/paths has %d", len(paths.Paths), len(yamls))
+	}
+	for _, p := range paths.Paths {
+		if p.Slug != "entrevista-senior" {
+			continue
+		}
+		last := p.Steps[len(p.Steps)-1]
+		if !last.Desafios || last.DesafioCount != len(catalog.Desafios) {
+			t.Errorf("entrevista-senior should end with the desafios step over the whole bank, got %+v", last)
+		}
+		return
+	}
+	t.Error("entrevista-senior missing from paths.json")
 }

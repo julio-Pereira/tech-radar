@@ -607,7 +607,7 @@ function buildSimulado(d, seed, values) {
     finish.disabled = true;
     result.innerHTML = '';
     result.appendChild(buildCorrection(d, values, answers, asked,
-      (sc) => recordDesafioRodada(d.id, seed, sc.verificado.pct, sc.autoavaliado.pct)));
+      (sc) => recordDesafioRodada(d.id, seed, sc.verificado.pct, sc.autoavaliado.pct, sc.verificado.partes)));
     const gab = section('Gabarito comentado', 'desafio-gabarito');
     gab.appendChild(htmlBlock(d.gabaritoHtml, values));
     result.appendChild(gab);
