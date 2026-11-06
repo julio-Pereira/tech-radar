@@ -83,6 +83,24 @@ Provoque cada cenário e escreva um post-mortem de uma página — inclusive qua
    admitida? Está dentro do limite que você declarou?
 5. **Flag expirada** em produção simulada. O sistema avisou antes de alguém abrir o código?
 
+## Depois do capstone: prática de entrevista
+
+O capstone prova o desenho; a entrevista cobra o mesmo raciocínio sob pressão e com números novos.
+Para isso existem o caminho `entrevista-senior` (`#/paths/entrevista-senior`, definido em
+`content/paths/entrevista-senior.yaml`) e o banco de desafios (`#/desafios`, formato em
+`content/desafios/_schema.md`). Nenhum dos dois faz parte da definição de pronto acima.
+
+| Caso desta trilha | Desafio de prática |
+| --- | --- |
+| 09 — Pix ponta a ponta | `pix-10k-tps` |
+| 10 — consentimento no Open Finance | `extrato-open-finance` |
+| 11 — extrato e notificações | `notificacoes-em-massa` |
+| 12 — antifraude em tempo real | `antifraude-tempo-real` |
+
+Cada desafio sorteia os parâmetros a cada rodada e volta pela revisão espaçada. O
+`capacity.yaml` deste projeto é um bom rascunho para as estimativas, mas no simulado a conta é de
+cabeça.
+
 ## Regra do tempo declarado
 
 `estimatedHours` ≈ 2 × Σ `estimatedMinutes`. Aqui boa parte do hands-on é *modelar e medir*, que
