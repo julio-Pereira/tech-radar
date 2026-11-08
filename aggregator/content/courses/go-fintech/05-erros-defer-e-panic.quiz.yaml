@@ -1,0 +1,66 @@
+questions:
+  - question: "O que este código imprime, nesta ordem?"
+    code: |
+      saldo := 100
+      defer fmt.Println("defer 1:", saldo)
+      saldo = 200
+      defer func() { fmt.Println("defer 2:", saldo) }()
+      saldo = 300
+      fmt.Println("fim:", saldo)
+    options:
+      - "`fim: 300`, `defer 1: 100`, `defer 2: 300`"
+      - "`fim: 300`, `defer 2: 300`, `defer 1: 300`"
+      - "`fim: 300`, `defer 2: 300`, `defer 1: 100`"
+      - "`fim: 300`, `defer 2: 200`, `defer 1: 100`"
+    answer: 2
+    explanation: "Os `defer` rodam em ordem inversa: o 2 antes do 1. Os argumentos de `defer fmt.Println(...)` são avaliados na hora do `defer`, quando `saldo` valia 100. A closure do `defer 2` lê a variável quando roda, no fim, e vê 300. Executado com o Go 1.27, o trecho imprime exatamente essa sequência."
+
+  - question: "`Error` tem receiver de ponteiro. O que acontece na última linha?"
+    code: |
+      type LimiteError struct{ Limite int64 }
+
+      func (e *LimiteError) Error() string { return fmt.Sprintf("limite %d", e.Limite) }
+
+      func main() {
+          err := fmt.Errorf("autorizar: %w", &LimiteError{Limite: 500})
+          var v LimiteError
+          fmt.Println(errors.As(err, &v))
+      }
+    options:
+      - "Imprime `false`, porque o erro na cadeia é `*LimiteError`, não `LimiteError`"
+      - "Entra em pânico: o alvo precisa apontar para um tipo que implementa `error`"
+      - "Imprime `true` e preenche `v` com uma cópia do valor encontrado na cadeia"
+      - "Não compila, porque `errors.As` exige que o alvo seja do tipo `*error`"
+    answer: 1
+    explanation: "`LimiteError` (valor) não implementa `error`; só `*LimiteError` implementa. `errors.As` valida o alvo em tempo de execução e entra em pânico com `*target must be interface or implement error`. Compila porque o parâmetro é `any`; o `go vet` acusa antes. O alvo certo é `var p *LimiteError` e `&p`, ou, desde o Go 1.26, `errors.AsType[*LimiteError](err)`."
+
+  - question: "O que acontece ao rodar este programa?"
+    code: |
+      func protege() {
+          if r := recover(); r != nil {
+              fmt.Println("recuperado:", r)
+          }
+      }
+
+      func main() {
+          defer fmt.Println("defer de main roda")
+          protege()
+          var contas []int
+          fmt.Println(contas[3])
+      }
+    options:
+      - "Imprime `recuperado: ...` e depois `defer de main roda`, e o programa termina normalmente"
+      - "Imprime só `recuperado: ...`, porque o recover encerra a goroutine principal ali"
+      - "Não compila: `recover` só pode ser chamado dentro de uma função literal com `defer`"
+      - "Imprime `defer de main roda` e termina com panic: `recover` fora de `defer` não faz nada"
+    answer: 3
+    explanation: "`protege()` é chamada como função comum, antes do panic: ali `recover` devolve nil e não tem efeito. O índice fora do slice dispara o panic, os `defer` de `main` rodam (por isso a linha aparece) e o programa termina com `index out of range [3] with length 0`. Para recuperar, `protege` precisaria ser chamada com `defer protege()`."
+
+  - question: "Um repositório recebe `connection refused` do driver ao gravar um lançamento. Em quantas camadas esse erro deveria ser registrado no log até virar resposta HTTP?"
+    options:
+      - "Em todas: cada camada registra o erro com o seu contexto e devolve o erro adiante"
+      - "Em uma: as camadas de baixo embrulham com `%w`, e quem decide a resposta registra"
+      - "Em nenhuma: o erro já foi registrado pelo driver do banco de dados no momento da falha"
+      - "Só no repositório, porque é lá que está a mensagem original vinda do driver de banco"
+    answer: 1
+    explanation: "Registrar e devolver em cada camada produz o mesmo erro várias vezes no log, sem dizer qual linha é o incidente. As camadas de baixo acrescentam contexto com `%w` (qual conta, qual lote), e quem decide o que fazer com o erro (o handler que responde 500) registra uma vez, com a cadeia completa. A mensagem do driver não vai para o cliente: é erro de infraestrutura."

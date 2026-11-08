@@ -96,3 +96,30 @@ func TestQuizBankContractRealContent(t *testing.T) {
 		}
 	}
 }
+
+func TestCompileQuizBankCarriesCodeAndOrdersSameQuestionBySnippet(t *testing.T) {
+	courses := map[string]CompiledCourse{
+		"trilha-a": {Slug: "trilha-a", Milestones: []CompiledMilestone{{
+			ID: "m1", Title: "M1",
+			Quiz: []QuizQuestion{
+				{Question: "O que imprime?", Code: "b()", Options: []string{"x", "y"}, Answer: 0},
+				{Question: "O que imprime?", Code: "a()", Options: []string{"x", "y"}, Answer: 1},
+			},
+		}}},
+	}
+	dataDir := t.TempDir()
+	if err := compileQuizBank(courses, dataDir); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dataDir, "quiz-bank.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var bank QuizBank
+	if err := json.Unmarshal(data, &bank); err != nil {
+		t.Fatal(err)
+	}
+	if len(bank.Items) != 2 || bank.Items[0].Code != "a()" || bank.Items[1].Code != "b()" {
+		t.Fatalf("want both snippets, ordered by code: %+v", bank.Items)
+	}
+}

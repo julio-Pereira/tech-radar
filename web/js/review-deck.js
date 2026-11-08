@@ -13,12 +13,12 @@
 import { cyrb53 } from './hash.js';
 
 /**
- * @typedef {{ slug: string, marcoId: string, milestoneTitle?: string, question: string, options: string[], answer: number, explanation?: string }} QuizBankItem
+ * @typedef {{ slug: string, marcoId: string, milestoneTitle?: string, question: string, code?: string, options: string[], answer: number, explanation?: string }} QuizBankItem
  * @typedef {{ term: string, anchor: string, slug: string, track?: string, summary: string, marco?: string, marcoId?: string }} GlossaryEntry
  * @typedef {{
  *   id: string, kind: 'quiz' | 'glossary', slug: string, marcoId: string,
  *   trackTitle: string, milestoneTitle?: string, notBefore?: string,
- *   question?: string, options?: string[], answer?: number, explanation?: string,
+ *   question?: string, code?: string, options?: string[], answer?: number, explanation?: string,
  *   term?: string, summary?: string,
  * }} Card
  */
@@ -61,13 +61,16 @@ export function buildEligibleDeck(quizBank, glossary, completed, quizHistory, tr
     if (!q.slug || !q.marcoId || !completedOf(q.slug).has(q.marcoId)) continue;
     /** @type {Card} */
     const card = {
-      id: String(cyrb53(`${q.slug}|${q.marcoId}|${q.question}`)),
+      // The snippet joins the hash only when there is one, so every card
+      // that existed before the code field keeps its id (and its schedule).
+      id: String(cyrb53(q.code ? `${q.slug}|${q.marcoId}|${q.question}|${q.code}` : `${q.slug}|${q.marcoId}|${q.question}`)),
       kind: 'quiz',
       slug: q.slug,
       marcoId: q.marcoId,
       trackTitle: titles.get(q.slug) || q.slug,
       milestoneTitle: q.milestoneTitle,
       question: q.question,
+      ...(q.code ? { code: q.code } : {}),
       options: q.options,
       answer: q.answer,
       explanation: q.explanation,

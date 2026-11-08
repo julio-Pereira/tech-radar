@@ -19,7 +19,7 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('Hands-on blocks: default open state', () => {
   test('Tutorial opens by default, siblings stay closed', async ({ page }) => {
-    // fundamentos has tutorial, invariantes, complemento.
+    // fundamentos has tutorial, desafio, invariantes, complemento, checagem.
     const node = await openMilestone(page, 'fundamentos');
     const blocks = node.locator('.handson-block');
     await expect(blocks.filter({ has: page.locator('.handson-label:text("Tutorial")') }).locator('details')).toHaveJSProperty('open', true);
@@ -92,9 +92,9 @@ test.describe('Hands-on blocks: content and fallback', () => {
   test('block title and body render, label text is not duplicated into the body', async ({ page }) => {
     const node = await openMilestone(page, 'introducao');
     const tutorialBlock = node.locator('.handson-block').filter({ has: page.locator('.handson-label:text("Tutorial")') });
-    await expect(tutorialBlock.locator('.handson-block-title')).toHaveText('nascer o walletctl');
+    await expect(tutorialBlock.locator('.handson-block-title')).toHaveText('o módulo e o tipo Money');
     await expect(tutorialBlock.locator('.section-prose')).not.toContainText('Tutorial');
-    await expect(tutorialBlock.locator('.section-prose')).toContainText('Inicialize o módulo');
+    await expect(tutorialBlock.locator('.section-prose')).toContainText('Nasça o módulo');
   });
 
   test('a milestone with no sections field falls back to the raw html blob', async ({ page }) => {
@@ -106,7 +106,7 @@ test.describe('Hands-on blocks: content and fallback', () => {
     });
     await page.reload(); // same URL as beforeEach's — goto() would be a no-op
     const node = await openMilestone(page, 'introducao');
-    await expect(node.locator('.milestone-body')).toContainText('nascer o');
+    await expect(node.locator('.milestone-body')).toContainText('Nasça o módulo');
     await expect(node.locator('.handson-block')).toHaveCount(0);
   });
 });

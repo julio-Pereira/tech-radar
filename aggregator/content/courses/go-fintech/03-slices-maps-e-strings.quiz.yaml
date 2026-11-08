@@ -1,0 +1,99 @@
+questions:
+  - question: "O que este código imprime?"
+    code: |
+      a := []int{1, 2, 3, 4}
+      b := a[:2]
+      b = append(b, 99)
+      fmt.Println(a, len(b), cap(b))
+    options:
+      - "[1 2 3 4] 3 4"
+      - "[1 2 99 4] 3 4"
+      - "[1 2 3 4 99] 3 8"
+      - "[1 2 99 4] 3 8"
+    answer: 1
+    explanation: "`b` olha para o mesmo array de `a`, com capacidade 4. O `append` cabe na capacidade, então escreve em `a[2]` e devolve um slice sobre o mesmo array: `a` vira `[1 2 99 4]` e `b` tem len 3, cap 4. Só haveria realocação (e independência) se o `append` passasse da capacidade."
+
+  - question: "O que este código imprime?"
+    code: |
+      s := make([]int, 10)
+      t := s[2:5:7]
+      fmt.Println(len(t), cap(t))
+      t = append(t, 1, 2, 3)
+      fmt.Println(s[5], s[6])
+    options:
+      - "3 8 e depois 1 2"
+      - "3 5 e depois 1 2"
+      - "3 5 e depois 0 0"
+      - "3 7 e depois 0 0"
+    answer: 2
+    explanation: "A expressão de três índices fixa a capacidade em 7−2 = 5, com len 5−2 = 3. O `append` de três elementos precisaria de capacidade 6, então realoca um array novo e `s` não é tocado: `s[5]` e `s[6]` continuam 0. Sem o terceiro índice, a capacidade seria 8 e o `append` escreveria em `s[5]`, `s[6]` e `s[7]`."
+
+  - question: "O que este código imprime?"
+    code: |
+      saldos := map[string]int{"ana": 10, "bia": 20, "caio": 30}
+      for range 3 {
+          for nome := range saldos {
+              fmt.Print(nome, " ")
+          }
+          fmt.Println()
+      }
+    options:
+      - "Três linhas `ana bia caio`, porque a iteração segue a ordem das chaves no literal"
+      - "Três linhas iguais, na ordem do hash das chaves, que é fixa enquanto o map não muda"
+      - "Três linhas em ordem alfabética, porque o runtime ordena chaves do tipo string"
+      - "Três linhas com os três nomes, mas a ordem pode mudar de uma linha para outra"
+    answer: 3
+    explanation: "A especificação não define a ordem de iteração de map, e o runtime a embaralha de propósito a cada `range`, para que ninguém dependa dela. Numa execução real deste trecho saíram `ana bia caio`, depois `bia caio ana`, depois `ana bia caio`. Ordem que importa vem de um slice ou de `slices.Sorted(maps.Keys(m))`."
+
+  - question: "Oito goroutines executam `m[j] = i` no mesmo map, sem trava. O que acontece?"
+    code: |
+      m := map[int]int{}
+      var wg sync.WaitGroup
+      for i := range 8 {
+          wg.Go(func() {
+              for j := range 100_000 {
+                  m[j] = i
+              }
+          })
+      }
+      wg.Wait()
+      fmt.Println(len(m))
+    options:
+      - "Imprime 100000, porque cada escrita num map é atômica no runtime do Go"
+      - "Imprime um número menor que 100000, porque algumas escritas se perdem"
+      - "O runtime pode abortar o processo com `fatal error: concurrent map writes`"
+      - "O `wg.Wait` dispara um panic que pode ser tratado com `recover` no main"
+    answer: 2
+    explanation: "Map não é seguro para escrita concorrente. O runtime detecta o acesso simultâneo e aborta com `fatal error: concurrent map writes` (foi o que aconteceu ao rodar este trecho). É um erro fatal, não um panic: `recover` não pega. A correção é proteger com `sync.Mutex` ou dar a cada goroutine o seu map e juntar no fim."
+
+  - question: "O que este código imprime?"
+    code: |
+      s := "ação"
+      fmt.Println(len(s), utf8.RuneCountInString(s))
+      for i, r := range s {
+          fmt.Print(i, ":", string(r), " ")
+      }
+    options:
+      - "4 4 e depois 0:a 1:ç 2:ã 3:o"
+      - "6 4 e depois 0:a 1:ç 3:ã 5:o"
+      - "6 6 e depois 0:a 1:ç 2:ã 3:o"
+      - "4 6 e depois 0:a 2:ç 4:ã 5:o"
+    answer: 1
+    explanation: "`len` conta bytes: `ç` e `ã` ocupam dois bytes cada em UTF-8, então são 6 bytes e 4 runes. O `range` sobre string percorre runes, mas o índice `i` é a posição em bytes, por isso pula de 1 para 3 e de 3 para 5. Cortar a string por `s[:n]` pode partir um caractere ao meio."
+
+  - question: "Num módulo com `go 1.27` no go.mod, o que este código imprime? E com `go 1.21`, compilado pelo mesmo toolchain?"
+    code: |
+      var fs []func()
+      for i := 0; i < 3; i++ {
+          fs = append(fs, func() { fmt.Print(i) })
+      }
+      for _, f := range fs {
+          f()
+      }
+    options:
+      - "`012` com `go 1.27` e `333` com `go 1.21`: a regra segue a linha `go` do módulo"
+      - "`012` nos dois casos, porque quem decide o comportamento é o toolchain instalado"
+      - "`333` nos dois casos, porque a closure guarda uma referência ao contador do laço"
+      - "`222` com `go 1.21`, porque a closure enxerga o último valor válido de `i`"
+    answer: 0
+    explanation: "Desde o Go 1.22, cada iteração do `for` cria uma variável nova, e cada closure guarda a sua: `012`. Antes, a variável era uma só e terminava valendo 3 (o valor que encerra o laço): `333`. A regra nova vale conforme a linha `go` do go.mod, não conforme o toolchain; as duas saídas foram conferidas executando o trecho com o Go 1.27."
