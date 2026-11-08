@@ -215,7 +215,7 @@ reescrito nas Fases B a F.
   versão anterior.
 
 **Pontes.**
-- As 36 ocorrências literais em 15 arquivos de outras trilhas foram reescritas numa só passada,
+- As 37 ocorrências literais em 15 arquivos de outras trilhas foram reescritas numa só passada,
   para evitar a troca em cadeia de 03→06 seguida de 06→12.
 - O `/05` herdado em `system-design/12`, linha 64, virou `/10`.
 - O snapshot "depois" (`web/docs/pontes-go-fintech-depois.txt`) foi comparado com o "antes" pelo
