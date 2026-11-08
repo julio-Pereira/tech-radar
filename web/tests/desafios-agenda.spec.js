@@ -43,6 +43,8 @@ test('only desafios with every pre-requisite completed enter the queue', async (
   await page.reload();
   const items = page.locator('.desafios-agenda-item');
   // storage-eventos-pix shares system-design/02 with nothing else that is complete — pix and the LLD stay out.
+  // Wait for the agenda to render (desafios.json loads async): evaluateAll does not retry.
+  await expect(items).toHaveCount(1);
   const ids = await items.evaluateAll((els) => els.map((e) => /** @type {HTMLElement} */ (e).dataset.id));
   expect(ids).toEqual(['storage-eventos-pix']);
   await expect(items.first()).toContainText('nunca feito');

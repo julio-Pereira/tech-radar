@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 210, "desafio": 254, "invariantes": 250, "complemento": 235, "checagem": 253, "gabarito": 5,
+		"tutorial": 212, "desafio": 255, "invariantes": 251, "complemento": 237, "checagem": 254, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -426,7 +426,6 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	// block is written; java-vs-go leaves it in Fase F (its new hands-on).
 	wantNoSection := []string{
 		"go-fintech/estrutura-e-arquitetura",
-		"go-fintech/goroutines-em-producao",
 		"go-fintech/java-vs-go",
 		"go-fintech/persistencia-e-transacoes",
 		"go-fintech/seguranca-e-cadeia-de-modulos",

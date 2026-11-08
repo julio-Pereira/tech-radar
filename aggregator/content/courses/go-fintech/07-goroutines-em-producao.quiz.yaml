@@ -1,0 +1,97 @@
+questions:
+  - question: "O PSP demora 50 ms, e `consultar` desiste em 10 ms. Depois das 100 chamadas e de uma pausa, o que este programa imprime?"
+    code: |
+      func consultar(timeout time.Duration) (int, bool) {
+          res := make(chan int)
+          go func() {
+              time.Sleep(50 * time.Millisecond) // o PSP demora
+              res <- 42
+          }()
+          select {
+          case v := <-res:
+              return v, true
+          case <-time.After(timeout):
+              return 0, false
+          }
+      }
+
+      func main() {
+          for range 100 {
+              consultar(10 * time.Millisecond)
+          }
+          time.Sleep(100 * time.Millisecond)
+          fmt.Println(runtime.NumGoroutine())
+      }
+    options:
+      - "`1`: cada goroutine termina quando o `select` de `consultar` desiste dela"
+      - "`101`: as 100 goroutines ficam paradas no envio, porque ninguém lê `res`"
+      - "`1`: o coletor de lixo encerra as goroutines quando `res` deixa de ser referenciado"
+      - "Entra em panic com `send on closed channel` quando a primeira goroutine termina"
+    answer: 1
+    explanation: "O channel não tem buffer, e depois do timeout ninguém mais lê. Cada goroutine dorme 50 ms, tenta enviar e fica parada no envio para sempre: 100 vazadas mais a `main`, e a execução imprimiu 101. O coletor não encerra goroutine bloqueada. A correção é um buffer de 1 (o envio completa e a goroutine termina) e, melhor ainda, um `ctx` que cancele a chamada ao PSP."
+
+  - question: "Num módulo com `go 1.27` no go.mod, um laço de consumo usa `select { case m := <-msgs: ... case <-time.After(30 * time.Second): ... }`. É vazamento de memória?"
+    options:
+      - "Sim: cada iteração cria um timer que só é coletado depois de disparar, 30 s depois"
+      - "Sim: o timer só é liberado com `Stop`, e `time.After` não devolve o timer para parar"
+      - "Não: desde o Go 1.23, timer sem referência é coletado; aloca um timer por iteração"
+      - "Não: `time.After` reaproveita um único timer global entre todas as chamadas do processo"
+    answer: 2
+    explanation: "Até o Go 1.22 era vazamento: timers não parados só eram coletados depois de disparar. Desde o Go 1.23, com a linha `go` em 1.23 ou mais, timers e tickers sem referência são coletados mesmo sem `Stop`, e o channel do timer passou a ser sem buffer. Continua havendo um timer novo por iteração; num laço quente, `time.NewTimer` com `Reset` evita a alocação."
+
+  - question: "Um mapa de cotações é lido em cada autorização (microssegundos de seção crítica) e atualizado a cada requisição de câmbio, várias vezes por segundo. Trocar `sync.Mutex` por `sync.RWMutex` vai deixar mais rápido?"
+    options:
+      - "Sim, sempre: leitores em paralelo nunca são mais lentos que leitores em fila"
+      - "Sim, desde que as escritas usem `Lock` e as leituras usem `RLock` corretamente"
+      - "Não: `RWMutex` só é seguro com uma goroutine escritora, e aqui há várias"
+      - "Provavelmente não: com seção curta, o custo extra do `RWMutex` supera o ganho"
+    answer: 3
+    explanation: "`RWMutex` custa mais por operação e cria disputa no próprio contador de leitores quando há muitos núcleos. Ele ganha quando as leituras são longas e muito mais frequentes que as escritas. Com seção crítica de microssegundos, um `Mutex` comum costuma ser mais rápido. A resposta certa vem de um benchmark com `-cpu` variado, não da intuição."
+
+  - question: "Dez goroutines chamam `Debitar(10)` na mesma conta. O que este programa imprime?"
+    code: |
+      type Conta struct {
+          mu    sync.Mutex
+          saldo int64
+      }
+
+      func (c Conta) Debitar(v int64) {
+          c.mu.Lock()
+          defer c.mu.Unlock()
+          c.saldo -= v
+      }
+
+      func main() {
+          c := &Conta{saldo: 100}
+          var wg sync.WaitGroup
+          for range 10 {
+              wg.Go(func() { c.Debitar(10) })
+          }
+          wg.Wait()
+          fmt.Println(c.saldo)
+      }
+    options:
+      - "`0`: o mutex serializa os dez débitos e o saldo chega a zero"
+      - "Um valor entre 0 e 90, que varia a cada execução por causa da corrida de dados"
+      - "`100`: o receiver de valor copia a conta, e cada débito altera uma cópia"
+      - "Entra em deadlock, porque o mesmo mutex é travado por dez goroutines"
+    answer: 2
+    explanation: "Com receiver de valor, `Debitar` recebe uma cópia da `Conta`, com um mutex copiado e um saldo copiado. Cada chamada trava a sua cópia e debita a sua cópia; o saldo original continua 100, e foi o que a execução imprimiu. O `go vet` acusa (`Debitar passes lock by value`). Tipo com mutex usa receiver de ponteiro em todos os métodos."
+
+  - question: "Em qual destes casos `sync.Map` é uma escolha melhor que um `map` protegido por `sync.Mutex`?"
+    options:
+      - "Um cache de configuração por tenant: cada chave é escrita uma vez e lida milhões de vezes"
+      - "Um contador de requisições por rota, incrementado em toda requisição por todas as goroutines"
+      - "Qualquer map acessado por mais de uma goroutine, porque `sync.Map` dispensa o lock"
+      - "Um map pequeno, de poucas chaves, que precisa ser percorrido em ordem a cada leitura"
+    answer: 0
+    explanation: "A documentação do `sync` lista dois casos: chave escrita uma vez e lida muitas (um cache que só cresce) e goroutines que trabalham em conjuntos disjuntos de chaves. Um contador com escrita constante na mesma chave é o pior caso para `sync.Map`; ali, `map` com `Mutex` ou um contador atômico por rota. E nenhum map tem ordem de iteração."
+
+  - question: "No pico, o serviço de autorização recebe três vezes a capacidade. Qual desenho mantém o SLO para quem entra?"
+    options:
+      - "Aceitar tudo e criar uma goroutine por requisição, porque goroutine é muito barata"
+      - "Aceitar tudo numa fila sem limite, para processar o excedente quando o pico passar"
+      - "Limitar na entrada com fila fixa e responder 429 com `Retry-After` quando ela enche"
+      - "Aumentar os timeouts do servidor para que nenhuma requisição seja recusada no pico"
+    answer: 2
+    explanation: "Aceitar tudo não remove o limite, só o esconde: a fila cresce, a latência de todos sobe até o timeout do cliente, e o serviço gasta CPU com requisições já abandonadas. Uma fila de tamanho fixo e a rejeição rápida com 429 mantêm o tempo de resposta de quem entrou, e o cliente tenta de novo. Timeout maior só alonga a espera."
