@@ -158,7 +158,7 @@ marco onde o conceito aparece na prática.
 ### Treeification
 **Em uma frase:** um *bucket* com mais de 8 entradas, numa tabela de 64 ou mais, vira uma árvore rubro-negra.
 **No pix-core:** o JMH mostra a árvore limitando o estrago de um hash ruim com chave `Comparable`.
-**Erro comum:** um hash constante numa chave sem `Comparable`: a busca medida foi quatro ordens de grandeza mais lenta.
+**Erro comum:** um hash constante numa chave sem `Comparable`: a busca medida foi de três a quatro ordens de grandeza mais lenta.
 **Onde na prática:** marco 03.
 
 ### Fail-fast
@@ -180,7 +180,7 @@ marco onde o conceito aparece na prática.
 **Onde na prática:** marco 03.
 
 ### Coleção sequenciada
-**Em uma frase:** a interface do Java 21 com `getFirst`, `getLast` e `reversed` para coleções com ordem definida.
+**Em uma frase:** as interfaces do Java 21 para ordem definida: `getFirst`, `getLast` e `reversed` nas coleções, `firstEntry` e `lastEntry` nos mapas.
 **No pix-core:** os últimos lançamentos de uma lista são lidos com `reversed()`, sem cópia.
 **Erro comum:** copiar a lista e chamar `Collections.reverse` só para ler de trás para a frente.
 **Onde na prática:** marco 03.
@@ -224,7 +224,7 @@ marco onde o conceito aparece na prática.
 **Onde na prática:** marco 08.
 
 ### ZGC
-**Em uma frase:** o coletor quase todo concorrente, com pausas de microssegundos, geracional desde o Java 21.
+**Em uma frase:** o coletor quase todo concorrente, com pausas de microssegundos, só geracional desde o Java 24.
 **No pix-core:** 0,04 ms de pausa p99 na carga medida, com menos *throughput* que o G1 em 2 CPUs.
 **Erro comum:** olhar só a pausa e ignorar o tempo para chegar ao *safepoint* e a CPU que ele consome.
 **Onde na prática:** marco 08.

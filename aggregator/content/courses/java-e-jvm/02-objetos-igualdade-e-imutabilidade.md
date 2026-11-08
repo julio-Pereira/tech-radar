@@ -90,7 +90,7 @@ que a `Conta` chegue a ser construída.
 | Construção | Pode ser alterada por quem a recebe? | Muda se a origem mudar? |
 | --- | --- | --- |
 | `Collections.unmodifiableList(base)` | não (`UnsupportedOperationException`) | **sim**: é uma visão sobre `base` |
-| `List.copyOf(base)` | não | não: é uma cópia |
+| `List.copyOf(base)` | não; e recusa `null` | não: é uma cópia |
 | `List.of(...)` | não; e recusa `null` | não |
 
 `unmodifiableList` é imutabilidade **aparente**: protege contra quem recebe, não contra quem guardou
@@ -101,7 +101,7 @@ a lista original. Para um record ou um tipo de domínio, a cópia (`List.copyOf`
 `Integer`, `LocalDate`, `Optional` e outras são **value-based**: a identidade delas não é garantida,
 porque instâncias iguais podem ser a mesma ou não (o cache de `Integer` é um exemplo). Sincronizar
 num `Integer` é usar como trava um objeto que pode ser compartilhado com código que você não conhece.
-O `javac` 25 avisa com `-Xlint` (`[identity] attempt to synchronize on an instance of a value-based
+O `javac` 25 avisa por padrão, sem flag (`[identity] attempt to synchronize on an instance of a value-based
 class`). Em tempo de execução, `-XX:+UnlockDiagnosticVMOptions -XX:DiagnoseSyncOnValueBasedClasses=2`
 registra cada ocorrência, e `=1` derruba a JVM com erro fatal: útil num teste de CI.
 
@@ -141,8 +141,9 @@ UUID versão 4 em minúsculas. Escreva também um `Lote(String id, List<Money> p
 4. A lista de um `Lote` não muda quando a lista de origem muda, e `parcelas().add(...)` lança
    `UnsupportedOperationException`.
 
-**Complemento.** Compile um `synchronized (Integer)` com `-Xlint:all` e leia o aviso. Rode com
-`-XX:DiagnoseSyncOnValueBasedClasses=1` e `=2`, e decida qual dos dois o CI do `pix-core` usa.
+**Complemento.** Compile um `synchronized (Integer)` e leia o aviso. Rode com
+`-XX:+UnlockDiagnosticVMOptions -XX:DiagnoseSyncOnValueBasedClasses=1` e `=2` (a flag é de
+diagnóstico, e sem o desbloqueio a JVM nem sobe), e decida qual dos dois o CI do `pix-core` usa.
 
 **Checagem**
 

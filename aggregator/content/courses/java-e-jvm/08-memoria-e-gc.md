@@ -28,14 +28,17 @@ limite do contêiner (o `limits.memory` do pod, `kubernetes/05`) vale para **tud
   x64); as *virtual threads* guardam a pilha no heap (`concorrencia-e-recursos/06`).
 - **Code cache:** o código compilado pelo JIT (marco 09).
 - **Memória direta:** `ByteBuffer.allocateDirect` e o que bibliotecas de rede (Netty) e de
-  compressão usam fora do heap. Por padrão, o limite dela é igual ao `-Xmx`.
+  compressão usam fora do heap. Por padrão, o limite dela é o heap máximo
+  (`Runtime.maxMemory()`, que varia um pouco com o GC).
 - **O próprio GC, símbolos, alocações nativas** de bibliotecas JNI.
 
 O **Native Memory Tracking** mostra cada parte: `-XX:NativeMemoryTracking=summary` e depois
 `jcmd <pid> VM.native_memory summary`. Num processo de teste com 64 MiB de heap ocupado e 50 threads
 paradas, o NMT reportou 1.669 MB **reservados** e 112 MB **committed**. A reserva é espaço de endereço
-virtual, que não custa nada. O *committed* é memória de fato tocada, e é o que o kernel cobra do
-limite do contêiner.
+virtual, que não custa nada. O *committed* é memória que a JVM comprometeu, e é o teto do que pode
+virar residente. O kernel cobra do limite do contêiner as páginas **tocadas** (o RSS): com
+`-Xms1g -Xmx1g`, o NMT reportou 1.116 MB *committed* e o RSS era 115 MB. Com `-Xms` igual ao `-Xmx`
+e `-XX:+AlwaysPreTouch`, os dois se aproximam, e a conta fica previsível.
 
 ## A JVM no contêiner: o heap e o GC que ela escolhe sozinha
 
@@ -61,7 +64,8 @@ São duas falhas diferentes, com sintomas diferentes:
   - `Cannot reserve N bytes of direct buffer memory (allocated: ..., limit: ...)`: o limite da memória
     direta;
   - `unable to create native thread`: o sistema recusou mais uma thread;
-  - `GC overhead limit exceeded`: o GC gasta quase todo o tempo e recupera quase nada.
+  - `GC overhead limit exceeded`: o GC gasta quase todo o tempo e recupera quase nada (uma política do
+    Parallel GC);
 - **`OOMKilled`** é o **kernel** matando o processo porque o contêiner passou do limite. Não há
   exceção, não há *stack trace*, não há *heap dump*: o processo some com código 137.
 
@@ -74,7 +78,8 @@ o heap nunca passou de 60%. Com `-XX:MaxDirectMemorySize=32m`, a mesma aplicaç�
 ## Hipótese geracional e os coletores
 
 A maioria dos objetos morre jovem: o pedido HTTP, os objetos de uma validação, os intermediários de
-um *stream*. É a **hipótese geracional**, e todos os coletores do HotSpot a usam. A geração jovem é
+um *stream*. É a **hipótese geracional**, e o Serial, o Parallel, o G1 e o ZGC a usam (o
+Shenandoah só no modo opcional `generational`; o padrão dele é não geracional). A geração jovem é
 coletada com frequência e barato, porque quase tudo nela está morto. O que sobrevive a algumas
 coletas é promovido para a velha, coletada com menos frequência. A alocação em si é quase gratuita:
 cada thread tem um pedaço do *eden* só dela (a **TLAB**) e aloca empurrando um ponteiro. E o JIT
@@ -85,7 +90,7 @@ evita alocar o que não escapa do método (*escape analysis*, o mesmo conceito d
 | **Serial** | uma thread, para tudo | heaps pequenos, 1 CPU, utilitários |
 | **Parallel** | várias threads, para tudo | *batch*: máximo *throughput*, pausas longas aceitáveis |
 | **G1** (padrão) | heap em regiões, pausa alvo (`-XX:MaxGCPauseMillis`, 200 ms por padrão), marcação concorrente | serviço comum: equilíbrio entre pausa e *throughput* |
-| **ZGC** (geracional desde o 21, único modo desde o 24) | quase tudo concorrente, pausas de microssegundos | latência de cauda crítica, heaps grandes, CPU sobrando |
+| **ZGC** (geracional opcional no 21, padrão no 23, único modo desde o 24) | quase tudo concorrente, pausas de microssegundos | latência de cauda crítica, heaps grandes, CPU sobrando |
 
 Medido no `pix-core`, com a mesma carga sintética (live set de ~400 MiB substituído aos poucos, muito
 lixo jovem, 2 threads, `-Xmx1g`, contêiner com 2 CPUs, 20 s, 3 execuções), lendo os *safepoints* com
@@ -142,12 +147,14 @@ o GC, porque o pod de 1 CPU estava rodando SerialGC.
 
 1. Com o limite de contêiner escolhido, a soma configurada (heap + *metaspace* + threads + direta)
    fica abaixo do limite, com folga. O cálculo do README é conferido contra o *committed* do
-   `jcmd VM.native_memory summary` com o serviço sob carga.
+   `jcmd VM.native_memory summary` com o serviço sob carga: o *committed* é o teto do residente, então
+   a conferência é conservadora.
 2. Um vazamento de *fixture* (um `ThreadLocal` com um objeto grande, num pool de 8 threads, sem
    `remove()`) aparece no *heap dump*. A cadeia de referências até a raiz (a thread do pool) fica
    registrada no README. A ferramenta para chegar nela é o marco 10.
-3. A mesma carga, com G1 e com ZGC (e Parallel), registra numa tabela as operações, a pausa p99 e o
-   tempo para chegar ao *safepoint*, em 3 execuções, com o limite de CPU anotado.
+3. A mesma carga, com G1, ZGC e Parallel, em 3 execuções cada e com o limite de CPU anotado, produz
+   a tabela de operações, pausa p99 e tempo para chegar ao *safepoint*. O README a traz, e o p99 do
+   tempo parado no *safepoint* do ZGC fica abaixo de 1 ms.
 
 **Complemento.** Refaça a tabela dos coletores com `--cpus=4`, e veja o que acontece com o
 *throughput* do ZGC e com o tempo para chegar ao *safepoint*.
@@ -166,7 +173,7 @@ o GC, porque o pod de 1 CPU estava rodando SerialGC.
 - O heap padrão é 25% do contêiner; abaixo de 2 CPUs ou 1792 MiB, o GC padrão é o Serial. Declare os
   dois.
 - `OutOfMemoryError` é a JVM, com mensagem; `OOMKilled` é o kernel, com código 137 e nada no log.
-- Limite a memória direta (`MaxDirectMemorySize`), que por padrão é igual ao heap.
+- Limite a memória direta (`MaxDirectMemorySize`), que por padrão vai até o heap máximo.
 - G1 para o caso comum; ZGC para latência quando sobra CPU; Parallel para *batch*. Meça no seu
   serviço.
 - Vazamento é referência esquecida: estáticos, `ThreadLocal` em pool, *listeners*, *classloaders*.

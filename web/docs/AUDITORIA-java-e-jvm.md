@@ -354,3 +354,46 @@ Ficaram fora, por não terem citação fora da trilha: `equals-hashcode`, `erasu
 
 **Fechamento da estrutura.** Σ `estimatedMinutes` = 590; 50 questões; todos os 11 marcos têm
 `## Hands-on` com os cinco blocos, e a lista `wantNoSection` ficou vazia de novo.
+
+## 6. Fase 4 — auditoria automatizada e revisão independente
+
+**Auditoria automatizada.** `aggregator/internal/course/javajvm_auditoria_test.go` roda em todo build,
+no mesmo molde do da `go-fintech`. Confere:
+- 11 marcos, `level: advanced`, Σ 590 min e `estimatedHours: 20`;
+- `reviewEvery` de 6m em 01, 08 e 09 e de 12m nos demais, sempre com `reviewedAt`;
+- 1 a 3 competências e referências por marco;
+- as seções "Exemplo numa fintech", "Hands-on" e "Principais aprendizados", e os cinco blocos do
+  hands-on uma vez cada;
+- o capstone só no marco 11;
+- 6 questões em 02, 03 e 08, e 4 nos demais (50 no total);
+- a correta como a opção mais longa em no máximo 20% das questões (hoje 0 de 50);
+- o glossário com pelo menos 30 verbetes, todos apontando para um marco de 01 a 11;
+- nenhuma ponte `java-e-jvm/NN` quebrada em nenhuma trilha.
+
+Testada com três defeitos de propósito (minutos trocados no 05, bloco de checagem sem rótulo no 06,
+ponte para `java-e-jvm/99` na `kafka/01`), e reprovou os três. Na primeira tentativa da ponte, o
+arquivo de teste foi criado fora do manifesto e não foi lido; a prova foi refeita no marco real.
+
+**Revisão independente** dos marcos 02, 03 e 08, por um agente que não escreveu o conteúdo, no JDK 25.
+O Docker não respondia para ele, e ele usou cgroups v1 direto. As respostas dos quizzes conferiram.
+Os achados foram conferidos antes de corrigir:
+
+| Marco | Achado | Correção |
+| --- | --- | --- |
+| 08 (bloqueante) | O *committed* do NMT não é o que o kernel cobra: com `-Xms1g -Xmx1g`, 1.116 MB *committed* e RSS de 115 MB (conferido) | O texto separa *committed* (teto do residente) de RSS, e cita `-Xms` = `-Xmx` com `AlwaysPreTouch`; o invariante 1 passa a dizer que a conferência é conservadora |
+| 08 (bloqueante) | "Todos os coletores usam a hipótese geracional" é falso: o Shenandoah tem `ShenandoahGCMode = satb` por padrão (conferido) | Texto e enunciado do quiz nomeiam Serial, Parallel, G1 e ZGC |
+| 08 | O limite da memória direta é `Runtime.maxMemory()`, que varia com o GC: 64.880.640 com Serial e 67.108.864 com G1, para `-Xmx64m` (conferido) | Texto, quiz e aprendizado corrigidos; a explicação diz que a mensagem citada veio com SerialGC |
+| 08 | O ZGC geracional era opcional no 21, padrão no 23 e único no 24 | Tabela, quiz e glossário corrigidos |
+| 08 | `GC overhead limit exceeded` é política do Parallel GC (não confirmado nem descartado no 25) | Marcado como do Parallel |
+| 08 | O invariante 3 não podia falhar | Passou a exigir a tabela no README e o p99 do ZGC abaixo de 1 ms |
+| 03 | "Quatro ordens de grandeza" generalizava uma medição: o revisor mediu 9 a 36 µs (contra 74 µs) conforme a chave | "De três a quatro ordens", com a configuração do JMH, o erro (±60%) e a medição do revisor |
+| 03 | A volta para lista acontece com 6 ou menos, e no *resize* | Corrigido |
+| 03 | `SequencedMap` tem `firstEntry`/`lastEntry`, não `getFirst`/`getLast` | Texto e glossário separam coleções e mapas |
+| 03 | O `ConcurrentHashMap` trava o *bucket*, não a chave | Explicação do quiz corrigida |
+| 03 | "Falha em todas as repetições" promete determinismo | "Falhou nas 5 repetições, nesta máquina; a falha é probabilística" |
+| 02 | O aviso `[identity]` sai por padrão, sem `-Xlint` (conferido) | Corrigido |
+| 02 | O complemento omitia `-XX:+UnlockDiagnosticVMOptions` | Corrigido |
+| 02 | `List.copyOf` também recusa `null` | Tabela corrigida |
+| 01 (fora do escopo pedido) | Desde o JDK 23, o `javac` não roda processadores achados no *classpath* sem `-proc:full`: o `BenchmarkList` só foi gerado com a flag (conferido) | O tutorial manda declarar o processador do JMH em `annotationProcessorPaths`, como o `pom` do `pix-core` já faz |
+
+O marco 02 não teve achado bloqueante.
