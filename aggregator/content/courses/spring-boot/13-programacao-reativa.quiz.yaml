@@ -40,7 +40,7 @@ questions:
       - "O Reactor detecta o bloqueio e lança `BlockingOperationError` em produção"
       - "O JDBC passa a se comportar de forma reativa dentro do `map`"
     answer: 1
-    explanation: "O *event loop* tem poucas threads, e um `map` roda na thread em que o sinal chegou: a chamada bloqueante segura essa thread. Medido: 8 chamadas de 200 ms num *scheduler* de 2 threads levaram ~843 ms; no `boundedElastic`, ~209 ms. O BlockHound acusa em teste, não em produção, e só se estiver instalado."
+    explanation: "O *event loop* tem poucas threads, e um `map` roda na thread em que o sinal chegou: a chamada bloqueante segura essa thread. Medido: 8 chamadas de 200 ms, cada uma com `publishOn` para um *scheduler* de 2 threads, levaram ~843 ms; no `boundedElastic`, com threads para as 8, ~209 ms. O BlockHound acusa em teste, não em produção, e só se estiver instalado."
 
   - question: "Em que ordem `flatMap` e `concatMap` entregam os resultados?"
     code: |
@@ -64,7 +64,7 @@ questions:
       - "Os itens excedentes são descartados em silêncio depois do décimo sexto"
       - "Depois de 16 itens guardados, a sequência falha com `OverflowException`"
     answer: 3
-    explanation: "Uma fonte de tempo não espera `request(n)`, e o operador decide o que fazer com o excesso. `onBackpressureBuffer(16)` guarda até 16 e depois falha com `OverflowException` (conferido no Reactor 3.8.8), em vez de deixar a memória crescer. Descartar é o `onBackpressureDrop`, e um `onBackpressureBuffer()` sem limite é o que leva ao OOM."
+    explanation: "Uma fonte de tempo não espera `request(n)`, e o operador decide o que fazer com o excesso. `onBackpressureBuffer(16)` guarda até 16 e depois falha com `OverflowException` (conferido no Reactor 3.8.8), em vez de deixar a memória crescer; o assinante recebe o erro depois de drenar os itens já guardados. Descartar é o `onBackpressureDrop`, e um `onBackpressureBuffer()` sem limite é o que leva ao OOM."
 
   - question: "Um serviço Spring MVC faz, por requisição, três chamadas HTTP e uma consulta JDBC, e precisa atender milhares de requisições concorrentes. Qual a escolha mais defensável no Java 25?"
     options:
@@ -73,4 +73,4 @@ questions:
       - "Manter o MVC e aumentar o pool do Tomcat para 5.000 threads de plataforma"
       - "Trocar o JDBC por chamadas em `CompletableFuture` no `commonPool`"
     answer: 1
-    explanation: "Com *virtual threads*, a thread que bloqueia em I/O é desmontada da *carrier*, e o código imperativo, com JDBC, `ThreadLocal` e `try/catch`, escala para milhares de requisições concorrentes. O reativo compensa quando o problema é fluxo com *backpressure*, não I/O comum. Milhares de threads de plataforma custam memória, e o `commonPool` não é lugar para I/O."
+    explanation: "Com *virtual threads*, a thread que bloqueia em I/O é desmontada da *carrier*, e o código imperativo, com JDBC, `ThreadLocal` e `try/catch`, escala para milhares de requisições concorrentes; o limite passa a ser o *pool* de conexões. O reativo compensa quando o problema é fluxo com *backpressure*, não I/O comum. Milhares de threads de plataforma custam memória, e o `commonPool` não é lugar para I/O."

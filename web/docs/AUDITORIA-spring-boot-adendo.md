@@ -140,3 +140,57 @@ referência aponta para o repositório.
 
 **Viés das respostas:** em nenhuma das 4 questões do 14, nem na nova do 04, a correta é estritamente a
 opção mais longa.
+
+## 5. Fase D — auditoria automatizada e revisão independente do marco 13
+
+**Auditoria automatizada.** `aggregator/internal/course/springboot_adendo_auditoria_test.go` roda em todo
+build. Confere:
+- 15 marcos, Σ 625 min e `estimatedHours: 21`;
+- os `id`s dos marcos 13, 14 e 15 (`arquitetura-modulith` intacto);
+- o `## Capstone` só no último marco;
+- nos marcos novos: `reviewedAt`/`reviewEvery` e competências, os cinco blocos do hands-on, 6 e 4
+  questões, e nenhuma correta como a opção estritamente mais longa.
+
+Testada com dois defeitos de propósito: 5 minutos a menos no 14 e o `id` do 15 trocado. Reprovou os
+dois.
+
+**Revisão independente do marco 13**, por um agente que não escreveu o conteúdo, no JDK 25 com
+Reactor 3.8.8 e Boot 4.1.2. As 6 respostas do quiz conferiram, e nenhum distrator estava
+acidentalmente certo. Os três bloqueantes foram reproduzidos antes de corrigir:
+
+| Achado | Evidência | Correção |
+| --- | --- | --- |
+| **B1.** O diagnóstico do BlockHound estava errado. O problema não é a propagação de contexto nem a JVM compartilhada: instalado depois que as threads `parallel` existem, o BlockHound acusa a espera ociosa delas (`Unsafe#park` em `DelayedWorkQueue.take`) e mata os *workers* | Reproduzido: um `flatMap` sem bloqueio nenhum deu *timeout* nas 3 rodadas com o BlockHound instalado tarde; com `static { BlockHound.install(); }`, os testes de BlockHound e de `trace_id` passaram juntos na mesma JVM | Texto, invariante 2 e aprendizados: instalar antes de qualquer thread do Reactor (`static` ou `blockhound-junit-platform`); `reuseForks=false` vira proteção extra. No projeto de conferência, o teste passou a instalar num `static` |
+| **B2.** O Boot não liga a propagação automática por padrão | `spring.reactor.context-propagation`, padrão `limited`, lido no *metadata* do `spring-boot-reactor` 4.1.2 | O texto pede `spring.reactor.context-propagation=auto` |
+| **B3.** O contador do invariante 1 vazava justamente no cenário do desafio: o `timeout` cancela, e o `doOnTerminate` não roda em cancelamento | Reproduzido: pico 11 e contador final 10 | Decremento também em `doOnCancel`. Teste novo, com um terço das chamadas presas: pico 4 e contador zero. O "7" do `doFinally` virou "de 5 a 7 conforme a execução" |
+
+**Menores corrigidos:**
+- **Threads:** os operadores de tempo também trocam de thread (emitem no `parallel`), e o *event loop*
+  do WebFlux é o do Netty, não o `Schedulers.parallel()`.
+- **`subscribeOn`:** com vários, vale o mais próximo da fonte; e ele não move fontes que emitem na
+  própria thread.
+- **`zip`:** pareia por posição.
+- **`onBackpressureDrop`:** só conta com um consumidor passado ao operador.
+- **`limitRate`:** reabastece com n − n/4, não 75%.
+- **Tempo do *overflow*:** o assinante só recebe o erro depois de drenar os itens guardados.
+- **`Retry.backoff`:** tem *jitter* de 50% por padrão; esperas exatas pedem `jitter(0)`.
+- **BlockHound:** só acusa o que roda numa thread não bloqueante. O invariante 2 e o exemplo passaram
+  a dizer isso.
+- **Invariante 4:** reformulado para o que o teste prova (`Exceptions.isOverflow` e o limite de 16
+  mais o *prefetch*).
+- **R2DBC:** também aceita `@Transactional` com `ReactiveTransactionManager`.
+- **Virtual threads:** o novo gargalo é o *pool* de conexões, no texto e no quiz 6.
+- **Medição de bloqueio:** o texto descreve o arranjo, `publishOn` por item dentro de um `flatMap`.
+
+**Conferido pelo revisor e certo:**
+- as quatro interfaces do Reactive Streams;
+- montagem × assinatura e a concorrência padrão de 256;
+- a ordem de `flatMap` × `concatMap`;
+- o `onErrorResume` dentro × fora;
+- `trace=null` × `trace=abc123`;
+- a mensagem do BlockHound e a necessidade da flag no JDK 25;
+- `StepVerifier` com tempo virtual;
+- `spring.threads.virtual.enabled` no Boot 4.1.2;
+- a ausência de *timeout* padrão no `WebClient`.
+
+O projeto de conferência termina com 25 testes verdes, em duas rodadas seguidas.
