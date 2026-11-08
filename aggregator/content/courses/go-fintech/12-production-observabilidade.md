@@ -1,121 +1,126 @@
 ---
 id: production-observabilidade
 title: "Microservice production-grade + observabilidade"
-summary: "Consolidar tudo: slog, métricas de negócio, health checks, graceful shutdown, outbox completo e audit log imutável."
-estimatedMinutes: 40
-reviewedAt: 2026-11-01
+summary: "Pronto para produção é configurável por ambiente, observável e encerrável sem perder dado. Config validada na subida, slog com trace_id e dado sensível redigido, o SDK do OpenTelemetry, liveness e readiness, outbox e trilha de auditoria."
+estimatedMinutes: 55
+reviewedAt: 2026-11-08
 reviewEvery: 12m
+competencies: [operacao, confiabilidade]
 references:
   - title: "package log/slog"
     url: https://pkg.go.dev/log/slog
-  - title: "prometheus/client_golang"
-    url: https://github.com/prometheus/client_golang
+  - title: "OpenTelemetry Go — documentação"
+    url: https://opentelemetry.io/docs/languages/go/
+  - title: "The Twelve-Factor App — Config"
+    url: https://12factor.net/config
+  - title: "Structured Logging with slog (Go blog)"
+    url: https://go.dev/blog/slog
 ---
 
-## O serviço vira referência
+## Configuração: do ambiente, validada na subida
 
-Na Fase 5 o `payments-api` deixa de ser "um serviço que funciona" e vira referência de
-microservice fintech production-grade. Três frentes se consolidam.
+A configuração vem do **ambiente** (variáveis de ambiente, arquivos montados pelo orquestrador),
+nunca de um arquivo dentro do binário: o mesmo artefato roda em homologação e produção, que é o
+fator III do 12-factor. Em Go, o detalhe que separa serviço sério de serviço frágil é **quando** a
+config é validada: **na subida**, antes de abrir porta e conectar no banco. Uma `DATABASE_URL` com
+esquema errado ou um `READ_TIMEOUT` que não é duração precisam derrubar o processo com uma mensagem
+clara, e não virar um nil pointer às 3h. E todas as falhas de uma vez (`errors.Join`, marco 05): quem
+corrige não quer descobrir um erro por deploy.
 
-### Observabilidade
+## Logs: slog com contexto e sem dado sensível
 
-- **Logs estruturados** com `log/slog` (stdlib desde 1.21): JSON em produção, texto em
-  dev, com request ID, trace ID e user ID em todo log.
-- **Métricas** com `prometheus/client_golang`. Métricas de negócio — TPV, taxa de
-  aprovação — contam tanto quanto CPU e latência.
-- **Tracing** com OpenTelemetry, propagado via `context` entre os três serviços.
+O `log/slog` (Go 1.21) é o log estruturado da stdlib: `slog.NewJSONHandler` em produção, um registro
+por linha, com atributos tipados. Duas extensões transformam log em ferramenta de investigação:
+
+- **Correlação com o trace.** Um `slog.Handler` que embrulha outro pode, em `Handle(ctx, r)`, ler o
+  span ativo do `ctx` e acrescentar `trace_id` e `span_id`. Todo log feito com `InfoContext(ctx, ...)`
+  dentro da requisição carrega o mesmo `trace_id` do span, e do log se chega ao trace, e do trace ao
+  log, num clique.
+- **Redação por tipo.** Um tipo que implementa **`slog.LogValuer`** decide como aparece no log. Um
+  `type CPF string` com `LogValue()` que devolve `***.***.***-09` faz o CPF sair mascarado em
+  qualquer log, sem depender de ninguém lembrar. O mesmo vale para chave Pix, token e PAN. A regra
+  vale também para **atributos de span**: um atributo é um log que vai para outro backend. As regras
+  de PII em telemetria estão em `observabilidade/17`.
+
+## Métricas e traces com o SDK do OpenTelemetry
+
+O modelo (traces, métricas, logs, Collector) é de `observabilidade/05`; aqui está o que é específico
+de Go. O SDK cria um `TracerProvider` e um `MeterProvider` com exportador **OTLP** para o Collector,
+registrados uma vez no `main`. A propagação de contexto (o cabeçalho `traceparent` do W3C) entra
+por instrumentação pronta: o `otelhttp` envolve o `http.Handler` e o `http.Transport`, o `otelgrpc`
+é um interceptor (marco 10), e para Kafka o contexto vai nos cabeçalhos da mensagem. Toda chamada que
+recebe o `ctx` da requisição continua o mesmo trace.
+
+As **métricas de negócio** (valor transacionado, taxa de aprovação, lançamentos por tipo) contam
+tanto quanto CPU e latência, e são o assunto de `observabilidade/08`. O mesmo OTLP chega a qualquer
+backend que o aceite, inclusive Datadog e New Relic: a instrumentação não depende do fornecedor.
 
 ```diagrama
 go-observabilidade
 ```
 
-### Operação
+## Liveness, readiness e o drain
 
-- **Health checks separados**: liveness ("estou vivo?") distinto de readiness ("estou
-  pronto para receber tráfego?") — o orquestrador usa cada um para uma decisão diferente.
-- **Graceful shutdown** com `signal.NotifyContext`: drene as requisições em voo e feche
-  os pools antes de morrer.
-- **12-factor**: config via env, logs em stdout, statelessness, port binding.
+- **Liveness** (`/healthz`): "o processo está vivo?". Falha só se o processo travou; o orquestrador
+  reinicia. Não checa dependência: um banco fora não se resolve reiniciando o serviço.
+- **Readiness** (`/readyz`): "posso receber tráfego agora?". Falha quando uma dependência crítica cai
+  **e durante o drain**: no `SIGTERM`, a readiness fica falsa primeiro, o balanceador para de mandar
+  requisições, e só então o `Shutdown` do marco 08 espera as em voo. Os detalhes de probe e
+  encerramento estão em `kubernetes/06`.
 
-### Persistência
+## Exemplo numa fintech: outbox e trilha de auditoria
 
-- **`sqlc`** (gera código type-safe a partir de SQL) em vez de ORM mágico. Em fintech
-  você quer SQL explícito e auditável.
-- **`golang-migrate`** com migrations versionadas.
-
-## Exemplo numa fintech: outbox + audit log
-
-O **outbox pattern** completo entra aqui: ao gravar uma transação, escreva o evento numa
-tabela `outbox` na **mesma transação** de banco; um worker lê e publica em Kafka/NATS,
-garantindo entrega *at-least-once* sem 2-phase commit. Em paralelo, um `event_log`
-append-only registra cada movimentação de forma imutável — auditoria regulatória adora.
+Ao gravar um lançamento, o evento para os outros serviços é gravado numa tabela **outbox**, na
+**mesma transação** do banco (marco 09); um worker lê a outbox e publica no Kafka, com entrega
+*at-least-once* e sem 2-phase commit. Em paralelo, uma trilha de auditoria append-only registra cada
+movimentação de forma imutável. Registro contábil não se apaga: o "direito ao esquecimento" da LGPD
+vira anonimização do dado pessoal, nunca remoção do lançamento.
 
 ```go
-// Health check que diz a verdade: readiness cai se uma dependência crítica sai.
-func (h *Health) Ready(ctx context.Context) error {
-    if err := h.db.PingContext(ctx); err != nil {
-        return fmt.Errorf("db indisponível: %w", err) // pod sai do balanceador
-    }
-    return nil
+type TraceHandler struct{ slog.Handler }
+
+func (h TraceHandler) Handle(ctx context.Context, r slog.Record) error {
+	if sc := trace.SpanContextFromContext(ctx); sc.IsValid() {
+		r.AddAttrs(slog.String("trace_id", sc.TraceID().String()), slog.String("span_id", sc.SpanID().String()))
+	}
+	return h.Handler.Handle(ctx, r)
 }
 ```
 
-Sobre compliance: campos `created_at`/`created_by`, snapshots periódicos, e — atenção —
-**não se deleta transação**. O "direito ao esquecimento" da LGPD vira anonimização, não
-hard delete, num sistema contábil. No empacotamento, um Dockerfile multi-stage com
-binário estático (`CGO_ENABLED=0`) gera uma imagem `distroless`/`scratch` de 5 a 15 MB.
-
 ## Hands-on
 
-**Tutorial — o `payments-api` fica production-grade.**
+**Tutorial.** Configure o `main` do `payments-api`: `LoadConfig` a partir do ambiente com
+`errors.Join` das falhas; `slog` em JSON com o `TraceHandler`; `TracerProvider` com exportador OTLP e
+o `otelhttp` no mux; `/healthz` e `/readyz` separados.
 
-1. Suba as dependências:
+**Desafio.** Um trace do `POST /entries` até o lançamento gravado, com a chamada ao antifraude no
+meio, e logs que se ligam ao trace sem vazar dado pessoal.
 
-   ```yaml
-   # docker-compose.yml
-   services:
-     postgres:
-       image: postgres:17
-       environment: { POSTGRES_PASSWORD: pix, POSTGRES_DB: ledger }
-       ports: ["5432:5432"]
-   ```
+**Invariantes testáveis**
 
-   ```bash
-   docker compose up -d
-   golang-migrate -database "postgres://postgres:pix@localhost:5432/ledger?sslmode=disable" \
-     -path ./migrations up
-   go run ./cmd/payments-api
-   ```
+1. Todo log da requisição tem `trace_id` igual ao do span (teste com o exportador em memória do SDK,
+   `tracetest.NewInMemoryExporter`, e um `slog.JSONHandler` sobre um buffer).
+2. CPF e chave Pix nunca aparecem em log nem em atributo de span: varredura do buffer de log e dos
+   atributos exportados por um regex de CPF e pelo valor original.
+3. Config inválida impede a subida com uma mensagem que cita cada variável errada.
+4. Readiness responde 503 durante o drain, enquanto a liveness continua 200.
 
-2. Confira liveness e readiness separados:
+**Complemento.** Suba o Collector do `observabilidade/06` no compose, aponte o
+`OTEL_EXPORTER_OTLP_ENDPOINT` para ele e ache, num backend de traces, o mesmo `trace_id` que está no
+log de uma requisição.
 
-   ```bash
-   curl http://localhost:8080/healthz    # liveness — sempre 200 se o processo está de pé
-   curl http://localhost:8080/readyz     # readiness — 503 se o Postgres cair
-   ```
+**Checagem**
 
-3. Confira as métricas de negócio expostas:
-
-   ```bash
-   curl http://localhost:8080/metrics | grep -E 'tpv_total|approval_rate'
-   ```
-
-4. Faça uma requisição e confirme que o `trace_id` aparece tanto no log quanto seria
-   visível num backend de tracing:
-
-   ```bash
-   curl -X POST http://localhost:8080/entries -H "Content-Type: application/json" \
-     -d '{"account":"acc-1","amount":1000,"currency":"BRL","type":"CREDIT"}' -v
-   # copie o valor do header de resposta (ex.: traceparent) e confira que a mesma
-   # string aparece no campo trace_id do log estruturado do payments-api
-   ```
-
-**Invariante testável.** Derrube o Postgres com o serviço no ar
-(`docker compose stop postgres`) e confirme que `/readyz` responde **503** enquanto
-`/healthz` continua **200** — a distinção entre os dois é o ponto do marco.
+1. Por que a config é validada na subida, e não na primeira vez que é usada?
+2. O que um `slog.LogValuer` garante que uma revisão de código não garante?
+3. Por que a liveness não deve checar o banco?
+4. Qual a ordem entre readiness falsa, `Shutdown` e saída do processo?
 
 ## Principais aprendizados
 
-- Logue com `slog` estruturado e exponha métricas de negócio, não só técnicas.
-- Separe liveness de readiness e faça graceful shutdown drenando o que está em voo.
-- Outbox garante entrega sem 2PC; o audit log imutável é a espinha da auditoria regulatória.
+- Config do ambiente, validada inteira na subida, falhando rápido e com todas as mensagens.
+- `slog` com `trace_id` em todo registro; dado sensível redigido pelo tipo, em log e em span.
+- OpenTelemetry com OTLP e instrumentação de HTTP, gRPC e Kafka; métricas de negócio junto das
+  técnicas.
+- Liveness para reiniciar, readiness para receber tráfego, e readiness falsa antes do drain.
+- Outbox na mesma transação; auditoria append-only; anonimizar, nunca apagar lançamento.

@@ -1,0 +1,54 @@
+questions:
+  - question: "O `go.sum` do `ledger-core` tem o hash de `github.com/acme/money@v1.4.0`. O que isso garante?"
+    options:
+      - "Que a versão foi auditada pelo time do Go e não contém código malicioso"
+      - "Que o código baixado é o mesmo da primeira vez que a versão entrou no projeto"
+      - "Que a versão não tem vulnerabilidade conhecida na base do `govulncheck`"
+      - "Que o autor do módulo assinou a versão com uma chave verificada pelo proxy"
+    answer: 1
+    explanation: "O `go.sum` garante integridade: se o conteúdo mudar, o build falha. A checksum database (`sum.golang.org`) acrescenta que todo mundo recebe o mesmo código para aquela versão, porque o hash fica num log público. Nenhum dos dois diz se o código é seguro, se foi auditado ou se tem vulnerabilidade: isso é trabalho do `govulncheck` e da revisão de dependências."
+
+  - question: "O `go.mod` tem `golang.org/x/text@v0.3.6`, versão afetada pelo GO-2021-0113 (`language.Parse`). O `govulncheck ./...` sai com código 0. Como?"
+    options:
+      - "A base de vulnerabilidades está desatualizada e ainda não conhece o GO-2021-0113"
+      - "O `govulncheck` só olha dependências diretas, e `x/text` entrou de forma indireta"
+      - "O código importa o pacote, mas nenhum caminho de chamada chega a `language.Parse`"
+      - "O `govulncheck` só reprova vulnerabilidades críticas, e esta é de severidade média"
+    answer: 2
+    explanation: "O `govulncheck` faz análise de alcançabilidade: só reprova (código 3) quando o seu código chama a função vulnerável, e mostra o caminho. Com a mesma versão importada e sem chamar `Parse`, ele informa que o pacote é vulnerável mas não é chamado, e sai com 0. Ele olha dependências diretas e indiretas, e não filtra por severidade."
+
+  - question: "O `payments-api` gera a chave de idempotência das transferências internas. Qual o problema de usar `math/rand/v2` para isso?"
+    options:
+      - "`math/rand/v2` não é seguro para uso concorrente e corrompe o estado entre goroutines"
+      - "`math/rand/v2` exige uma semente explícita e repete a sequência a cada reinício"
+      - "Nenhum: desde o Go 1.22, `math/rand/v2` usa o mesmo gerador de `crypto/rand`"
+      - "A saída não é imprevisível: valor que não pode ser adivinhado vem de `crypto/rand`"
+    answer: 3
+    explanation: "`math/rand/v2` é um gerador para simulação e amostragem: rápido, mas sem garantia de imprevisibilidade criptográfica. Token, nonce e qualquer chave que um atacante não deve adivinhar vêm de `crypto/rand`, e o `gosec` acusa o uso de `math/rand` nesse contexto. O `math/rand/v2` é seguro para uso concorrente e é semeado automaticamente."
+
+  - question: "O servidor do antifraude usa `ClientAuth: tls.RequireAndVerifyClientCert` com `ClientCAs` da CA interna. O que acontece quando um processo na rede chama sem certificado?"
+    options:
+      - "O handshake TLS falha e a chamada nunca chega ao handler do antifraude"
+      - "A chamada chega ao handler com `r.TLS.PeerCertificates` vazio, para o código decidir"
+      - "O servidor aceita a chamada, mas registra um aviso de cliente sem identidade"
+      - "O servidor cai para TLS sem autenticação de cliente e atende normalmente"
+    answer: 0
+    explanation: "Com `RequireAndVerifyClientCert`, o servidor exige o certificado no handshake e o valida contra `ClientCAs`; sem certificado (ou com um de outra CA), o handshake falha antes de qualquer código da aplicação rodar. No teste, o cliente sem certificado e o cliente limitado a TLS 1.1 foram recusados, e o cliente com o certificado da CA interna passou."
+
+  - question: "O lojista cadastra a URL do webhook. O serviço valida que o hostname resolve para um IP público e só depois faz a chamada. Por que isso não impede SSRF?"
+    options:
+      - "Porque o `http.Client` ignora o resultado da validação e resolve o nome de novo sozinho"
+      - "Porque o DNS pode responder com um IP interno na hora da conexão, depois de validado"
+      - "Porque a validação precisa ser feita no IPv6, e o IPv4 público não diz nada"
+      - "Porque SSRF só acontece com redirecionamento, e a validação não olha o `Location`"
+    answer: 1
+    explanation: "Entre validar e conectar, o DNS pode responder outra coisa (DNS rebinding): primeiro um IP público, depois `10.0.3.7` ou `169.254.169.254`. A defesa em Go é checar o IP que vai ser de fato conectado, no `Control` do `net.Dialer`, depois da resolução, recusando loopback, rede privada, link-local e IPv4 mapeado em IPv6. Redirecionamento é outro caminho, que passa pelo mesmo `Control`."
+
+  - question: "Dois builds do mesmo commit do `ledger-core` geram binários com SHA-256 diferentes. O que costuma resolver?"
+    options:
+      - "Compilar com `-trimpath` e `-ldflags=-buildid=`, sem caminho local e build ID"
+      - "Compilar com `CGO_ENABLED=1`, para que o linker use as bibliotecas do sistema"
+      - "Rodar `go mod tidy` antes de cada build, para estabilizar a ordem dos módulos"
+      - "Desligar a otimização com `-gcflags=-N`, que introduz variação entre execuções"
+    answer: 0
+    explanation: "Sem `-trimpath`, o binário carrega o caminho absoluto dos arquivos na máquina de build: o mesmo código compilado em dois diretórios deu dois SHA-256 diferentes. Com `-trimpath` e o build ID vazio, deu um só. O cgo traz dependência do sistema, o contrário do que se quer, e otimização não varia entre execuções."
