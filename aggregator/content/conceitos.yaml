@@ -246,3 +246,17 @@
   dono: go-fintech/07
   apelidos: ["vazamento de goroutine"]
   ignorarCaixa: true
+
+# ── Java e JVM ─────────────────────────────────────────────────────────────
+- id: oomkilled
+  termo: "OOMKilled"
+  dono: java-e-jvm/08
+  apelidos: ["OOMKilled"]
+- id: cds
+  termo: "CDS (Class Data Sharing)"
+  dono: java-e-jvm/09
+  apelidos: ["CDS", "Class Data Sharing"]
+- id: jfr
+  termo: "JFR (JDK Flight Recorder)"
+  dono: java-e-jvm/10
+  apelidos: ["JFR", "JDK Flight Recorder", "Flight Recorder"]
