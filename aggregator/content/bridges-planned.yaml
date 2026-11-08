@@ -12,3 +12,9 @@
 - ref: design-de-codigo/02
   motivo: "go-fintech/04 (interfaces pequenas no consumidor) aponta para o catálogo de padrões e SOLID da trilha design-de-codigo, ainda não publicada (plano da go-fintech, §4)."
   ate: 2027-05-01
+- ref: kotlin-backend/01
+  motivo: "java-e-jvm/11 (\"por que Java e não Kotlin?\") aponta para a introdução da trilha kotlin-backend, ainda não publicada (plano da java-e-jvm, §7)."
+  ate: 2027-05-01
+- ref: kotlin-backend/03
+  motivo: "java-e-jvm/05 compara records e sealed com o mesmo desenho em Kotlin, na trilha kotlin-backend, ainda não publicada (plano da java-e-jvm, §7)."
+  ate: 2027-05-01

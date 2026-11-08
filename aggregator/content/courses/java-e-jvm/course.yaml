@@ -1,0 +1,34 @@
+slug: java-e-jvm
+title: "Java a Fundo e a JVM para Fintech"
+subtitle: "Da igualdade de um objeto ao que o GC faz com ele: a linguagem e a máquina virtual no nível que uma entrevista sênior cobra — provado com teste, benchmark e diagnóstico, num núcleo de domínio Pix."
+category: "Java/Spring"
+tags: [java, jvm, colecoes, generics, records, sealed, pattern-matching, streams, gc, jit, jfr, entrevista, fintech]
+level: advanced
+lang: pt-BR
+# 11 marcos, 590 min (web/docs/AUDITORIA-java-e-jvm.md). A regra é ~2x a soma
+# dos estimatedMinutes: 590 x 2 / 60 = 19,7 -> 20.
+estimatedHours: 20
+glossary: GLOSSARIO.md
+sources:
+  - { title: "The Java Language Specification", url: https://docs.oracle.com/javase/specs/ }
+  - { title: "JDK — Java SE API (javadoc)", url: https://docs.oracle.com/en/java/javase/ }
+  - { title: "OpenJDK JEPs", url: https://openjdk.org/jeps/0 }
+  - { title: "Effective Java (Joshua Bloch)", url: https://www.oreilly.com/library/view/effective-java/9780134686097/ }
+  - { title: "HotSpot Virtual Machine Garbage Collection Tuning Guide (Release 25)", url: https://docs.oracle.com/en/java/javase/25/gctuning/ }
+  - { title: "JMH — Java Microbenchmark Harness", url: https://github.com/openjdk/jmh }
+  - { title: "JDK Flight Recorder / JDK Mission Control", url: https://docs.oracle.com/en/java/java-components/jdk-mission-control/ }
+milestones:
+  # Bloco A — A linguagem a fundo
+  - 01-java-moderno-o-mapa.md
+  - 02-objetos-igualdade-e-imutabilidade.md
+  - 03-colecoes-por-dentro.md
+  - 04-generics-e-erasure.md
+  - 05-tipos-algebricos.md
+  - 06-streams-lambdas-e-custos.md
+  - 07-excecoes-e-recursos.md
+  # Bloco B — A JVM
+  - 08-memoria-e-gc.md
+  - 09-jit-classloading-e-startup.md
+  - 10-diagnostico-de-memoria-e-jfr.md
+  # Bloco C — Integrar
+  - 11-java-em-entrevista-e-capstone.md

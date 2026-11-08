@@ -20,6 +20,12 @@
   artifacts:
     - { path: "pix-gateway/", check: exists }
 
+- track: java-e-jvm
+  component: pix-core
+  depends_on: []
+  artifacts:
+    - { path: "pix-core/", check: exists }
+
 - track: go-fintech
   component: ledger-core
   depends_on: []
