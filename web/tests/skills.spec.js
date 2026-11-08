@@ -22,8 +22,13 @@ test('shows coverage and every competency with its group', async ({ page }) => {
 });
 
 test('an untagged competency shows "sem marcos marcados", not a misleading 0%', async ({ page }) => {
-  // "Arquitetura" (transversal) has no real content tagged for it yet.
-  const row = page.locator('.skills-table tr', { has: page.locator('th', { hasText: 'Arquitetura' }) });
+  // Picks, from the real skills.json, a competency no milestone is tagged
+  // with yet — content keeps tagging more of them (go-fintech tagged
+  // Arquitetura), so the test must not hardcode which one is still empty.
+  const skills = await (await page.request.get('/data/skills.json')).json();
+  const untagged = skills.skills.find((s) => !s.milestones || s.milestones.length === 0);
+  test.skip(!untagged, 'every competency has tagged milestones now');
+  const row = page.locator('.skills-table tr', { has: page.locator('th', { hasText: untagged.label }) });
   await expect(row.locator('td').nth(2)).toHaveText('sem marcos marcados');
   await expect(row.locator('td').nth(3)).toHaveText('—');
 });

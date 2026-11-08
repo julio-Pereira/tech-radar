@@ -1,0 +1,124 @@
+questions:
+  - question: "O que este código imprime?"
+    code: |
+      type NotFoundError struct{ ID string }
+
+      func (e *NotFoundError) Error() string { return "não encontrado: " + e.ID }
+
+      func find(id string) error {
+          var nf *NotFoundError
+          if id == "" {
+              nf = &NotFoundError{ID: id}
+          }
+          return nf
+      }
+
+      func main() {
+          err := find("acc-001")
+          fmt.Println(err == nil, err != nil)
+      }
+    options:
+      - "`true false`, porque `nf` continua nil quando o ID não é vazio"
+      - "`false true`, porque a interface guarda o tipo `*NotFoundError` com valor nil"
+      - "Nada: o programa entra em pânico ao chamar `Error()` num ponteiro nil"
+      - "Não compila: `find` não pode devolver `*NotFoundError` como `error`"
+    answer: 1
+    explanation: "Uma interface só é nil quando tipo e valor são nil. Devolver `nf` (um ponteiro nil de tipo concreto) produz uma interface com tipo `*NotFoundError` e valor nil, que é diferente de nil. O handler que faz `if err != nil` responde erro para toda consulta válida. A correção é `return nil` literal no caminho feliz; o staticcheck (SA4023) acusa, o `go vet` não."
+
+  - question: "`Notify` tem receiver de ponteiro. O que acontece com este código?"
+    code: |
+      type Notifier interface{ Notify(msg string) }
+
+      type Email struct{ to string }
+
+      func (e *Email) Notify(msg string) { fmt.Println("para", e.to+":", msg) }
+
+      func main() {
+          var n Notifier = Email{to: "ana@x"}
+          n.Notify("oi")
+      }
+    options:
+      - "Imprime `para ana@x: oi`, porque Go toma o endereço do valor automaticamente"
+      - "Compila, mas entra em pânico ao chamar `Notify` com receiver nil"
+      - "Não compila: `Email` não implementa `Notifier` (receiver de ponteiro)"
+      - "Imprime `para : oi`, porque a interface guarda uma cópia zerada de `Email`"
+    answer: 2
+    explanation: "O method set de `Email` não inclui métodos com receiver `*Email`; só o de `*Email` inclui. O compilador recusa com `method Notify has pointer receiver`. A regra existe porque a interface guarda uma cópia: um método que altera o receiver alteraria a cópia. `var n Notifier = &Email{...}` compila. A conversão automática para `&x` só vale na chamada direta `x.Notify()` sobre variável endereçável."
+
+  - question: "O que este código imprime?"
+    code: |
+      type Audit struct{}
+
+      func (Audit) Log() string { return "audit" }
+
+      type Metrics struct{}
+
+      func (Metrics) Name() string { return "metrics" }
+
+      type Service struct {
+          Audit
+          Metrics
+      }
+
+      func (Service) Name() string { return "service" }
+
+      func main() {
+          var s Service
+          fmt.Println(s.Log(), s.Name(), s.Metrics.Name())
+      }
+    options:
+      - "`audit metrics metrics`, porque o método promovido tem precedência"
+      - "Não compila: `Name` aparece em `Service` e em `Metrics`, e fica ambíguo"
+      - "`audit service service`, porque `Service.Name` sobrescreve o promovido"
+      - "`audit service metrics`: o método da própria struct vence o promovido"
+    answer: 3
+    explanation: "`Log` é promovido de `Audit`. `Name` existe em `Service` e em `Metrics`, e o declarado na própria struct, por estar em nível mais raso, vence. O promovido continua acessível pelo caminho explícito `s.Metrics.Name()`. Ambiguidade (erro de compilação) só ocorre quando dois tipos embutidos no mesmo nível têm o método e a struct não declara o seu."
+
+  - question: "O que este código imprime?"
+    code: |
+      type ID string
+
+      func (i ID) String() string { return "id:" + string(i) }
+
+      func classify(v any) string {
+          switch x := v.(type) {
+          case nil:
+              return "nil"
+          case int, int64:
+              return fmt.Sprintf("inteiro %T", x)
+          case fmt.Stringer:
+              return "stringer " + x.String()
+          default:
+              return fmt.Sprintf("outro %T", x)
+          }
+      }
+
+      func main() {
+          var e error
+          fmt.Println(classify(int64(3)), "|", classify(ID("a")), "|", classify(e), "|", classify(3.5))
+      }
+    options:
+      - "`inteiro int64 | stringer id:a | nil | outro float64`"
+      - "`inteiro int | stringer id:a | outro error | outro float64`"
+      - "`inteiro int64 | outro main.ID | nil | outro float64`"
+      - "Não compila: `x` não tem tipo único no `case int, int64`"
+    answer: 0
+    explanation: "Com dois tipos no mesmo `case`, `x` mantém o tipo da interface (`any`), e `%T` mostra o tipo dinâmico: `int64`. `ID` tem `String()`, então casa com `fmt.Stringer`. Uma variável `error` não inicializada é uma interface nil e cai em `case nil`. `3.5` é `float64`, que não casa com nenhum caso."
+
+  - question: "O Go 1.27 passou a aceitar métodos genéricos. Por que eles ainda não substituem interfaces para o antifraude escolher a regra de decisão em tempo de execução?"
+    options:
+      - "Porque o compilador gera uma cópia do método para cada tipo e o binário cresce sem limite"
+      - "Porque método de interface não pode ter parâmetro de tipo, e método genérico não satisfaz interface"
+      - "Porque métodos genéricos só podem ser usados em tipos sem estado, sem campos nem receiver"
+      - "Porque métodos genéricos exigem `GOEXPERIMENT` ligado no build durante todo o Go 1.27"
+    answer: 1
+    explanation: "Generics são resolvidos em tempo de compilação: servem para escrever o algoritmo uma vez para vários tipos. Despacho em tempo de execução (qual regra roda) continua sendo papel de interface, e as release notes do Go 1.27 deixam explícito que método de interface não declara parâmetro de tipo e que método genérico não implementa método de interface. O recurso é estável, sem GOEXPERIMENT."
+
+  - question: "O serviço de antifraude só precisa ler saldo, mas o repositório de contas tem 20 métodos. Onde fica a interface que o antifraude usa?"
+    options:
+      - "No pacote do repositório, ao lado da implementação, com os 20 métodos que ele oferece"
+      - "Num pacote `interfaces/` compartilhado, para que todos os serviços usem o mesmo contrato"
+      - "No pacote do antifraude, só com o método de saldo: o consumidor declara o que usa"
+      - "Em lugar nenhum: o antifraude recebe o repositório concreto e chama só o método de saldo"
+    answer: 2
+    explanation: "Como a satisfação é implícita, o consumidor declara a interface mínima de que precisa, e o repositório a satisfaz sem saber dela. Isso deixa o antifraude testável com um fake de um método e desacoplado dos outros 19. A interface gorda ao lado da implementação é hábito de Java; um pacote `interfaces/` é organização por camada (marco 02)."

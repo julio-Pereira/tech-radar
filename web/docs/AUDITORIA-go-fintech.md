@@ -237,3 +237,44 @@ go test ./internal/course/ -run TestPontesSnapshot
 - **Progresso:** o teste novo `go-fintech-renumeracao.spec.js` prova que o progresso gravado com os
   8 ids antigos marca os mesmos marcos, agora nas posições novas, e mostra 8 de 16. Ele também
   confere que a ponte herdada `/10` de `system-design/12` chega ao `grpc-antifraude`.
+
+## 11. Fase B — Bloco A (marcos 01 a 05)
+
+- **Campo `code:` no quiz** (decisão do Julio em 2026-11-08):
+  - **Compilador:** o campo é opcional em `QuizQuestion`, chega ao `quiz-bank.json`, e as questões
+    com o mesmo enunciado passam a ser ordenadas também pelo código.
+  - **Front:** o código aparece num `<pre class="quiz-code"><code>` via `textContent` (texto puro,
+    nunca HTML), tanto no quiz do marco quanto no cartão de `#/revisar`.
+  - **Acessibilidade:** o `<pre>` tem `tabindex="0"`, `role="region"` e um rótulo, porque o axe
+    exige que uma região com rolagem lateral seja alcançável pelo teclado.
+  - **Id dos cartões de revisão:** o código entra no hash só quando existe. Os cartões antigos
+    mantêm o id e a agenda, e duas questões "o que imprime?" com códigos diferentes ganham ids
+    distintos.
+- **Divergência com o plano:** o §7 manda "manter o desafio `Allocate`" do marco 01, mas esse
+  desafio não existia (o 01 só tinha o tutorial do `Money`). Ele foi escrito do zero, com teste de
+  propriedade de semente fixa.
+- **Código dos marcos conferido por execução:** módulo temporário com `go 1.27`, toolchain 1.27.3.
+  - `go test -race -shuffle=on`.
+  - `golangci-lint` 2.15.0 com `exhaustive`, `gochecksumtype` e `staticcheck`.
+  - Cada saída de quiz "o que imprime?" foi tirada da execução real.
+  - Cada mensagem de erro de compilação citada no texto foi copiada da saída do compilador. Alguns
+    exemplos:
+    - `cannot assign to struct field ... in map`;
+    - `method Notify has pointer receiver`;
+    - `generic method requires go1.27 or later`;
+    - `unexported method decisao`;
+    - `built-in min requires go1.21 or later`.
+- **Linter de exaustividade:** para interface fechada é o `gochecksumtype`
+  (`github.com/alecthomas/go-check-sumtype` v0.5.0, MIT/Unlicense, no golangci-lint); para enum de
+  `iota` é o `exhaustive`. Os dois foram provados reprovando um `switch` incompleto.
+- **Nil tipado:** o `go vet` não detecta, e o `staticcheck` detecta (SA4023). Isso virou invariante
+  do marco 04.
+- **Ponte planejada:** `design-de-codigo/02` entrou no `bridges-planned.yaml`.
+- **Testes ajustados ao conteúdo novo:**
+  - golden de blocos de hands-on;
+  - `wantNoSection`, de onde saíram os marcos 03, 04 e 05;
+  - `handson.spec.js`, por causa do título novo do tutorial do 01;
+  - `skills.spec.js`: escolhe dinamicamente uma competência sem marcos, já que a `go-fintech`
+    passou a marcar `arquitetura`.
+- **Quizzes:** 24 questões nos marcos 01 a 05, 13 delas com código. A correta é a opção mais longa
+  em 21% delas (limite de 40%).

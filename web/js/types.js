@@ -7,7 +7,7 @@
 /** @typedef {{ id: string, label: string, sourceId?: string, category?: string, kind?: string }} Theme */
 /** @typedef {{ title: string, url: string }} Ref */
 /** @typedef {{ slug: string, title: string, subtitle: string, category: string, level: string, tags: string[], estimatedHours: number, milestoneCount: number }} IndexEntry */
-/** @typedef {{ question: string, options: string[], answer: number, explanation?: string }} QuizQuestion */
+/** @typedef {{ question: string, code?: string, options: string[], answer: number, explanation?: string }} QuizQuestion */
 /** @typedef {{ key: string, kind: string, title?: string, html: string }} HandsOnBlock */
 /** @typedef {{ id: string, title: string, kind: 'prose' | 'handson', html?: string, intro?: string, blocks?: HandsOnBlock[] }} Section */
 /** @typedef {{ id: string, order: number, title: string, summary: string, estimatedMinutes: number, html: string, sections?: Section[], references?: Ref[], quiz?: QuizQuestion[], completion?: string, reviewedAt?: string, reviewDue?: string, usadoEm?: ConceitoMarco[] }} Milestone */
@@ -19,7 +19,7 @@
 /** @typedef {{ kind: 'course' | 'milestone' | 'glossary', title: string, summary?: string, slug: string, marcoId?: string, track?: string, tags?: string[], headings?: string[] }} SearchDoc */
 /** @typedef {{ slug: string, marcoId: string, title: string, estimatedMinutes: number }} SkillMilestoneRef */
 /** @typedef {{ id: string, label: string, group: string, totalMinutes: number, milestones: SkillMilestoneRef[] }} Skill */
-/** @typedef {{ slug: string, marcoId: string, milestoneTitle: string, question: string, options: string[], answer: number, explanation?: string }} QuizBankItem */
+/** @typedef {{ slug: string, marcoId: string, milestoneTitle: string, question: string, code?: string, options: string[], answer: number, explanation?: string }} QuizBankItem */
 /** @typedef {{ path: string, check: string }} CapstoneArtifact */
 /** @typedef {{ track: string, trackTitle: string, component: string, dependsOn: string[], artifacts: CapstoneArtifact[] }} CapstoneComponent */
 

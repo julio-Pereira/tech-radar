@@ -9,6 +9,6 @@
 #   ate:    a date to revisit — once the trilha ships, remove the entry and
 #           let TestBridgesResolve confirm the real link resolves instead.
 #
-# Currently empty: every bridge in the real content as of this file's
-# creation already points to a trilha that exists in the repo.
-[]
+- ref: design-de-codigo/02
+  motivo: "go-fintech/04 (interfaces pequenas no consumidor) aponta para o catálogo de padrões e SOLID da trilha design-de-codigo, ainda não publicada (plano da go-fintech, §4)."
+  ate: 2027-05-01

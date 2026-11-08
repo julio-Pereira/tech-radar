@@ -18,6 +18,7 @@ func compileQuizBank(courses map[string]CompiledCourse, dataDir string) error {
 					MarcoID:        m.ID,
 					MilestoneTitle: m.Title,
 					Question:       q.Question,
+					Code:           q.Code,
 					Options:        q.Options,
 					Answer:         q.Answer,
 					Explanation:    q.Explanation,
@@ -33,7 +34,10 @@ func compileQuizBank(courses map[string]CompiledCourse, dataDir string) error {
 		if items[i].MarcoID != items[j].MarcoID {
 			return items[i].MarcoID < items[j].MarcoID
 		}
-		return items[i].Question < items[j].Question
+		if items[i].Question != items[j].Question {
+			return items[i].Question < items[j].Question
+		}
+		return items[i].Code < items[j].Code // same "o que imprime?" text, different snippet
 	})
 
 	bank := QuizBank{GeneratedAt: time.Now().UTC().Format(time.RFC3339), Items: items}

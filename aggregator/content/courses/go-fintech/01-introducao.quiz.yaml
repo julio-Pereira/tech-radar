@@ -8,14 +8,14 @@ questions:
     answer: 1
     explanation: "O problema é de representação, não de magnitude: 0,1 não tem representação exata em binário, e o resíduo se acumula ao longo de milhões de lançamentos até o fechamento não bater. Por isso o padrão é `int64` na menor unidade ou `shopspring/decimal` quando a fração é arbitrária — juros, câmbio."
 
-  - question: "O que a linguagem faz para impedir que você use ponto flutuante para dinheiro em Go?"
+  - question: "Um módulo declara `go 1.20` no go.mod e você compila com o toolchain 1.27. O que acontece com o código que usa a função nativa `min`?"
     options:
-      - "Nada — a disciplina é cultural, e é por isso que o tipo `Money` aparece no primeiro exercício"
-      - "O compilador emite alerta quando um `float64` é usado em contexto monetário declarado"
-      - "O `go vet` sinaliza a conversão implícita entre `float64` e tipos inteiros com nome"
-      - "O linter padrão da stdlib recusa operações aritméticas entre float e tipos nomeados exportados"
-    answer: 0
-    explanation: "Go não tem `BigDecimal` na stdlib nem qualquer proteção de tipo para valor monetário. A garantia vem do domínio: um tipo `Money` com quantia inteira e moeda explícita, adotado desde o começo. É a diferença entre a linguagem impedir o erro e a equipe impedir o erro."
+      - "Compila normalmente: o toolchain 1.27 conhece `min` e ignora a linha `go` na hora de compilar"
+      - "Falha com `built-in min requires go1.21 or later`: a linha `go` define a linguagem aceita"
+      - "Compila, mas o `go vet` emite um aviso de depreciação para a função `min` daquele módulo"
+      - "O comando `go` baixa sozinho o toolchain 1.20 e falha por não encontrar a função `min`"
+    answer: 1
+    explanation: "A linha `go` do go.mod é a versão da linguagem do módulo, e o compilador aplica as regras dela mesmo com um toolchain mais novo. Recursos posteriores são recusados, e mudanças de comportamento controladas por GODEBUG seguem o padrão daquela versão. O download automático só acontece no sentido contrário: quando o módulo pede uma versão mais nova que a instalada."
 
   - question: "O que a contabilidade double-entry habilita, além de organizar os lançamentos?"
     options:

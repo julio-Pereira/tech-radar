@@ -38,7 +38,11 @@ type Manifest struct {
 // the correct entry in Options. All three text fields are plain text — the SPA
 // sets them via textContent, so they are never interpreted as HTML.
 type QuizQuestion struct {
-	Question    string   `yaml:"question"    json:"question"`
+	Question string `yaml:"question"    json:"question"`
+	// Code is an optional snippet the question is about ("o que este código
+	// imprime?"), shown verbatim in a <pre><code> block — plain text, never
+	// HTML, so it keeps its line breaks where Question would collapse them.
+	Code        string   `yaml:"code"        json:"code,omitempty"`
 	Options     []string `yaml:"options"     json:"options"`
 	Answer      int      `yaml:"answer"      json:"answer"`
 	Explanation string   `yaml:"explanation" json:"explanation,omitempty"`
@@ -363,6 +367,7 @@ type QuizBankItem struct {
 	MarcoID        string   `json:"marcoId"`
 	MilestoneTitle string   `json:"milestoneTitle"`
 	Question       string   `json:"question"`
+	Code           string   `json:"code,omitempty"`
 	Options        []string `json:"options"`
 	Answer         int      `json:"answer"`
 	Explanation    string   `json:"explanation,omitempty"`

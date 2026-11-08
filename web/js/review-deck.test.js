@@ -129,3 +129,20 @@ test('completed marcos count for trilhas known only from the index, even with no
   assert.equal(stats.completedMarcos, 1);
   assert.equal(stats.tracks, 1);
 });
+
+test('code field: a card without code keeps its old id; same question with different snippets gets distinct ids', () => {
+  const bank = {
+    items: [
+      { slug: 'a', marcoId: 'a1', question: 'O que imprime?', code: 'fmt.Println(1)', options: ['1', '2'], answer: 0 },
+      { slug: 'a', marcoId: 'a1', question: 'O que imprime?', code: 'fmt.Println(2)', options: ['1', '2'], answer: 1 },
+      { slug: 'a', marcoId: 'a1', question: 'a1-q1', options: ['x', 'y'], answer: 0 },
+    ],
+  };
+  const { deck } = buildEligibleDeck(bank, { entries: [] }, progress({ a: ['a1'] }), noHistory);
+  const quiz = deck.filter((c) => c.kind === 'quiz');
+  assert.equal(new Set(quiz.map((c) => c.id)).size, 3);
+  const plain = quiz.find((c) => c.question === 'a1-q1');
+  assert.equal(plain.id, String(cyrb53('a|a1|a1-q1')));
+  assert.equal('code' in plain, false);
+  assert.equal(quiz.find((c) => c.answer === 1).code, 'fmt.Println(2)');
+});

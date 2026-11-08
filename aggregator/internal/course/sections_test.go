@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 207, "desafio": 249, "invariantes": 246, "complemento": 231, "checagem": 248, "gabarito": 5,
+		"tutorial": 210, "desafio": 254, "invariantes": 250, "complemento": 235, "checagem": 253, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -425,14 +425,11 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	// The go-fintech stubs (restructuring, Fase A) leave this list as each
 	// block is written; java-vs-go leaves it in Fase F (its new hands-on).
 	wantNoSection := []string{
-		"go-fintech/erros-defer-e-panic",
 		"go-fintech/estrutura-e-arquitetura",
 		"go-fintech/goroutines-em-producao",
-		"go-fintech/interfaces-e-tipos",
 		"go-fintech/java-vs-go",
 		"go-fintech/persistencia-e-transacoes",
 		"go-fintech/seguranca-e-cadeia-de-modulos",
-		"go-fintech/slices-maps-e-strings",
 		"go-fintech/testes-em-go",
 	}
 	if !equalStrings(noSection, wantNoSection) {

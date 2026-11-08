@@ -13,6 +13,7 @@ import { announceRoute } from '../announce.js';
 import { buildLoading, buildError, buildEmpty, localDateISO } from '../dom-helpers.js';
 import { buildEligibleDeck, isNewCardDue } from '../review-deck.js';
 import { loadDesafiosSafe, buildDesafiosAgenda } from './desafios-agenda-view.js';
+import { buildQuizCode } from './quiz.js';
 import { schedule, isDue } from '../review-scheduler.js';
 import {
   getReviewState, setDailyLimit, recordReview, DEFAULT_DAILY_LIMIT, getProgress, getQuizHistory,
@@ -203,6 +204,7 @@ function buildQuizCard(card, onAnswer) {
   const legend = document.createElement('legend');
   legend.textContent = card.question;
   fieldset.appendChild(legend);
+  if (card.code) fieldset.appendChild(buildQuizCode(card.code));
 
   const inputs = [];
   card.options.forEach((option, oi) => {

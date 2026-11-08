@@ -8,23 +8,23 @@ questions:
     answer: 3
     explanation: "Em Go o pacote é a unidade de encapsulamento, e o que se quer encapsular é um domínio: `wallet/`, `ledger/`, `money/`. Dividir por camada faz cada conceito atravessar três pacotes e força exportar o que deveria ser interno. Nomes de pacote no singular são convenção, mas não são a razão principal."
 
-  - question: "Qual é o efeito de embrulhar um erro com `fmt.Errorf(\"...: %w\", err)`?"
+  - question: "Um tipo exportado `AccountID` tem o campo não exportado e o construtor `Parse`, que valida o formato. O que ainda produz um `AccountID` sem passar pelo `Parse`?"
     options:
-      - "Preserva a cadeia, permitindo que `errors.Is` e `errors.As` encontrem o erro original"
-      - "Converte o erro em um valor comparável, para que ele possa ser usado como chave de mapa"
-      - "Anexa o stack trace do ponto onde o erro foi criado, como fazem as exceções da JVM"
-      - "Marca o erro como recuperável, sinalizando que a operação pode ser repetida com segurança"
-    answer: 0
-    explanation: "O verbo `%w` guarda o erro embrulhado, e é isso que faz `errors.Is(err, ErrCurrencyMismatch)` funcionar mesmo depois de três camadas de contexto. Com `%v` a informação vira texto e a inspeção deixa de ser possível. Go não anexa stack trace automaticamente, e nada no erro indica se retentar é seguro."
-
-  - question: "Um tipo em Go passa a satisfazer uma interface quando..."
-    options:
-      - "o pacote da interface é importado e o tipo é registrado na inicialização"
-      - "ele declara `implements` no ponto de definição, como em Java"
-      - "ele tem os métodos com a assinatura certa — sem declarar nada"
-      - "ele embute a interface como campo anônimo dentro da struct"
+      - "Nada: com o campo não exportado, o compilador exige passar pelo construtor do pacote"
+      - "Só reflexão com `unsafe`, que fica fora de qualquer garantia do sistema de tipos"
+      - "O zero value: `var id account.AccountID` compila em qualquer pacote que o importe"
+      - "Uma conversão `account.AccountID(\"acc-x\")`, já que o tipo base é uma string"
     answer: 2
-    explanation: "A satisfação é implícita e verificada em tempo de compilação no ponto de uso. Isso permite definir a interface no consumidor, não no produtor — o inverso do costume Java, e a razão de interfaces em Go serem pequenas. Embutir a interface compila e produz um valor que estoura em runtime se ninguém preencheu o campo."
+    explanation: "Go não tem construtor obrigatório: toda variável nasce com o zero value do tipo, inclusive num pacote que não vê os campos. Por isso o desenho é dar significado ao zero value (\"nenhuma conta\"), expor `IsZero()` e rejeitá-lo em toda função que recebe o tipo. A conversão não compila porque o tipo é uma struct, não uma string."
+
+  - question: "`type Kind int` com `Debit Kind = iota + 1` e `Credit`. Um `switch k { case Debit: ... }` sem tratar `Credit` chega à produção. Quem deveria ter barrado?"
+    options:
+      - "O compilador, que exige `default` em todo `switch` sobre tipo nomeado com constantes"
+      - "O linter `exhaustive`, porque a linguagem não tem enum fechado e o `switch` incompleto compila"
+      - "O `go vet`, que compara os casos do `switch` com todas as constantes declaradas do tipo"
+      - "Ninguém: `iota` gera constantes privadas e o tipo só admite os valores declarados"
+    answer: 1
+    explanation: "Go não tem enum: `Kind` é um `int` com nome, `Kind(7)` compila, e um `switch` incompleto também. O `iota + 1` só garante que o zero value não seja `Debit` por acidente. A exaustividade vem de ferramenta: o `exhaustive` (no golangci-lint) reprova o `switch` que esquece uma constante. O `go vet` não faz essa checagem."
 
   - question: "Qual é o equivalente idiomático de `Optional<T>` em Go?"
     options:

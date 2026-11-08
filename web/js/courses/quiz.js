@@ -42,6 +42,7 @@ export function buildQuiz(slug, milestone, onPass) {
     const legend = document.createElement('legend');
     legend.textContent = `${qi + 1}. ${q.question}`;
     fieldset.appendChild(legend);
+    if (q.code) fieldset.appendChild(buildQuizCode(q.code));
 
     const inputs = [];
     q.options.forEach((option, oi) => {
@@ -159,4 +160,22 @@ export function buildQuiz(slug, milestone, onPass) {
   });
 
   return section;
+}
+
+/**
+ * The optional snippet a question is about ("o que este código imprime?"):
+ * textContent only, so it is shown verbatim and never parsed as HTML.
+ * @param {string} code
+ */
+export function buildQuizCode(code) {
+  const pre = document.createElement('pre');
+  pre.className = 'quiz-code';
+  // A long line scrolls inside the box: keyboard users need to reach it.
+  pre.tabIndex = 0;
+  pre.setAttribute('role', 'region');
+  pre.setAttribute('aria-label', 'Código da questão');
+  const el = document.createElement('code');
+  el.textContent = code;
+  pre.appendChild(el);
+  return pre;
 }
