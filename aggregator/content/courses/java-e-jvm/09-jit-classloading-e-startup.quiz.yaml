@@ -1,0 +1,44 @@
+questions:
+  - question: "Um método quente foi compilado pelo C2 assumindo que só chega `TarifaFixa` (o único tipo visto no perfil). Agora chega uma `TarifaPercentual`. O que a JVM faz?"
+    options:
+      - "Lança `ClassCastException`, porque o código compilado só aceita o tipo do perfil"
+      - "Desotimiza: descarta o código compilado, volta a interpretar e recompila depois"
+      - "Mantém o código compilado e trata o tipo novo com uma busca na vtable"
+      - "Recompila o método inteiro no C1 e nunca mais o promove para o C2"
+    answer: 1
+    explanation: "O C2 fez uma aposta baseada no perfil (por exemplo, *inline* de `TarifaFixa.calcular`). Quando ela falha, cai numa *uncommon trap*: o código é marcado `made not entrant`, a execução volta ao interpretador, e o método é recompilado com o perfil novo, como o log do `-XX:+PrintCompilation` mostra. O programa continua correto; só paga o custo da recompilação."
+
+  - question: "O que este *benchmark* mede nas últimas rodadas?"
+    code: |
+      static long tarifa(long v) { return (v * 3 + 7) / 100; }
+
+      for (int r = 0; r < 5; r++) {
+          long t0 = System.nanoTime();
+          for (int i = 0; i < 100_000_000; i++) tarifa(i);
+          System.out.printf("rodada %d: %.3f ns%n", r, (System.nanoTime() - t0) / 1e8);
+      }
+    options:
+      - "O custo real de `tarifa`, já que o laço tem 100 milhões de iterações"
+      - "O custo do interpretador, porque laços longos nunca são compilados"
+      - "Quase nada: o resultado é descartado e o JIT elimina a chamada"
+      - "O custo de `System.nanoTime`, que domina o tempo do laço"
+    answer: 2
+    explanation: "Como o resultado de `tarifa` não é usado, o C2 elimina a chamada (*dead code elimination*): no JDK 25, as rodadas 2 a 4 mediram 0,000 ns. O laço é compilado sim (por OSR). O JMH separa aquecimento de medição e consome o resultado: devolvido, o mesmo método mediu ~1 ns."
+
+  - question: "Duas threads inicializam ao mesmo tempo as classes `Tarifas` e `Limites`, cujos blocos `static` leem um campo `static` uma da outra. O serviço trava. O que o `jstack` mostra?"
+    options:
+      - "\"Found one Java-level deadlock\", com as duas threads e as duas classes"
+      - "As duas threads em `BLOCKED`, esperando o monitor de um objeto"
+      - "As duas em `RUNNABLE`, esperando a inicialização da outra classe"
+      - "Nada: o *deadlock* de inicialização mata as duas threads com `ExceptionInInitializerError`"
+    answer: 2
+    explanation: "Cada thread segura a trava de inicialização de uma classe e espera a outra. No JDK 25, o `jstack` mostra as duas em `RUNNABLE`, com `waiting on the Class initialization monitor for ...`, e não reporta *deadlock*: a detecção olha monitores e travas, não a inicialização de classe. É por isso que blocos `static` não devem fazer trabalho de verdade nem depender um do outro."
+
+  - question: "Réplicas novas do serviço estouram o *timeout* nas primeiras centenas de requisições, mesmo com o processo já atendendo. Qual problema é esse, e qual ação ataca diretamente?"
+    options:
+      - "*Startup*; aumentar o heap para a JVM carregar as classes mais rápido"
+      - "*Warmup*; entrada gradual de tráfego depois de um aquecimento sintético"
+      - "*Startup*; trocar o G1 pelo ZGC para eliminar as pausas da subida"
+      - "*Warmup*; desligar o JIT com `-Xint` para ter latência previsível desde o início"
+    answer: 1
+    explanation: "O processo já atende, então a subida acabou: é *warmup*. O código ainda está no interpretador e no C1, e as latências caem com o JIT (medido: ~1,4 ms nas primeiras, ~0,4 ms depois de 2.000). Aquecer antes da *readiness* e dar tráfego aos poucos resolve; o cache AOT com perfil (JEP 515) encurta. `-Xint` deixaria tudo lento para sempre."

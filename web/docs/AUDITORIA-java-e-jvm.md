@@ -243,3 +243,83 @@ passam com `-Xlint:all,-processing -Werror`.
   com uma nota sobre o `ProblemDetail` do Spring.
 
 **Viés das respostas:** em nenhuma das 12 questões a correta é estritamente a opção mais longa.
+
+## 4. Fase 2 — Bloco B, marcos 08 a 10
+
+Experimentos em contêineres `eclipse-temurin:25-jdk` (Docker 29.9, cgroup v1, máquina de 4 núcleos) e
+no JDK 25 do host. Todas as cargas são sintéticas, e o texto as descreve como tais.
+
+**Marco 08 (memória e GC).**
+- **Ergonomia em contêiner** (`-XX:+PrintFlagsFinal`):
+  - com `--memory=1g`, `MaxHeapSize = 256 MiB` (`MaxRAMPercentage = 25`);
+  - o G1 é escolhido com `--memory=1792m` e o SerialGC com `1791m`;
+  - com `--memory=2g --cpus=1`, também SerialGC.
+- **Falhas** (`Oom`):
+  - `Java heap space`;
+  - `Metaspace` com `-XX:MaxMetaspaceSize=32m` e classes ocultas;
+  - `Cannot reserve 1048576 bytes of direct buffer memory` com `-XX:MaxDirectMemorySize=32m`;
+  - sem a flag, o limite da memória direta foi o heap (`limit: 64880640` com `-Xmx64m`).
+- **O pod `OOMKilled`:** 256 MiB, `MaxRAMPercentage=75`, heap em 60%, ~112 MiB de memória direta
+  deram `exit=137 oomkilled=true`.
+- **NMT:** 1.669 MB reservados e 112 MB *committed*, com 64 MiB de heap ocupado e 50 threads.
+- **Padrões:** `MaxGCPauseMillis = 200`, `ThreadStackSize = 1024`, `MaxDirectMemorySize = 0`.
+- **Coletores** (live set de ~400 MiB, 2 threads, `-Xmx1g`, `--cpus=2`, 20 s, 3 execuções,
+  `-Xlog:safepoint`):
+
+  | Coletor | Operações | Parado no *safepoint*, p99 | Para chegar, p99 |
+  | --- | ---: | ---: | ---: |
+  | G1 | 32,8 a 33,0 milhões | 1,68 ms | 0,54 ms |
+  | Parallel | 21,7 a 22,1 milhões | 52,1 ms | 0,18 ms |
+  | ZGC | 18,6 a 19,1 milhões | 0,04 ms | 5,03 ms |
+
+  A primeira análise somava os dois tempos e dava ~5 ms de "pausa" para o ZGC. Separar o tempo para
+  chegar ao *safepoint* do tempo parado nele foi o que explicou o número.
+
+**Marco 09 (JIT e startup).**
+- **`-XX:+PrintCompilation`:** mostra os níveis 3 e 4, o `made not entrant: uncommon trap` depois da
+  troca de tipo, e o OSR (`%`).
+- **Código morto:** o laço ingênuo mediu 0,000 ns nas rodadas 2 a 4. No JMH (2 *forks*, 10
+  medições):
+  - resultado descartado: 0,42 ± 0,07 ns;
+  - devolvido: 1,04 ± 0,11 ns;
+  - `Blackhole` com dois resultados: 2,04 ± 0,69 ns.
+- **Inicialização circular:** o `jstack` mostra as duas threads em `RUNNABLE`, com `waiting on the
+  Class initialization monitor for Init$Limites` (e `Init$Tarifas`), e nenhuma ocorrência de
+  "deadlock".
+- **Startup** (*driver* HTTP, tempo até o primeiro 200 por um laço de `curl`, 7 execuções):
+
+  | Modo | Tempo até o primeiro 200 |
+  | --- | ---: |
+  | `-Xshare:off` | 234 a 295 ms |
+  | CDS padrão | 165 a 200 ms |
+  | AOT cache de 26,9 MB | 122 a 143 ms |
+
+  A resposta é idêntica nos três modos. A criação da cache com diretórios no *classpath* falha com
+  `non-empty directory`.
+- **Warmup** (latência por `curl`): 1,4 ms na 1ª requisição, 0,85 ms na 100ª e 0,39 ms na 2.000ª,
+  com o CDS padrão.
+- **Método da primeira medição de startup:** usava um cliente Java, e o tempo incluía a subida da JVM
+  do próprio cliente. Foi descartada e refeita com `curl`.
+
+**Marco 10 (diagnóstico).**
+- **JFR na *fixture* `Incidentes`:**
+  - `jfr view memory-leaks-by-site` aponta `Incidentes.atender(int)`;
+  - o `OldObjectSample` com `path-to-gc-roots=true`, tirado com o processo vivo pelo `jcmd`, dá a
+    raiz `Thread OopStorage` e a cadeia `threadLocals` → `ThreadLocalMap` → `Entry` → `value`;
+  - tirado no fim do processo, a raiz veio `N/A`; com o processo morto por OOM, a gravação de
+    `dumponexit` ficou vazia (0 bytes).
+- **Alocação:** o `allocation-by-site` deu 94% em `Unsafe.allocateUninitializedArray`, e a pilha de
+  `ObjectAllocationSample` levou a `montarRecibo` (1.674 de ~1.740 amostras).
+- ***Heap dump*:** 539 MB em 0,5 s, com 32.011 CPFs distintos encontrados por `grep -aoE`.
+- **Custo do JFR `default`:**
+  - na carga sintética do marco 08: −17% de operações com 2 CPUs e −11% com 4, igual sem
+    `jdk.ObjectAllocationSample`;
+  - no *driver* HTTP a 2.000 req/s (`vegeta`, 10 s após 10 s de aquecimento, 2 execuções): p50 de
+    0,24 ms igual, p99 de 0,53–0,56 para 0,58 ms.
+
+  O "menos de 1%" costumeiro não foi citado: o texto dá as duas medições.
+- **`Thread.print`:** gera os *safepoints* `PrintThreads` e `FindDeadlocks` no `-Xlog:safepoint`.
+  O log de GC com `filecount` e `filesize` funciona.
+- **Licença do async-profiler:** Apache 2.0, conferida no POM e no repositório.
+
+**Viés das respostas:** em nenhuma das 14 questões a correta é estritamente a opção mais longa.

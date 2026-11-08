@@ -1,0 +1,54 @@
+questions:
+  - question: "Um pod com limite de 1 GiB é reiniciado com `OOMKilled`, e o painel mostra o heap em 60%. Não há `OutOfMemoryError` no log. O que isso indica?"
+    options:
+      - "Um bug do painel: se o heap estivesse cheio, haveria `OutOfMemoryError` no log"
+      - "O kernel matou o processo pela soma de heap e memória fora dele, como a direta"
+      - "O GC não teve tempo de rodar antes do limite, e o heap real estava em 100%"
+      - "A JVM se encerrou sozinha ao perceber que o contêiner estava perto do limite"
+    answer: 1
+    explanation: "`OOMKilled` é o kernel, não a JVM: o contêiner passou do limite, e o processo morre com 137, sem exceção. O limite vale para heap, *metaspace*, pilhas, *code cache* e memória direta, que por padrão pode crescer até o tamanho do heap. Reproduzido: 256 MiB, heap de 192 MiB em 60%, ~112 MiB de memória direta, `oomkilled=true`."
+
+  - question: "Um serviço roda num contêiner com `--memory=1g` e `--cpus=1`, sem nenhuma flag de memória ou GC. O que a JVM do Java 25 escolhe?"
+    options:
+      - "Heap de 750 MiB e G1, o coletor padrão desde o Java 9"
+      - "Heap de 1 GiB e ZGC, porque o contêiner é pequeno"
+      - "Heap de 256 MiB e SerialGC, que para a aplicação numa thread"
+      - "Heap de 512 MiB e ParallelGC, que é o coletor indicado para uma CPU só"
+    answer: 2
+    explanation: "O heap padrão é 25% da memória do contêiner (`MaxRAMPercentage = 25`): 256 MiB. E o G1 só é escolhido com pelo menos 2 CPUs e 1792 MiB; abaixo disso, a JVM usa o SerialGC. Conferido com `-XX:+PrintFlagsFinal` em contêineres do `eclipse-temurin:25-jdk`. Declare o heap (`MaxRAMPercentage`) e o GC."
+
+  - question: "Com a mesma carga e 2 CPUs, o ZGC mostrou tempo parado no *safepoint* de 0,04 ms no p99, contra 1,7 ms do G1, mas fez ~19 milhões de operações contra ~33 milhões do G1. Por quê?"
+    options:
+      - "O ZGC trabalha concorrente com a aplicação, e com só 2 CPUs disputa CPU com ela"
+      - "O ZGC não é geracional e coleta o heap inteiro a cada ciclo, mesmo no Java 25"
+      - "O ZGC pausa menos porque coleta menos vezes, e o heap fica cheio por mais tempo"
+      - "Erro de medição: o ZGC não registra as pausas dele no log de *safepoint*"
+    answer: 0
+    explanation: "O ZGC faz marcação e relocação concorrentes, com threads próprias. Com 2 CPUs e 2 threads de aplicação, essas threads competem pela mesma cota: menos *throughput*, e as threads demoram mais para chegar ao *safepoint* (5 ms no p99 medido). O ZGC é geracional desde o 21 e só existe assim desde o 24, e as pausas dele aparecem no log (`ZMarkStartYoung`)."
+
+  - question: "Um serviço usa um pool fixo de 8 threads e, em cada tarefa, guarda o contexto do cliente num `ThreadLocal`, sem nunca chamar `remove()`. O que acontece?"
+    options:
+      - "Nada: o valor do `ThreadLocal` é coletado ao fim de cada tarefa"
+      - "Cada thread retém o último contexto, que não é coletado"
+      - "O pool lança `IllegalStateException` ao reusar a thread com valor"
+      - "O GC coleta o valor assim que a tarefa sai do escopo do método"
+    answer: 1
+    explanation: "O valor fica preso à thread, e a thread de um pool não morre: o último contexto de cada uma fica vivo indefinidamente. Se o valor é grande, ou é um mapa que cresce, é vazamento; e a próxima tarefa ainda pode ler o contexto do cliente anterior. A regra é `try { ... } finally { tl.remove(); }`, ou `ScopedValue` (Java 25)."
+
+  - question: "Um cliente HTTP usa `ByteBuffer.allocateDirect` para os *buffers* de rede. Sem nenhuma flag, quanto ele pode alocar fora do heap?"
+    options:
+      - "Nada: memória direta exige `--enable-native-access` desde o Java 22"
+      - "Até o tamanho do heap, porque `MaxDirectMemorySize = 0` é \"igual ao heap\""
+      - "Sem limite: a memória direta só é limitada pelo sistema operacional e pelo cgroup"
+      - "Até 64 MiB, o padrão fixo da JVM para memória direta"
+    answer: 1
+    explanation: "O padrão de `MaxDirectMemorySize` é 0, que significa \"igual ao heap máximo\": com `-Xmx64m`, a alocação falhou em ~64 MiB com `Cannot reserve 1048576 bytes of direct buffer memory (allocated: 63963136, limit: 64880640)`. Somado ao heap, isso pode dobrar a conta da memória. Limite com `-XX:MaxDirectMemorySize`."
+
+  - question: "Qual o fundamento da hipótese geracional, que todos os coletores do HotSpot usam?"
+    options:
+      - "Objetos antigos são mais acessados, então ficam numa geração de acesso rápido"
+      - "A maioria dos objetos morre jovem, e coletar só a geração jovem é barato"
+      - "A JVM divide o heap em gerações para que cada thread tenha a sua geração própria"
+      - "Objetos grandes vivem pouco, e por isso ficam separados dos pequenos no heap"
+    answer: 1
+    explanation: "A observação é que a maioria dos objetos (um pedido, os intermediários de um *stream*) morre logo depois de criada. A geração jovem, coletada com frequência, é quase toda lixo, e copiar os poucos sobreviventes é barato; o que sobrevive a algumas coletas vai para a velha. A divisão por thread é a TLAB, um pedaço do *eden* para alocar sem disputa."
