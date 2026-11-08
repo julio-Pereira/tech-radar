@@ -1,46 +1,86 @@
 questions:
-  - question: "Por que o sharding por conta resolve a corrida de saldo melhor que um mutex global?"
+  - question: "O que este código imprime antes de terminar?"
+    code: |
+      ch := make(chan int, 2)
+      ch <- 1
+      close(ch)
+      v, ok := <-ch
+      fmt.Println(v, ok)
+      v, ok = <-ch
+      fmt.Println(v, ok)
+      ch <- 2
     options:
-      - "Porque o hash da conta distribui a carga entre os workers de forma perfeitamente uniforme e estável"
-      - "Porque channels são mais rápidos que mutexes na implementação atual do runtime"
-      - "Porque a mesma conta cai sempre no mesmo worker: sequencial onde importa, paralelo no resto"
-      - "Porque elimina a necessidade de `go test -race`, já que não há memória compartilhada"
-    answer: 2
-    explanation: "O mutex global serializa o lote inteiro e joga fora o paralelismo. O sharding serializa apenas o que precisa: transações da mesma conta viram sequenciais porque vão para a mesma goroutine, e contas diferentes seguem em paralelo. A distribuição não é uniforme — uma conta muito movimentada continua sendo um shard quente."
-
-  - question: "O que `context.Context` carrega entre as goroutines de um processamento em lote?"
-    options:
-      - "O cancelamento e o deadline, mais valores de escopo de requisição"
-      - "O pool de conexões e a transação de banco aberta pelo chamador"
-      - "O estado compartilhado entre workers, com acesso serializado pelo runtime"
-      - "A configuração da aplicação, carregada uma vez e propagada por injeção"
+      - "`1 true`, depois `0 false`, e o último envio entra em panic: `send on closed channel`"
+      - "`1 true`, depois bloqueia para sempre no segundo recebimento, porque o buffer esvaziou"
+      - "`1 true`, depois `0 false`, e o último envio é descartado sem erro algum"
+      - "Entra em panic já no primeiro recebimento, porque o channel foi fechado antes"
     answer: 0
-    explanation: "`Context` existe para propagar cancelamento e prazo por toda a árvore de chamadas — quando ele é cancelado, todo mundo que o observa desiste. Ele também carrega valores de escopo de requisição, como `trace_id`, e é justamente por isso que a documentação alerta contra usá-lo como saco de dependências ou de configuração."
+    explanation: "Receber de um channel fechado devolve primeiro o que restou no buffer (`1 true`) e depois o zero value com `ok == false`, sem bloquear. Enviar num channel fechado é panic, e foi o que a execução mostrou. Por isso quem fecha é quem envia: só o dono sabe que não vai mais mandar nada."
 
-  - question: "O que `errgroup.Group` acrescenta a um `sync.WaitGroup`?"
+  - question: "O que acontece ao rodar este programa?"
+    code: |
+      func main() {
+          var ch chan int
+          fmt.Println("antes")
+          <-ch
+          fmt.Println("depois")
+      }
     options:
-      - "Limita automaticamente o número de goroutines conforme o número de núcleos disponíveis"
-      - "Propaga o erro da primeira goroutine que falha e cancela o contexto das demais"
-      - "Garante ordem de conclusão igual à ordem de submissão das goroutines"
-      - "Reexecuta com backoff a goroutine que devolveu erro, até o limite configurado"
-    answer: 1
-    explanation: "`WaitGroup` só conta quem terminou; erro é problema seu. `errgroup.WithContext` devolve um contexto que é cancelado no primeiro erro, e o `Wait` entrega esse erro — o que transforma um fan-out em algo com short-circuit. Limite de concorrência existe via `SetLimit`, mas não é automático, e não há retry embutido."
+      - "Imprime `antes` e `depois`: receber de um channel nil devolve o zero value"
+      - "Entra em panic `receive from nil channel` logo depois de imprimir `antes` na tela"
+      - "Imprime `antes` e o runtime aborta: `all goroutines are asleep - deadlock!`"
+      - "Não compila, porque `ch` é usado sem `make` e o compilador detecta"
+    answer: 2
+    explanation: "Receber de um channel nil bloqueia para sempre. Como não há outra goroutine que possa desbloquear, o runtime detecta que todas estão paradas e aborta com `fatal error: all goroutines are asleep - deadlock!`. Num programa com outras goroutines vivas, o bloqueio seria silencioso. O lado útil: num `select`, um `case` com channel nil nunca é escolhido."
 
-  - question: "O que a reconciliação `sum(débitos) == sum(créditos)` ao fim do lote garante?"
+  - question: "Os dois channels têm um valor pronto em todas as 1000 iterações. O que este código imprime?"
+    code: |
+      a, b := make(chan string, 1), make(chan string, 1)
+      cont := map[string]int{}
+      for range 1000 {
+          a <- "a"
+          b <- "b"
+          select {
+          case v := <-a:
+              cont[v]++
+              <-b
+          case v := <-b:
+              cont[v]++
+              <-a
+          }
+      }
+      fmt.Println(cont["a"] > 300, cont["b"] > 300)
     options:
-      - "Que nenhuma transação do arquivo de entrada deixou de ser processada"
-      - "Que nenhuma conta ficou com saldo negativo durante o processamento"
-      - "Que os workers processaram as transações na ordem em que apareciam no arquivo"
-      - "Que os lançamentos gravados estão equilibrados — se não estão, algo se perdeu no meio"
+      - "`true false`: o `select` escolhe o primeiro `case` pronto na ordem do código"
+      - "`false true`: o `select` prefere o `case` declarado por último quando há empate"
+      - "Depende do runtime: em geral `true false`, porque a primeira goroutine tem vantagem"
+      - "`true true`: com vários prontos, o `select` sorteia de forma uniforme"
     answer: 3
-    explanation: "A checagem prova a integridade contábil do que foi gravado: cada movimentação gerou o par completo. Ela não prova cobertura — uma transação inteira ignorada mantém a soma zerada — nem diz nada sobre saldo negativo ou ordem. Por isso ela é rede de segurança somada ao `-race` e à contagem de linhas, não no lugar delas."
+    explanation: "Quando mais de um `case` está pronto, o `select` escolhe um ao acaso, de propósito, para que nenhum channel passe fome. Cada lado sai perto de 500 vezes. Não existe prioridade por ordem de declaração; prioridade se simula com um `select` com `default` só sobre o channel prioritário antes do `select` geral."
 
-  - question: "O sharding por conta garante que a mesma conta nunca sofre corrida de saldo dentro do `walletctl`. Essa garantia também vale se um segundo processo (outro serviço) escrever na mesma conta?"
+  - question: "Um estágio de pipeline lê eventos de `in` e escreve resultados em `out`. Quem deve fechar `out`?"
     options:
-      - "Sim, porque o hash da conta é determinístico e vale para qualquer processo que o calcule"
-      - "Não: sharding por goroutine só serializa dentro de um processo; entre processos a invariante precisa de transação e ordem de aquisição no banco"
-      - "Sim, desde que os dois processos usem o mesmo número de workers configurado"
-      - "Não, e não há solução possível além de impedir que dois serviços escrevam na mesma conta"
+      - "O consumidor de `out`, depois de ler o último valor que esperava receber"
+      - "O próprio estágio, quando termina de enviar, porque é o único que escreve em `out`"
+      - "Ninguém: o coletor de lixo fecha o channel quando não há mais referências a ele"
+      - "O `main`, depois do `wg.Wait()` que espera todos os estágios do pipeline"
     answer: 1
-    explanation: "O sharding por conta é uma garantia de **processo único**: ele serializa transações da mesma conta porque elas caem na mesma goroutine daquele processo específico. Um segundo processo não compartilha essa fila de goroutines — ele precisa da mesma proteção que `dados-distribuidos/04` e `/10` ensinam entre processos: transação, ordem de aquisição de lock e, quando preciso, lock distribuído com fencing token. Calcular o mesmo hash em dois processos não cria nenhuma exclusão mútua entre eles."
+    explanation: "Quem fecha é quem envia: só o escritor sabe que não vai mais mandar nada, e fechar com um escritor ativo causa panic no envio seguinte. O consumidor usa `for v := range out`, que termina quando o estágio fecha. Com vários escritores no mesmo channel, um coordenador fecha depois de esperar todos (`WaitGroup`). Channel não fechado não é recurso vazado, mas deixa o `range` esperando para sempre."
 
+  - question: "Com `errgroup.WithContext` e `SetLimit(8)`, o 5000º evento de um lote devolve erro. O que acontece com os outros eventos?"
+    options:
+      - "Nenhum evento começa depois do erro: o grupo cancela todos no instante da falha"
+      - "O contexto é cancelado quando a função com erro retorna; outros podem começar antes"
+      - "Todos os eventos do lote são processados, e o erro só aparece no retorno do `Wait`"
+      - "Os eventos em voo são interrompidos à força e o `Wait` retorna imediatamente"
+    answer: 1
+    explanation: "O `errgroup` cancela o contexto quando a função que falhou retorna, e o `Wait` espera todos os que estão em voo; ninguém é interrompido à força. Entre a falha e o cancelamento, uma goroutine que já passou pela checagem `ctx.Err()` começa mesmo assim (até 8 numa medição). Se \"nada novo começa depois do erro\" é invariante, a parada precisa de uma comporta explícita."
+
+  - question: "Um handler guarda o repositório no contexto (`ctx = context.WithValue(ctx, \"repo\", repo)`) e a camada de serviço o recupera com `ctx.Value(\"repo\")`. Qual o problema?"
+    options:
+      - "Nenhum: `context` existe justamente para transportar dependências entre as camadas"
+      - "Só desempenho: `ctx.Value` percorre a cadeia de contextos e fica lento com muitos valores"
+      - "A chave `string` pode colidir; com uma chave de tipo próprio a prática fica correta"
+      - "A dependência fica invisível ao compilador e ao teste; `Value` é dado de requisição"
+    answer: 3
+    explanation: "`context.Value` serve para dado do escopo da requisição que atravessa fronteiras de API, como um ID de correlação. Uma dependência tirada dele não aparece na assinatura: o compilador não exige, o teste esquece de prover e o erro vira panic de type assertion em produção. A chave de tipo próprio evita colisão, mas não resolve o problema. Dependência entra por parâmetro ou campo da struct (marco 15)."

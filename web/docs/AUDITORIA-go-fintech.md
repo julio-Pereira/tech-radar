@@ -278,3 +278,37 @@ go test ./internal/course/ -run TestPontesSnapshot
     passou a marcar `arquitetura`.
 - **Quizzes:** 24 questões nos marcos 01 a 05, 13 delas com código. A correta é a opção mais longa
   em 21% delas (limite de 40%).
+
+## 12. Fase C — Bloco B (marcos 06 e 07)
+
+O código foi executado num módulo temporário com `go 1.27` (toolchain 1.27.3), com
+`errgroup` v0.24.0 e `goleak` v1.3.0. Achados que mudaram o texto do plano:
+
+- **"Parar no primeiro erro" com `errgroup` não é instantâneo.**
+  - O grupo cancela o contexto quando a função que falhou **retorna**.
+  - Medição sem comporta: em 200 rodadas com 8 em voo, até 8 eventos começaram depois de o erro já
+    ter sido detectado.
+  - O desafio do 06 ganhou uma comporta explícita (checagem e início sob o mesmo mutex).
+  - O invariante "começaram no máximo `k + N`" do primeiro rascunho estava errado e reprovou no
+    `-race -count=30`. Goroutines rodam fora da ordem de despacho, então eventos depois do `k`
+    começam antes dele.
+  - O invariante correto é: nenhum evento começa depois que a comporta fecha; no máximo N−1 terminam
+    depois do erro; nada fica em voo depois do retorno. Ficou verde em 40 rodadas com `-race`.
+- **"`time.After` em laço vaza" (item do plano) está desatualizado.**
+  - Desde o Go 1.23, com a linha `go` em 1.23 ou mais, timer sem referência é coletado mesmo sem
+    `Stop` (release notes do 1.23, "Timer changes").
+  - O marco 07 apresenta isso como mito com data, e o custo que sobra é uma alocação por iteração.
+- **`synctest` acusa vazamento antes do `goleak`.**
+  - Trocar o buffer do hedging por um channel sem buffer faz o `synctest.Test` falhar com
+    `blocked goroutines remain`.
+  - O `goleak.Find()` mostra a goroutine presa em `chan send` na versão com bug, fora da bolha.
+- **Saídas reais dos quizzes:**
+  - envio em channel fechado: `panic: send on closed channel`;
+  - leitura de channel nil: `all goroutines are asleep - deadlock!`;
+  - `select` com dois prontos: entre 479 e 521 vezes cada, em 1000 iterações;
+  - mutex copiado: saldo continua 100, e o `vet` diz `passes lock by value`;
+  - 100 consultas com timeout: 101 goroutines.
+- **`handson.spec.js`:** o caso "sem tutorial, o primeiro bloco abre" passou a usar `kafka/anatomia`,
+  porque todo marco da `go-fintech` agora tem tutorial.
+- **Viés das respostas:** opções ajustadas para que a correta não seja a mais longa por padrão. Ficou
+  a mais longa em 2 de 6 questões no 06 e em 1 de 6 no 07.

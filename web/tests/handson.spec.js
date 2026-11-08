@@ -28,8 +28,11 @@ test.describe('Hands-on blocks: default open state', () => {
   });
 
   test('without a Tutorial block, the first block opens instead', async ({ page }) => {
-    // concorrencia has desafio, invariantes, checagem — no tutorial.
-    const node = await openMilestone(page, 'concorrencia');
+    // kafka/anatomia has desafio, invariantes, checagem — no tutorial. (Every
+    // go-fintech marco has a Tutorial since its restructuring.)
+    await page.goto('/#/learn/kafka');
+    const node = page.locator('.timeline-node[data-id="anatomia"]');
+    await node.locator('.node-toggle').click();
     const blocks = node.locator('.handson-block');
     await expect(blocks.filter({ has: page.locator('.handson-label:text("Desafio")') }).locator('details')).toHaveJSProperty('open', true);
     await expect(blocks.filter({ has: page.locator('.handson-label:text("Checagem")') }).locator('details')).toHaveJSProperty('open', false);
