@@ -35,8 +35,8 @@ test('the path starts at the interview milestone and ends with the desafio bank'
 
   const bank = page.locator('.path-step-desafios');
   await expect(bank.locator('.path-step-link')).toHaveAttribute('href', '#/desafios');
-  await expect(bank.locator('.path-step-title')).toHaveText('Banco de desafios — 10 desafios');
-  await expect(bank.locator('.path-step-meta')).toHaveText('0 de 10 praticados · 0 liberados');
+  await expect(bank.locator('.path-step-title')).toHaveText('Banco de desafios — 12 desafios');
+  await expect(bank.locator('.path-step-meta')).toHaveText('0 de 12 praticados · 0 liberados');
 });
 
 test('the bank step counts desafios unlocked by completed pre-requisites and practiced ones', async ({ page }) => {
@@ -49,7 +49,7 @@ test('the bank step counts desafios unlocked by completed pre-requisites and pra
   });
   await setRodadas(page, { 'storage-eventos-pix': [{ seed: 1, at: '2026-11-01T10:00:00Z', verificadoPct: 50, autoPct: 0 }] });
   await page.reload();
-  await expect(page.locator('.path-step-desafios .path-step-meta')).toHaveText('1 de 10 praticados · 1 liberado');
+  await expect(page.locator('.path-step-desafios .path-step-meta')).toHaveText('1 de 12 praticados · 1 liberado');
   await expect(page.locator('.path-step-desafios')).not.toHaveClass(/done/);
 });
 
