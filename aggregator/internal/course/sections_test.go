@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 215, "desafio": 262, "invariantes": 254, "complemento": 244, "checagem": 260, "gabarito": 5,
+		"tutorial": 217, "desafio": 264, "invariantes": 256, "complemento": 246, "checagem": 262, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -422,12 +422,9 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	// The go-fintech stubs (restructuring, Fase A) leave this list as each
-	// block is written; java-vs-go leaves it in Fase F (its new hands-on).
-	wantNoSection := []string{
-		"go-fintech/estrutura-e-arquitetura",
-		"go-fintech/java-vs-go",
-	}
+	// Every milestone has a hands-on section since the go-fintech
+	// restructuring (Fase F); a new one without it is a regression.
+	var wantNoSection []string
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}

@@ -416,3 +416,41 @@ site. A do `buf` voltou para a URL raiz da documentação.
   - preempção assíncrona: Go 1.14.
 
 **Viés das respostas:** a correta é a mais longa em 2 de 14 questões.
+
+## 15. Fase F — Bloco E (marcos 15 e 16), capstone e glossário
+
+**Marco 15 (estrutura e arquitetura).**
+- O README do `golang-standards/project-layout` diz que o repositório não é um padrão oficial do time
+  do Go; o layout oficial é o de *Organizing a Go module* (`cmd/` e `internal/`).
+- **`internal/`:** importar `ledger/internal/regras` a partir de `extrato`, no mesmo módulo, deu
+  `use of internal package ... not allowed`.
+- **Ciclo de import:** `ledger` ↔ `antifraude` não compila (`import cycle not allowed`).
+- **Teste de arquitetura** sobre `go list -json ./...`: reprovou a aresta `antifraude` →
+  `ledger/adapters/postgres` e passou sem ela. Com cache, o `go test` não reexecutou depois da
+  mudança em outro pacote; daí o `-count=1` no texto.
+- **Complemento MCP:** `github.com/modelcontextprotocol/go-sdk` v1.8.0 com
+  `mcp.NewInMemoryTransports`; a ferramenta declara `ReadOnlyHint: true` e o teste confere que
+  nenhuma escrita chegou ao ledger.
+
+**Marco 16 (Java × Go) e capstone.**
+- Medição em `$S/jvg` (mesmo endpoint em Go 1.27 e Java 21 com virtual threads, `vegeta` a 2.000
+  req/s, 10 s de aquecimento, 3 execuções). Os números da tabela do marco são os medidos.
+- O p99 de 48 ms do Java, constante e insensível ao aquecimento, sumiu com
+  `-Dsun.net.httpserver.nodelay=true` (1,1 ms). O artefato virou parte do texto e de uma questão.
+- `## Capstone` no marco 16, com entrega por marco, critérios de pronto e a pergunta final.
+- `PROJETO.md` reescrito: incrementos dos 16 marcos, definição de pronto, ADRs, game day com seis
+  cenários e a regra das horas (845 min → 28 h).
+
+**Glossário e conceitos.**
+- `GLOSSARIO.md` com 55 verbetes, todos com os quatro campos e "marco NN"; cobertura de 55/55 no
+  golden; `glossary: GLOSSARIO.md` em `course.yaml`.
+- `conceitos.yaml`: `nil-tipado` (dono `go-fintech/04`, citado em `go-fintech/01`) e
+  `vazamento-de-goroutine` (dono `go-fintech/07`, citado em `go-fintech/01` e em
+  `concorrencia-e-recursos/06`, `/09` e `/10`). O 07 passou a usar o apelido no texto.
+  `escape-analysis` ficou fora (sem citação fora do dono) e `graceful-shutdown` também (o conceito é
+  ensinado em mais de um marco, sem dono claro).
+
+**Fechamento da estrutura.** Σ `estimatedMinutes` = 845; todos os 16 marcos têm `## Hands-on` com os
+cinco blocos, e a lista `wantNoSection` do teste de seções ficou vazia.
+
+**Viés das respostas:** a correta é a mais longa em 0 de 8 questões.

@@ -7,21 +7,27 @@
 
 ## O que você vai construir
 
-Um ledger double-entry em Go, com um serviço de antifraude ao lado. O ledger registra
-lançamentos que sempre fecham em zero, nunca apaga nada (estorno é lançamento novo) e
-sobrevive a receber o mesmo evento duas vezes. O antifraude expõe uma API gRPC de
-decisão com prazo curto — e a decisão precisa sair mesmo quando a dependência não responde.
+Um ledger em Go, com antifraude ao lado, organizado em três módulos de negócio (`ledger`,
+`antifraude`, `extrato`) num monolito modular. O ledger registra lançamentos que sempre fecham em
+zero, nunca apaga nada (estorno é lançamento novo), grava no Postgres com transação e ordem de
+trava, e sobrevive a receber o mesmo pedido cinquenta vezes. O antifraude expõe uma API gRPC com
+deadline, e a decisão sai mesmo quando o modelo não responde. Tudo observável, encerrável sem perder
+lançamento e empacotado numa imagem sem root.
 
-É o componente ideal para aprender Go vindo de Java: concorrência com goroutines e
-`context`, erros como valores, e a diferença de custo entre um BFF REST e um serviço
-gRPC no caminho quente.
+É o componente ideal para aprender Go vindo de Java: a semântica da linguagem (slices, interfaces,
+erros), concorrência com goroutines e `context`, e a disciplina de serviço que a stdlib não impõe.
+A profundidade contábil (fechamento, conciliação) é da trilha `ledger-e-contabilidade`; aqui o
+ledger é o veículo.
 
 ## Pré-requisitos
 
-- Go 1.27 (baseline; o 1.26 ainda tem suporte — ver "Versões do Go" abaixo) e Docker (Postgres em compose)
-- `protoc` com os plugins de Go, ou `buf`
-- ~4 GB de RAM livres — este é o componente leve do `fin-platform`
-- `go test -race` funcionando (é usado o tempo todo aqui)
+- Go 1.27 (baseline; o 1.26 ainda tem suporte — ver "Versões do Go" abaixo) e Docker, com o
+  Postgres no compose
+- `buf`, `protoc-gen-go` e `protoc-gen-go-grpc` (marco 10)
+- `golangci-lint` (com `exhaustive`, `gochecksumtype`, `staticcheck`, `errcheck`, `gosec`, `noctx`),
+  `govulncheck` e `benchstat`, fixados no `go.mod` com a diretiva `tool`
+- Bibliotecas de teste: `go.uber.org/goleak` e `testcontainers-go` (com o módulo `postgres`)
+- ~4 GB de RAM livres
 - **Não precisa:** conta em cloud paga, framework web externo. A stdlib cobre quase tudo.
 
 ## Versões do Go
@@ -76,34 +82,65 @@ ainda está no 1.26 saber o que não vai compilar.
 
 | Marco | Entrega | Como você prova que funciona |
 | --- | --- | --- |
-| 01 | Repo + binário que roda, com `go test` verde | `go build ./...` e o primeiro teste passando |
-| 02 | Tipos do domínio: `Money` inteiro em centavos, `Entry`, `Transaction` | Teste que prova que a soma dos lançamentos fecha em zero |
-| 06 | Processamento concorrente de eventos com `context` e cancelamento | `go test -race` verde sob carga concorrente |
-| 08 | BFF REST: `GET /accounts/{id}/balance` e `POST /entries` | Teste de handler com timeout do cliente respeitado |
-| 10 | Antifraude em gRPC, com deadline propagado | Chamada sem resposta no prazo devolve decisão de fallback |
-| 12 | Logs estruturados, métricas e traces com OTel | Trace do evento até o lançamento, com `trace_id` no log |
-| 14 | Perfil de CPU e alocação do caminho quente, com melhoria medida | Benchmark antes/depois no repo, com `benchstat` |
-| 16 | ADR comparando com a implementação equivalente em Java | A comparação usa números do seu ambiente, não folclore |
+| 01 | Módulo com `go 1.27`, `Money` e `Allocate` | Teste de propriedade: a soma das partes é o todo, com `-shuffle=on -count=20` |
+| 02 | `AccountID` que não nasce inválido, `Ledger` com zero value útil, `Kind` com `iota` | Tabela de `Parse`; zero value recusado; `exhaustive` reprova o `switch` incompleto |
+| 03 | Extrato paginado sem aliasing | `append` no slice devolvido não altera a página seguinte; `-race` com leitores |
+| 04 | Decisão do antifraude como tipo fechado | `go build` de um tipo de fora falha; `gochecksumtype` e SA4023 no CI |
+| 05 | Taxonomia de erros e mapeamento para HTTP; worker com `recover` | Erro de infraestrutura não vaza; o erro do `Commit` chega a quem chamou |
+| 06 | Lote com no máximo N em voo e parada no primeiro erro | Pico ≤ N; nada começa depois do erro; saldo igual ao sequencial |
+| 07 | Cliente de PSP com hedging | `goleak` limpo após 10 mil chamadas; `synctest` prova o cancelamento |
+| 08 | `POST /entries` idempotente, Problem Details, shutdown | 50 repetições paralelas, um lançamento; Slowloris derrubado no prazo |
+| 09 | Transferência no Postgres com ordem de trava e retry | 10 mil transferências conservam a soma; pool nunca acima do limite |
+| 10 | Antifraude gRPC com deadline e fallback | Fallback dentro do prazo; `buf breaking` reprova mudança incompatível |
+| 11 | Fuzz do parser e teste de contrato | Sem pânico; ida e volta; contrato verde no fake e no Postgres real |
+| 12 | Config validada, `slog` com `trace_id`, readiness no drain | `trace_id` do log = do span; CPF não vaza; 503 no drain |
+| 13 | mTLS, cliente de webhook anti-SSRF, imagem distroless | `govulncheck` limpo; IP interno recusado; imagem sem root e sem shell |
+| 14 | Caminho quente otimizado; `GOMEMLIMIT` no contêiner | `benchstat` com p < 0,05; sem OOM no teste de carga |
+| 15 | Módulos `ledger`, `antifraude`, `extrato` | Teste de arquitetura sobre `go list`; `internal/` fecha cada módulo |
+| 16 | ADR Go × Java com números do seu ambiente | Três números medidos, com o comando que os gera |
 
 ## Definição de pronto (capstone)
 
 - [ ] `docker compose up && go run ./cmd/ledger` sobe em máquina limpa
-- [ ] **Invariante:** a soma dos lançamentos de toda transação é exatamente zero, provada por teste
+- [ ] **Invariante:** a soma dos lançamentos de toda transação é exatamente zero, e 10 mil
+      transferências concorrentes conservam a soma de todos os saldos
 - [ ] Dinheiro é inteiro na menor unidade — nenhum `float` no caminho do valor
-- [ ] O mesmo evento processado duas vezes produz **um** lançamento
+- [ ] A mesma `Idempotency-Key` enviada 50 vezes em paralelo produz **um** lançamento
 - [ ] Estorno é lançamento novo; nada é apagado nem editado
-- [ ] `go test -race ./...` verde, inclusive nos testes de concorrência
-- [ ] O antifraude responde dentro do deadline mesmo com a dependência fora do ar
-- [ ] Uma ADR por bloco: modelo de dados do ledger, concorrência, gRPC vs REST, Go vs Java
+- [ ] `go test -race ./...` verde, e `goleak` sem goroutine sobrando nos testes de concorrência
+- [ ] O fuzz do parser de eventos roda sem pânico
+- [ ] O antifraude responde dentro do deadline mesmo com o modelo fora do ar
+- [ ] O `Shutdown` não perde lançamento em voo
+- [ ] `govulncheck ./...` sem vulnerabilidade alcançável
+- [ ] Uma ADR por bloco: tipos do domínio, concorrência, persistência, gRPC × REST, segurança e
+      Go × Java
+
+## Decisões de ferramenta (ADR)
+
+| Escolha | Opções | Critério |
+| --- | --- | --- |
+| Migração de schema | golang-migrate, goose (ambos MIT) | goose aceita migração em Go além de SQL; golang-migrate tem mais drivers |
+| Teste de mutação | Gremlins (Apache-2.0), go-mutesting (MIT) | Gremlins funcionou no Go 1.27 mas está sem release desde 2024; go-mutesting é ativo, sem tag |
+| Exaustividade | `exhaustive` (enum de `iota`), `gochecksumtype` (interface fechada) | os dois, cada um no seu caso, pelo golangci-lint |
+| Acesso a dados | `sqlc` × ORM | SQL revisável e checado na compilação; ORM esconde o custo |
 
 ## Game day
 
 Provoque cada cenário e escreva um post-mortem de uma página — inclusive quando nada quebrar.
 
-1. **Reenviar o mesmo evento** 50 vezes. O saldo muda? Se mudar, a idempotência é ilusão.
-2. **Derrubar o antifraude** e enviar pagamentos. A decisão de fallback é negar ou
-   aprovar — e quem tomou essa decisão de negócio, você ou o timeout?
-3. **Cancelar o `context`** no meio de uma transação. Sobrou lançamento pela metade?
-4. **Rodar com `-race` sob carga.** Alguma corrida aparece só com 500 goroutines?
-5. **Processar um estorno antes do débito** correspondente. O ledger aceita em estado
-   pendente, rejeita ou perde dinheiro do cliente?
+1. **Reenviar o mesmo pedido** 50 vezes em paralelo. O saldo muda? Se mudar, a idempotência é
+   ilusão.
+2. **Derrubar o modelo do antifraude** e enviar pagamentos. A decisão de fallback é aprovar ou negar —
+   e quem tomou essa decisão de negócio, você ou o timeout?
+3. **Cancelar o `context`** no meio de uma transferência. Sobrou lançamento pela metade?
+4. **Esgotar o pool de conexões** (uma consulta lenta segurando todas as conexões). O serviço espera
+   para sempre, ou falha no prazo e se recupera quando a consulta termina?
+5. **Clientes cancelando em massa** durante o hedging do PSP. O número de goroutines volta ao normal
+   depois do pico?
+6. **Processar um estorno antes do débito** correspondente. O ledger aceita em estado pendente,
+   rejeita ou perde dinheiro do cliente?
+
+## Regra das horas
+
+`estimatedHours` ≈ 2 × Σ `estimatedMinutes`: os 16 marcos somam 845 minutos de leitura, e o hands-on
+dobra isso; 845 × 2 / 60 = 28,2, arredondado para **28 horas**.

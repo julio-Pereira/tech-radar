@@ -6,11 +6,10 @@ tags: [go, golang, backend, fintech, concorrencia, grpc, testes, performance, se
 level: advanced
 lang: pt-BR
 # Reestruturação de nov/2026 (web/docs/AUDITORIA-go-fintech.md): 16 marcos,
-# alvo de 845 min quando os 5 blocos estiverem escritos. Regra das horas: ~2x a
-# soma dos estimatedMinutes -> 845 x 2 / 60 = 28,2 -> 28. Durante a escrita os
-# marcos antigos ainda declaram os minutos da versão anterior (Fase A só
-# renumera), por isso a soma real fica abaixo do alvo até a Fase F.
+# 845 min. Regra das horas: ~2x a soma dos estimatedMinutes ->
+# 845 x 2 / 60 = 28,2 -> 28.
 estimatedHours: 28
+glossary: GLOSSARIO.md
 sources:
   - { title: "Effective Go", url: https://go.dev/doc/effective_go }
   - { title: "Go Code Review Comments", url: https://go.dev/wiki/CodeReviewComments }

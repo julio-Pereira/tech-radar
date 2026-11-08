@@ -234,3 +234,15 @@
   termo: "SLA composto"
   dono: conectividade-multicloud/10
   apelidos: ["SLA composto"]
+
+# ── Go: semântica da linguagem ─────────────────────────────────────────────
+- id: nil-tipado
+  termo: "Nil tipado"
+  dono: go-fintech/04
+  apelidos: ["nil tipado"]
+  ignorarCaixa: true
+- id: vazamento-de-goroutine
+  termo: "Vazamento de goroutine"
+  dono: go-fintech/07
+  apelidos: ["vazamento de goroutine"]
+  ignorarCaixa: true

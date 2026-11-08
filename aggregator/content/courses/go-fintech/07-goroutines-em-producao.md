@@ -22,7 +22,7 @@ references:
 ## Uma goroutine que não termina é memória que não volta
 
 Criar uma goroutine custa quase nada, e é por isso que elas vazam: ninguém pensa em como ela
-termina. Uma goroutine bloqueada para sempre segura a sua pilha e tudo o que ela referencia (o
+termina. É o **vazamento de goroutine**: uma goroutine bloqueada para sempre segura a sua pilha e tudo o que ela referencia (o
 corpo da requisição, a conexão, o buffer). O serviço não cai na hora: o número de goroutines sobe
 devagar, a memória acompanha, e depois de três dias um OOM no meio da noite. A regra deste marco:
 **toda goroutine precisa de um caminho de término que um teste consegue provar**.
