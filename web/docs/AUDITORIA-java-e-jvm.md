@@ -96,3 +96,81 @@ sem hands-on (os 11 stubs, que saem dela bloco a bloco) e o `capstone.spec.js` (
 - O "adendo de sinais, Bloco 4", citado nos critérios de aceite para a jornada `entrevista-senior`,
   também não está no repositório; a jornada será atualizada pelo objetivo da trilha, como na
   `go-fintech`.
+
+## 2. Fase 1a — Bloco A, marcos 01 a 04
+
+Todo o código foi compilado e executado no JDK 25 (Temurin 25.0.4.1). Os trechos de quiz rodaram
+como arquivos-fonte (`java Q.java`). O código do hands-on está num projeto `pix-core` de conferência
+(Maven, `maven.compiler.release` 25, JUnit 6.1.3, AssertJ 3.27.7, ArchUnit 1.5.1, EqualsVerifier
+4.5.2, JMH 1.37), compilado com `-Xlint:all,-processing -Werror`. Ao fim da fase, 40 testes passam.
+
+**Marco 01 (Java moderno).**
+- **Preview:** uma classe compilada com `--enable-preview` no 25 é recusada pelo JDK 27
+  (`compiled with preview features that are unsupported`, `class file version 69.65535`), e pelo
+  próprio 25 sem a flag.
+- **Incubator:** a Vector API sobe com `WARNING: Using incubator modules`.
+- **`-source`/`-target` × `--release`:** com `-source 15 -target 15`, o `Stream.toList()` compila,
+  só com o aviso `location of system modules is not set`; com `--release 15`, falha.
+- **`Money`:**
+  - o rateio passa a tabela de 5 casos (`100.00` em 3 dá `33.34, 33.33, 33.33`);
+  - os três construtores de `BigDecimal` dão o que o texto diz;
+  - `setScale(2, UNNECESSARY)` lança `ArithmeticException: Rounding necessary` com três casas.
+- **Regra do ArchUnit contra `double`:** é uma `ArchCondition`, e o teste exige a falha na *fixture*
+  `TarifaComDouble`, com o nome do campo e o do método na mensagem.
+
+**Marco 02 (igualdade).**
+- As seis saídas do quiz conferem.
+- **Cache de `Integer`:** com `-XX:AutoBoxCacheMax=1000`, a primeira questão passa a imprimir
+  `true true true`.
+- **`javac` 25:**
+  - avisa `equals` sem `hashCode` (`[overrides]`);
+  - acusa a sincronização em *value-based class* com a categoria `[identity]` (não mais
+    `[synchronization]`).
+- **`DiagnoseSyncOnValueBasedClasses`:** é diagnóstica, e exige `-XX:+UnlockDiagnosticVMOptions`.
+  Com `=1`, a JVM aborta com erro fatal; com `=2`, só registra o *lock*.
+- **EqualsVerifier:** para records cujo construtor recusa `null`, precisa de
+  `suppress(Warning.NULL_FIELDS)`; ele reprova a *fixture* com `equals` sem `hashCode`.
+- **Flexible constructor bodies:** a validação antes do `super(...)` impede que a superclasse chegue a
+  ser construída.
+
+**Marco 03 (coleções).**
+- **Constantes do `HashMap`, lidas por reflexão no JDK 25:** capacidade 16, carga 0,75, *treeify* 8,
+  *untreeify* 6, capacidade mínima para *treeify* 64. Com 12 entradas a tabela tem 16 posições, com
+  13 tem 32.
+- **`HashMap.newHashMap`:** compila com `--release 19` e falha com 18.
+- **JMH** (10 mil chaves, 1 *fork*, 3 aquecimentos e 5 medições de 1 s):
+
+  | Chave | Tempo por `get` |
+  | --- | ---: |
+  | hash bom | 8,2 ± 3,6 ns |
+  | hash constante, chave `Comparable` | 201 ± 21 ns |
+  | hash constante, sem `Comparable` | 73.717 ± 44.397 ns |
+
+  O texto usa só as ordens de grandeza.
+- **Corrida de `get` + `put`:** 16 threads × 10 mil deram 73.737, 120.838 e 137.390; com `merge`,
+  160.000 nas três rodadas.
+- **Teste de estresse do `CacheLru`:** as duas primeiras versões tinham **defeitos no próprio teste**,
+  que acusavam violação com o cache correto:
+  - a leitura do relógio vinha depois do `get`;
+  - o relógio andava entre a leitura e o `put`.
+
+  A versão final congela o relógio por fase (`CyclicBarrier`). Ela passa com o cache sincronizado, e
+  sem os `synchronized` falha nas 5 repetições, com cerca de 470 mil violações. O caso entrou no
+  texto, no invariante 4.
+
+**Marco 04 (generics).**
+- **Mensagens do `javac` 25:** as do texto foram coletadas executando os exemplos. São elas:
+  - `unexpected type`;
+  - `Object cannot be safely cast to List<String>`;
+  - `incompatible types`;
+  - `name clash ... have the same erasure`;
+  - `[rawtypes]`;
+  - `[varargs] ... could cause heap pollution`, mesmo com `@SafeVarargs`.
+- **Saídas:** `ArrayStoreException: java.lang.Integer`; `ClassCastException` no `doisDe`; o *type
+  token* imprime `java.util.Map<java.lang.String, java.util.List<java.lang.Integer>>`.
+- **Teste de compilação negativo** (`javax.tools.JavaCompiler`): a mensagem vem com nomes
+  qualificados, e o teste filtra só os diagnósticos de erro.
+- **`-Xlint:all -Werror` com JMH:** o processador de anotações gera o aviso `No processor claimed`; o
+  build usa `-Xlint:all,-processing`. Uma classe com *raw type* reprova o build.
+
+**Viés das respostas:** em nenhuma das 20 questões a correta é estritamente a opção mais longa.
