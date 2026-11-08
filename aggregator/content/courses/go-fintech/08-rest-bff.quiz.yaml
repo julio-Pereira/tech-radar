@@ -1,36 +1,36 @@
 questions:
-  - question: "Qual é a armadilha do `http.Client` padrão de Go num serviço de pagamentos?"
+  - question: "Um `payments-api` sobe com `&http.Server{Addr: \":8080\", Handler: mux}`. Mil clientes abrem conexão e mandam o cabeçalho um byte a cada dez segundos. O que acontece?"
     options:
-      - "Ele não reaproveita conexões, abrindo um socket novo a cada requisição"
-      - "Ele não propaga o `context` da requisição para a chamada downstream"
-      - "Ele tem timeout infinito: uma dependência lenta segura a goroutine indefinidamente"
-      - "Ele segue redirecionamentos sem repassar o cabeçalho de autorização"
-    answer: 2
-    explanation: "`http.DefaultClient` não tem `Timeout`, então uma dependência que nunca responde prende a goroutine, o slot do pool e o cliente do outro lado. Num serviço de pagamentos isso vira exaustão em minutos. Ele reaproveita conexões e propaga o `context` normalmente; a política de redirecionamento é um cuidado à parte."
-
-  - question: "Por que o BFF agrega saldo, KYC e cotação com `errgroup` em vez de chamar em série?"
-    options:
-      - "Porque a latência da tela passa a ser a da chamada mais lenta, não a soma das três"
-      - "Porque o `errgroup` reordena as chamadas por prioridade e devolve a mais crítica primeiro"
-      - "Porque chamadas em série compartilham a mesma conexão TCP e disputam a janela de envio"
-      - "Porque só assim o `context` da requisição HTTP consegue ser propagado para os três clientes"
-    answer: 0
-    explanation: "As três chamadas são independentes, então serializá-las soma latências sem necessidade. Em paralelo, o tempo da tela é o do mais lento — e o `errgroup.WithContext` ainda cancela as demais no primeiro erro, evitando trabalho que ninguém vai usar. Propagar `context` funciona igual nos dois desenhos."
-
-  - question: "O que o RFC 7807 (Problem Details) traz para uma API de pagamentos?"
-    options:
-      - "Um esquema de autenticação padronizado para erros que exigem reautenticação do cliente"
-      - "Um contrato de erro estável e auditável, em vez de cada endpoint inventar o seu"
-      - "A obrigação de devolver 200 com o erro no corpo, para clientes que não tratam 4xx"
-      - "Um mecanismo de retry negociado, em que o servidor informa quando tentar de novo"
+      - "Nada grave: o servidor fecha conexões lentas depois de 30 segundos, o padrão da stdlib"
+      - "Ele segura as mil conexões sem prazo: falta o `ReadHeaderTimeout`"
+      - "O kernel descarta as conexões lentas antes que elas cheguem ao processo Go"
+      - "O `ServeMux` recusa a requisição com 408 assim que percebe o cabeçalho incompleto"
     answer: 1
-    explanation: "Problem Details define um corpo de erro com campos previsíveis — `type`, `title`, `detail`, `status` —, o que dá ao cliente algo estável para tratar e ao time algo consistente para auditar. Ele não muda o código HTTP, não define autenticação e não negocia retry, embora nada impeça acrescentar um campo próprio para isso."
+    explanation: "Um `http.Server` sem configuração não tem timeout nenhum. Cada conexão que goteja o cabeçalho fica aberta, e mil delas esgotam o servidor: é o ataque Slowloris. O `ReadHeaderTimeout` dá o prazo para terminar o cabeçalho, e o `gosec` acusa o servidor sem ele (G112). O mesmo raciocínio vale para o `http.Client` padrão, que também não tem timeout."
 
-  - question: "Qual é o objetivo de um tipo `Sensitive[T]` que mascara em `String()` e `MarshalJSON()`?"
+  - question: "O app reenviou `POST /entries` com a mesma `Idempotency-Key` porque a primeira tentativa deu timeout no cliente, mas ela ainda está processando no servidor. Qual implementação evita dois lançamentos?"
     options:
-      - "Cifrar o valor em memória, protegendo-o de um dump de processo"
-      - "Impedir que o campo seja persistido sem passar pelo cofre de tokenização"
-      - "Exigir uma chamada explícita para revelar o valor, documentando cada acesso no código"
-      - "Garantir que o dado não vaze pelo caminho mais comum: log e serialização acidental"
+      - "Consultar se a chave existe e, se não existir, executar e gravar a chave no fim"
+      - "Gravar a chave depois do lançamento, na mesma transação, e ignorar a repetição"
+      - "Criar a entrada da chave antes de executar, sob trava, e a repetição esperar a primeira"
+      - "Recusar com 409 toda requisição que chegue com uma chave já vista pelo servidor"
+    answer: 2
+    explanation: "Consultar e depois gravar abre uma janela em que as duas requisições veem a chave como nova e lançam. A entrada da chave nasce antes da execução, sob trava, e a repetição espera a primeira terminar para devolver a mesma resposta. 409 é para a mesma chave com corpo diferente, não para a repetição legítima, que precisa receber o resultado original."
+
+  - question: "Na RFC 9457 (Problem Details), qual campo o cliente da API deve usar para decidir o que fazer com um erro?"
+    options:
+      - "`type`, um URI que identifica a classe do erro e não muda entre versões"
+      - "`title`, porque é o resumo curto e legível que acompanha cada erro"
+      - "`detail`, porque traz a explicação específica daquela ocorrência do erro"
+      - "`instance`, que aponta para o recurso exato que provocou o erro na chamada"
+    answer: 0
+    explanation: "O `type` é o identificador estável da classe de erro (saldo insuficiente, chave reutilizada); `title` e `detail` são texto para gente e podem mudar, ser traduzidos ou reescritos. `instance` identifica a ocorrência. Um cliente que decide pelo texto quebra na primeira revisão de mensagem. A RFC 9457 substitui a 7807 com o mesmo formato."
+
+  - question: "No deploy, o pod recebe `SIGTERM`. Qual sequência não perde lançamentos em voo?"
+    options:
+      - "Encerrar o processo na hora; o cliente repete e a idempotência resolve"
+      - "Chamar `srv.Close()`, que fecha o listener e espera as requisições em voo"
+      - "Esperar 30 segundos com `time.Sleep` antes de sair, para dar tempo às requisições"
+      - "Readiness falsa e então `srv.Shutdown(ctx)`, que espera as requisições em voo"
     answer: 3
-    explanation: "PAN, CVV, senha e token quase nunca vazam por ataque — vazam porque alguém logou a struct inteira ou serializou o objeto num erro. Interceptar os dois métodos que o runtime chama sozinho fecha esse caminho por construção. O valor continua em claro na memória, e a revelação explícita é uma consequência do desenho, não o objetivo."
+    explanation: "A readiness falsa tira o pod do balanceamento; `Shutdown` fecha o listener, espera as requisições em voo terminarem e fecha as ociosas, até o prazo do `ctx`. `Close` fecha tudo na hora, sem esperar. Sair direto deixa lançamento gravado sem resposta. A idempotência ajuda o cliente a repetir com segurança, mas não substitui terminar o trabalho."

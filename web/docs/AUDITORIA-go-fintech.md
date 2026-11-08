@@ -312,3 +312,55 @@ O código foi executado num módulo temporário com `go 1.27` (toolchain 1.27.3)
   porque todo marco da `go-fintech` agora tem tutorial.
 - **Viés das respostas:** opções ajustadas para que a correta não seja a mais longa por padrão. Ficou
   a mais longa em 2 de 6 questões no 06 e em 1 de 6 no 07.
+
+## 13. Fase D — Bloco C (marcos 08 a 11)
+
+**Ambiente da conferência.**
+- Módulo temporário com `go 1.27` (toolchain 1.27.3).
+- Postgres 16 real: o `dockerd` subiu no próprio contêiner da sessão, e a imagem `postgres:16-alpine`
+  veio pelo proxy.
+- Bibliotecas: pgx v5.12.0, grpc v1.85.0, protobuf v1.36.12, testcontainers-go v0.45.0.
+- `buf` v1.75.0, com os plugins locais `protoc-gen-go` e `protoc-gen-go-grpc` v1.6.2.
+- Gremlins v0.5.1, que funciona com o Go 1.27.
+
+**Marco 08 (HTTP).** Provado com `-race`:
+- idempotência sob 50 requisições paralelas, e 409 para a mesma chave com corpo diferente;
+- 413 com `MaxBytesReader`;
+- Slowloris derrubado no prazo do `ReadHeaderTimeout`, num teste com `net.Dial` byte a byte;
+- erro em Problem Details;
+- `Shutdown` que termina a requisição em voo e recusa conexão nova.
+
+O `gosec` acusa G112 no servidor sem `ReadHeaderTimeout`, e o mux de 1.22 responde 405 com
+`Allow`.
+
+**Marco 09 (persistência).** Contra o Postgres real:
+- 10 mil transferências concorrentes com soma conservada, nenhuma conta negativa e pico de 10
+  conexões em uso (`InUse == 0` no fim, 9.722 esperas pelo pool);
+- travar na ordem do pedido: 33 de 40 abortadas com `40P01`;
+- `rows` sem `Close` esgota o pool de 2.
+
+O `noctx` acusa `Query`/`QueryRow` sem contexto. O `rowserrcheck` e o `sqlclosecheck` não acusaram
+o exemplo de `rows` sem `Close`, e o texto não promete isso deles.
+
+**Marco 10 (gRPC).**
+- `buf lint` (STANDARD) limpo.
+- Fallback dentro do deadline com o modelo fora; deadline propagado observado pelo interceptor;
+  chamada sem deadline recusada.
+- Tabela de status com `errdetails.BadRequest`.
+- `buf breaking` reprova a troca de tipo do campo `valor`, citando o campo.
+
+**Marco 11 (testes).**
+- O fuzz achou o pânico do parser antigo em centésimos de segundo (`index out of range [3] with
+  length 1`). O parser novo passou 10 s em cada um dos dois fuzz.
+- O teste de contrato passou contra o fake e contra o Postgres do testcontainers.
+- O Gremlins no `Allocate`: 13 mutantes mortos e 1 vivo, equivalente (`rest < 0` → `rest <= 0`).
+
+**Referências que não abriram deste ambiente** (o proxy recusa o host):
+- `www.rfc-editor.org` (RFC 9457) e `datatracker.ietf.org` (rascunho da `Idempotency-Key`);
+- `grpc.io`, `google.aip.dev` e `buf.build`;
+- `golang.testcontainers.org`.
+
+As páginas do gRPC, da AIP-193 e do testcontainers foram conferidas no repositório que gera cada
+site. A do `buf` voltou para a URL raiz da documentação.
+
+**Viés das respostas:** opções ajustadas. A correta é a mais longa em 4 de 18 questões.

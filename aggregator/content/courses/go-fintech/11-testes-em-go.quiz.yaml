@@ -1,0 +1,48 @@
+questions:
+  - question: "O repositório de contas tem um fake em memória para os testes unitários. O que garante que o fake não aceita o que o Postgres recusa?"
+    options:
+      - "Gerar o fake com uma ferramenta de mock, que copia a assinatura da interface"
+      - "A mesma suíte de contrato rodar contra o fake e contra o Postgres real"
+      - "Cobertura de 100% nos testes que usam o fake, medida com `go test -cover`"
+      - "Revisar o fake em code review sempre que o schema do banco mudar"
+    answer: 1
+    explanation: "O teste de contrato é uma função parametrizada pelo construtor do repositório: as mesmas asserções rodam contra o fake e contra o Postgres do testcontainers. Se os dois passam, o fake é um substituto honesto. Um mock gerado copia a assinatura, não o comportamento; cobertura mede execução; revisão humana esquece o caso de canto."
+
+  - question: "`go test -fuzz=FuzzParse` acha uma entrada que faz o parser entrar em pânico. O que acontece com ela?"
+    options:
+      - "Ela é descartada no fim da execução: o fuzz só mostra a falha no terminal"
+      - "Ela vai para um cache global do Go e só é usada nas próximas sessões de fuzz"
+      - "Ela é salva em `testdata/fuzz/FuzzParse/` e passa a rodar em todo `go test` comum"
+      - "Ela vira um teste de tabela novo, escrito automaticamente no arquivo `_test.go`"
+    answer: 2
+    explanation: "A entrada que falha é gravada no corpus do pacote, em `testdata/fuzz/FuzzParse/`, e o `go test` comum (sem `-fuzz`) roda todas as entradas desse diretório e as sementes de `f.Add`. Commitada, ela vira teste de regressão. O cache de `$GOCACHE/fuzz` guarda as entradas interessantes que não falharam, para continuar a busca."
+
+  - question: "Um pacote tem 100% de cobertura, mas a ferramenta de mutação mostra metade dos mutantes vivos. O que isso diz?"
+    options:
+      - "Que a ferramenta de mutação está errada, porque toda linha já foi executada pelos testes"
+      - "Que os testes são lentos demais e a ferramenta desistiu antes de matar os mutantes"
+      - "Que os mutantes vivos estão em código morto, que pode ser apagado com segurança"
+      - "Que os testes executam o código, mas muitas asserções não conferem o resultado"
+    answer: 3
+    explanation: "Cobertura diz que a linha rodou; mutação diz se algum teste percebe quando a linha muda. Um teste que chama a função e não confere o retorno cobre a linha e deixa o mutante vivo. Mutante vivo em código coberto quase sempre é asserção faltando, ou mutante equivalente, que alguém precisa ler e explicar."
+
+  - question: "Rodando mutação no `Allocate`, este mutante sobreviveu: `if rest < 0` virou `if rest <= 0`. Qual a conclusão certa?"
+    code: |
+      rest := m.Amount % int64(n)
+      step := int64(1)
+      if rest < 0 { // mutante: rest <= 0
+          step, rest = -1, -rest
+      }
+      for i := range parts {
+          parts[i] = Money{Amount: base, Currency: m.Currency}
+          if int64(i) < rest {
+              parts[i].Amount += step
+          }
+      }
+    options:
+      - "Mutante equivalente: com resto zero, trocar o sinal do passo não muda as partes"
+      - "Falta um teste com resto zero, que mataria o mutante na próxima execução"
+      - "A ferramenta errou: um mutante de fronteira sempre muda o comportamento observável"
+      - "O código tem um bug com valores negativos que só esse mutante consegue revelar"
+    answer: 0
+    explanation: "Quando o resto é zero, o mutante faz `step = -1` e `rest = 0`, e o laço nunca soma o passo, porque `i < 0` é sempre falso: as partes saem iguais. Não existe teste que distinga as duas versões; é um mutante equivalente. Na execução real do Gremlins, foi o único vivo de 14, e o trabalho é lê-lo e registrar a explicação, não perseguir 100%."
