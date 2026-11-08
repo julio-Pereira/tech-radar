@@ -422,9 +422,21 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	// Every milestone has a hands-on section since the go-fintech
-	// restructuring (Fase F); a new one without it is a regression.
-	var wantNoSection []string
+	// The java-e-jvm stubs (Fase 0) leave this list as each block is
+	// written; once the trilha is complete it must be empty again.
+	wantNoSection := []string{
+		"java-e-jvm/colecoes-por-dentro",
+		"java-e-jvm/diagnostico-de-memoria-e-jfr",
+		"java-e-jvm/excecoes-e-recursos",
+		"java-e-jvm/generics-e-erasure",
+		"java-e-jvm/java-em-entrevista-e-capstone",
+		"java-e-jvm/java-moderno-o-mapa",
+		"java-e-jvm/jit-classloading-e-startup",
+		"java-e-jvm/memoria-e-gc",
+		"java-e-jvm/objetos-igualdade-e-imutabilidade",
+		"java-e-jvm/streams-lambdas-e-custos",
+		"java-e-jvm/tipos-algebricos",
+	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}

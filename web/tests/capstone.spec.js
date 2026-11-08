@@ -2,15 +2,15 @@
 // UX platform melhoria 7, phase 1: #/fin-platform renders the capstone
 // component map (SVG boxes + arrows) plus an equivalent accessible table
 // and an artifacts list. Tested against the real compiled capstones.json —
-// 21 real components with a real dependency graph.
+// 22 real components with a real dependency graph.
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
 
 test('renders a box per real component and an equivalent accessible table', async ({ page }) => {
   await page.goto('/#/fin-platform');
   await expect(page.locator('.capstone-map')).toBeVisible();
-  await expect(page.locator('.capstone-box')).toHaveCount(21);
-  await expect(page.locator('.capstone-table tbody tr')).toHaveCount(21);
+  await expect(page.locator('.capstone-box')).toHaveCount(22);
+  await expect(page.locator('.capstone-table tbody tr')).toHaveCount(22);
 
   // A real leaf (no dependencies) and a real multi-dependency component.
   const leafRow = page.locator('.capstone-table tr', { has: page.locator('th', { hasText: 'pix-gateway' }) });
