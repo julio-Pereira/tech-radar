@@ -1,0 +1,52 @@
+questions:
+  - question: "Uma biblioteca de domínio acrescenta `PendenteAnalise` ao `sealed interface Resultado`. O serviço que tem `switch (r) { case Aceito a -> ...; case Rejeitado x -> ...; }` atualiza o JAR mas não é recompilado. O que acontece quando chega um `PendenteAnalise`?"
+    options:
+      - "O `switch` devolve `null`, porque nenhum caso combinou com o valor"
+      - "O `switch` lança `java.lang.MatchException` em tempo de execução"
+      - "A JVM recusa carregar a classe do serviço, com `IncompatibleClassChangeError`"
+      - "O caso cai no último `case` escrito, que é o comportamento padrão do `switch`"
+    answer: 1
+    explanation: "A exaustividade é conferida na compilação, e o compilador insere um caso implícito para o que não deveria acontecer: em tempo de execução, um subtipo novo lança `MatchException`, conferido com compilação separada no JDK 25. Recompilando, o serviço nem compila: `the switch expression does not cover all possible input values`. O `switch` não devolve `null` nem cai num caso."
+
+  - question: "O que este código imprime?"
+    code: |
+      sealed interface Ev permits Pix, Ted {}
+      record Valor(BigDecimal reais) {}
+      record Pix(Valor valor, String chave) implements Ev {}
+      record Ted(Valor valor, String banco) implements Ev {}
+
+      static String rota(Ev e) {
+          return switch (e) {
+              case Pix(Valor(var v), var chave) when v.compareTo(new BigDecimal("1000")) > 0 -> "pix alto " + chave;
+              case Pix(Valor(var v), var chave) -> "pix " + chave;
+              case Ted(var v, var banco) -> "ted " + banco;
+          };
+      }
+
+      IO.println(rota(new Pix(new Valor(new BigDecimal("5000")), "k1")) + " | "
+          + rota(new Pix(new Valor(BigDecimal.TEN), "k2")));
+    options:
+      - "pix alto k1 | pix k2"
+      - "pix k1 | pix k2"
+      - "pix alto k1 | pix alto k2"
+      - "Não compila: dois casos para Pix são ambíguos"
+    answer: 0
+    explanation: "Os casos são testados em ordem. O *record pattern* aninhado extrai o `BigDecimal` de dentro do `Valor`, e a guarda `when` só aceita valores acima de 1000: 5000 vai para o primeiro caso, 10 para o segundo. Dois casos para o mesmo tipo são permitidos quando o primeiro tem guarda; o que não compila é um caso dominado, como `case Ev x` antes de `case Pix p`."
+
+  - question: "Por que a regra do `pix-core` proíbe `default` num `switch` sobre tipo selado?"
+    options:
+      - "Porque o `default` faz o compilador desligar o *pattern matching* naquele `switch`"
+      - "Porque um caso novo cai no `default` em silêncio, sem o compilador exigir decisão"
+      - "Porque `default` não é permitido pela linguagem num `switch` sobre tipo selado"
+      - "Porque o `default` deixa o `switch` mais lento, ao forçar uma busca linear"
+    answer: 1
+    explanation: "Sem `default`, acrescentar um subtipo obriga cada `switch` a tratar o caso novo, ou o código não compila. Com `default`, ele compila e o caso novo vai para o comportamento genérico, sem ninguém decidir. A linguagem permite `default`, e ele não muda o desempenho nem desliga os padrões. Os estados finais se escrevem explicitamente, como em `case Rejeitado _, Estornado _ -> ...`."
+
+  - question: "O canal de um pagamento é PIX, TED ou boleto, sem dados próprios de cada um. O resultado da autorização é aceito com o id fim a fim, rejeitado com motivo, ou pendente com prazo. Qual desenho para cada um?"
+    options:
+      - "Os dois como `enum`, com campos opcionais para os dados que só alguns casos têm"
+      - "Os dois como `sealed interface` com records, para que tudo seja exaustivo"
+      - "Canal como `enum`; resultado como `sealed interface`, com um record por caso"
+      - "Canal como `sealed interface`; resultado como `enum` com campos anuláveis"
+    answer: 2
+    explanation: "Alternativas sem dados próprios são um `enum`, e o `switch` sobre `enum` também é exaustivo. Alternativas que carregam dados diferentes (id, motivo, prazo) pedem `sealed` com um record por caso: cada caso tem só os seus campos, e nenhum fica nulo. O `enum` com campos opcionais é justamente o desenho que o `sealed` substitui."

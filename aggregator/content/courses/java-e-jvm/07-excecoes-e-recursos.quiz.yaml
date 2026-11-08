@@ -1,0 +1,61 @@
+questions:
+  - question: "O que este código imprime?"
+    code: |
+      static int debitar() {
+          try {
+              throw new IllegalStateException("saldo insuficiente");
+          } finally {
+              return 0;
+          }
+      }
+
+      IO.println("resultado: " + debitar());
+    options:
+      - "Lança `IllegalStateException: saldo insuficiente`"
+      - "resultado: 0"
+      - "Não compila: o `finally` não pode ter `return`"
+      - "resultado: 0, e depois lança a exceção"
+    answer: 1
+    explanation: "Um `return` no `finally` substitui o que estava em curso, inclusive uma exceção: o método devolve 0 e a `IllegalStateException` some. Compila, só com o aviso `[finally] finally clause cannot complete normally` quando se usa `-Xlint:all`. É o motivo para nunca pôr `return` ou `throw` num `finally`."
+
+  - question: "O que este código imprime depois de `capturada: erro no corpo`?"
+    code: |
+      class Recurso implements AutoCloseable {
+          final String nome;
+          Recurso(String nome) { this.nome = nome; }
+          @Override public void close() {
+              throw new IllegalStateException("falha ao fechar " + nome);
+          }
+      }
+
+      try (var a = new Recurso("conexao"); var b = new Recurso("arquivo")) {
+          throw new RuntimeException("erro no corpo");
+      } catch (RuntimeException e) {
+          IO.println("capturada: " + e.getMessage());
+          for (Throwable s : e.getSuppressed()) IO.println("suprimida: " + s.getMessage());
+      }
+    options:
+      - "suprimida: falha ao fechar conexao, e depois suprimida: falha ao fechar arquivo"
+      - "suprimida: falha ao fechar arquivo; depois, suprimida: falha ao fechar conexao"
+      - "Nada: as exceções do `close()` se perdem quando o corpo já lançou"
+      - "Nada: a capturada é a do `close()`, e a do corpo fica suprimida"
+    answer: 1
+    explanation: "Os recursos fecham na ordem inversa da abertura: primeiro `arquivo`, depois `conexao`. A exceção do corpo é a que propaga, e as duas do `close()` ficam como suprimidas, na ordem em que aconteceram. Antes do *try-with-resources*, com `finally` escrito à mão, a exceção do `close()` substituía a do corpo."
+
+  - question: "`List.of(\"a\").stream().map(n -> ler(n)).toList()`, em que `ler` declara `throws IOException`. O que acontece?"
+    options:
+      - "Compila, e a `IOException` é embrulhada pelo *stream* numa `RuntimeException`"
+      - "Compila, e a exceção é ignorada até a operação terminal do *stream*"
+      - "Não compila: a `IOException` não é capturada nem declarada na lambda"
+      - "Não compila: lambdas não podem chamar métodos de outra classe que lancem exceções"
+    answer: 2
+    explanation: "`Function.apply` não declara exceção checked, então a lambda não pode lançar `IOException`: o `javac` recusa (conferido no JDK 25). O *stream* não embrulha nada. As saídas são tratar dentro da lambda, embrulhar explicitamente numa exceção *unchecked* ou usar uma interface funcional própria que declare a exceção."
+
+  - question: "Um método `@Transactional` grava o débito e depois lança uma exceção *checked* `LimiteExcedidoException`. Sem `rollbackFor`, o que acontece com a transação?"
+    options:
+      - "É confirmada: o rollback padrão é só para `RuntimeException`"
+      - "É desfeita: qualquer exceção que sai do método faz rollback por padrão"
+      - "Fica aberta até o *timeout* da transação, que então faz rollback"
+      - "É desfeita, mas só se a exceção for declarada no `throws` do método"
+    answer: 0
+    explanation: "Por padrão, o Spring faz rollback só para `RuntimeException` e `Error` (`DefaultTransactionAttribute.rollbackOn`, conferido no `spring-tx` 7.0.10). Uma *checked* deixa a transação ser confirmada, com o débito gravado. Para mudar, `@Transactional(rollbackFor = LimiteExcedidoException.class)`, ou uma exceção de domínio *unchecked*."

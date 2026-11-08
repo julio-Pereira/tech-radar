@@ -174,3 +174,72 @@ como arquivos-fonte (`java Q.java`). O código do hands-on está num projeto `pi
   build usa `-Xlint:all,-processing`. Uma classe com *raw type* reprova o build.
 
 **Viés das respostas:** em nenhuma das 20 questões a correta é estritamente a opção mais longa.
+
+## 3. Fase 1b — Bloco A, marcos 05 a 07
+
+O mesmo ambiente da Fase 1a: JDK 25 e o projeto `pix-core` de conferência. Ao fim da fase, 50 testes
+passam com `-Xlint:all,-processing -Werror`.
+
+**Marco 05 (tipos algébricos).**
+- **Compilação separada:** um `switch` compilado com dois casos, recebendo um terceiro subtipo depois
+  que só a hierarquia foi recompilada, lança `java.lang.MatchException`. Ao recompilar o `switch`, o
+  erro passa a ser `the switch expression does not cover all possible input values`.
+- **Padrões:**
+  - *guard* com *record pattern* aninhado: as três saídas conferem;
+  - dominância: `this case label is dominated by a preceding case label`;
+  - `permits` omitido com os subtipos no mesmo arquivo compila.
+- **Máquina de estados** (5 estados × 4 eventos): o teste de tabela cobre os 20 pares, com 5 válidos.
+- **Evento novo:** o teste lê os fontes reais, acrescenta `Cancelar` e compila em memória; o erro é o
+  esperado.
+- **Regra "nenhum `default` em `switch` sobre tipo selado":** é um teste sobre a Compiler Tree API
+  (`JavacTask`, `Trees`). Ele pega a *fixture* e deixa passar o `switch` de `String`. Com um `default`
+  posto de propósito na `Maquina`, aponta `Maquina.java:14`.
+
+**Marco 06 (streams).**
+- **Saídas** (as do quiz e as do texto):
+  - `p:a p:bb -> BB`;
+  - a mensagem de `Duplicate key` do `toMap`;
+  - o `count()` que não executa o `map` (imprime `montado` e `2`, sem `map`);
+  - `windowFixed`, `scan` e `mapConcurrent`;
+  - o `this` na lambda × na classe anônima;
+  - o `forEach` paralelo fora de ordem.
+- **JMH do *boxing*** (1 milhão de valores, 2 *forks*, 10 medições):
+
+  | Implementação | Tempo médio |
+  | --- | ---: |
+  | laço | 401 ± 42 µs |
+  | `LongStream` | 402 ± 29 µs |
+  | `mapToLong` | 1.173 ± 73 µs |
+  | `reduce` sobre `Long` | 6.241 ± 426 µs |
+
+  Os intervalos do `LongStream` e do `reduce` não se sobrepõem.
+- **I/O num *stream* paralelo** (32 consultas de 100 ms, 4 núcleos, 3 execuções): ~805 ms com
+  `.parallel()` (`commonPool` com paralelismo 3) e ~113 ms com `Gatherers.mapConcurrent(32, ...)`.
+- **Fechamento:** com 5 milhões de lançamentos e 20 mil contas, laço, `stream` e `stream` paralelo
+  concordam ao centavo.
+
+**Marco 07 (exceções).**
+- **Saídas e mensagens:**
+  - `return` no `finally` devolve 0 e engole a exceção, com o aviso `[finally]`;
+  - o *try-with-resources* fecha na ordem inversa, com as duas suprimidas;
+  - a *checked* na lambda dá `unreported exception IOException`;
+  - `return x` com `x = 2` no `finally` devolve 1.
+- **`-Xlint:all -Werror`:** exige `serialVersionUID` nas exceções (`[serial]`) e acusa recurso não
+  usado (`[try]`), resolvido com `var _`.
+- **`@Transactional`:** o *rollback* padrão foi conferido no código-fonte do `spring-tx` 7.0.10
+  (`DefaultTransactionAttribute.rollbackOn`) e na documentação de referência.
+- **JMH do custo da exceção** (2 *forks*, 10 medições):
+
+  | Implementação | 0 frames | 20 frames |
+  | --- | ---: | ---: |
+  | com pilha | 1.165 ± 310 ns | 3.006 ± 1.507 ns |
+  | sem pilha | 9,4 ± 0,7 ns | 701 ± 117 ns |
+  | `Result` | 3,5 ± 0,2 ns | 18,7 ± 3,0 ns |
+
+- **Taxonomia:** os códigos foram conferidos por `getPermittedSubclasses()`. A regra do ArchUnit
+  contra exceção de infraestrutura pega a *fixture* `RepositorioQueVaza`.
+- **Desvio do plano:** o plano pedia uma ponte para "o mapeamento RFC 9457 do `spring-boot`", mas a
+  trilha `spring-boot` não ensina *Problem Details*. A ponte aponta para `go-fintech/08`, que ensina,
+  com uma nota sobre o `ProblemDetail` do Spring.
+
+**Viés das respostas:** em nenhuma das 12 questões a correta é estritamente a opção mais longa.

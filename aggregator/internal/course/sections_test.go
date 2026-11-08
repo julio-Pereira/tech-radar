@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 221, "desafio": 268, "invariantes": 260, "complemento": 250, "checagem": 266, "gabarito": 5,
+		"tutorial": 224, "desafio": 271, "invariantes": 263, "complemento": 253, "checagem": 269, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -426,12 +426,9 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	// written; once the trilha is complete it must be empty again.
 	wantNoSection := []string{
 		"java-e-jvm/diagnostico-de-memoria-e-jfr",
-		"java-e-jvm/excecoes-e-recursos",
 		"java-e-jvm/java-em-entrevista-e-capstone",
 		"java-e-jvm/jit-classloading-e-startup",
 		"java-e-jvm/memoria-e-gc",
-		"java-e-jvm/streams-lambdas-e-custos",
-		"java-e-jvm/tipos-algebricos",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
