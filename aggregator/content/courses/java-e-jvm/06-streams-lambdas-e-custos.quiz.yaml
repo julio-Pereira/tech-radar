@@ -1,0 +1,43 @@
+questions:
+  - question: "O que este código imprime?"
+    code: |
+      var r = Stream.of("a", "bb", "ccc", "dddd")
+          .peek(s -> IO.print("p:" + s + " "))
+          .filter(s -> s.length() > 1)
+          .map(String::toUpperCase)
+          .findFirst();
+      IO.println("-> " + r.orElseThrow());
+    options:
+      - "p:a p:bb p:ccc p:dddd -> BB"
+      - "p:a p:bb -> BB"
+      - "p:bb -> BB"
+      - "p:a p:bb p:ccc p:dddd -> BB CCC DDDD"
+    answer: 1
+    explanation: "A execução é vertical: cada elemento atravessa o *pipeline* antes do próximo entrar. O `\"a\"` passa pelo `peek` e é barrado no `filter`; o `\"bb\"` passa por tudo, e o `findFirst` faz curto-circuito ali. `\"ccc\"` e `\"dddd\"` nunca são lidos. O `peek` vem antes do `filter`, então o `\"a\"` aparece."
+
+  - question: "Agrupando lançamentos por conta com `Collectors.toMap(Lanc::conta, Lanc::centavos)`, e duas entradas para `c1` (100 e 25), o que acontece?"
+    options:
+      - "O mapa fica com `c1=125`, porque o coletor soma os valores numéricos de chaves repetidas"
+      - "O mapa fica com `c1=25`, o último valor encontrado para a chave"
+      - "O mapa fica com `c1=100`, o primeiro valor, e o segundo é ignorado"
+      - "Lança `IllegalStateException` com a chave e os dois valores na mensagem"
+    answer: 3
+    explanation: "O `toMap` de dois argumentos não tem política de junção e lança exceção na primeira chave repetida, com os dois valores na mensagem (conferido no JDK 25). Para somar, use o `toMap` de três argumentos com `Long::sum`, ou `groupingBy` com `summingLong`. A política precisa ser uma decisão explícita."
+
+  - question: "Um serviço usa `lancamentos.parallelStream().map(l -> consultarLimiteHttp(l))` numa máquina de 4 núcleos. Qual o problema?"
+    options:
+      - "Nenhum: o paralelismo do `commonPool` cresce sozinho quando as threads bloqueiam"
+      - "O `parallelStream` não aceita lambdas que lancem exceções, como as de I/O"
+      - "Poucas threads bloqueiam no I/O, num pool compartilhado pelo processo"
+      - "Os resultados chegam fora de ordem, porque o `map` paralelo não preserva a ordem"
+    answer: 2
+    explanation: "O `commonPool` tem paralelismo de núcleos − 1 (mais a thread que chama): medido, 32 consultas de 100 ms levaram ~805 ms com `.parallel()`. E ele é compartilhado, então as consultas travadas atrasam todo outro *stream* paralelo e `CompletableFuture` do processo. O `map` com `collect` preserva a ordem. Para I/O, `Gatherers.mapConcurrent` (~113 ms) ou *virtual threads*."
+
+  - question: "Por que `Optional` não deve ser usado como campo de uma entidade de domínio?"
+    options:
+      - "Porque o compilador recusa `Optional` como tipo de campo de uma classe"
+      - "Foi feito para retorno; como campo, é um objeto a mais e não é `Serializable`"
+      - "Porque `Optional` é mutável, e o campo pode mudar de vazio para cheio sozinho"
+      - "Porque o `Optional` impede o JIT de fazer *inlining* dos métodos que acessam o campo"
+    answer: 1
+    explanation: "`Optional` existe para o retorno de um método que pode não ter resultado, forçando quem chama a tratar a ausência. Como campo, ele custa um objeto a mais, um nível de indireção, e quebra a serialização. O compilador aceita, `Optional` é imutável, e não há efeito sobre o *inlining*. Num campo, a ausência se modela com `null` encapsulado ou com um tipo selado."
