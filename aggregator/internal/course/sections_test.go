@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 228, "desafio": 275, "invariantes": 267, "complemento": 257, "checagem": 273, "gabarito": 5,
+		"tutorial": 229, "desafio": 276, "invariantes": 268, "complemento": 258, "checagem": 274, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -426,7 +426,6 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	// written; once the adendo is complete it must be empty again.
 	wantNoSection := []string{
 		"spring-boot/feature-toggles-e-mudanca-segura",
-		"spring-boot/programacao-reativa",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
