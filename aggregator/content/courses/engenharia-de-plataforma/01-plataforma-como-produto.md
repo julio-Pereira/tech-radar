@@ -14,7 +14,7 @@ references:
 
 Uma equipe de produto que precisa entender Kubernetes, Terraform, políticas de segurança e a esteira
 de CI inteira antes de subir um serviço simples está pagando **carga cognitiva** que não tem relação
-com o problema de negócio que ela deveria resolver (`spring-boot/13`, Conway). A plataforma existe
+com o problema de negócio que ela deveria resolver (`spring-boot/15`, Conway). A plataforma existe
 para absorver essa carga, não para adicionar uma camada nova de complexidade em cima da já
 existente.
 
@@ -124,8 +124,8 @@ especificamente onde ela trava — qual passo concentra a maior espera.
 4. O que torna uma métrica "de vaidade", segundo a regra "toda métrica declara a decisão que
    informa"?
 
-> **Reencontro — `spring-boot/13`; `system-design/03`; `observabilidade/13`; `kubernetes/14`.** A
-> carga cognitiva e os modos de interação de Conway, em `spring-boot/13`, são o fundamento direto
+> **Reencontro — `spring-boot/15`; `system-design/03`; `observabilidade/13`; `kubernetes/14`.** A
+> carga cognitiva e os modos de interação de Conway, em `spring-boot/15`, são o fundamento direto
 > deste marco — aqui aplicados especificamente à equipe de plataforma. A decisão de onde cortar o
 > sistema em `system-design/03` é adjacente à decisão de onde cortar a responsabilidade entre
 > plataforma e equipes de produto. O plantão e a triagem de `observabilidade/13` são onde o suporte

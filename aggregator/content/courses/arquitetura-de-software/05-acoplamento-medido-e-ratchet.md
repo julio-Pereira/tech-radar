@@ -122,10 +122,10 @@ instabilidade por módulo, em Java e em Go.
    automaticamente?
 4. Por que um *ratchet* por módulo é melhor que um limite único para o repositório inteiro?
 
-> **Reencontro — `system-design/03`; `spring-boot/13`; `kafka/07`; `arquitetura-eventos/06`.** A
+> **Reencontro — `system-design/03`; `spring-boot/15`; `kafka/07`; `arquitetura-eventos/06`.** A
 > fronteira de módulo medida aqui é o mesmo tipo de fronteira que `system-design/03` trata no nível
 > de sistema — aqui, a régua é dependência de pacote, não latência de rede. O Spring Modulith de
-> `spring-boot/13` é onde esse acoplamento é medido na prática em um projeto Java real. O contrato
+> `spring-boot/15` é onde esse acoplamento é medido na prática em um projeto Java real. O contrato
 > de schema de `kafka/07` é uma forma de acoplamento de tipo (*connascence*) entre produtor e
 > consumidor, tornado explícito. E a projeção de `arquitetura-eventos/06` é o padrão de extração via
 > evento que este marco usa para quebrar um ciclo síncrono.

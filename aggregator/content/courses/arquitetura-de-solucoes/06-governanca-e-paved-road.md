@@ -123,11 +123,11 @@ volume real de decisões do seu contexto de trabalho.
 4. O que distingue *paved road* verificado automaticamente de um checklist manual revisado
    esporadicamente, em termos de escalabilidade de governança?
 
-> **Reencontro — `system-design/15`; `spring-boot/13`; `seguranca-aplicacao/13`; `kubernetes/14`;
+> **Reencontro — `system-design/15`; `spring-boot/15`; `seguranca-aplicacao/13`; `kubernetes/14`;
 > `observabilidade/12`; `entrega-continua-e-devops/10`.** A trajetória de IC
 > sênior/staff de `system-design/15` é onde a habilidade de tomar decisão sem autoridade formal
 > central (o espírito do processo de aconselhamento) já é discutida. O time de plataforma de
-> `spring-boot/13` (Conway) é quem tipicamente mantém o *paved road* por dentro. A ordem dos *gates*
+> `spring-boot/15` (Conway) é quem tipicamente mantém o *paved road* por dentro. A ordem dos *gates*
 > de segurança de `seguranca-aplicacao/13` é um componente concreto do modelo de pipeline conforme.
 > A decisão de custo de `kubernetes/14` é o tipo de critério que um radar tecnológico também precisa
 > capturar. O SLO de `observabilidade/12` é outro exemplo de "regra que só vale alguma coisa quando

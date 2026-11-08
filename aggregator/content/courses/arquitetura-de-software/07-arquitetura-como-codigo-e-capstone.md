@@ -103,11 +103,11 @@ documentando o próprio processo de revisão da validade de uma regra, não só 
 3. Por que ADR e arquitetura como código são complementares, e não um substituto do outro?
 4. O que, especificamente, este marco diz que **não** deve ser automatizado, e por quê?
 
-> **Reencontro — `system-design/01`; `system-design/15`; `spring-boot/13`; `observabilidade/12`.**
+> **Reencontro — `system-design/01`; `system-design/15`; `spring-boot/15`; `observabilidade/12`.**
 > O C4 e o ADR como método, ensinados em `system-design/01`, ganham aqui a automação que os torna
 > verificáveis, não só bem escritos. A trajetória de IC sênior/staff de `system-design/15` é onde a
 > habilidade de comunicar uma decisão de arquitetura (que este marco documenta, mas não ensina a
-> comunicar) é tratada diretamente. O Spring Modulith de `spring-boot/13` é o tipo de sistema real
+> comunicar) é tratada diretamente. O Spring Modulith de `spring-boot/15` é o tipo de sistema real
 > onde esse *drift* entre modelo e código tipicamente aparece primeiro. E o SLO de
 > `observabilidade/12` é outro exemplo de regra declarada que só vale alguma coisa quando verificada
 > automaticamente, a mesma disciplina aplicada aqui à arquitetura.

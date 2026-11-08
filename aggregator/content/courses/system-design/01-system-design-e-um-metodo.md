@@ -76,7 +76,7 @@ Cada marco desta trilha produz pelo menos uma.
 
 > **Reencontro adiante — `observabilidade/12`.** "Requisito não-funcional" vira número concreto
 > quando se transforma em SLI/SLO — o marco 02 usa exatamente esse vocabulário para orçamento de
-> latência e capacidade. E `spring-boot/13` já mostra fronteira de módulo **verificada por
+> latência e capacidade. E `spring-boot/15` já mostra fronteira de módulo **verificada por
 > teste**, não só por diagrama — a mesma disciplina que o bloco B desta trilha aplica ao corte
 > entre serviços.
 

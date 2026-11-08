@@ -5,7 +5,9 @@ category: "Java/Spring"
 tags: [java, spring, backend, fintech]
 level: advanced
 lang: pt-BR
-estimatedHours: 22
+# 15 marcos, 625 min (web/docs/AUDITORIA-spring-boot-adendo.md). Regra das
+# horas: ~2x a soma dos estimatedMinutes -> 625 x 2 / 60 = 20,8 -> 21.
+estimatedHours: 21
 glossary: GLOSSARIO.md
 sources:
   - title: "Spring Boot Reference Documentation"
@@ -20,6 +22,12 @@ sources:
     url: https://github.com/spring-projects/spring-boot
   - title: "Micrometer — Application Observability"
     url: https://micrometer.io/
+  - title: "Reactor Core Reference Guide"
+    url: https://projectreactor.io/docs/core/release/reference/
+  - title: "Reactive Streams Specification for the JVM"
+    url: https://github.com/reactive-streams/reactive-streams-jvm
+  - title: "OpenFeature — Introduction"
+    url: https://openfeature.dev/docs/reference/intro/
 milestones:
   - 01-introducao.md
   - 02-auto-config.md
@@ -33,4 +41,6 @@ milestones:
   - 10-actuator-observabilidade.md
   - 11-testes-de-integracao.md
   - 12-producao-e-deploy.md
-  - 13-arquitetura-modulith.md
+  - 13-programacao-reativa.md
+  - 14-feature-toggles-e-mudanca-segura.md
+  - 15-arquitetura-modulith.md

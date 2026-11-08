@@ -31,7 +31,7 @@ não por tecnologia, por vocabulário.
 
 Aceitar múltiplos significados custa tradução. Recusar custa o projeto.
 
-Vale distinguir de um vizinho próximo: o monolito modular de `spring-boot/13` traça
+Vale distinguir de um vizinho próximo: o monolito modular de `spring-boot/15` traça
 fronteiras **entre módulos dentro do mesmo processo**, e quem as viola paga com um teste de
 arquitetura vermelho. Aqui a fronteira é **entre contextos, através da rede**, e quem a
 viola paga com latência, indisponibilidade e um contrato público que não pode mais mudar. O

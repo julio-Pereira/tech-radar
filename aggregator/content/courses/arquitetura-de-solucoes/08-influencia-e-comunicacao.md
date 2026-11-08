@@ -122,12 +122,12 @@ não considerava.
 4. Por que este marco afirma explicitamente que a forma de um RFC bem construído não garante
    persuasão?
 
-> **Reencontro — `system-design/15`; `system-design/01`; `observabilidade/15`; `spring-boot/13`.**
+> **Reencontro — `system-design/15`; `system-design/01`; `observabilidade/15`; `spring-boot/15`.**
 > A trajetória de IC sênior/staff de `system-design/15` é o que este marco complementa com
 > ferramentas concretas de influência. O método C4/ADR de `system-design/01` é a base documental
 > sobre a qual o RFC se apoia. A condução de um incidente até a causa raiz de `observabilidade/15` é
 > outro contexto em que comunicar trade-off e incerteza, sem esconder dúvida, é decisivo. E o time
-> de plataforma de `spring-boot/13` (Conway) é onde o mapa de partes interessadas frequentemente
+> de plataforma de `spring-boot/15` (Conway) é onde o mapa de partes interessadas frequentemente
 > revela quem tem poder de bloqueio, mesmo sem autoridade formal de decisão.
 
 ## Principais aprendizados

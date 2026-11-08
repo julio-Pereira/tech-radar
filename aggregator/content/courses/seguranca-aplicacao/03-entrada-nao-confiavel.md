@@ -107,7 +107,7 @@ parsing como puramente técnico e empurrá-lo para dentro do caso de uso, onde e
 com regra de negócio e passa a ser reimplementado, de formas ligeiramente diferentes, em
 cada lugar que recebe valor externo. O parsing defensivo — normalizar, validar faixa,
 rejeitar formato ambíguo — pertence à borda, uma vez só, com teste. É o mesmo raciocínio
-de responsabilidade de camada de `spring-boot/13`, aplicado aqui à entrada não confiável em
+de responsabilidade de camada de `spring-boot/15`, aplicado aqui à entrada não confiável em
 vez de à mensageria.
 
 ## Hands-on
