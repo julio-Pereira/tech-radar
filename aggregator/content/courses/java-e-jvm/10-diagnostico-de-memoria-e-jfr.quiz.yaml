@@ -1,0 +1,36 @@
+questions:
+  - question: "Você suspeita de um vazamento num serviço em produção, que roda com o JFR contínuo. Qual sequência dá o caminho do objeto até a raiz com o menor impacto?"
+    options:
+      - "Reiniciar o serviço com `-XX:+HeapDumpOnOutOfMemoryError` e esperar até o próximo OOM acontecer"
+      - "Com o processo vivo, `JFR.dump` com `path-to-gc-roots=true`, e ler o `OldObjectSample`"
+      - "Parar o serviço, ler a gravação que o `dumponexit` gravou e procurar a raiz nela"
+      - "Rodar `jcmd <pid> Thread.print` a cada minuto até a thread culpada aparecer"
+    answer: 1
+    explanation: "O `OldObjectSample` amostra objetos de vida longa, e com `path-to-gc-roots=true` no *dump* grava a cadeia até a raiz: na *fixture*, `Thread (pool-1-thread-3)` → `threadLocals` → `ThreadLocalMap$Entry` → `value`. Com o processo encerrado, a raiz veio `N/A`, porque as threads já não existiam; com o OOM, a gravação ficou vazia. `Thread.print` não mostra memória, e para a JVM a cada vez."
+
+  - question: "O `jfr view allocation-by-site` mostra 94% da pressão de alocação em `jdk.internal.misc.Unsafe.allocateUninitializedArray`. O que fazer com isso?"
+    options:
+      - "Abrir um bug no JDK, porque o método interno está alocando demais"
+      - "Ler a pilha do `ObjectAllocationSample` até o método da aplicação"
+      - "Desligar o `Unsafe` com `--sun-misc-unsafe-memory-access=deny`"
+      - "Aumentar o heap, porque a alocação do JDK é fixa e não depende do código"
+    answer: 1
+    explanation: "A visão mostra o topo da pilha, e o topo costuma ser interno do JDK: aqui, a concatenação de `String`. Com `jfr print --events jdk.ObjectAllocationSample --stack-depth 10`, a pilha completa levou a `Incidentes.montarRecibo`, que concatena com `+=` num laço. A correção está no código da aplicação, e a prova é a mesma visão antes e depois."
+
+  - question: "Um analista pede o *heap dump* de produção do `pix-gateway` para analisar no notebook dele. Qual a resposta adequada?"
+    options:
+      - "Enviar o `.hprof` compactado por *chat*, porque é só memória técnica"
+      - "Enviar, desde que o arquivo seja apagado do notebook depois da análise"
+      - "Analisar no ambiente controlado; entregar o histograma e a cadeia"
+      - "Gerar o *dump* com `-XX:-HeapDumpPII`, que remove dados pessoais do arquivo"
+    answer: 2
+    explanation: "O *heap dump* é a memória inteira: no da *fixture*, um `grep` achou 32.011 CPFs distintos legíveis, e num serviço real há também tokens e chaves. Sob a LGPD, é dado pessoal, e não sai do ambiente controlado. O que sai é o resultado da análise: o histograma e a cadeia de referências. Não existe flag que limpe PII do *dump*."
+
+  - question: "A latência sobe a cada 20 minutos, por alguns segundos, mas o log de GC mostra só pausas jovens curtas e regulares. Qual o próximo passo?"
+    options:
+      - "Trocar o G1 pelo ZGC, porque as pausas jovens do G1 são a causa mais provável"
+      - "Ligar `-Xlog:safepoint` e ver quais operações param a JVM nesses momentos"
+      - "Aumentar o `-Xmx`, para que o GC jovem rode com menos frequência"
+      - "Desligar o JIT nesses intervalos, porque a recompilação é a causa mais comum"
+    answer: 1
+    explanation: "O GC não é a única operação que para a JVM num *safepoint*. O `-Xlog:safepoint` registra todas, com nome e duração: num teste, um `jcmd Thread.print` gerou os *safepoints* `PrintThreads` e `FindDeadlocks`. Trocar o GC ou o heap sem evidência só muda o sintoma de lugar, e o JIT compila em segundo plano, sem parar a aplicação."
