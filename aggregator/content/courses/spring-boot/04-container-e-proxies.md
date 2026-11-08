@@ -125,6 +125,23 @@ com valor financeiro.
 Regra mental: **`@Transactional`, `@Cacheable` e `@Async` só funcionam através da
 fronteira do bean**. Auto-chamada anula a anotação.
 
+## Padrões que o Spring já usa por você
+
+O *proxy* deste marco é um padrão de projeto. O container aplica vários outros, e reconhecê-los
+responde à pergunta de entrevista "que padrões você conhece?" com exemplos do código de todo dia, e
+diz quando escrever um à mão:
+
+| Padrão | Onde no Spring | Quando você o escreveria à mão |
+| --- | --- | --- |
+| *Proxy* | `@Transactional`, `@Cacheable`, `@Async` (este marco) | um comportamento transversal fora do container, como métrica num cliente de terceiros |
+| *Template Method* | `JdbcTemplate`, `TransactionTemplate`: o *template* abre, trata erro e fecha; você dá só o passo variável num *callback* | um fluxo fixo com um passo que muda, como a conciliação por adquirente |
+| *Strategy* | injetar `List<RegraAntifraude>`: o container entrega todas as implementações da interface | escolher o cálculo de tarifa pelo canal, sem `if` em cascata |
+| *Chain of Responsibility* | `SecurityFilterChain`: cada filtro decide se passa adiante | validações de pagamento em sequência, cada uma podendo recusar |
+| *Observer* | `ApplicationEventPublisher` com `@EventListener` | avisar outros módulos de um pagamento liquidado sem conhecê-los (`spring-boot/15`) |
+| *Factory* | `FactoryBean` e os métodos `@Bean` | construir um cliente com configuração que depende do ambiente |
+
+O catálogo de padrões e o critério de quando cada um ajuda ou atrapalha estão em `design-de-codigo/05`.
+
 ## Exemplo numa fintech
 
 No **pix-gateway**, um estorno (`RefundService`) precisa que débito e crédito sejam

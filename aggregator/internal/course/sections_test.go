@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 229, "desafio": 276, "invariantes": 268, "complemento": 258, "checagem": 274, "gabarito": 5,
+		"tutorial": 230, "desafio": 277, "invariantes": 269, "complemento": 259, "checagem": 275, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -422,11 +422,9 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	// The spring-boot adendo stubs (Fase A) leave this list as each marco is
-	// written; once the adendo is complete it must be empty again.
-	wantNoSection := []string{
-		"spring-boot/feature-toggles-e-mudanca-segura",
-	}
+	// Every milestone has a hands-on section again since the spring-boot
+	// adendo Fase C; a new one without it is a regression.
+	var wantNoSection []string
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}

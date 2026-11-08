@@ -108,6 +108,12 @@ exportação do OpenTelemetry), cada request ganha um
 antifraude → conciliação num único trace, e os **logs** já saem com o mesmo `traceId`
 (via MDC) — do gráfico de latência ao log da requisição exata, em dois cliques.
 
+O OTLP é o mesmo para qualquer *backend* que o aceite. O Datadog Agent recebe OTLP direto (portas 4317
+para gRPC e 4318 para HTTP), e o New Relic tem *endpoint* OTLP nativo. Trocar de fornecedor muda o
+destino do exportador, não a instrumentação. Duas ressalvas do lado do fornecedor: no Datadog, *logs*
+por OTLP vêm desligados por padrão, e alguns produtos proprietários dele não usam dados do SDK
+OpenTelemetry.
+
 **Exemplars** costuram métrica e trace: um ponto no histograma de latência carrega o
 `traceId` de uma requisição real daquele balde. Você vê o pico de p99 no Grafana e pula
 direto para o trace que o causou — fim do "o gráfico subiu, e agora?".

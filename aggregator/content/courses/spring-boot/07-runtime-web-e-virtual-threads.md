@@ -41,7 +41,9 @@ do JDBC, clients não-bloqueantes), stack traces viram um quebra-cabeça, `Threa
 para de funcionar (contexto anda no `Context` do Reactor), e a curva de aprendizado do
 time é real. Para o CRUD transacional típico de uma fintech — request entra, fala com
 banco, responde — **WebFlux costuma ser complexidade gratuita**. Escolha-o por um
-requisito concreto (streaming, milhares de conexões idle), não por modismo.
+requisito concreto (streaming, milhares de conexões idle), não por modismo. O mecanismo, com
+*backpressure*, *schedulers*, BlockHound e a propagação de contexto que traz o `ThreadLocal` de volta,
+está no marco 13.
 
 ## Virtual threads: o terceiro caminho
 
