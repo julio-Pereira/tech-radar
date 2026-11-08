@@ -390,7 +390,7 @@ site. A do `buf` voltou para a URL raiz da documentação.
 - **SSRF:** o `Control` do `Dialer` recusa loopback, rede privada, link-local (inclusive
   `169.254.169.254`), IPv6 local e IPv4 mapeado em IPv6, e aceita IP público.
 - **`os.Root`:** barra `..`, caminho absoluto e `a/../../x`.
-- **Build reprodutível:** com `-trimpath -ldflags=-buildid=`, o mesmo código em dois diretórios deu o
+- **Build reprodutível:** com `-trimpath` (com ou sem `-ldflags=-buildid=`), o mesmo código em dois diretórios deu o
   mesmo SHA-256; sem a flag, deu dois diferentes, e o caminho local aparece no binário.
 - **Imagem:** *distroless* `nonroot`, sem `/bin/sh` (`stat /bin/sh: no such file or directory`),
   15,7 MB.

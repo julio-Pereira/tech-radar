@@ -33,7 +33,7 @@ questions:
       - "O servidor aceita a chamada, mas registra um aviso de cliente sem identidade"
       - "O servidor cai para TLS sem autenticação de cliente e atende normalmente"
     answer: 0
-    explanation: "Com `RequireAndVerifyClientCert`, o servidor exige o certificado no handshake e o valida contra `ClientCAs`; sem certificado (ou com um de outra CA), o handshake falha antes de qualquer código da aplicação rodar. No teste, o cliente sem certificado e o cliente limitado a TLS 1.1 foram recusados, e o cliente com o certificado da CA interna passou."
+    explanation: "Com `RequireAndVerifyClientCert`, o servidor exige o certificado no handshake e o valida contra `ClientCAs`; sem certificado (ou com um de outra CA), o handshake falha antes de qualquer código da aplicação rodar. No teste, o cliente sem certificado e o cliente que só oferecia TLS 1.0 e 1.1 foram recusados pelo servidor, e o cliente com o certificado da CA interna passou."
 
   - question: "O lojista cadastra a URL do webhook. O serviço valida que o hostname resolve para um IP público e só depois faz a chamada. Por que isso não impede SSRF?"
     options:
@@ -46,9 +46,9 @@ questions:
 
   - question: "Dois builds do mesmo commit do `ledger-core` geram binários com SHA-256 diferentes. O que costuma resolver?"
     options:
-      - "Compilar com `-trimpath` e `-ldflags=-buildid=`, sem caminho local e build ID"
+      - "Compilar com `-trimpath`, que tira do binário o caminho local dos arquivos"
       - "Compilar com `CGO_ENABLED=1`, para que o linker use as bibliotecas do sistema"
       - "Rodar `go mod tidy` antes de cada build, para estabilizar a ordem dos módulos"
       - "Desligar a otimização com `-gcflags=-N`, que introduz variação entre execuções"
     answer: 0
-    explanation: "Sem `-trimpath`, o binário carrega o caminho absoluto dos arquivos na máquina de build: o mesmo código compilado em dois diretórios deu dois SHA-256 diferentes. Com `-trimpath` e o build ID vazio, deu um só. O cgo traz dependência do sistema, o contrário do que se quer, e otimização não varia entre execuções."
+    explanation: "Sem `-trimpath`, o binário carrega o caminho absoluto dos arquivos na máquina de build: o mesmo código compilado em dois diretórios deu dois SHA-256 diferentes. Com `-trimpath`, deu um só; o build ID é um hash do conteúdo e não varia sozinho, então `-buildid=` é opcional. O cgo traz dependência do sistema, o contrário do que se quer, e otimização não varia entre execuções."

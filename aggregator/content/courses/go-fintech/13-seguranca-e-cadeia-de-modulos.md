@@ -75,7 +75,10 @@ sem `ReadHeaderTimeout` (G112, marco 08), uso de `math/rand` em contexto de segu
   o **hostname** antes não basta: o DNS pode responder com um IP interno depois da validação. Em Go, a
   defesa fica no `Control` do `net.Dialer`, que roda **depois da resolução**, sobre o IP que vai ser de
   fato conectado, e recusa loopback, rede privada, link-local, endereço não especificado e multicast
-  (cuidado com o IPv4 mapeado em IPv6: `::ffff:10.0.0.1`). Injeção e SSRF em geral estão em
+  (cuidado com o IPv4 mapeado em IPv6, `::ffff:10.0.0.1`: com `netip`, chame `Unmap()` antes de
+  comparar faixas à mão). E o cliente usa um `http.Transport` próprio com `Proxy: nil`: com o
+  `ProxyFromEnvironment` do transporte padrão e um `HTTPS_PROXY` no ambiente, o `Control` só vê o IP
+  do proxy, e a defesa é contornada. Injeção e SSRF em geral estão em
   `seguranca-aplicacao/03`.
 - **Path traversal**: um nome de arquivo vindo de fora (`../../etc/passwd`) abre o que não devia. O
   **`os.Root`** (Go 1.24) abre um diretório e só permite operações dentro dele: `root.Open` recusa
@@ -86,8 +89,8 @@ sem `ReadHeaderTimeout` (G112, marco 08), uso de `math/rand` em contexto de segu
 Segredo vem do ambiente ou de arquivo montado pelo orquestrador, lido na subida (marco 12), nunca
 compilado no binário: qualquer `strings` no executável o revela. E o próprio binário vaza
 informação: compilado sem **`-trimpath`**, ele carrega o caminho absoluto da máquina de build. Com
-`-trimpath` e `-ldflags=-buildid=`, dois builds do mesmo commit produzem o **mesmo SHA-256**: build
-reprodutível, que permite conferir que o binário em produção veio daquele código.
+`-trimpath` (mesma toolchain, mesmas flags), dois builds do mesmo commit produzem o **mesmo
+SHA-256**, em qualquer diretório: build reprodutível, que permite conferir que o binário em produção veio daquele código.
 
 A imagem: binário estático (`CGO_ENABLED=0`) numa imagem **distroless** ou `scratch`, com usuário não
 root. Sem shell e sem gerenciador de pacotes, um atacante que consiga executar código no processo não
@@ -132,12 +135,16 @@ multi-stage para distroless sem root; build reprodutível.
 1. `govulncheck ./...` sem vulnerabilidade alcançável no `ledger-core`; e a fixture com a dependência
    vulnerável chamada reprova (código 3).
 2. O servidor recusa cliente sem certificado e recusa TLS 1.1 (teste com uma CA gerada em memória com
-   `crypto/x509`).
+   `crypto/x509`). O cliente do teste declara `MinVersion: tls.VersionTLS10` e
+   `MaxVersion: tls.VersionTLS11`, e o erro esperado vem do servidor
+   (`protocol version not supported`): só com `MaxVersion`, o cliente falha sozinho, porque o mínimo
+   padrão dele é TLS 1.2, e o teste passaria mesmo com o servidor aceitando 1.1.
 3. O cliente de webhook recusa loopback, rede privada, link-local (inclusive `169.254.169.254`), IPv6
-   local e IPv4 mapeado em IPv6, e aceita endereços públicos (tabela).
+   local e IPv4 mapeado em IPv6, e aceita endereços públicos (tabela); com `HTTPS_PROXY` definido
+   no teste, a recusa continua, porque o transporte tem `Proxy: nil`.
 4. A imagem roda com usuário não root e não tem shell: `docker inspect` mostra `nonroot` e
    `docker run --entrypoint /bin/sh` falha.
-5. Dois builds do mesmo commit com `-trimpath -ldflags=-buildid=` têm o mesmo SHA-256, e sem
+5. Dois builds do mesmo commit, em diretórios diferentes, com `-trimpath` têm o mesmo SHA-256, e sem
    `-trimpath` o binário contém o caminho da máquina de build.
 
 **Complemento.** Gere o SBOM do binário (`go version -m ./ledger` lista os módulos e versões embutidos
