@@ -292,7 +292,7 @@ seguintes o reencontram no serviço em produção.
 
 ### -trimpath
 **Em uma frase:** a flag de build que remove do binário o caminho da máquina de build.
-**No ledger-core:** com ela e build ID vazio, o mesmo commit gera o mesmo SHA-256 em qualquer diretório.
+**No ledger-core:** com ela, o mesmo commit gera o mesmo SHA-256 em qualquer diretório.
 **Erro comum:** publicar binário que vaza a estrutura de diretórios do build.
 **Onde na prática:** marco 13.
 

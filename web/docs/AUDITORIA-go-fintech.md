@@ -454,3 +454,47 @@ site. A do `buf` voltou para a URL raiz da documentação.
 cinco blocos, e a lista `wantNoSection` do teste de seções ficou vazia.
 
 **Viés das respostas:** a correta é a mais longa em 0 de 8 questões.
+
+## 16. Fase G — auditoria final, revisão independente e jornada
+
+**Auditoria automatizada.** `aggregator/internal/course/gofintech_auditoria_test.go` roda em todo
+build e confere:
+- 16 marcos, `level: advanced`, Σ 845 min e `estimatedHours: 28`;
+- os 8 ids anteriores à reestruturação;
+- `reviewEvery` de 6m em 01, 08, 13 e 14 e de 12m nos demais, sempre com `reviewedAt`;
+- 1 a 3 competências e referências em cada marco;
+- as seções "Exemplo numa fintech", "Hands-on" e "Principais aprendizados", e os cinco blocos do
+  hands-on, uma vez cada;
+- o capstone só no marco 16;
+- 6 questões em 03, 04, 06, 07, 09 e 13, e 4 nos demais (76 no total);
+- a correta como a opção mais longa em no máximo 20% das questões (hoje 14 de 76);
+- um glossário com pelo menos 30 verbetes, todos apontando para um marco de 01 a 16;
+- nenhuma ponte `go-fintech/NN` quebrada em nenhuma trilha.
+
+A própria auditoria foi testada com defeitos de propósito (minutos trocados, bloco de checagem sem
+rótulo, ponte para `go-fintech/99`), e reprovou os três.
+
+**Revisão independente** dos marcos 03, 04, 06, 09 e 13, por um agente que não escreveu o conteúdo,
+com o código rodado no Go 1.27.3. Todas as respostas de quiz conferiram. Os achados foram
+reproduzidos antes de corrigir:
+
+| Marco | Achado | Correção |
+| --- | --- | --- |
+| 03 (bloqueante) | O bug do extrato não depende de capacidade sobrando: `s.lines[0:k]` tem capacidade até o fim do array, então o `append` na página 0 sobrescreve a página 1 sempre (conferido com 3 e com 5 linhas, sem folga) | Mecanismo reescrito; tutorial e invariante 1 separam a página do meio (sempre) da última (só com folga) |
+| 03 | Leitura e escrita concorrentes abortam com `concurrent map read and map write`, não com `concurrent map writes` | As duas mensagens citadas |
+| 04 | O SA4023 acusa no ponto da comparação com `nil`, não na função | Texto e invariante 2 ajustados |
+| 04 | `default-signifies-exhaustive` vem ligado no golangci-lint: um `default` cala o `gochecksumtype` | O invariante 3 exige switch sem `default` |
+| 09 | O `inTx` não fazia rollback quando `fn` entrava em pânico | `recover` no `defer`, com rollback e novo `panic`; conferido com driver falso: 1 rollback e `InUse 0` |
+| 09 | "O pool nunca passa de `MaxOpenConns`" testa a biblioteca, não o código | O invariante 4 passa a exigir `WaitCount > 0` e `InUse == 0` |
+| 09 | `NOT NULL` sem default nem se aplica numa tabela com linhas | Explicação do quiz corrigida |
+| 13 (bloqueante) | Um cliente só com `MaxVersion: TLS11` falha sozinho (`no supported versions satisfy MinVersion and MaxVersion`), o que deixaria o teste vazio | O invariante 2 exige `MinVersion: TLS10` e o erro do servidor (`protocol version not supported`, conferido) |
+| 13 | O build ID é hash do conteúdo: só `-trimpath` já deu o mesmo SHA-256 em dois diretórios | `-buildid=` passa a ser opcional no texto, no quiz, no glossário e no §14 |
+| 13 | Com `ProxyFromEnvironment` e `HTTPS_PROXY`, o `Control` do SSRF só vê o IP do proxy | `http.Transport` próprio com `Proxy: nil`, no texto e no invariante 3; nota sobre `netip.Addr.Unmap()` |
+
+O marco 06 não teve achados. Os números do exemplo do 09 (abortos e esperas) foram medidos no
+Postgres real na Fase D (§13) e não foram remedidos pelo revisor.
+
+**Jornada `entrevista-senior`.** O `PLANO-adendo-sinais-de-mercado.md` citado pelo plano não está no
+repositório. Por isso o critério foi o do próprio plano (preparar backend Go sênior para entrevista):
+entram `go-fintech/04`, `/06`, `/07` e `/16` no grupo "Código e LLD", e a jornada passa de 28 para 32
+etapas.

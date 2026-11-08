@@ -60,7 +60,7 @@ Um `map` é uma tabela hash com três propriedades que caem em toda entrevista:
   (`slices.Sorted(maps.Keys(m))`), nunca do map.
 - **Não é seguro para escrita concorrente.** Duas goroutines escrevendo no mesmo map (ou uma
   escrevendo enquanto outra lê) é data race, e o runtime detecta muitos desses casos e **aborta o
-  processo** com `fatal error: concurrent map writes`. Não é `panic`: não há `recover` que salve.
+  processo** com `fatal error: concurrent map writes` (ou `concurrent map read and map write`). Não é `panic`: não há `recover` que salve.
   Proteja com `sync.Mutex`/`RWMutex` ou use `sync.Map` nos dois casos em que ele serve (marco 07).
   O porquê, no modelo de memória, está em `concorrencia-e-recursos/01`.
 - **Chave inexistente devolve o zero value.** `saldos["bia"]` vale `0` se "bia" não existe, sem
@@ -118,10 +118,11 @@ func (s *Statement) Page(n int) []Line {
 ```
 
 Um cliente da API pede a página 0 e, para montar a resposta, faz `append` de uma linha de "saldo
-anterior". Como o slice interno tinha capacidade sobrando (cresceu em lotes), o `append` escreve
-**dentro do array do extrato**, por cima da primeira linha da página 1. O cliente seguinte que pede a
-página 1 recebe a linha errada. O teste passava porque usava 3 linhas, e o slice de teste não tinha
-capacidade sobrando.
+anterior". A capacidade de `s.lines[0:k]` vai até o fim do array interno, e esse trecho é a página
+1: o `append` escreve **dentro do array do extrato**, por cima da primeira linha dela, sem precisar de
+folga nenhuma. O cliente seguinte que pede a página 1 recebe a linha errada. O teste passava porque o
+extrato de teste cabia numa página só; na última página, o mesmo `append` só corrompe o array quando
+o slice interno tem capacidade sobrando (cresceu em lotes), e aí a vítima é o próximo `Add`.
 
 A correção que fecha o bug é a cópia (`slices.Clone`), ou um iterador que entrega as linhas por valor.
 Repare também no índice: se alguém for "otimizar" o extrato iterando o `map` em vez do slice, a
@@ -130,9 +131,10 @@ ordem do extrato passa a variar entre chamadas. Ordem é dado, não sorte.
 ## Hands-on
 
 **Tutorial.** Reproduza o bug. Escreva o `Statement` com `Add` e com o `Page` acima, preencha 5
-linhas, dê ao slice interno capacidade sobrando (`s.lines = slices.Grow(s.lines, 10)`), faça
-`append` na página 0 e mostre, num teste, que a página 1 passou a começar com a linha intrusa. Depois
-corrija `Page` com `slices.Clone`.
+linhas em páginas de 2, faça `append` na página 0 e mostre, num teste, que a página 1 passou a
+começar com a linha intrusa. Mostre também o caso da última página: com capacidade sobrando
+(`s.lines = slices.Grow(s.lines, 10)`), o `append` nela escreve onde o próximo `Add` vai gravar.
+Depois corrija `Page` com `slices.Clone`.
 
 **Desafio.** Um `Statement.Page(n)` seguro para uma API real: cópia por página, um `PageSeq(n)
 iter.Seq[Line]` como alternativa sem cópia, e `sync.RWMutex` porque muitos leitores consultam o
@@ -141,7 +143,8 @@ extrato enquanto lançamentos chegam.
 **Invariantes testáveis**
 
 1. Alterar um elemento ou dar `append` no slice devolvido por `Page` não muda nenhuma página
-   seguinte nem o estado interno (compare o slice interno antes e depois, com capacidade sobrando).
+   seguinte nem o estado interno: compare o slice interno antes e depois do `append` na página 0
+   (com pelo menos duas páginas) e na última página (com capacidade sobrando).
 2. Ler a mesma página 50 vezes produz sempre a mesma sequência, e `PageSeq` concorda com `Page`
    elemento a elemento, embora o extrato tenha um `map` por dentro.
 3. `go test -race` fica verde com 8 goroutines lendo páginas (por `Page` e por `PageSeq`) enquanto

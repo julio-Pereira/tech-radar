@@ -71,6 +71,10 @@ func (s *Store) inTx(ctx context.Context, fn func(*sql.Tx) error) (err error) {
 		return err
 	}
 	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			panic(p) // devolve o panic depois de liberar a conexão
+		}
 		if err != nil {
 			_ = tx.Rollback()
 		}
@@ -82,7 +86,8 @@ func (s *Store) inTx(ctx context.Context, fn func(*sql.Tx) error) (err error) {
 }
 ```
 
-Tudo dentro de `fn` usa o `tx`, nunca o `db`: uma query feita no `db` dentro da transação roda em
+O `recover` cobre o panic dentro de `fn`: sem ele, `err` continua nil no `defer`, e a transação
+ficaria aberta segurando a conexão. Tudo dentro de `fn` usa o `tx`, nunca o `db`: uma query feita no `db` dentro da transação roda em
 **outra conexão**, fora dela, e no pool cheio pode esperar a própria transação liberar a conexão.
 
 ## Lock, ordem e deadlock
@@ -142,8 +147,8 @@ contas em ordem de ID, checagem de saldo, débito, crédito e dois lançamentos,
 2. Nenhuma conta fica negativa (a constraint do banco e a checagem do código).
 3. Nenhum deadlock chega ao chamador: os erros possíveis são `ErrSaldoInsuficiente` e, depois das
    tentativas, `ErrConcorrencia`; qualquer outro reprova o teste.
-4. O pool nunca passa de `MaxOpenConns` em uso (amostre `db.Stats().InUse` durante o teste) e
-   termina com `InUse == 0`.
+4. Com 32 workers e `MaxOpenConns` 10, `db.Stats().WaitCount` termina maior que zero (houve fila)
+   e o teste termina sem travar, com `InUse == 0`: nenhuma `rows` ou transação ficou presa.
 5. Uma query sem `Context` reprova o lint do projeto (`noctx` habilitado no `.golangci.yml`).
 
 **Complemento.** Gere o `Store` com `sqlc` a partir das mesmas queries e compare o código: o que o
