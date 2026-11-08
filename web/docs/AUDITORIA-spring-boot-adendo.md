@@ -90,3 +90,53 @@ conferência e entraram no texto:
 **Viés das respostas:** em nenhuma das 6 questões a correta é estritamente a opção mais longa.
 
 **Revisão independente:** fica para a Fase D, como o plano pede.
+
+## 4. Fase C — marco 14, *feature toggles*, e as edições da §4
+
+**Marco 14.** Conferido no mesmo projeto, com o OpenFeature SDK 1.23.0 e o `InMemoryProvider`. Os 7
+testes do desafio passaram em três rodadas seguidas:
+- **Determinismo:** 1.000 clientes avaliados 6 vezes cada, sem troca de variante.
+- **Fração observada** em 100 mil clientes sintéticos:
+
+  | Porcentagem configurada | Fração observada |
+  | ---: | ---: |
+  | 5% | 4,977% |
+  | 25% | 24,796% |
+  | 50% | 49,680% |
+
+  O balde vem do SHA-256 de `flag:cliente` em 0..9.999.
+- **Contrato das duas variantes:** um teste parametrizado, com escala, limites e monotonicidade.
+- ***Kill switch*:** com `updateFlags`, a avaliação seguinte já usa o cálculo antigo.
+- **Flag vencida:** com relógio falso, a mensagem traz a flag e o dono.
+- **Auditoria:** `onProviderConfigurationChanged` entregou `[tarifa-nova-porcentagem,
+  tarifa-nova-kill-switch]` e `[tarifa-nova-kill-switch]`.
+
+  A primeira versão esperava os eventos com um `sleep` fixo; a versão final espera com prazo, porque o
+  SDK os entrega noutra thread.
+
+**Fontes.** O flagd foi conferido pelo repositório `open-feature/flagd`: Apache 2.0, fontes de
+arquivo, HTTP e Kubernetes, e serviço por HTTP ou gRPC. A busca não abriu o `flagd.dev`, então a
+referência aponta para o repositório.
+
+**Edições em marcos existentes:**
+- **04:** nova seção "Padrões que o Spring já usa por você", com a tabela padrão → onde no Spring →
+  quando escrever à mão (*Proxy*, *Template Method*, *Strategy*, *Chain of Responsibility*,
+  *Observer* e *Factory*) e a ponte planejada para `design-de-codigo/05`. No quiz, a questão sobre
+  *singletons stateless* deu lugar a uma sobre *Strategy* com `List<RegraAntifraude>`; continuam 4
+  questões.
+  - **Desvio do plano:** o plano citava o `RestClient` como *Template Method*. O exemplo usado é o
+    `JdbcTemplate`/`TransactionTemplate`, que de fato tem o *callback* do passo variável.
+- **07:** ponte para o marco 13 na seção de WebFlux, com a nota de que a propagação de contexto traz o
+  `ThreadLocal` de volta.
+- **10:** nota sobre o mesmo OTLP chegar ao Datadog Agent (portas 4317/4318) e ao *endpoint* nativo
+  do New Relic, conferida nas documentações dos dois. Ressalvas do Datadog: *logs* por OTLP vêm
+  desligados por padrão, e alguns produtos proprietários não usam dados do SDK OpenTelemetry.
+- **15:** na **Entrega** do capstone, a consulta reativa e a tarifa atrás de flag. Nos **Critérios de
+  pronto**, o invariante 1 do 13 e o 4 do 14.
+- **`PROJETO.md`:** incrementos dos marcos 13 e 14 e os pré-requisitos (Reactor Test, BlockHound com
+  a flag, OpenFeature e *provider* local).
+- **`GLOSSARIO.md`:** 12 verbetes novos (56 no total, 56/56 na cobertura). A *feature flag* não foi
+  duplicada: o verbete OpenFeature remete ao glossário de `system-design`.
+
+**Viés das respostas:** em nenhuma das 4 questões do 14, nem na nova do 04, a correta é estritamente a
+opção mais longa.

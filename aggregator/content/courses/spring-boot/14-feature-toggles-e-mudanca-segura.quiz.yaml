@@ -1,0 +1,36 @@
+questions:
+  - question: "O cálculo de tarifa lê a flag `tarifa-nova` no começo do método e de novo antes de gravar o lançamento, dentro da mesma transação. Qual o risco?"
+    options:
+      - "Nenhum: o SDK guarda o valor da flag em cache durante a transação inteira"
+      - "A flag pode mudar entre as leituras, e a tarifa mistura as regras"
+      - "O `@Transactional` reverte a transação sempre que uma flag é avaliada nela"
+      - "O OpenFeature recusa avaliar a mesma flag duas vezes no mesmo contexto"
+    answer: 1
+    explanation: "Cada avaliação lê o valor atual do *provider*. Se alguém mudar a flag entre as duas leituras, a mesma requisição usa duas regras. A decisão é tomada uma vez por requisição, antes da transação, e o objeto escolhido (o `Calculo`) desce pela chamada. O SDK não faz cache por transação, e o `@Transactional` não sabe de flags."
+
+  - question: "Qual implementação de *rollout* para 5% dos clientes é a correta?"
+    options:
+      - "`ThreadLocalRandom.current().nextInt(100) < 5` a cada requisição, para espalhar a carga"
+      - "Os primeiros 5% dos clientes que chegarem depois do *deploy*, guardados em memória"
+      - "Um balde de 0 a 9.999 pelo hash de flag e cliente, com o cliente dentro se balde < 500"
+      - "Os clientes cujo id termina em 0, que dão 10% da base, divididos por dois na mão"
+    answer: 2
+    explanation: "O *hash* estável põe o mesmo cliente sempre no mesmo balde, em qualquer réplica: ele não \"pisca\" entre as tarifas, e subir para 10% só acrescenta clientes. Medido: 5% deu 4,98% em 100 mil clientes sintéticos. O sorteio a cada requisição troca o cliente de variante; a lista em memória é diferente em cada réplica e some no reinício."
+
+  - question: "Por que o registro de flags tem um teste que reprova o *build* quando uma flag passa da data de expiração?"
+    options:
+      - "Porque o OpenFeature para de avaliar flags vencidas e devolve sempre o padrão"
+      - "Porque flags vencidas deixam o build mais lento a cada execução da suíte"
+      - "Para que a remoção vire trabalho do dono, em vez de dívida que ninguém assume"
+      - "Para que o próprio teste remova a flag do código-fonte automaticamente"
+    answer: 2
+    explanation: "Uma flag que ficou depois do *rollout* é dívida: dois caminhos de código e combinações que ninguém testa (`system-design/14`). O teste lê o registro com dono e data, e a mensagem diz de quem é a flag vencida, o que transforma a remoção num item de trabalho. O SDK não sabe de datas, e o teste não edita código."
+
+  - question: "O cálculo novo de tarifa, ligado para 5% por flag, está cobrando a mais. O que fazer primeiro?"
+    options:
+      - "Fazer *rollback* do *deploy* inteiro, que é a forma garantida de voltar"
+      - "Desligar o *kill switch*, que volta ao cálculo antigo sem *deploy*"
+      - "Esperar o próximo *deploy* com a correção, porque são só 5% dos clientes"
+      - "Reiniciar as réplicas, para que a flag seja relida na subida de cada uma"
+    answer: 1
+    explanation: "O comportamento está atrás da flag, então desligá-la é o caminho mais rápido: em segundos e sem reinício (no teste, a requisição seguinte ao `updateFlags` já usou o cálculo antigo). O *rollback* desfaria também o que não está quebrado. E desligar não desfaz as tarifas já cobradas: a conciliação ainda precisa tratar essas."

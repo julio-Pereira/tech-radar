@@ -25,6 +25,9 @@ do marco 06 publica) é o que importa.
   Postgres em container)
 - ~6 GB de RAM livres
 - `curl` ou `httpie`, e um gerador de carga simples para o marco 07
+- Reactor Test e BlockHound para o marco 13 (o BlockHound exige
+  `-XX:+AllowRedefinitionToAddDeleteMethods` no JDK 25), e o SDK do OpenFeature com um *provider*
+  local (`InMemoryProvider` ou flagd) para o marco 14
 - **Não precisa:** licença comercial, conta em cloud paga, nenhum starter proprietário.
 
 ## Incrementos por marco
@@ -43,6 +46,8 @@ do marco 06 publica) é o que importa.
 | 10 | Actuator + Micrometer, métricas de negócio e healthcheck honesto | `payment_initiate_seconds_*` por PSP e resultado no Prometheus; readiness não checa dependência externa |
 | 11 | Testes de integração com Testcontainers (Postgres + Kafka) | Suíte roda do zero em máquina limpa, sem serviço pré-instalado |
 | 12 | Imagem OCI sem root, deploy com migração expand/contract | Rollback da aplicação funciona com o schema já migrado |
+| 13 | Consulta de status no PSP com `WebClient` e `Flux`, limite de concorrência e *timeout* | Nunca mais de N chamadas em voo; o BlockHound reprova chamada bloqueante no caminho reativo |
+| 14 | Novo cálculo de tarifa atrás de flag (OpenFeature), com *rollout* por porcentagem e *kill switch* | Desligar o *kill switch* troca o cálculo na próxima requisição, sem reinício |
 | 15 | Reorganização em módulos, com dependência entre eles testada | Teste de arquitetura falha se um módulo importar o interno do outro |
 
 ## Definição de pronto (capstone)

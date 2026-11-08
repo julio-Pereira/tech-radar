@@ -241,6 +241,8 @@ O `pix-gateway` é o seu componente do `fin-platform` — a especificação comp
 - [ ] Suíte de integração com Testcontainers (Postgres e Kafka)
 - [ ] Imagem OCI sem root, migração expand/contract e rollback exercitado
 - [ ] Os três módulos com `ApplicationModules.verify()` no CI
+- [ ] Consulta de status reativa, com limite de concorrência (marco 13)
+- [ ] Novo cálculo de tarifa atrás de flag, com *kill switch* (marco 14)
 
 **Critérios de pronto — cada um deve ser provado por um teste ou por um comando**
 
@@ -249,6 +251,9 @@ O `pix-gateway` é o seu componente do `fin-platform` — a especificação comp
 - [ ] Nenhum dual-write: com o broker fora, o pagamento é gravado e o evento espera no
   outbox; quando o broker volta, o relay o publica (marco 06)
 - [ ] Um `import` de classe interna de outro módulo faz o build falhar (marco 15)
+- [ ] A consulta de status em lote nunca tem mais de N chamadas em voo (marco 13)
+- [ ] Desligar o *kill switch* faz a próxima requisição usar o cálculo antigo, sem reinício
+      (marco 14)
 - [ ] Token sem o escopo correto recebe 403, e a negativa aparece no log `AUDIT` com o id
   de correlação (marco 09)
 - [ ] Com o PSP devolvendo 100% de erro, o circuito abre e as iniciações seguintes

@@ -279,3 +279,75 @@ os marcos usam estes termos sem redefini-los a cada vez.
 **No fin-platform:** se o listener do antifraude falha, a publicação fica `FAILED` e pode ser republicada — o outbox in-process.
 **Erro comum:** usar `@ApplicationModuleListener` sem o registro e achar que tem a garantia do outbox; um crash depois do commit perde o evento.
 **Onde na prática:** marco 15.
+
+### Reactive Streams
+**Em uma frase:** a especificação de quatro interfaces (`Publisher`, `Subscriber`, `Subscription`, `Processor`) em que o consumidor pede com `request(n)` e o produtor nunca manda mais que o pedido.
+**No fin-platform:** a consulta de status em lote do `pix-gateway` respeita o ritmo de quem consome.
+**Erro comum:** achar que reativo é só assíncrono e esquecer o contrato de *backpressure*.
+**Onde na prática:** marco 13.
+
+### Mono
+**Em uma frase:** o tipo do Reactor para uma sequência de 0 ou 1 elemento, como uma chamada HTTP.
+**No fin-platform:** o status de um pagamento no PSP é um `Mono<String>`.
+**Erro comum:** guardar um `Mono` achando que guarda o resultado: cada assinatura roda a cadeia de novo.
+**Onde na prática:** marco 13.
+
+### Flux
+**Em uma frase:** o tipo do Reactor para uma sequência de 0 a N elementos.
+**No fin-platform:** o lote de consultas de status é um `Flux` com `flatMap` limitado a N.
+**Erro comum:** `flatMap` sem o limite de concorrência, que deixa 256 chamadas em voo por padrão.
+**Onde na prática:** marco 13.
+
+### Backpressure
+**Em uma frase:** o consumidor ditando o ritmo do produtor, para não ser soterrado.
+**No fin-platform:** `onBackpressureBuffer(16)` falha com `OverflowException` em vez de acumular sem limite.
+**Erro comum:** um `onBackpressureBuffer()` sem limite, que vira `OutOfMemoryError` com prazo.
+**Onde na prática:** marco 13.
+
+### Scheduler
+**Em uma frase:** o conjunto de threads em que o Reactor executa: `parallel()` para CPU, `boundedElastic()` para código bloqueante.
+**No fin-platform:** a única chamada JDBC que sobrou no caminho reativo roda no `boundedElastic`.
+**Erro comum:** bloquear no `parallel`: 8 chamadas de 200 ms em 2 threads levaram ~843 ms.
+**Onde na prática:** marco 13.
+
+### publishOn
+**Em uma frase:** o operador que move para outro *scheduler* tudo o que vem depois dele na cadeia.
+**No fin-platform:** o processamento da resposta do PSP sai do *event loop* com `publishOn`.
+**Erro comum:** achar que ele move também a fonte; isso é o `subscribeOn`.
+**Onde na prática:** marco 13.
+
+### subscribeOn
+**Em uma frase:** o operador que muda onde a fonte roda, não importa onde esteja escrito na cadeia.
+**No fin-platform:** um cliente bloqueante legado é embrulhado em `fromCallable` com `subscribeOn(boundedElastic())`.
+**Erro comum:** escrever vários `subscribeOn` achando que cada um muda um trecho.
+**Onde na prática:** marco 13.
+
+### Event loop
+**Em uma frase:** as poucas threads que atendem todas as conexões no WebFlux, cada uma num laço que nunca deve esperar.
+**No fin-platform:** um JDBC escondido num `map` travou o *fan-out* para todos os clientes.
+**Erro comum:** chamar código bloqueante numa thread de *event loop*; o BlockHound acusa em teste.
+**Onde na prática:** marco 13.
+
+### StepVerifier
+**Em uma frase:** a ferramenta do `reactor-test` que assina uma sequência e confere cada sinal, com tempo virtual opcional.
+**No fin-platform:** o *timeout* de 2 s da consulta de status é provado sem esperar 2 s.
+**Erro comum:** testar código reativo com `block()` e `Thread.sleep`, lento e intermitente.
+**Onde na prática:** marco 13.
+
+### OpenFeature
+**Em uma frase:** a especificação e o SDK neutros de *feature flags*, que separam quem avalia a flag (o cliente) de quem a guarda (o *provider*). O conceito de *feature flag* está no glossário de `system-design`.
+**No fin-platform:** o cálculo de tarifa avalia flags pelo cliente do OpenFeature, com o `InMemoryProvider` nos testes.
+**Erro comum:** espalhar o SDK de um fornecedor pelo código e não conseguir trocá-lo depois.
+**Onde na prática:** marco 14.
+
+### Kill switch
+**Em uma frase:** a flag operacional que desliga um comportamento em produção sem *deploy* e sem reinício.
+**No fin-platform:** desligado, o cálculo novo de tarifa volta ao antigo na próxima requisição.
+**Erro comum:** achar que desligar a flag desfaz o que já foi gravado com o comportamento novo.
+**Onde na prática:** marco 14.
+
+### Percentage rollout
+**Em uma frase:** ligar um comportamento para P% dos clientes, escolhidos por um *hash* estável de flag e cliente.
+**No fin-platform:** 5% de 100 mil clientes sintéticos deram 4,98% observados.
+**Erro comum:** sortear a cada requisição, e o mesmo cliente "pisca" entre as variantes.
+**Onde na prática:** marco 14.
