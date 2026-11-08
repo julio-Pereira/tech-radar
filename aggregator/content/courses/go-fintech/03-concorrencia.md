@@ -3,6 +3,8 @@ id: concorrencia
 title: "Concorrência aplicada a pagamentos"
 summary: "O modelo CSP de Go num processador de pagamentos em lote — com sharding por conta para evitar saldo negativo."
 estimatedMinutes: 40
+reviewedAt: 2026-11-01
+reviewEvery: 12m
 references:
   - title: "Go Concurrency Patterns: Pipelines"
     url: https://go.dev/blog/pipelines

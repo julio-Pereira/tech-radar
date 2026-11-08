@@ -3,6 +3,8 @@ id: rest-bff
 title: "API REST de pagamentos + BFF"
 summary: "Transformar o produto em serviço: net/http, chi, middlewares e um BFF que agrega chamadas downstream com errgroup."
 estimatedMinutes: 35
+reviewedAt: 2026-11-01
+reviewEvery: 6m
 references:
   - title: "package net/http"
     url: https://pkg.go.dev/net/http

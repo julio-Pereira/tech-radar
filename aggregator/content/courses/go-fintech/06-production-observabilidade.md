@@ -3,6 +3,8 @@ id: production-observabilidade
 title: "Microservice production-grade + observabilidade"
 summary: "Consolidar tudo: slog, métricas de negócio, health checks, graceful shutdown, outbox completo e audit log imutável."
 estimatedMinutes: 40
+reviewedAt: 2026-11-01
+reviewEvery: 12m
 references:
   - title: "package log/slog"
     url: https://pkg.go.dev/log/slog

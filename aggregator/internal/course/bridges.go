@@ -143,11 +143,21 @@ func isConnectorOnly(text string) bool {
 // <code> styling but becomes clickable. Returns the bridge references that
 // did NOT resolve and are not in `planned`, for the caller to report.
 func linkifyBridges(doc ast.Node, source []byte, index bridgeIndex, planned map[string]bool) []string {
+	return linkifyBridgesVisit(doc, source, index, planned, nil)
+}
+
+// bridgeVisit is told about every bridge that resolved: the code span, its
+// text as written ("kafka/08" or "/11"), and the slug and milestone id it
+// resolved to. Used by the bridge snapshot (pontes_snapshot_test.go) so an
+// audit sees exactly what the compiler sees, inherited "/NN" included.
+type bridgeVisit func(span ast.Node, text, slug, id string)
+
+func linkifyBridgesVisit(doc ast.Node, source []byte, index bridgeIndex, planned map[string]bool, visit bridgeVisit) []string {
 	var broken []string
 	var walk func(ast.Node)
 	walk = func(n ast.Node) {
 		if n.Kind() == ast.KindParagraph || n.Kind() == ast.KindTextBlock {
-			broken = append(broken, linkifyParagraph(n, source, index, planned)...)
+			broken = append(broken, linkifyParagraph(n, source, index, planned, visit)...)
 			return // a paragraph/text-block's children are inline, never nested blocks
 		}
 		for c := n.FirstChild(); c != nil; c = c.NextSibling() {
@@ -171,7 +181,7 @@ func linkifyBridges(doc ast.Node, source []byte, index bridgeIndex, planned map[
 // of only looking at the paragraph's direct children; a bridge is just as
 // often inside a bold run as not, and chaining still has to flow across that
 // boundary the same as it does across plain text.
-func linkifyParagraph(p ast.Node, source []byte, index bridgeIndex, planned map[string]bool) []string {
+func linkifyParagraph(p ast.Node, source []byte, index bridgeIndex, planned map[string]bool, visit bridgeVisit) []string {
 	var broken []string
 	chainSlug := ""
 
@@ -187,6 +197,9 @@ func linkifyParagraph(p ast.Node, source []byte, index bridgeIndex, planned map[
 					m := bridgeFullRe.FindStringSubmatch(text)
 					slug, nn := m[1], m[2]
 					if id, ok := index[slug][nn]; ok {
+						if visit != nil {
+							visit(cn, text, slug, id)
+						}
 						wrapInLink(cn.Parent(), cn, "#/learn/"+slug+"/"+id)
 						chainSlug = slug
 					} else {
@@ -203,6 +216,9 @@ func linkifyParagraph(p ast.Node, source []byte, index bridgeIndex, planned map[
 					}
 					ref := chainSlug + "/" + nn
 					if id, ok := index[chainSlug][nn]; ok {
+						if visit != nil {
+							visit(cn, text, chainSlug, id)
+						}
 						wrapInLink(cn.Parent(), cn, "#/learn/"+chainSlug+"/"+id)
 						// chainSlug stays — a run can chain more than one "/NN".
 					} else if !planned[ref] {

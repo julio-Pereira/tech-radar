@@ -3,6 +3,8 @@ id: performance
 title: "Performance, profiling e testes de carga"
 summary: "Medir, atribuir causa e otimizar: pprof, benchmarks com benchstat, escape analysis e a meta de p99 abaixo de 200ms."
 estimatedMinutes: 30
+reviewedAt: 2026-10-10
+reviewEvery: 6m
 references:
   - title: "Profiling Go Programs"
     url: https://go.dev/blog/pprof

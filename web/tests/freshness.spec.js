@@ -1,10 +1,12 @@
 // @ts-check
 // UX platform melhoria 6: a milestone that opted into content-freshness
 // tracking (reviewedAt set) shows when it was last checked, or a plain-text
-// warning once past reviewDue. No real content has opted in yet, so every
-// test here injects reviewedAt/reviewDue via route interception (same
-// pattern as the sections-absent fallback test in reading.spec.js) and
-// controls the browser's own clock so the comparison is deterministic.
+// warning once past reviewDue. Most tests inject (or strip) reviewedAt/
+// reviewDue via route interception (same pattern as the sections-absent
+// fallback test in reading.spec.js) and control the browser's own clock so
+// the comparison is deterministic. go-fintech is the first trilha whose real
+// content opted in (reviewEvery backfill, go-fintech Fase 0); the last test
+// checks that real data end to end.
 const { test, expect } = require('@playwright/test');
 
 const SLUG = 'go-fintech';
@@ -15,13 +17,17 @@ async function mockReviewFields(page, { reviewedAt, reviewDue }) {
     const response = await route.fetch();
     const json = await response.json();
     const milestone = json.milestones.find((m) => m.id === MILESTONE_ID);
-    if (reviewedAt !== undefined) milestone.reviewedAt = reviewedAt;
-    if (reviewDue !== undefined) milestone.reviewDue = reviewDue;
+    // null strips the field (a marco that never opted in); undefined keeps the real value.
+    if (reviewedAt === null) delete milestone.reviewedAt;
+    else if (reviewedAt !== undefined) milestone.reviewedAt = reviewedAt;
+    if (reviewDue === null) delete milestone.reviewDue;
+    else if (reviewDue !== undefined) milestone.reviewDue = reviewDue;
     await route.fulfill({ response, json });
   });
 }
 
 test('a milestone with no reviewedAt shows nothing', async ({ page }) => {
+  await mockReviewFields(page, { reviewedAt: null, reviewDue: null });
   await page.goto(`/#/learn/${SLUG}`);
   const node = page.locator(`.timeline-node[data-id="${MILESTONE_ID}"]`);
   await expect(node.locator('.node-freshness')).toHaveCount(0);
@@ -73,4 +79,17 @@ test('crossing the browser clock past reviewDue flips the label on a fresh rende
   await page.clock.setFixedTime(new Date('2026-11-01T12:00:00Z'));
   await page.reload();
   await expect(node.locator('.node-freshness')).toHaveText('Pode estar desatualizado');
+});
+
+test('real content: go-fintech/introducao declares reviewedAt and reviewEvery and shows it', async ({ page }) => {
+  const json = await (await page.request.get(`/data/courses/${SLUG}.json`)).json();
+  const milestone = json.milestones.find((m) => m.id === MILESTONE_ID);
+  expect(milestone.reviewedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  expect(milestone.reviewDue > milestone.reviewedAt).toBe(true);
+
+  await page.clock.install({ time: new Date(`${milestone.reviewedAt}T12:00:00Z`) });
+  await page.goto(`/#/learn/${SLUG}`);
+  const freshness = page.locator(`.timeline-node[data-id="${MILESTONE_ID}"] .node-freshness`);
+  await expect(freshness).toHaveText(/^Revisado em [a-z]{3}\/\d{4}$/);
+  await expect(freshness).not.toHaveClass(/stale/);
 });
