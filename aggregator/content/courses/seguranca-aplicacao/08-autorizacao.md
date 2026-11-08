@@ -70,7 +70,7 @@ O erro de arquitetura mais caro do marco: um `@PreAuthorize` no controller HTTP 
 **a chamada HTTP**. Ele não protege o mesmo caso de uso quando invocado por um **consumidor
 Kafka** processando um evento, ou por um **job agendado** rodando com credencial de
 serviço — *reencontro:* exatamente o ponto de responsabilidade de camada que
-`spring-boot/13` e a trilha `arquitetura-eventos` levantam para lógica de negócio em geral,
+`spring-boot/15` e a trilha `arquitetura-eventos` levantam para lógica de negócio em geral,
 aplicado aqui à decisão de autorização. A regra que resolve isso: **a decisão de
 autorização mora onde o caso de uso mora** — dentro do serviço de aplicação ou do domínio,
 não numa anotação da camada de entrada. Toda entrada (HTTP, mensagem, job) invoca o mesmo

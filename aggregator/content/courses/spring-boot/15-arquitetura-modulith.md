@@ -248,7 +248,7 @@ O `pix-gateway` é o seu componente do `fin-platform` — a especificação comp
   evento, e todas as respostas são iguais (marco 06)
 - [ ] Nenhum dual-write: com o broker fora, o pagamento é gravado e o evento espera no
   outbox; quando o broker volta, o relay o publica (marco 06)
-- [ ] Um `import` de classe interna de outro módulo faz o build falhar (marco 13)
+- [ ] Um `import` de classe interna de outro módulo faz o build falhar (marco 15)
 - [ ] Token sem o escopo correto recebe 403, e a negativa aparece no log `AUDIT` com o id
   de correlação (marco 09)
 - [ ] Com o PSP devolvendo 100% de erro, o circuito abre e as iniciações seguintes

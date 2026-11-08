@@ -43,7 +43,7 @@ do marco 06 publica) é o que importa.
 | 10 | Actuator + Micrometer, métricas de negócio e healthcheck honesto | `payment_initiate_seconds_*` por PSP e resultado no Prometheus; readiness não checa dependência externa |
 | 11 | Testes de integração com Testcontainers (Postgres + Kafka) | Suíte roda do zero em máquina limpa, sem serviço pré-instalado |
 | 12 | Imagem OCI sem root, deploy com migração expand/contract | Rollback da aplicação funciona com o schema já migrado |
-| 13 | Reorganização em módulos, com dependência entre eles testada | Teste de arquitetura falha se um módulo importar o interno do outro |
+| 15 | Reorganização em módulos, com dependência entre eles testada | Teste de arquitetura falha se um módulo importar o interno do outro |
 
 ## Definição de pronto (capstone)
 

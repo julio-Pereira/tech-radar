@@ -60,9 +60,9 @@ aceitável? bug real?) **antes** de a nova assumir. Só depois de um volume sufi
 sem divergência inexplicada é que o rollout real começa, geralmente via o mesmo mecanismo de
 entrega progressiva.
 
-> **Reencontro — `kubernetes/13`; `spring-boot/13`; `arquitetura-eventos/13`.** GitOps e entrega
+> **Reencontro — `kubernetes/13`; `spring-boot/15`; `arquitetura-eventos/13`.** GitOps e entrega
 > (`kubernetes/13`) implementam o mecanismo de *canary* que a entrega progressiva usa.
-> `spring-boot/13` já tratou monolito modular com fronteira testada — a mesma disciplina de
+> `spring-boot/15` já tratou monolito modular com fronteira testada — a mesma disciplina de
 > *branch by abstraction* dentro de um módulo. `arquitetura-eventos/13` cobre migrar sem parar
 > numa arquitetura orientada a eventos — o mesmo princípio de execução em paralelo, aplicado a
 > fluxo de mensagens em vez de cálculo síncrono.

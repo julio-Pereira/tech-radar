@@ -272,10 +272,10 @@ os marcos usam estes termos sem redefini-los a cada vez.
 **Em uma frase:** um monolito dividido em módulos cujas fronteiras são verificadas por teste — no Spring Modulith, cada pacote de topo é um módulo e seus subpacotes são internos.
 **No fin-platform:** `payments`, `antifraud` e `audit` no mesmo processo, com `ApplicationModules.verify()` no CI.
 **Erro comum:** confiar em "módulo por convenção" — nada impede o `import` proibido até o teste existir.
-**Onde na prática:** marco 13.
+**Onde na prática:** marco 15.
 
 ### Event Publication Registry
 **Em uma frase:** a tabela do Spring Modulith onde cada evento publicado é gravado na mesma transação de quem publica e só é marcado como concluído quando o listener termina com sucesso.
 **No fin-platform:** se o listener do antifraude falha, a publicação fica `FAILED` e pode ser republicada — o outbox in-process.
 **Erro comum:** usar `@ApplicationModuleListener` sem o registro e achar que tem a garantia do outbox; um crash depois do commit perde o evento.
-**Onde na prática:** marco 13.
+**Onde na prática:** marco 15.

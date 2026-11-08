@@ -422,9 +422,12 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	// Every milestone has a hands-on section again since java-e-jvm Fase 3;
-	// a new one without it is a regression.
-	var wantNoSection []string
+	// The spring-boot adendo stubs (Fase A) leave this list as each marco is
+	// written; once the adendo is complete it must be empty again.
+	wantNoSection := []string{
+		"spring-boot/feature-toggles-e-mudanca-segura",
+		"spring-boot/programacao-reativa",
+	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}

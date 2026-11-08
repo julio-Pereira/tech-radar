@@ -63,7 +63,7 @@ propriedade arquitetural continuamente — a fronteira vira regra de CI, não bo
 documento. O exemplo mais direto: um teste que falha se o código do módulo `payments` importa
 qualquer classe interna do módulo `ledger` fora da interface pública declarada.
 
-> **Reencontro — `spring-boot/13`.** Spring Modulith implementa exatamente essa verificação via
+> **Reencontro — `spring-boot/15`.** Spring Modulith implementa exatamente essa verificação via
 > teste para um monolito modular — a mesma disciplina de fitness function, aplicada antes de
 > qualquer rede entrar em jogo. `arquitetura-eventos/02` já tratou contexto delimitado como
 > fronteira de modelagem tática; aqui ela vira critério de **onde cortar o processo**, não só o

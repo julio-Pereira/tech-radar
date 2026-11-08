@@ -65,7 +65,7 @@ O `ledger-core` cresce em três módulos de negócio dentro do mesmo serviço: `
 `extrato`. Cada um com o seu `internal/`, a sua API pública e os seus adaptadores, no mesmo binário e
 no mesmo deploy. É o **monolito modular**: as fronteiras de um sistema distribuído, sem a rede no
 meio. Se um módulo um dia virar serviço próprio, a fronteira já existe. O mesmo desenho em Spring é o
-Spring Modulith, de `spring-boot/13`; os estilos e o critério de escolha estão em
+Spring Modulith, de `spring-boot/15`; os estilos e o critério de escolha estão em
 `arquitetura-de-software/01`.
 
 Quando o projeto tem **vários módulos Go** (vários `go.mod`), um **workspace** (`go.work`, Go 1.18)

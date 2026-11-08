@@ -114,7 +114,7 @@ Go.
 4. Um relatório mede a cerimônia (contagem de arquivos e linhas) de implementar o mesmo caso de uso
    simples com e sem hexagonal, sem concluir qual é "melhor" de forma absoluta.
 
-**Complemento.** No material de `spring-boot/13` (hexagonal "sem cerimônia"), identifique o ponto
+**Complemento.** No material de `spring-boot/15` (hexagonal "sem cerimônia"), identifique o ponto
 exato onde a cerimônia foi reduzida e justifique se essa redução é segura para o seu domínio ou não.
 
 **Checagem**
@@ -128,8 +128,8 @@ exato onde a cerimônia foi reduzida e justifique se essa redução é segura pa
 6. Por que criar uma interface para toda dependência, por reflexo, não é a mesma coisa que aplicar
    inversão de dependência de forma útil?
 
-> **Reencontro — `spring-boot/13`; `go-fintech/01`; `arquitetura-eventos/02`; `spring-boot/11`.**
-> O hexagonal "sem cerimônia" do Spring Modulith em `spring-boot/13` é o ponto de referência direto
+> **Reencontro — `spring-boot/15`; `go-fintech/01`; `arquitetura-eventos/02`; `spring-boot/11`.**
+> O hexagonal "sem cerimônia" do Spring Modulith em `spring-boot/15` é o ponto de referência direto
 > deste marco para a pergunta "quando a cerimônia completa não compensa". A estrutura de pacotes Go
 > de `go-fintech/01` é onde a convenção "interface definida por quem consome" se apoia na prática. A
 > ACL de `arquitetura-eventos/02` é formalizada aqui como caso particular de adaptador. E o teste de

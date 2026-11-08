@@ -108,8 +108,8 @@ cedo numa revisão de código humana, antes mesmo do teste de arquitetura rodar?
    compartilham essa mesma regra?
 4. Qual pergunta decide o estilo certo para um contexto específico?
 
-> **Reencontro — `spring-boot/13`; `system-design/03`; `arquitetura-eventos/06`; `go-fintech/02`.**
-> O Spring Modulith "sem cerimônia" de `spring-boot/13` é hexagonal aplicado com pragmatismo — aqui
+> **Reencontro — `spring-boot/15`; `system-design/03`; `arquitetura-eventos/06`; `go-fintech/02`.**
+> O Spring Modulith "sem cerimônia" de `spring-boot/15` é hexagonal aplicado com pragmatismo — aqui
 > o critério por trás dessa escolha fica explícito. Monolito modular como estilo de sistema já foi
 > tratado em `system-design/03`; este marco foca na fronteira de módulo, não na fronteira de
 > serviço. `arquitetura-eventos/06` trata a projeção como resposta a uma pergunta específica — a

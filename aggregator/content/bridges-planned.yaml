@@ -18,3 +18,9 @@
 - ref: kotlin-backend/03
   motivo: "java-e-jvm/05 compara records e sealed com o mesmo desenho em Kotlin, na trilha kotlin-backend, ainda não publicada (plano da java-e-jvm, §7)."
   ate: 2027-05-01
+- ref: kotlin-backend/07
+  motivo: "spring-boot/13 (programação reativa) compara o Flux com o Flow do Kotlin, na trilha kotlin-backend, ainda não publicada (adendo de entrevista da spring-boot, §3)."
+  ate: 2027-05-01
+- ref: design-de-codigo/05
+  motivo: "spring-boot/04 (padrões que o Spring já usa) aponta para o catálogo de padrões da trilha design-de-codigo, ainda não publicada (adendo de entrevista da spring-boot, §4)."
+  ate: 2027-05-01
