@@ -1,0 +1,36 @@
+questions:
+  - question: "Um serviço novo vai nascer com `pkg/`, `api/`, `configs/`, `build/`, `deployments/` e `internal/`, \"porque é o layout padrão do Go\". O que está errado?"
+    options:
+      - "Nada: esse é o layout oficial do Go, e o `go build` depende dessas pastas para achar os pacotes"
+      - "Só `pkg/`: o Go recusa importar pacotes de um diretório com esse nome"
+      - "Falta `src/`, que o Go exige na raiz de todo módulo desde a versão 1.11"
+      - "Não é o layout oficial: o oficial pede `cmd/` e `internal/`, o resto quando houver conteúdo"
+    answer: 3
+    explanation: "O repositório `golang-standards/project-layout` avisa no próprio README que não é um padrão oficial do time do Go. O layout oficial (Organizing a Go module) descreve `cmd/<nome>/` para executáveis e `internal/` para código privado do módulo. Pastas vazias criadas por antecipação só espalham o código; o Go não depende de nenhuma delas, e `src/` é coisa do GOPATH."
+
+  - question: "`ledger` importa `antifraude` para pedir uma decisão, e `antifraude` importa `ledger` para ler o saldo. O que acontece, e o que isso indica?"
+    options:
+      - "Compila com um aviso do `go vet`; o ciclo só incomoda a legibilidade do código"
+      - "Não compila; o ciclo indica que falta uma interface do lado de quem consome, ou que é um pacote só"
+      - "Compila normalmente: o compilador do Go resolve ciclos entre pacotes do mesmo módulo"
+      - "Não compila; a única saída é juntar os dois pacotes num pacote `common` compartilhado pelos dois lados"
+    answer: 1
+    explanation: "Import cíclico é erro de compilação em Go. O erro é informação: ou os dois pacotes são um só conceito, ou um deles deveria depender de uma interface pequena declarada do seu próprio lado (o `antifraude` declara `Saldos` com um método, e quem monta tudo no `main` passa o `ledger`). Um pacote `common` costuma virar o depósito de tudo."
+
+  - question: "O `extrato` tenta importar `github.com/pix-platform/ledger-core/ledger/internal/regras`. O que acontece?"
+    options:
+      - "O compilador recusa: `use of internal package ... not allowed`, porque `extrato` não está sob `ledger/`"
+      - "Compila, porque os dois pacotes estão no mesmo módulo e a regra do `internal` só vale entre módulos diferentes"
+      - "Compila, mas o `go vet` avisa que o pacote foi marcado como interno pelo autor"
+      - "Compila só com a build tag `internal`, que libera o acesso a pacotes internos"
+    answer: 0
+    explanation: "Um pacote sob `ledger/internal/` só pode ser importado por código cuja raiz é `ledger/`. A regra vale dentro do mesmo módulo, e é por isso que ela funciona como fronteira de um monolito modular: o `extrato` enxerga só a API pública do `ledger`. Não há build tag nem exceção; o erro saiu exatamente com essa mensagem na conferência."
+
+  - question: "Onde a injeção de dependência acontece num serviço Go com portas e adaptadores sem framework?"
+    options:
+      - "Num container de DI configurado por anotação, como no Spring, lido na inicialização"
+      - "Numa variável global por pacote, preenchida no `init()` de cada adaptador"
+      - "No `context.Context` da requisição, com `context.WithValue` em cada middleware"
+      - "No `main`: ele cria o repositório, passa ao serviço, passa o serviço ao handler"
+    answer: 3
+    explanation: "Injeção manual no `main` é explícita e conferida pelo compilador: se faltar uma dependência, não compila. Variável global e `init()` escondem a ordem de construção e dificultam teste; `context.Value` é para dado de requisição, não para dependência (marco 06). Um gerador como o Wire só vale quando o `main` fica grande demais para ler."

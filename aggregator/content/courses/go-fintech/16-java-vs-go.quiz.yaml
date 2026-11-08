@@ -1,36 +1,36 @@
 questions:
-  - question: "Em qual cenário o curso conclui que Java continua sendo a escolha mais forte?"
+  - question: "Na entrevista: \"por que Go e não Java para o antifraude?\". Qual resposta mostra critério?"
     options:
-      - "Gateway de pagamento com alto fan-out e requisito de cold start baixo"
-      - "CLI de reconciliação distribuída para a equipe de operações"
-      - "Sidecar de service mesh e operator de Kubernetes"
-      - "Batch de fechamento e conciliação massiva de fim de dia"
-    answer: 3
-    explanation: "Spring Batch é o padrão de mercado para settlement e conciliação pesada, com um ecossistema que Go não replica. Os outros três são exatamente onde Go ganha: borda com fan-out alto, binário único para ferramenta interna, e o ecossistema cloud-native, que é nativamente Go."
-
-  - question: "Para uma API comum de cadastro e consulta de saldo, o que decide entre Java e Go?"
-    options:
-      - "A latência p99 alcançável, que separa as duas linguagens por uma ordem de grandeza"
-      - "A infraestrutura existente, a expertise do time e o custo operacional"
-      - "O modelo de concorrência, já que CSP lida melhor com I/O que virtual threads"
-      - "O consumo de memória por instância, decisivo em qualquer volume de tráfego"
-    answer: 1
-    explanation: "É o empate técnico do marco: nesse tipo de serviço as duas entregam o necessário, então a decisão deixa de ser técnica e passa a ser organizacional. Insistir em argumento de desempenho aqui é escolher primeiro e justificar depois — que é exatamente o hábito que o curso quer desfazer."
-
-  - question: "Por que integrações ISO 8583, ISO 20022 e SWIFT pesam a favor de Java?"
-    options:
-      - "Porque os padrões definem uma implementação de referência escrita em Java"
-      - "Porque as mensagens são binárias e Go não tem suporte adequado a parsing binário"
-      - "Porque existem bibliotecas maduras e testadas em produção; em Go se implementa mais do zero"
-      - "Porque a certificação junto às bandeiras exige linguagem com verificação de tipos em runtime"
+      - "Go é compilado e Java é interpretado, então Go é sempre mais rápido em produção"
+      - "Java é pesado e verboso, e Go é a linguagem moderna que as fintechs adotaram"
+      - "Medimos p99 aquecido, memória e subida no nosso ambiente, e o time já opera Go"
+      - "Go tem goroutines e Java não tem um modelo de concorrência equivalente"
     answer: 2
-    explanation: "O argumento é de ecossistema, não de linguagem: essas especificações são grandes, cheias de variações por instituição, e o custo de reimplementá-las é alto e arriscado. Go faz parsing binário muito bem. Nenhum dos padrões exige linguagem específica nem tem implementação de referência obrigatória."
+    explanation: "Uma resposta defensável nomeia critérios (latência de cauda, memória, subida, ecossistema, time) e traz números medidos no ambiente da decisão. Java usa JIT e não é interpretado no caminho quente; \"pesado\" e \"moderno\" são folclore; e desde o Java 21 as virtual threads dão um modelo de concorrência barato. A ADR registra os números e o gatilho que reverteria a escolha."
 
-  - question: "Qual é o entregável final que o curso propõe?"
+  - question: "Medindo o mesmo endpoint, o Java mostra p99 de 48 ms em todas as rodadas, inclusive depois de aquecido, e o Go 1 ms. Qual o próximo passo antes de concluir algo?"
     options:
-      - "O LedgerCore rodando com antifraude, observabilidade e p99 abaixo de 200ms"
-      - "Um repositório de referência que sirva de template para novos serviços do time"
-      - "A fluência em Go idiomático suficiente para revisar código sênior escrito por outra pessoa na linguagem"
-      - "A capacidade de desenhar e defender a tabela de escolha tecnológica do seu sistema"
+      - "Concluir que a JVM tem latência de cauda pior e registrar na ADR, com os três números"
+      - "Investigar o número constante: perto de 40 ms costuma ser Nagle com ACK atrasado (TCP_NODELAY)"
+      - "Repetir a medição com mais aquecimento, porque o JIT ainda não compilou o caminho quente do handler"
+      - "Trocar o coletor do Java para ZGC, que elimina as pausas responsáveis pela cauda"
+    answer: 1
+    explanation: "Um valor constante perto de 40 ms, insensível ao aquecimento, é a assinatura de Nagle esperando o ACK atrasado do TCP. O `HttpServer` da JDK não liga `TCP_NODELAY` por padrão; com `-Dsun.net.httpserver.nodelay=true`, o p99 caiu para 1,1 ms na medição da trilha. Mais aquecimento não mudou nada, e GC não produz uma cauda tão regular."
+
+  - question: "Com virtual threads no Java 21, o que ainda costuma diferenciar Go de Java num serviço de borda com muitas réplicas pequenas?"
+    options:
+      - "Memória em repouso e tempo de subida, que pesam no custo por réplica e no autoscaling"
+      - "A capacidade de atender milhares de conexões simultâneas bloqueadas em I/O"
+      - "A latência de cauda, que o JIT nunca consegue igualar à de código compilado antes da execução"
+      - "Nada: as virtual threads igualaram as duas plataformas em todos os aspectos"
+    answer: 0
+    explanation: "Virtual threads resolveram a concorrência barata em I/O, e na medição a latência empatou. O que continuou diferente foi a ordem de grandeza da memória (6 MB contra 50 MB em repouso) e da subida (8 ms contra 150 ms), o que pesa em scale-to-zero, autoscaling e muitas réplicas. Em serviços de domínio rico, outros critérios podem pesar mais."
+
+  - question: "Em qual destes cenários Java costuma ser a escolha mais defensável numa fintech?"
+    options:
+      - "Um gateway de borda que só valida, roteia e agrega chamadas a vários outros serviços internos"
+      - "Um sidecar que roda em cada pod do cluster e precisa de pouca memória"
+      - "Uma CLI de operação distribuída como binário único para o time de plantão"
+      - "Integração ISO 20022 e batch de fim de dia, com bibliotecas maduras e Spring Batch"
     answer: 3
-    explanation: "O código é o meio; o resultado é conseguir dizer, com fundamento, onde cada linguagem entra no seu contexto e por quê. Um sistema rodando e fluência na linguagem são consequências do caminho, e o template de repositório nunca foi a proposta — cada organização tem restrições diferentes."
+    explanation: "Integrações corporativas (ISO 8583, ISO 20022, SWIFT) e batch pesado são onde o ecossistema Java tem bibliotecas testadas em produção; em Go, implementa-se mais do zero. Gateway de borda, sidecar e CLI de binário único são o terreno clássico de Go: footprint pequeno, subida rápida e distribuição simples."

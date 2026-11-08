@@ -390,7 +390,7 @@ site. A do `buf` voltou para a URL raiz da documentação.
 - **SSRF:** o `Control` do `Dialer` recusa loopback, rede privada, link-local (inclusive
   `169.254.169.254`), IPv6 local e IPv4 mapeado em IPv6, e aceita IP público.
 - **`os.Root`:** barra `..`, caminho absoluto e `a/../../x`.
-- **Build reprodutível:** com `-trimpath -ldflags=-buildid=`, o mesmo código em dois diretórios deu o
+- **Build reprodutível:** com `-trimpath` (com ou sem `-ldflags=-buildid=`), o mesmo código em dois diretórios deu o
   mesmo SHA-256; sem a flag, deu dois diferentes, e o caminho local aparece no binário.
 - **Imagem:** *distroless* `nonroot`, sem `/bin/sh` (`stat /bin/sh: no such file or directory`),
   15,7 MB.
@@ -416,3 +416,85 @@ site. A do `buf` voltou para a URL raiz da documentação.
   - preempção assíncrona: Go 1.14.
 
 **Viés das respostas:** a correta é a mais longa em 2 de 14 questões.
+
+## 15. Fase F — Bloco E (marcos 15 e 16), capstone e glossário
+
+**Marco 15 (estrutura e arquitetura).**
+- O README do `golang-standards/project-layout` diz que o repositório não é um padrão oficial do time
+  do Go; o layout oficial é o de *Organizing a Go module* (`cmd/` e `internal/`).
+- **`internal/`:** importar `ledger/internal/regras` a partir de `extrato`, no mesmo módulo, deu
+  `use of internal package ... not allowed`.
+- **Ciclo de import:** `ledger` ↔ `antifraude` não compila (`import cycle not allowed`).
+- **Teste de arquitetura** sobre `go list -json ./...`: reprovou a aresta `antifraude` →
+  `ledger/adapters/postgres` e passou sem ela. Com cache, o `go test` não reexecutou depois da
+  mudança em outro pacote; daí o `-count=1` no texto.
+- **Complemento MCP:** `github.com/modelcontextprotocol/go-sdk` v1.8.0 com
+  `mcp.NewInMemoryTransports`; a ferramenta declara `ReadOnlyHint: true` e o teste confere que
+  nenhuma escrita chegou ao ledger.
+
+**Marco 16 (Java × Go) e capstone.**
+- Medição em `$S/jvg` (mesmo endpoint em Go 1.27 e Java 21 com virtual threads, `vegeta` a 2.000
+  req/s, 10 s de aquecimento, 3 execuções). Os números da tabela do marco são os medidos.
+- O p99 de 48 ms do Java, constante e insensível ao aquecimento, sumiu com
+  `-Dsun.net.httpserver.nodelay=true` (1,1 ms). O artefato virou parte do texto e de uma questão.
+- `## Capstone` no marco 16, com entrega por marco, critérios de pronto e a pergunta final.
+- `PROJETO.md` reescrito: incrementos dos 16 marcos, definição de pronto, ADRs, game day com seis
+  cenários e a regra das horas (845 min → 28 h).
+
+**Glossário e conceitos.**
+- `GLOSSARIO.md` com 55 verbetes, todos com os quatro campos e "marco NN"; cobertura de 55/55 no
+  golden; `glossary: GLOSSARIO.md` em `course.yaml`.
+- `conceitos.yaml`: `nil-tipado` (dono `go-fintech/04`, citado em `go-fintech/01`) e
+  `vazamento-de-goroutine` (dono `go-fintech/07`, citado em `go-fintech/01` e em
+  `concorrencia-e-recursos/06`, `/09` e `/10`). O 07 passou a usar o apelido no texto.
+  `escape-analysis` ficou fora (sem citação fora do dono) e `graceful-shutdown` também (o conceito é
+  ensinado em mais de um marco, sem dono claro).
+
+**Fechamento da estrutura.** Σ `estimatedMinutes` = 845; todos os 16 marcos têm `## Hands-on` com os
+cinco blocos, e a lista `wantNoSection` do teste de seções ficou vazia.
+
+**Viés das respostas:** a correta é a mais longa em 0 de 8 questões.
+
+## 16. Fase G — auditoria final, revisão independente e jornada
+
+**Auditoria automatizada.** `aggregator/internal/course/gofintech_auditoria_test.go` roda em todo
+build e confere:
+- 16 marcos, `level: advanced`, Σ 845 min e `estimatedHours: 28`;
+- os 8 ids anteriores à reestruturação;
+- `reviewEvery` de 6m em 01, 08, 13 e 14 e de 12m nos demais, sempre com `reviewedAt`;
+- 1 a 3 competências e referências em cada marco;
+- as seções "Exemplo numa fintech", "Hands-on" e "Principais aprendizados", e os cinco blocos do
+  hands-on, uma vez cada;
+- o capstone só no marco 16;
+- 6 questões em 03, 04, 06, 07, 09 e 13, e 4 nos demais (76 no total);
+- a correta como a opção mais longa em no máximo 20% das questões (hoje 14 de 76);
+- um glossário com pelo menos 30 verbetes, todos apontando para um marco de 01 a 16;
+- nenhuma ponte `go-fintech/NN` quebrada em nenhuma trilha.
+
+A própria auditoria foi testada com defeitos de propósito (minutos trocados, bloco de checagem sem
+rótulo, ponte para `go-fintech/99`), e reprovou os três.
+
+**Revisão independente** dos marcos 03, 04, 06, 09 e 13, por um agente que não escreveu o conteúdo,
+com o código rodado no Go 1.27.3. Todas as respostas de quiz conferiram. Os achados foram
+reproduzidos antes de corrigir:
+
+| Marco | Achado | Correção |
+| --- | --- | --- |
+| 03 (bloqueante) | O bug do extrato não depende de capacidade sobrando: `s.lines[0:k]` tem capacidade até o fim do array, então o `append` na página 0 sobrescreve a página 1 sempre (conferido com 3 e com 5 linhas, sem folga) | Mecanismo reescrito; tutorial e invariante 1 separam a página do meio (sempre) da última (só com folga) |
+| 03 | Leitura e escrita concorrentes abortam com `concurrent map read and map write`, não com `concurrent map writes` | As duas mensagens citadas |
+| 04 | O SA4023 acusa no ponto da comparação com `nil`, não na função | Texto e invariante 2 ajustados |
+| 04 | `default-signifies-exhaustive` vem ligado no golangci-lint: um `default` cala o `gochecksumtype` | O invariante 3 exige switch sem `default` |
+| 09 | O `inTx` não fazia rollback quando `fn` entrava em pânico | `recover` no `defer`, com rollback e novo `panic`; conferido com driver falso: 1 rollback e `InUse 0` |
+| 09 | "O pool nunca passa de `MaxOpenConns`" testa a biblioteca, não o código | O invariante 4 passa a exigir `WaitCount > 0` e `InUse == 0` |
+| 09 | `NOT NULL` sem default nem se aplica numa tabela com linhas | Explicação do quiz corrigida |
+| 13 (bloqueante) | Um cliente só com `MaxVersion: TLS11` falha sozinho (`no supported versions satisfy MinVersion and MaxVersion`), o que deixaria o teste vazio | O invariante 2 exige `MinVersion: TLS10` e o erro do servidor (`protocol version not supported`, conferido) |
+| 13 | O build ID é hash do conteúdo: só `-trimpath` já deu o mesmo SHA-256 em dois diretórios | `-buildid=` passa a ser opcional no texto, no quiz, no glossário e no §14 |
+| 13 | Com `ProxyFromEnvironment` e `HTTPS_PROXY`, o `Control` do SSRF só vê o IP do proxy | `http.Transport` próprio com `Proxy: nil`, no texto e no invariante 3; nota sobre `netip.Addr.Unmap()` |
+
+O marco 06 não teve achados. Os números do exemplo do 09 (abortos e esperas) foram medidos no
+Postgres real na Fase D (§13) e não foram remedidos pelo revisor.
+
+**Jornada `entrevista-senior`.** O `PLANO-adendo-sinais-de-mercado.md` citado pelo plano não está no
+repositório. Por isso o critério foi o do próprio plano (preparar backend Go sênior para entrevista):
+entram `go-fintech/04`, `/06`, `/07` e `/16` no grupo "Código e LLD", e a jornada passa de 28 para 32
+etapas.

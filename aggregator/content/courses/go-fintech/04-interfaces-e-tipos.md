@@ -65,8 +65,9 @@ fmt.Println(err == nil) // false
 ```
 
 A correção é devolver o `nil` literal no caminho de sucesso (`return nil`), nunca uma variável de tipo
-concreto. O `go vet` não pega esse caso; o **staticcheck** pega (SA4023: "never returns a nil
-interface value"), e é um bom motivo para tê-lo no CI.
+concreto. O `go vet` não pega esse caso; o **staticcheck** pega (SA4023), e é um bom motivo para tê-lo no
+CI. Ele acusa no ponto da comparação (`this comparison is always true`), com a nota de que a função
+"never returns a nil interface value": sem um chamador que compare com `nil`, não há aviso.
 
 ## Embedding: promoção, não herança
 
@@ -148,9 +149,11 @@ porque comparava `err.(*NotFoundError) == nil`, e não `err == nil`.
    tenta, e um teste que roda `go build` nele e exige a falha com `unexported method decisao` (e
    não qualquer falha).
 2. Toda função do pacote que devolve `error` devolve o `nil` literal no sucesso: os testes de caminho
-   feliz comparam com `err == nil` (nunca com um tipo concreto), e o `staticcheck` não acusa SA4023.
+   feliz comparam com `err == nil` (nunca com um tipo concreto), e o `staticcheck ./...`, que analisa
+   também os `_test.go` onde estão essas comparações, não acusa SA4023.
 3. O `gochecksumtype` reprova o `type switch` de `Status` quando um caso é removido. Prove apagando
-   o `case Revisao` e vendo `missing cases for Revisao`.
+   o `case Revisao` e vendo `missing cases for Revisao`. O switch não tem `default`: no
+   golangci-lint, `default-signifies-exhaustive` vem ligado, e um `default` calaria o aviso.
 4. A tabela de `Status` cobre os três tipos, inclusive o motivo e a fila.
 
 **Complemento.** Escreva o mesmo `Status` com generics (`func Status[D Decisao](d D) string`) e

@@ -62,4 +62,4 @@ questions:
       - "Parar as três réplicas, aplicar a migração e subir todas com o código novo"
       - "Expandir (coluna anulável ou com default), migrar o código, e só depois restringir"
     answer: 3
-    explanation: "É o expand/contract de `dados-distribuidos/11`: a mudança de schema precisa conviver com o binário antigo. Primeiro a coluna entra de forma compatível (anulável ou com default), depois o código passa a usá-la, e só no fim vem a restrição. `NOT NULL` sem default quebra o `INSERT` das réplicas antigas; parar tudo é downtime."
+    explanation: "É o expand/contract de `dados-distribuidos/11`: a mudança de schema precisa conviver com o binário antigo. Primeiro a coluna entra de forma compatível (anulável ou com default), depois o código passa a usá-la, e só no fim vem a restrição. `NOT NULL` sem default nem se aplica numa tabela com linhas, e o código novo que exige a coluna quebra se chegar antes dela; parar tudo é downtime."

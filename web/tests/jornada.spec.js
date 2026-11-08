@@ -111,7 +111,7 @@ test('the radar svg is decorative; the list carries the numbers; axe passes', as
 
 test('the paths index lists the interview path', async ({ page }) => {
   await page.goto('/#/paths');
-  await expect(page.locator('a.course-card[href="#/paths/entrevista-senior"] .course-card-meta')).toContainText('28 etapas');
+  await expect(page.locator('a.course-card[href="#/paths/entrevista-senior"] .course-card-meta')).toContainText('32 etapas');
 });
 
 test('phone width: no horizontal page scroll on the path with the radar', async ({ page }) => {
