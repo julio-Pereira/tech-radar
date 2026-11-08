@@ -56,3 +56,37 @@ repositório da especificação Reactive Streams foi aberto e confere (licença 
   Publication Registry) e a linha 13 da tabela de incrementos do `PROJETO.md` passaram a 15.
 
 **Testes:** a lista de marcos sem hands-on ganhou os dois stubs.
+
+## 3. Fase B — marco 13, programação reativa
+
+Projeto de conferência com Reactor 3.8.8, Reactor Test, BlockHound 1.0.18 e Micrometer Context
+Propagation 1.2.1, no JDK 25. Ao fim da fase, 17 testes passam, em duas rodadas seguidas.
+
+**Saídas e medições citadas no texto:**
+- **Montagem × assinatura:** 0 chamadas depois de montar, 2 depois de dois `block()`.
+- **Threads:** `publishOn(parallel)` com `subscribeOn(boundedElastic)` deram `[A:boundedElastic, B:parallel, C:parallel]`.
+- **Ordem:** com atrasos de i × 50 ms sobre `3, 1, 2`, o `flatMap` deu `[1, 2, 3]` e o `concatMap`
+  `[3, 1, 2]`.
+- **Concorrência padrão do `flatMap`:** 256 (`Queues.SMALL_BUFFER_SIZE`, lido em tempo de execução).
+- **`onErrorResume`:** fora do `flatMap`, `[1, -1]`; dentro, `[1, 3]`.
+- ***Backpressure*:** `onBackpressureBuffer(16)` com produtor a 1/ms e consumidor a 1/20 ms deu
+  `OverflowException`; `limitRate(10)` pediu 10 e depois 8 em 8.
+- **Bloqueio:** 8 chamadas de 200 ms num *scheduler* de 2 threads, ~843 ms; no `boundedElastic`,
+  ~209 ms.
+- **Contexto:** sem propagação, `trace=null` no `flatMap`; com o `ThreadLocalAccessor` e
+  `Hooks.enableAutomaticContextPropagation()`, `trace=abc123`.
+- **Tempo virtual:** `retryWhen(Retry.backoff(5, 1s))` com 3 tentativas, e `timeout` de 2 s.
+
+**Invariantes do desafio** (`StatusEmLote`): os 5 testes passam. Dois problemas apareceram na
+conferência e entraram no texto:
+- **Contador de chamadas em voo:** decrementado no `doFinally`, ele mediu pico 7 com `flatMap(..., 4)`,
+  porque o `doFinally` roda depois de o sinal descer e o `flatMap` já assinou a próxima chamada.
+  Decrementado no `doOnTerminate`, o pico foi 4 nas três rodadas.
+- **BlockHound global:** ele é instalado no processo e não desinstala. Instalado num teste, travou o
+  teste de `trace_id` da mesma JVM: o `jstack` mostrou o `main` parado no `Mono.block`. A solução foi
+  uma classe própria para o teste do BlockHound, com o *surefire* em `reuseForks=false`. Depois disso,
+  a suíte passou inteira duas vezes.
+
+**Viés das respostas:** em nenhuma das 6 questões a correta é estritamente a opção mais longa.
+
+**Revisão independente:** fica para a Fase D, como o plano pede.
