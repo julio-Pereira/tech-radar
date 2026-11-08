@@ -24,7 +24,7 @@ questions:
       - "O ZGC pausa menos porque coleta menos vezes, e o heap fica cheio por mais tempo"
       - "Erro de medição: o ZGC não registra as pausas dele no log de *safepoint*"
     answer: 0
-    explanation: "O ZGC faz marcação e relocação concorrentes, com threads próprias. Com 2 CPUs e 2 threads de aplicação, essas threads competem pela mesma cota: menos *throughput*, e as threads demoram mais para chegar ao *safepoint* (5 ms no p99 medido). O ZGC é geracional desde o 21 e só existe assim desde o 24, e as pausas dele aparecem no log (`ZMarkStartYoung`)."
+    explanation: "O ZGC faz marcação e relocação concorrentes, com threads próprias. Com 2 CPUs e 2 threads de aplicação, essas threads competem pela mesma cota: menos *throughput*, e as threads demoram mais para chegar ao *safepoint* (5 ms no p99 medido). O modo geracional do ZGC é o padrão desde o 23 e o único desde o 24, e as pausas dele aparecem no log (`ZMarkStartYoung`)."
 
   - question: "Um serviço usa um pool fixo de 8 threads e, em cada tarefa, guarda o contexto do cliente num `ThreadLocal`, sem nunca chamar `remove()`. O que acontece?"
     options:
@@ -42,9 +42,9 @@ questions:
       - "Sem limite: a memória direta só é limitada pelo sistema operacional e pelo cgroup"
       - "Até 64 MiB, o padrão fixo da JVM para memória direta"
     answer: 1
-    explanation: "O padrão de `MaxDirectMemorySize` é 0, que significa \"igual ao heap máximo\": com `-Xmx64m`, a alocação falhou em ~64 MiB com `Cannot reserve 1048576 bytes of direct buffer memory (allocated: 63963136, limit: 64880640)`. Somado ao heap, isso pode dobrar a conta da memória. Limite com `-XX:MaxDirectMemorySize`."
+    explanation: "O padrão de `MaxDirectMemorySize` é 0, que significa \"o heap máximo\" (`Runtime.maxMemory()`): com `-Xmx64m` e SerialGC, a alocação falhou em ~64 MiB com `Cannot reserve 1048576 bytes of direct buffer memory (allocated: 63963136, limit: 64880640)`. Somado ao heap, isso pode dobrar a conta da memória. Limite com `-XX:MaxDirectMemorySize`."
 
-  - question: "Qual o fundamento da hipótese geracional, que todos os coletores do HotSpot usam?"
+  - question: "Qual o fundamento da hipótese geracional, que o G1, o ZGC, o Parallel e o Serial usam?"
     options:
       - "Objetos antigos são mais acessados, então ficam numa geração de acesso rápido"
       - "A maioria dos objetos morre jovem, e coletar só a geração jovem é barato"

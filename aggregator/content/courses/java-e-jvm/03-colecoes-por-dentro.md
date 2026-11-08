@@ -1,7 +1,7 @@
 ---
 id: colecoes-por-dentro
 title: "Coleções por dentro"
-summary: "Escolher a coleção é escolher complexidade, ordem e comportamento sob concorrência. O HashMap por dentro (buckets, resize, treeification e por que o hash ruim custa quatro ordens de grandeza), o LRU com LinkedHashMap, o fail-fast que não é garantia e o ConcurrentHashMap como coleção."
+summary: "Escolher a coleção é escolher complexidade, ordem e comportamento sob concorrência. O HashMap por dentro (buckets, resize, treeification e por que o hash ruim custa de três a quatro ordens de grandeza), o LRU com LinkedHashMap, o fail-fast que não é garantia e o ConcurrentHashMap como coleção."
 estimatedMinutes: 60
 reviewedAt: 2026-11-08
 reviewEvery: 12m
@@ -42,8 +42,8 @@ o tamanho da tabela é sempre uma potência de 2. Chaves no mesmo *bucket* ficam
   com 12 entradas a tabela tem 16 posições, com 13 tem 32. Se você sabe o tamanho, dimensione na
   criação (`HashMap.newHashMap(n)`, desde o Java 19, já calcula a capacidade pelo fator de carga).
 - **Treeification.** Se um *bucket* passa de 8 entradas (`TREEIFY_THRESHOLD`) e a tabela tem pelo
-  menos 64 posições (`MIN_TREEIFY_CAPACITY`), a lista vira uma árvore rubro-negra; abaixo de 6, volta
-  a ser lista. A árvore limita o estrago de muitas colisões, mas ordena pelas chaves só se elas forem
+  menos 64 posições (`MIN_TREEIFY_CAPACITY`), a lista vira uma árvore rubro-negra; num *resize*, um *bucket* que fica
+  com 6 entradas ou menos volta a ser lista. A árvore limita o estrago de muitas colisões, mas ordena pelas chaves só se elas forem
   `Comparable`. Sem isso, a busca no *bucket* degenera.
 
 Quanto custa, medido com JMH no `pix-core` (10 mil chaves, `get` de uma delas, JDK 25):
@@ -54,7 +54,10 @@ Quanto custa, medido com JMH no `pix-core` (10 mil chaves, `get` de uma delas, J
 | `hashCode` constante, chave `Comparable` | ~200 ns |
 | `hashCode` constante, chave sem `Comparable` | ~74.000 ns |
 
-Quatro ordens de grandeza entre o hash bom e o hash ruim sem ordem. É por isso que `hashCode` não é
+Entre três e quatro ordens de grandeza entre o hash bom e o hash ruim sem ordem. O número exato
+depende de qual chave é buscada e varia muito entre execuções: o hash ruim sem `Comparable` teve erro
+de ±60% nesta medição (1 *fork*, 3 aquecimentos e 5 medições de 1 s, numa máquina de 4 núcleos), e uma
+revisão independente, buscando outras chaves, mediu de ~9 a ~36 µs. É por isso que `hashCode` não é
 detalhe: um hash que devolve uma constante, ou que ignora o campo que varia, transforma o mapa numa
 busca linear.
 
@@ -70,8 +73,9 @@ busca linear.
 - **`EnumMap` e `EnumSet`** são arrays indexados pelo ordinal do enum: compactos e rápidos. Use sempre
   que a chave for um enum.
 - **Coleções sequenciadas** (Java 21, JEP 431) deram uma interface comum às coleções com ordem
-  definida: `getFirst()`, `getLast()`, `reversed()` em `List`, `Deque`, `LinkedHashSet`,
-  `LinkedHashMap` e nos ordenados.
+  definida: `getFirst()`, `getLast()` e `reversed()` em `List`, `Deque` e `LinkedHashSet`
+  (`SequencedCollection`); `firstEntry()`, `lastEntry()`, `pollFirstEntry()` e `reversed()` em
+  `LinkedHashMap` e nos mapas ordenados (`SequencedMap`).
 
 ## *Fail-fast* não é garantia
 
@@ -130,7 +134,8 @@ operação pública é o ponto de partida honesto).
    precisa estar certo. O valor gravado é o instante do `put`, e o relógio só pode andar entre fases
    (uma `CyclicBarrier` cuja ação avança 1 s). Se ele andar durante a fase, a thread pode ler o
    relógio, perder a CPU e gravar depois: o cache estaria certo e o teste acusaria erro. Prove que o
-   teste pega o defeito real: sem os `synchronized`, ele falha em todas as repetições. O teste de
+   teste pega o defeito real: sem os `synchronized`, ele falhou nas 5 repetições, nesta máquina.
+  A falha é probabilística: o que o invariante exige é que ela seja observada. O teste de
    concorrência em profundidade (jcstress, determinismo) está em `concorrencia-e-recursos/08`.
 
 **Complemento.** Escreva o benchmark JMH do hash ruim: 10 mil chaves num `HashMap`, com `hashCode`

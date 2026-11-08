@@ -123,8 +123,10 @@ arredondamento em geral está em `ledger-e-contabilidade/05`.
 ## Hands-on
 
 **Tutorial.** Crie o `pix-core` com Maven (ou Gradle, com a ADR da escolha), `maven.compiler.release`
-em 25, JUnit 6, AssertJ, ArchUnit e JMH (este último com o processador de anotações no
-`maven-compiler-plugin`). Escreva o `Money` como um record sobre `BigDecimal` com escala fixa:
+em 25, JUnit 6, AssertJ, ArchUnit e JMH. O processador de anotações do JMH vai declarado em
+`annotationProcessorPaths` do `maven-compiler-plugin`: desde o JDK 23, o `javac` não roda mais os
+processadores que encontra no *classpath* sem `-proc:full`, e sem eles o JMH não gera a lista de
+*benchmarks*. Escreva o `Money` como um record sobre `BigDecimal` com escala fixa:
 
 ```java
 public record Money(BigDecimal valor) implements Comparable<Money> {

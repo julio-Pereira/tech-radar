@@ -41,7 +41,7 @@ questions:
       - "Degrada pouco, porque o bucket vira árvore e a busca é sempre O(log n)"
       - "Vai a um bucket só, em árvore; sem `Comparable`, a busca percorre muitas chaves"
     answer: 3
-    explanation: "Todas as chaves caem no mesmo *bucket*, que vira árvore acima de 8 entradas (com tabela de 64 ou mais). A árvore só ordena se as chaves forem `Comparable`; sem isso, a busca examina muitos nós. Medido com JMH no JDK 25: ~8 ns com hash bom, ~200 ns com hash constante e chave `Comparable`, ~74 µs sem `Comparable`. O espalhamento (`h ^ (h >>> 16)`) não ajuda com uma constante."
+    explanation: "Todas as chaves caem no mesmo *bucket*, que vira árvore acima de 8 entradas (com tabela de 64 ou mais). A árvore só ordena se as chaves forem `Comparable`; sem isso, a busca examina muitos nós. Medido com JMH no JDK 25: ~8 ns com hash bom, ~200 ns com hash constante e chave `Comparable`, dezenas de µs sem `Comparable` (de 9 a 74 µs, conforme a chave buscada). O espalhamento (`h ^ (h >>> 16)`) não ajuda com uma constante."
 
   - question: "Por que `ConcurrentHashMap` recusa `null` como valor, enquanto `HashMap` aceita?"
     options:
@@ -59,7 +59,7 @@ questions:
       - "O total fica abaixo do esperado: duas threads leem o mesmo valor e gravam"
       - "O total fica acima do esperado, porque o `put` repete quando há disputa"
     answer: 2
-    explanation: "Cada chamada é atômica, mas o par `get` + `put` não é: duas threads leem o mesmo valor e gravam o mesmo resultado, e um incremento se perde. Medido: 16 threads × 10 mil deram de 73 mil a 137 mil, de 160 mil. `merge(k, 1L, Long::sum)` ou `compute` fazem leitura e escrita sob a trava da chave, e deram 160 mil nas três rodadas."
+    explanation: "Cada chamada é atômica, mas o par `get` + `put` não é: duas threads leem o mesmo valor e gravam o mesmo resultado, e um incremento se perde. Medido: 16 threads × 10 mil deram de 73 mil a 137 mil, de 160 mil. `merge(k, 1L, Long::sum)` ou `compute` fazem leitura e escrita sob a trava do *bucket* da chave, e deram 160 mil nas três rodadas."
 
   - question: "Qual estrutura usar como fila de pedidos a processar, com inserção no fim e retirada no começo, numa só thread?"
     options:
