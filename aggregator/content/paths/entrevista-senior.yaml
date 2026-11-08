@@ -59,6 +59,15 @@ steps:
   - ref: concorrencia-e-recursos/08
     group: "Código e LLD"
     why: "Testar concorrência, com -race e testes determinísticos, é o critério de aceite dos desafios LLD."
+  - ref: java-e-jvm/02
+    group: "Código e LLD"
+    why: "O contrato de equals e hashCode, o cache de Integer e o BigDecimal.equals são as perguntas de Java mais antigas da banca."
+  - ref: java-e-jvm/03
+    group: "Código e LLD"
+    why: "HashMap por dentro e ConcurrentHashMap com operações atômicas: a base do cache LRU e do limite diário em live coding."
+  - ref: java-e-jvm/08
+    group: "Código e LLD"
+    why: "OOMKilled com o heap em 60% e a escolha do GC no contêiner são o diagnóstico de JVM mais cobrado de um sênior."
   - ref: go-fintech/04
     group: "Código e LLD"
     why: "Interfaces pequenas no consumidor e o nil tipado são as pegadinhas de Go mais cobradas no live coding."

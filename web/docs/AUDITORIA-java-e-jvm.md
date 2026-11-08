@@ -323,3 +323,34 @@ no JDK 25 do host. Todas as cargas são sintéticas, e o texto as descreve como 
 - **Licença do async-profiler:** Apache 2.0, conferida no POM e no repositório.
 
 **Viés das respostas:** em nenhuma das 14 questões a correta é estritamente a opção mais longa.
+
+## 5. Fase 3 — Bloco C, marco 11, capstone, glossário e conceitos
+
+**Marco 11 e capstone.**
+- `## Capstone` completo: entrega por marco, critérios de pronto provados por teste ou comando, e a
+  pergunta final do plano.
+- **Desvio do plano nas rodadas cronometradas:** o plano citava os desafios `cache-lru-ttl` e
+  `transferencia-sem-deadlock`, que não existem no banco. As rodadas usam:
+  - o `rate-limiter-concorrente`, que tem versão Java. Conferido no JDK 25 com o mesmo procedimento
+    do `tools/desafios/check-lld.sh`: o esqueleto falha nos 6 testes, e a referência passa nos 6;
+  - o `CacheLru` do marco 03, escrito do zero contra os testes do marco 03.
+
+  Criar os dois desafios novos no banco (com esqueleto, referência e o job LLD do CI) fica como
+  proposta para um PR próprio.
+
+**Glossário.** 50 verbetes, todos com os quatro campos e "marco NN"; o golden de cobertura deu 50/50.
+
+**Conceitos** (`conceitos.yaml`), cada dono ensina o conceito e o cita, e há citação fora da trilha:
+- `oomkilled`, dono `java-e-jvm/08`, citado em `kubernetes/12` e `/14`;
+- `cds`, dono `java-e-jvm/09`, citado em `spring-boot/12`;
+- `jfr`, dono `java-e-jvm/10`, citado em `concorrencia-e-recursos/06` e `/09`, e em `spring-boot/07`
+  e `/10`.
+
+Ficaram fora, por não terem citação fora da trilha: `equals-hashcode`, `erasure`, `gc-geracional` e
+`jit` (o plano sugeria estes quatro). `PECS` só casava com "specs" sem diferenciar maiúsculas.
+
+**Jornada `entrevista-senior`.** O "adendo de sinais, Bloco 4" não está no repositório. Entram
+`java-e-jvm/02`, `/03` e `/08` no grupo "Código e LLD", e a jornada passa de 32 para 35 etapas.
+
+**Fechamento da estrutura.** Σ `estimatedMinutes` = 590; 50 questões; todos os 11 marcos têm
+`## Hands-on` com os cinco blocos, e a lista `wantNoSection` ficou vazia de novo.

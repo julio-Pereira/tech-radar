@@ -1,0 +1,36 @@
+questions:
+  - question: "Na entrevista: \"este método concatena 200 linhas com `+=` num laço; otimize\". Qual abertura de resposta mostra critério?"
+    options:
+      - "Trocar por `StringBuilder` na hora, porque concatenação em laço é sempre lenta"
+      - "Perguntar a métrica e medir antes, com JMH ou com o JFR"
+      - "Trocar por um *stream* paralelo com `Collectors.joining`, que divide o trabalho"
+      - "Dizer que o JIT otimiza a concatenação e que o código já está bom como está"
+    answer: 1
+    explanation: "\"Otimize\" pede primeiro a métrica (latência, alocação) e a medida. O `StringBuilder` provavelmente é a correção, e foi a do marco 10, mas a resposta sênior chega a ela por evidência: o `allocation-by-site` e a pilha do `ObjectAllocationSample` apontaram o método. *Stream* paralelo não ajuda numa concatenação pequena, e \"o JIT otimiza\" é afirmação sem medida."
+
+  - question: "\"O pod reinicia com `OOMKilled` e o heap está em 60%.\" Qual estrutura de resposta é a esperada?"
+    options:
+      - "Aumentar o `-Xmx` e acompanhar se os reinícios diminuem nos próximos dias"
+      - "Pedir um *heap dump* do momento da morte para achar o objeto que vazou no heap"
+      - "Hipóteses fora do heap, confirmadas com o NMT, a correção e a prova"
+      - "Trocar o G1 pelo ZGC, que usa menos memória por ser concorrente"
+    answer: 2
+    explanation: "`OOMKilled` é o kernel, e o heap em 60% descarta o heap como causa: a investigação vai para memória direta, *metaspace* e pilhas, com o NMT (`jcmd VM.native_memory`). O `OOMKilled` não gera *heap dump*. Aumentar o `-Xmx` piora, porque tira espaço do que está fora do heap; trocar o GC não muda a conta."
+
+  - question: "No *live coding* de um cache LRU com TTL, faltando 15 minutos, o código está pela metade. O que fazer?"
+    options:
+      - "Escrever o resto em silêncio, o mais rápido possível, para terminar a tempo"
+      - "Apagar e recomeçar com uma estrutura mais simples que dê para terminar"
+      - "Dizer os invariantes, garantir o teste simples e dizer o que faria depois"
+      - "Pedir mais tempo à banca, explicando que o problema era maior do que o previsto"
+    answer: 2
+    explanation: "A banca avalia raciocínio. Um código incompleto com os invariantes ditos (\"o tamanho nunca passa da capacidade\", \"uma entrada vencida nunca volta\") e um teste passando vale mais do que um código completo que ninguém sabe se está certo. Escrever em silêncio esconde o raciocínio; recomeçar perde o que já estava feito."
+
+  - question: "Qual destas respostas para \"por que Java e não Go?\" mostra critério?"
+    options:
+      - "Java é mais maduro, tem mais bibliotecas e o Spring resolve quase tudo"
+      - "Go é mais rápido, mas o time já conhece Java e trocar sairia caro demais"
+      - "Medimos memória e *startup* por réplica, o ecossistema do domínio e o time"
+      - "Java com *virtual threads* já tem tudo o que Go tem, então não há motivo para trocar"
+    answer: 2
+    explanation: "Uma resposta defensável nomeia critérios e traz números do ambiente: memória e subida por réplica (marcos 08 e 09), latência de cauda sob a carga real, bibliotecas para o domínio e quem mantém. \"Mais maduro\" e \"mais rápido\" são torcida; o custo de troca é um critério, mas sozinho não decide. O lado do Go está em `go-fintech/16`."
