@@ -3,6 +3,8 @@ id: introducao
 title: "Por que Go numa fintech"
 summary: "A filosofia da linguagem e os quatro pilares de domínio financeiro que aparecem desde a primeira linha de código."
 estimatedMinutes: 20
+reviewedAt: 2026-10-10
+reviewEvery: 6m
 references:
   - title: "Effective Go"
     url: https://go.dev/doc/effective_go

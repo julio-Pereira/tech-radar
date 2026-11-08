@@ -3,6 +3,8 @@ id: java-vs-go
 title: "Decisão arquitetural: Java vs Go em Fintech"
 summary: "O resultado prático do curso: escolher a tecnologia com fundamento, sabendo onde Go ganha, onde Java continua forte e onde dá empate."
 estimatedMinutes: 25
+reviewedAt: 2026-11-01
+reviewEvery: 12m
 references:
   - title: "Designing Data-Intensive Applications — Martin Kleppmann"
     url: https://dataintensive.net/

@@ -3,6 +3,8 @@ id: grpc-antifraude
 title: "gRPC entre serviços + antifraude"
 summary: "Comunicação tipada e performática com Protobuf e buf, aplicada a um fraud-check com velocity checks e decisão fail-open/fail-closed."
 estimatedMinutes: 30
+reviewedAt: 2026-11-01
+reviewEvery: 12m
 references:
   - title: "gRPC — Quick start (Go)"
     url: https://grpc.io/docs/languages/go/quickstart/

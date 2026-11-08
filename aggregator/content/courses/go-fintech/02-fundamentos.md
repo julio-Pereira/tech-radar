@@ -3,6 +3,8 @@ id: fundamentos
 title: "Fundamentos idiomáticos com domínio financeiro"
 summary: "Parar de escrever Java em Go: erros como valor, composição, e o tipo Money de uma carteira digital."
 estimatedMinutes: 35
+reviewedAt: 2026-10-10
+reviewEvery: 12m
 references:
   - title: "Effective Go"
     url: https://go.dev/doc/effective_go
