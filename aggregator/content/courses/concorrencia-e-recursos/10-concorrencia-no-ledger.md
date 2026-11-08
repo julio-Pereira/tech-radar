@@ -27,9 +27,9 @@ suficiente em concorrência.
 cr-debito-ponta-a-ponta
 ```
 
-> **Reencontro — `spring-boot/07`, `/08` e `go-fintech/03`.** O lado Java deste caminho completo
+> **Reencontro — `spring-boot/07`, `/08` e `go-fintech/06`.** O lado Java deste caminho completo
 > é o `pix-gateway`: virtual threads e pinning (`spring-boot/07`), o pool isolado por dependência do bulkhead
-> (`spring-boot/08`). O lado Go é o `ledger-core`: sharding por conta e `context`/`errgroup` (`go-fintech/03`).
+> (`spring-boot/08`). O lado Go é o `ledger-core`: sharding por conta e `context`/`errgroup` (`go-fintech/06`).
 > O que esta trilha acrescentou a cada um foi o número — quanto, não só como.
 
 ## A matriz: qual mecanismo para qual contenção

@@ -82,7 +82,7 @@ acoplamento, não de ferramenta.
 ## Java × Go, no mesmo serviço
 
 O antifraude do `fin-platform` existe nos dois lados, e a comparação é útil porque isola a
-linguagem do padrão. Em Go (`go-fintech/05`) o serviço gRPC é a stdlib mais o código gerado,
+linguagem do padrão. Em Go (`go-fintech/10`) o serviço gRPC é a stdlib mais o código gerado,
 o `context.Context` carrega o deadline por convenção da linguagem, e o binário sobe em
 dezenas de milissegundos. Em Java com Spring, você ganha o ecossistema — interceptors de
 segurança, integração com o resto do stack, mTLS pela mesma configuração de

@@ -150,11 +150,11 @@ isoladamente, comparando o comportamento antes e depois.
    resposta errada mais comum ("roda de novo até passar")?
 
 > **Reencontro — `seguranca-aplicacao/12`; `seguranca-aplicacao/13`; `spring-boot/12`;
-> `go-fintech/06`.** O *pinning* por SHA e as permissões mínimas retomam diretamente a cadeia de
+> `go-fintech/12`.** O *pinning* por SHA e as permissões mínimas retomam diretamente a cadeia de
 > suprimentos de `seguranca-aplicacao/12`, aplicada à própria pipeline. A ordem dos *gates* de
 > segurança dentro da esteira, que `seguranca-aplicacao/13` já discute em alto nível, ganha aqui a
 > implementação concreta. A produção e o deploy de `spring-boot/12` são o destino típico desta
-> pipeline. E a observabilidade de produção de `go-fintech/06` é onde o tempo de execução gerado por
+> pipeline. E a observabilidade de produção de `go-fintech/12` é onde o tempo de execução gerado por
 > esta pipeline acaba sendo monitorado.
 
 ## Principais aprendizados

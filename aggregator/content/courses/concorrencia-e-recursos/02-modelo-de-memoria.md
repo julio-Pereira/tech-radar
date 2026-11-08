@@ -49,7 +49,7 @@ cr-sem-happens-before
 cr-com-volatile
 ```
 
-> **Reencontro — `go-fintech/03`.** O roteamento por channel do sharding por conta daquele marco
+> **Reencontro — `go-fintech/06`.** O roteamento por channel do sharding por conta daquele marco
 > é happens-before em ação: a mensagem que chega ao worker correto happens-before o processamento
 > — é por isso que a mesma conta, sempre na mesma goroutine, não precisa de `Mutex` nenhum para
 > ficar correta.

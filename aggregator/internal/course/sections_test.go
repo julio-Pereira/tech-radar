@@ -422,8 +422,18 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
+	// The go-fintech stubs (restructuring, Fase A) leave this list as each
+	// block is written; java-vs-go leaves it in Fase F (its new hands-on).
 	wantNoSection := []string{
+		"go-fintech/erros-defer-e-panic",
+		"go-fintech/estrutura-e-arquitetura",
+		"go-fintech/goroutines-em-producao",
+		"go-fintech/interfaces-e-tipos",
 		"go-fintech/java-vs-go",
+		"go-fintech/persistencia-e-transacoes",
+		"go-fintech/seguranca-e-cadeia-de-modulos",
+		"go-fintech/slices-maps-e-strings",
+		"go-fintech/testes-em-go",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)

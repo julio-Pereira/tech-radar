@@ -1,0 +1,79 @@
+# Pontes que o compilador resolve para go-fintech (arquivo:linha, texto, destino)
+# Gerado por TestPontesSnapshot (aggregator/internal/course/pontes_snapshot_test.go).
+# Inclui as /NN herdadas. 37 ponte(s).
+courses/arquitetura-de-software/01-estilos-arquiteturais-e-o-criterio-de-escolha.md:111	go-fintech/02	go-fintech/fundamentos
+courses/arquitetura-de-software/01-estilos-arquiteturais-e-o-criterio-de-escolha.md:116	go-fintech/02	go-fintech/fundamentos
+courses/arquitetura-de-software/03-ddd-tatico-em-codigo.md:139	go-fintech/02	go-fintech/fundamentos
+courses/arquitetura-de-software/03-ddd-tatico-em-codigo.md:144	go-fintech/02	go-fintech/fundamentos
+courses/arquitetura-de-software/04-hexagonal-e-clean-na-pratica.md:131	go-fintech/01	go-fintech/introducao
+courses/arquitetura-de-software/04-hexagonal-e-clean-na-pratica.md:134	go-fintech/01	go-fintech/introducao
+courses/arquitetura-de-software/06-divida-arquitetural-e-refatoracao-em-escala.md:112	go-fintech/16	go-fintech/java-vs-go
+courses/arquitetura-de-software/06-divida-arquitetural-e-refatoracao-em-escala.md:117	go-fintech/16	go-fintech/java-vs-go
+courses/arquitetura-eventos/02-dominio-antes-do-topico.md:81	go-fintech/02	go-fintech/fundamentos
+courses/arquitetura-eventos/10-sincrono-ainda-existe-rest-e-grpc.md:85	go-fintech/10	go-fintech/grpc-antifraude
+courses/arquitetura-eventos/12-testar-arquitetura-de-eventos.md:130	go-fintech/02	go-fintech/fundamentos
+courses/concorrencia-e-recursos/02-modelo-de-memoria.md:52	go-fintech/06	go-fintech/concorrencia
+courses/concorrencia-e-recursos/06-virtual-threads-e-cancelamento.md:114	go-fintech/06	go-fintech/concorrencia
+courses/concorrencia-e-recursos/08-testar-concorrencia.md:33	go-fintech/06	go-fintech/concorrencia
+courses/concorrencia-e-recursos/09-diagnosticar-em-producao.md:71	go-fintech/14	go-fintech/performance
+courses/concorrencia-e-recursos/10-concorrencia-no-ledger.md:30	go-fintech/06	go-fintech/concorrencia
+courses/concorrencia-e-recursos/10-concorrencia-no-ledger.md:32	go-fintech/06	go-fintech/concorrencia
+courses/credito-e-risco/02-matematica-do-credito.md:143	go-fintech/02	go-fintech/fundamentos
+courses/credito-e-risco/02-matematica-do-credito.md:147	go-fintech/06	go-fintech/concorrencia
+courses/engenharia-de-plataforma/04-golden-paths-em-escala.md:128	go-fintech/01	go-fintech/introducao
+courses/engenharia-de-plataforma/04-golden-paths-em-escala.md:131	go-fintech/01	go-fintech/introducao
+courses/entrega-continua-e-devops/02-anatomia-da-pipeline.md:153	go-fintech/12	go-fintech/production-observabilidade
+courses/entrega-continua-e-devops/02-anatomia-da-pipeline.md:157	go-fintech/12	go-fintech/production-observabilidade
+courses/entrega-continua-e-devops/04-testes-como-gates.md:128	go-fintech/16	go-fintech/java-vs-go
+courses/entrega-continua-e-devops/04-testes-como-gates.md:132	go-fintech/16	go-fintech/java-vs-go
+courses/ledger-e-contabilidade/01-razao-e-partida-dobrada.md:142	go-fintech/02	go-fintech/fundamentos
+courses/ledger-e-contabilidade/05-arredondamento-rateio-e-juros.md:133	go-fintech/02	go-fintech/fundamentos
+courses/ledger-e-contabilidade/06-multimoeda-e-cambio.md:128	go-fintech/02	go-fintech/fundamentos
+courses/ml-em-producao/01-oferta-como-decisao-sob-incerteza.md:65	go-fintech/10	go-fintech/grpc-antifraude
+courses/ml-em-producao/01-oferta-como-decisao-sob-incerteza.md:68	go-fintech/10	go-fintech/grpc-antifraude
+courses/pagamentos-e-liquidacao/04-cartoes-autorizacao-e-tokenizacao.md:153	go-fintech/10	go-fintech/grpc-antifraude
+courses/pagamentos-e-liquidacao/08-disputas-chargeback-e-fraude.md:124	go-fintech/10	go-fintech/grpc-antifraude
+courses/system-design/05-apis-como-contrato.md:77	go-fintech/10	go-fintech/grpc-antifraude
+courses/system-design/12-caso-antifraude-em-tempo-real.md:64	go-fintech/06	go-fintech/concorrencia
+courses/system-design/12-caso-antifraude-em-tempo-real.md:64	/10	go-fintech/grpc-antifraude
+courses/system-design/12-caso-antifraude-em-tempo-real.md:66	go-fintech/06	go-fintech/concorrencia
+courses/system-design/12-caso-antifraude-em-tempo-real.md:66	go-fintech/10	go-fintech/grpc-antifraude
+
+# Toda ocorrência literal de go-fintech/NN em content/ (qualquer arquivo). 37 ocorrência(s).
+courses/arquitetura-de-software/01-estilos-arquiteturais-e-o-criterio-de-escolha.md:111	go-fintech/02
+courses/arquitetura-de-software/01-estilos-arquiteturais-e-o-criterio-de-escolha.md:116	go-fintech/02
+courses/arquitetura-de-software/03-ddd-tatico-em-codigo.md:139	go-fintech/02
+courses/arquitetura-de-software/03-ddd-tatico-em-codigo.md:144	go-fintech/02
+courses/arquitetura-de-software/04-hexagonal-e-clean-na-pratica.md:131	go-fintech/01
+courses/arquitetura-de-software/04-hexagonal-e-clean-na-pratica.md:134	go-fintech/01
+courses/arquitetura-de-software/06-divida-arquitetural-e-refatoracao-em-escala.md:112	go-fintech/16
+courses/arquitetura-de-software/06-divida-arquitetural-e-refatoracao-em-escala.md:117	go-fintech/16
+courses/arquitetura-eventos/02-dominio-antes-do-topico.md:81	go-fintech/02
+courses/arquitetura-eventos/10-sincrono-ainda-existe-rest-e-grpc.md:85	go-fintech/10
+courses/arquitetura-eventos/12-testar-arquitetura-de-eventos.md:130	go-fintech/02
+courses/arquitetura-eventos/GLOSSARIO.md:90	go-fintech/02
+courses/concorrencia-e-recursos/02-modelo-de-memoria.md:52	go-fintech/06
+courses/concorrencia-e-recursos/06-virtual-threads-e-cancelamento.md:114	go-fintech/06
+courses/concorrencia-e-recursos/08-testar-concorrencia.md:33	go-fintech/06
+courses/concorrencia-e-recursos/09-diagnosticar-em-producao.md:71	go-fintech/14
+courses/concorrencia-e-recursos/10-concorrencia-no-ledger.md:30	go-fintech/06
+courses/concorrencia-e-recursos/10-concorrencia-no-ledger.md:32	go-fintech/06
+courses/credito-e-risco/02-matematica-do-credito.md:143	go-fintech/02
+courses/credito-e-risco/02-matematica-do-credito.md:147	go-fintech/06
+courses/engenharia-de-plataforma/04-golden-paths-em-escala.md:128	go-fintech/01
+courses/engenharia-de-plataforma/04-golden-paths-em-escala.md:131	go-fintech/01
+courses/entrega-continua-e-devops/02-anatomia-da-pipeline.md:153	go-fintech/12
+courses/entrega-continua-e-devops/02-anatomia-da-pipeline.md:157	go-fintech/12
+courses/entrega-continua-e-devops/04-testes-como-gates.md:128	go-fintech/16
+courses/entrega-continua-e-devops/04-testes-como-gates.md:132	go-fintech/16
+courses/ledger-e-contabilidade/01-razao-e-partida-dobrada.md:142	go-fintech/02
+courses/ledger-e-contabilidade/05-arredondamento-rateio-e-juros.md:133	go-fintech/02
+courses/ledger-e-contabilidade/06-multimoeda-e-cambio.md:128	go-fintech/02
+courses/ml-em-producao/01-oferta-como-decisao-sob-incerteza.md:65	go-fintech/10
+courses/ml-em-producao/01-oferta-como-decisao-sob-incerteza.md:68	go-fintech/10
+courses/pagamentos-e-liquidacao/04-cartoes-autorizacao-e-tokenizacao.md:153	go-fintech/10
+courses/pagamentos-e-liquidacao/08-disputas-chargeback-e-fraude.md:124	go-fintech/10
+courses/system-design/05-apis-como-contrato.md:77	go-fintech/10
+courses/system-design/12-caso-antifraude-em-tempo-real.md:64	go-fintech/06
+courses/system-design/12-caso-antifraude-em-tempo-real.md:66	go-fintech/06
+courses/system-design/12-caso-antifraude-em-tempo-real.md:66	go-fintech/10

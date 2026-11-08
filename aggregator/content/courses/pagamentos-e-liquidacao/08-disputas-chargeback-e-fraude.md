@@ -121,7 +121,7 @@ e boleto, para o mesmo cenário hipotético de produto não entregue.
 4. Por que o Pix não tem um mecanismo equivalente ao chargeback de cartão, e o que o MED cobre em
    vez disso?
 
-> **Reencontro — `seguranca-aplicacao/14`, `go-fintech/05`.** A detecção de fraude e abuso daqueles
+> **Reencontro — `seguranca-aplicacao/14`, `go-fintech/10`.** A detecção de fraude e abuso daqueles
 > marcos é o sinal que alimenta tanto a decisão de contestar uma disputa quanto a classificação
 > entre fraude amigável e fraude real — a antifraude de aplicação e a resposta a disputas são dois
 > lados do mesmo risco.

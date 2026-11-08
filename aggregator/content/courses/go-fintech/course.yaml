@@ -1,24 +1,44 @@
 slug: go-fintech
 title: "Go para Fintech"
-subtitle: "Do código idiomático ao microservice production-grade, com um produto de pagamentos que evolui fase a fase."
+subtitle: "Da semântica da linguagem ao serviço em produção: o que um backend Go sênior precisa saber — e provar — com um ledger que evolui marco a marco."
 category: "Go/Backend"
-tags: [go, golang, backend, fintech]
+tags: [go, golang, backend, fintech, concorrencia, grpc, testes, performance, seguranca, entrevista]
 level: advanced
 lang: pt-BR
-estimatedHours: 9
+# Reestruturação de nov/2026 (web/docs/AUDITORIA-go-fintech.md): 16 marcos,
+# alvo de 845 min quando os 5 blocos estiverem escritos. Regra das horas: ~2x a
+# soma dos estimatedMinutes -> 845 x 2 / 60 = 28,2 -> 28. Durante a escrita os
+# marcos antigos ainda declaram os minutos da versão anterior (Fase A só
+# renumera), por isso a soma real fica abaixo do alvo até a Fase F.
+estimatedHours: 28
 sources:
-  - title: "Effective Go (documento oficial)"
-    url: https://go.dev/doc/effective_go
-  - title: "Go Code Review Comments"
-    url: https://go.dev/wiki/CodeReviewComments
-  - title: "Standard Go Project Layout"
-    url: https://github.com/golang-standards/project-layout
+  - { title: "Effective Go", url: https://go.dev/doc/effective_go }
+  - { title: "Go Code Review Comments", url: https://go.dev/wiki/CodeReviewComments }
+  - { title: "The Go Programming Language Specification", url: https://go.dev/ref/spec }
+  - { title: "The Go Memory Model", url: https://go.dev/ref/mem }
+  - { title: "Go release notes (todas as versões)", url: https://go.dev/doc/devel/release }
+  - { title: "Go blog", url: https://go.dev/blog/ }
+  - { title: "Go Vulnerability Management", url: https://go.dev/doc/security/vuln/ }
+  - { title: "Organizing a Go module", url: https://go.dev/doc/modules/layout }
 milestones:
+  # Bloco A — A linguagem a fundo
   - 01-introducao.md
   - 02-fundamentos.md
-  - 03-concorrencia.md
-  - 04-rest-bff.md
-  - 05-grpc-antifraude.md
-  - 06-production-observabilidade.md
-  - 07-performance.md
-  - 08-java-vs-go.md
+  - 03-slices-maps-e-strings.md
+  - 04-interfaces-e-tipos.md
+  - 05-erros-defer-e-panic.md
+  # Bloco B — Concorrência idiomática
+  - 06-concorrencia.md
+  - 07-goroutines-em-producao.md
+  # Bloco C — O serviço de produto
+  - 08-rest-bff.md
+  - 09-persistencia-e-transacoes.md
+  - 10-grpc-antifraude.md
+  - 11-testes-em-go.md
+  # Bloco D — Produção
+  - 12-production-observabilidade.md
+  - 13-seguranca-e-cadeia-de-modulos.md
+  - 14-performance.md
+  # Bloco E — Arquitetura e decisão
+  - 15-estrutura-e-arquitetura.md
+  - 16-java-vs-go.md

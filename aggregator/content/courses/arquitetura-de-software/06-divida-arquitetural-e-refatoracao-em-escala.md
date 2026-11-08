@@ -109,12 +109,12 @@ e o gatilho que faria você reavaliar essa decisão depois.
    implementação sem parar a entrega?
 4. Em que condição a decisão correta é **não** refatorar um trecho de código?
 
-> **Reencontro — `system-design/14`; `arquitetura-eventos/13`; `spring-boot/11`; `go-fintech/08`.**
+> **Reencontro — `system-design/14`; `arquitetura-eventos/13`; `spring-boot/11`; `go-fintech/16`.**
 > O *strangler* de `system-design/14` e a migração sem parar de `arquitetura-eventos/13` compartilham
 > a mesma disciplina gradual deste marco, aplicada a **sistema** em vez de a **estrutura interna** —
 > a distinção que este marco traça explicitamente. O teste que prova comportamento real de
 > `spring-boot/11` é a mesma função do *golden master* aqui. E a comparação Java × Go de
-> `go-fintech/08` é onde a prática de registrar dívida com critério de pagamento, em vez de opinião,
+> `go-fintech/16` é onde a prática de registrar dívida com critério de pagamento, em vez de opinião,
 > já apareceu num contexto de produção.
 
 ## Principais aprendizados

@@ -111,7 +111,7 @@ esquecido), ou um `select` sem o caso `<-ctx.Done()` — a goroutine nunca perce
 parar. `errgroup` ajuda a propagar erro e cancelamento entre um grupo de goroutines relacionadas;
 `goleak` detecta, em teste, que a contagem de goroutines ao final bate com a do início.
 
-> **Reencontro — `go-fintech/03`.** O `context.Context` que propaga cancelamento e deadline, e o
+> **Reencontro — `go-fintech/06`.** O `context.Context` que propaga cancelamento e deadline, e o
 > `errgroup.Group` que transforma um fan-out em algo com short-circuit no primeiro erro, já
 > apareceram ali aplicados a um lote de pagamentos. Aqui o mesmo par resolve o cancelamento de uma
 > árvore de chamadas HTTP, não de workers de um batch — a ferramenta é a mesma, o contexto de uso

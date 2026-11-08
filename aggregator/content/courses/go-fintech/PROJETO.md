@@ -78,12 +78,12 @@ ainda está no 1.26 saber o que não vai compilar.
 | --- | --- | --- |
 | 01 | Repo + binário que roda, com `go test` verde | `go build ./...` e o primeiro teste passando |
 | 02 | Tipos do domínio: `Money` inteiro em centavos, `Entry`, `Transaction` | Teste que prova que a soma dos lançamentos fecha em zero |
-| 03 | Processamento concorrente de eventos com `context` e cancelamento | `go test -race` verde sob carga concorrente |
-| 04 | BFF REST: `GET /accounts/{id}/balance` e `POST /entries` | Teste de handler com timeout do cliente respeitado |
-| 05 | Antifraude em gRPC, com deadline propagado | Chamada sem resposta no prazo devolve decisão de fallback |
-| 06 | Logs estruturados, métricas e traces com OTel | Trace do evento até o lançamento, com `trace_id` no log |
-| 07 | Perfil de CPU e alocação do caminho quente, com melhoria medida | Benchmark antes/depois no repo, com `benchstat` |
-| 08 | ADR comparando com a implementação equivalente em Java | A comparação usa números do seu ambiente, não folclore |
+| 06 | Processamento concorrente de eventos com `context` e cancelamento | `go test -race` verde sob carga concorrente |
+| 08 | BFF REST: `GET /accounts/{id}/balance` e `POST /entries` | Teste de handler com timeout do cliente respeitado |
+| 10 | Antifraude em gRPC, com deadline propagado | Chamada sem resposta no prazo devolve decisão de fallback |
+| 12 | Logs estruturados, métricas e traces com OTel | Trace do evento até o lançamento, com `trace_id` no log |
+| 14 | Perfil de CPU e alocação do caminho quente, com melhoria medida | Benchmark antes/depois no repo, com `benchstat` |
+| 16 | ADR comparando com a implementação equivalente em Java | A comparação usa números do seu ambiente, não folclore |
 
 ## Definição de pronto (capstone)
 
