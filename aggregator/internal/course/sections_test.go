@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 212, "desafio": 255, "invariantes": 251, "complemento": 237, "checagem": 254, "gabarito": 5,
+		"tutorial": 214, "desafio": 259, "invariantes": 253, "complemento": 241, "checagem": 257, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -427,9 +427,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	wantNoSection := []string{
 		"go-fintech/estrutura-e-arquitetura",
 		"go-fintech/java-vs-go",
-		"go-fintech/persistencia-e-transacoes",
 		"go-fintech/seguranca-e-cadeia-de-modulos",
-		"go-fintech/testes-em-go",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)

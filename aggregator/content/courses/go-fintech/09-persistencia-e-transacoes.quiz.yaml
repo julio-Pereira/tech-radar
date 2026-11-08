@@ -1,0 +1,65 @@
+questions:
+  - question: "O pool tem `SetMaxOpenConns(2)`. Depois deste trecho, o que acontece com a terceira consulta?"
+    code: |
+      for range 2 {
+          rows, err := db.QueryContext(ctx, `SELECT id FROM contas`)
+          if err != nil {
+              return err
+          }
+          _ = rows // sem rows.Close()
+      }
+      ctx3, cancel := context.WithTimeout(ctx, 300*time.Millisecond)
+      defer cancel()
+      err := db.QueryRowContext(ctx3, `SELECT count(*) FROM contas`).Scan(&n)
+    options:
+      - "Roda normalmente: o pool abre uma terceira conexão quando as duas estão ocupadas"
+      - "Roda normalmente: o coletor de lixo devolve as conexões das `rows` não usadas"
+      - "Espera uma conexão livre e termina com `context.DeadlineExceeded` em 300 ms"
+      - "Falha na hora com `sql: database is closed`, porque o pool ficou inconsistente"
+    answer: 2
+    explanation: "Cada `rows` aberto segura a sua conexão até `rows.Close()`. Com as duas emprestadas e o teto em 2, a terceira consulta espera uma conexão voltar, o que nunca acontece, e termina no prazo do contexto (foi o que o teste contra o Postgres mostrou, com `InUse == 2`). Sem prazo no contexto, esperaria para sempre. `defer rows.Close()` logo depois do erro checado."
+
+  - question: "Qual o tamanho certo de `SetMaxOpenConns` para um serviço com 6 réplicas, num Postgres com `max_connections = 200` compartilhado com outros 3 serviços?"
+    options:
+      - "O padrão da stdlib, porque ele já se ajusta à quantidade de núcleos da máquina virtual"
+      - "200, para que nenhuma requisição do serviço precise esperar por conexão"
+      - "O número de goroutines que o serviço costuma ter em voo no horário de pico"
+      - "Uma fatia do que o banco aguenta, dividida pelas réplicas e com folga para os outros"
+    answer: 3
+    explanation: "O padrão do `database/sql` é ilimitado, e 200 por réplica são 1.200 contra um banco de 200: no pico, o Postgres recusa conexões e derruba os quatro serviços. O teto é uma fatia do `max_connections`, dividida pelas réplicas, com folga para migração, admin e os outros serviços. A fila que sobra é medida em `db.Stats().WaitDuration`."
+
+  - question: "Duas transferências rodam ao mesmo tempo: A→B trava A e depois B; B→A trava B e depois A, ambas com `SELECT ... FOR UPDATE`. Qual a correção?"
+    options:
+      - "Travar as duas contas sempre em ordem de ID, qualquer que seja a direção"
+      - "Repetir a transação abortada até ela passar, sem limite de tentativas"
+      - "Trocar `FOR UPDATE` por leitura comum e confiar na constraint `saldo >= 0`"
+      - "Usar uma transação para o débito e outra para o crédito, para não segurar travas"
+    answer: 0
+    explanation: "Cada uma segura uma trava e espera a outra: ciclo, e o Postgres aborta uma com `40P01` (numa reprodução, 33 de 40). Retry trata o sintoma; a ordem fixa elimina o ciclo. Sem `FOR UPDATE`, duas leem o mesmo saldo (corrida lógica). Separar débito e crédito em transações diferentes quebra a atomicidade: dinheiro some se a segunda falha."
+
+  - question: "Uma transação em isolamento `SERIALIZABLE` falha com SQLSTATE `40001`. O que o código deve fazer?"
+    options:
+      - "Registrar como bug e devolver 500, porque o banco detectou dado corrompido"
+      - "Repetir só o último comando da transação, que foi o que o banco recusou"
+      - "Repetir a transação inteira, com limite de tentativas e erro tipado no fim"
+      - "Baixar o isolamento para `READ COMMITTED` naquela conexão e continuar"
+    answer: 2
+    explanation: "`40001` (serialization_failure) é o banco dizendo que a execução concorrente não equivale a nenhuma ordem serial, e que a transação inteira precisa ser refeita: as leituras dela podem ter mudado. Repetir só o último comando reaproveita leituras velhas. Retry com limite, e depois um erro de concorrência tipado; baixar o isolamento troca o erro por anomalia silenciosa."
+
+  - question: "Por que preferir `sqlc` a um ORM no repositório do ledger?"
+    options:
+      - "Porque `sqlc` é mais rápido em tempo de execução, já que dispensa o driver do banco"
+      - "A query é SQL de verdade, e o Go que a chama é checado na compilação"
+      - "Porque ORMs em Go não suportam transação e obrigam a escrever o `BEGIN` à mão"
+      - "Porque `sqlc` cria as migrações de schema automaticamente a partir das structs Go"
+    answer: 1
+    explanation: "O `sqlc` gera código Go tipado a partir de SQL escrito à mão: o SQL fica visível para revisão e para `EXPLAIN`, e um parâmetro ou coluna errada quebra a compilação. Ele usa o driver normalmente e não gera migrações. ORMs em Go suportam transação; o custo deles é esconder o SQL e o N+1. A escolha fica registrada numa ADR."
+
+  - question: "Uma coluna nova, `limite_diario`, vai entrar na tabela `contas` em produção com três réplicas rodando a versão antiga. Qual a ordem segura?"
+    options:
+      - "Adicionar a coluna como `NOT NULL` e fazer o deploy do código novo em seguida"
+      - "Fazer o deploy do código novo primeiro e criar a coluna quando ele falhar"
+      - "Parar as três réplicas, aplicar a migração e subir todas com o código novo"
+      - "Expandir (coluna anulável ou com default), migrar o código, e só depois restringir"
+    answer: 3
+    explanation: "É o expand/contract de `dados-distribuidos/11`: a mudança de schema precisa conviver com o binário antigo. Primeiro a coluna entra de forma compatível (anulável ou com default), depois o código passa a usá-la, e só no fim vem a restrição. `NOT NULL` sem default quebra o `INSERT` das réplicas antigas; parar tudo é downtime."
