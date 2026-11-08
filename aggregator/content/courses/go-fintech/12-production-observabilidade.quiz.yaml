@@ -1,36 +1,36 @@
 questions:
-  - question: "Qual é a diferença prática entre liveness e readiness?"
+  - question: "O Postgres caiu. O que `/healthz` (liveness) e `/readyz` (readiness) devem responder?"
     options:
-      - "Liveness roda a cada segundo; readiness roda no início e no fim do ciclo do pod"
-      - "Liveness responde \"estou vivo?\" e leva a reinício; readiness responde \"posso receber tráfego?\""
-      - "Liveness é consultada pelo balanceador; readiness é consultada pelo orquestrador"
-      - "Liveness checa dependências externas; readiness checa apenas o processo local"
-    answer: 1
-    explanation: "São decisões diferentes tomadas por quem pergunta: falhar a liveness reinicia o processo, falhar a readiness apenas o tira do balanceador. Confundir as duas produz o pior desfecho conhecido — a liveness que checa o banco reinicia toda a frota quando o banco tem um soluço, transformando degradação em indisponibilidade."
-
-  - question: "Por que o outbox garante entrega sem 2-phase commit?"
-    options:
-      - "Porque o evento é gravado na mesma transação da transação de negócio, e um worker publica depois"
-      - "Porque o broker confirma a gravação antes de o banco commitar, invertendo a ordem do 2PC"
-      - "Porque a publicação é retentada até o broker confirmar, tornando o commit desnecessário"
-      - "Porque o worker lê o WAL do banco diretamente, sem depender do commit da aplicação"
-    answer: 0
-    explanation: "O problema é não haver commit atômico entre banco e broker. O outbox resolve movendo o evento para dentro da única transação que existe: ou o pagamento e o evento gravam juntos, ou nenhum dos dois. A publicação vira um passo assíncrono e retentável, com garantia at-least-once — daí a idempotência do lado do consumidor."
-
-  - question: "Por que `sqlc` em vez de um ORM, num sistema contábil?"
-    options:
-      - "Porque ORMs em Go não suportam transações explícitas com `context`"
-      - "Porque o SQL fica explícito e auditável, com o código de acesso gerado a partir dele"
-      - "Porque ele elimina a necessidade de migrations versionadas ao inferir o schema"
-      - "Porque o mapeamento objeto-relacional é incompatível com o modelo contábil de partidas dobradas"
-    answer: 1
-    explanation: "Num sistema em que a query que calcula saldo pode ser questionada numa auditoria, você quer o SQL na revisão de código, não escondido atrás de um construtor de queries. O `sqlc` inverte a direção: você escreve SQL e ele gera tipos. Migrations continuam sendo necessárias, e `golang-migrate` é o par usual."
-
-  - question: "O que o graceful shutdown com `signal.NotifyContext` protege?"
-    options:
-      - "O estado em memória, persistindo-o antes de o processo terminar"
-      - "A ordem dos eventos publicados, garantindo que a fila esvazie antes do encerramento"
-      - "As requisições em voo, que terminam antes de o processo fechar os pools e sair"
-      - "O balanceador, que recebe um aviso explícito antes de a instância ficar indisponível"
+      - "Os dois 503, para o orquestrador reiniciar o pod e reconectar no banco"
+      - "Os dois 200, porque o processo está de pé e a falha é do banco, não do serviço"
+      - "`/healthz` 200 e `/readyz` 503: o pod sai do balanceamento, mas não é reiniciado"
+      - "`/healthz` 503 e `/readyz` 200, para reiniciar sem perder o tráfego atual"
     answer: 2
-    explanation: "Ao receber `SIGTERM`, o servidor para de aceitar conexões novas e dá tempo para o que já está sendo processado terminar. Sem isso, um deploy corta transações no meio. Tirar a instância do balanceador é papel da readiness, e nem o shutdown nem o `Context` persistem estado — quem faz isso é você, no caminho de drenagem."
+    explanation: "Liveness responde se o processo travou; um banco fora não se resolve reiniciando o serviço, e reiniciar todos os pods ao mesmo tempo piora a recuperação. Readiness responde se dá para receber tráfego: com o banco fora, não dá, e o pod sai do balanceamento até o banco voltar. A readiness também fica falsa durante o drain do encerramento."
+
+  - question: "O time quer garantir que um CPF nunca saia inteiro em log. Qual abordagem não depende de ninguém lembrar?"
+    options:
+      - "Uma regra de code review que proíbe passar o campo de CPF para qualquer chamada de log"
+      - "Um tipo `CPF` que implementa `slog.LogValuer` e devolve sempre o valor mascarado"
+      - "Um filtro no Collector que apaga do log qualquer campo cujo nome seja `cpf`"
+      - "Desligar o log nas rotas que recebem dados pessoais do cliente da API"
+    answer: 1
+    explanation: "Com `LogValuer`, o `slog` chama `LogValue()` sempre que o valor vai para o log, e o tipo decide como aparece: mascarado, em qualquer handler. A revisão esquece; o filtro por nome de campo não pega `pagador` ou `titular`; desligar o log cega a operação. A mesma regra vale para atributos de span, que são log em outro backend."
+
+  - question: "O `payments-api` sobe com `READ_TIMEOUT=cinco` no ambiente. Qual é o comportamento certo?"
+    options:
+      - "Subir com o timeout padrão e registrar um aviso para alguém corrigir depois"
+      - "Subir normalmente e falhar só quando a primeira requisição precisar do timeout"
+      - "Ignorar a variável e ler o valor de um arquivo de configuração embutido no binário"
+      - "Recusar a subida com uma mensagem que cita a variável e o formato esperado"
+    answer: 3
+    explanation: "Config errada precisa derrubar o processo na subida, com mensagem clara, antes de abrir porta: o deploy falha na hora e o problema aparece para quem fez o deploy, não às 3h. Usar padrão silenciosamente esconde o erro, e um arquivo embutido quebra o 12-factor (o mesmo binário em todos os ambientes). Junte todas as falhas com `errors.Join`, não uma por deploy."
+
+  - question: "Um `slog.Handler` customizado acrescenta `trace_id` a cada registro. O que ele precisa receber para saber o trace da requisição?"
+    options:
+      - "O `context.Context` da requisição, de onde lê o span ativo"
+      - "Uma variável global com o trace atual, atualizada pelo middleware HTTP"
+      - "O `*http.Request`, de onde lê o cabeçalho `traceparent` a cada chamada"
+      - "Nada: o `slog` consulta o OpenTelemetry sozinho, sem nenhuma configuração"
+    answer: 0
+    explanation: "O span ativo viaja no `ctx`, e o `Handle(ctx, r)` do handler recebe esse contexto quando o log é feito com `InfoContext(ctx, ...)`. Uma variável global mistura requisições concorrentes; o `*http.Request` não chega a cada camada; o `slog` não sabe de OpenTelemetry sem o handler. Log feito com `Info` sem contexto sai sem `trace_id`."

@@ -1,36 +1,36 @@
 questions:
-  - question: "Por que uma única execução de benchmark não prova que a otimização funcionou?"
+  - question: "Uma otimização reduziu o tempo do benchmark de 610 ns para 590 ns numa rodada. O que falta para dizer que ela funcionou?"
     options:
-      - "Porque o compilador pode eliminar o código do benchmark se o resultado não é usado"
-      - "Porque a variação entre execuções pode ser maior que o ganho — só a comparação estatística separa"
-      - "Porque `testing.B` só estabiliza o número de iterações a partir da terceira execução"
-      - "Porque o GC não roda em execuções curtas, escondendo o custo real de alocação"
-    answer: 1
-    explanation: "Ruído de máquina, escalonamento e GC produzem diferenças que parecem melhoria. Rodar com `-count=10` e comparar no `benchstat` diz se a diferença é estatisticamente significativa — e é comum descobrir que não é. A eliminação por código morto é real e se evita atribuindo o resultado, mas é outro problema."
-
-  - question: "Para que serve `go build -gcflags='-m'`?"
-    options:
-      - "Mostrar a decisão de escape analysis: o que fica na stack e o que vai para o heap"
-      - "Gerar o perfil de memória do binário sem precisar instrumentar o código com `pprof`"
-      - "Habilitar as otimizações agressivas do compilador, desligadas por padrão"
-      - "Listar as alocações feitas em tempo de execução, agrupadas por função"
-    answer: 0
-    explanation: "A flag imprime as decisões do compilador, incluindo por que um valor escapou para o heap. Alocação no heap é o que o GC precisa recolher depois, então saber o que escapa é o passo entre ver alocação no `pprof` e saber onde mexer. Ela não mede execução nem liga otimização — o compilador de Go já otimiza por padrão."
-
-  - question: "O `pprof` de heap aponta alocação alta no encoding da resposta. Qual é o próximo passo?"
-    options:
-      - "Trocar a serialização por uma biblioteca de terceiros mais rápida e medir o p99 em produção"
-      - "Aumentar `GOGC` para reduzir a frequência de coleta e observar o efeito na latência"
-      - "Isolar o hot path num benchmark com `b.ReportAllocs()` e medir o custo por operação"
-      - "Introduzir um `sync.Pool` para os buffers do encoder e comparar o consumo de memória"
+      - "Nada: 20 ns de diferença numa rodada já mostram que a otimização funcionou"
+      - "Rodar o benchmark com `-cpu=1`, para tirar o efeito do escalonador do resultado"
+      - "Rodar as duas versões com `-count=10` e comparar no `benchstat`, olhando o `p`"
+      - "Repetir só a versão nova até ela dar um número abaixo de 590 ns duas vezes"
     answer: 2
-    explanation: "O perfil aponta onde; o benchmark isolado quantifica quanto e permite comparar antes e depois com rigor. Trocar biblioteca ou introduzir `sync.Pool` são hipóteses de conserto, e sem a medição isolada você não sabe se funcionaram. Mexer em `GOGC` altera o comportamento global para tratar um sintoma local."
+    explanation: "Uma rodada não separa a otimização do ruído (CPU compartilhada, frequência, cache). Com várias rodadas de cada versão, o `benchstat` mostra a mediana, a variação e se a diferença é estatisticamente significativa. No recibo do marco, a queda de 12 para 1 alocação por operação veio com `p=0,000` e n=10; 3% sem `p` não prova nada."
 
-  - question: "Qual cuidado o endpoint de `pprof` exige num serviço de produção?"
+  - question: "Um pod com limite de 2 CPUs roda num nó de 64 núcleos, com Go 1.27 e sem `GOMAXPROCS` definido. Quantos Ps o runtime usa?"
     options:
-      - "Rodar numa porta separada, para não competir com o tráfego de negócio pela mesma fila"
-      - "Ficar atrás de autenticação — ele expõe detalhes internos e permite consumir CPU do serviço"
-      - "Ser habilitado apenas por variável de ambiente, e jamais compilado na imagem que vai para produção"
-      - "Ter rate limit por IP, já que a coleta de perfil abre uma goroutine por requisição"
+      - "2: desde o Go 1.25, o padrão considera o limite de CPU do cgroup"
+      - "64: o padrão é o número de CPUs lógicas da máquina, sem olhar o contêiner"
+      - "1: dentro de contêiner o runtime roda com um único P, por segurança"
+      - "O valor do *request* de CPU do pod, que o Kubernetes expõe ao processo"
+    answer: 0
+    explanation: "Até o Go 1.24, o padrão era o número de CPUs da máquina, e o kernel estrangulava o processo ao estourar a cota: latência de cauda alta sem CPU aparente alta. Desde o Go 1.25, o runtime usa o limite de CPU do cgroup (o \"CPU limit\"), não o request. Num contêiner com `--cpus=2` em 4 núcleos, o Go 1.27 reportou `GOMAXPROCS 2`."
+
+  - question: "O serviço mantém 36 MiB vivos e gera muito lixo, num contêiner de 64 MiB, com `GOGC` padrão. O que acontece, e o que resolve?"
+    options:
+      - "Nada: o GC do Go sabe o limite do contêiner e nunca deixa o heap passar dele"
+      - "O heap mira 72 MiB e o contêiner mata o processo; `GOMEMLIMIT` resolve"
+      - "O GC entra em espiral e o serviço fica lento; aumentar o `GOGC` para 200 resolve"
+      - "O kernel move a memória para swap; desligar o swap do contêiner resolve"
     answer: 1
-    explanation: "O handler devolve nomes de função, estrutura interna e conteúdo de memória, e uma coleta de CPU custa trabalho real do processo. Deixá-lo aberto é entregar informação e um vetor de degradação. Porta separada ajuda no isolamento e não resolve o acesso; e removê-lo da imagem tira justamente a ferramenta de quando o problema aparece."
+    explanation: "Com `GOGC=100`, a próxima coleta acontece quando o heap dobra sobre o vivo, perto de 72 MiB, e o contêiner de 64 MiB é morto (na reprodução, código 137). O `GOMEMLIMIT` faz o GC rodar mais perto do limite: com 50 MiB, o processo sobreviveu, com 3.223 coletas em 4 segundos. Aumentar o `GOGC` piora. Deixe folga: pilhas e memória fora do heap não entram no limite."
+
+  - question: "O `go build -gcflags=-m` mostra `l.ID escapes to heap` na linha de um `fmt.Sprintf(\"id=%s\", l.ID)`. O que isso significa?"
+    options:
+      - "Que `l.ID` é global e por isso fica no heap durante toda a execução do programa"
+      - "Que o compilador vai copiar `l.ID` para a pilha antes de chamar `Sprintf`"
+      - "Que há um vazamento de memória: `l.ID` nunca será coletado pelo GC"
+      - "Que o valor passado como `any` escapa e vira uma alocação a cada chamada"
+    answer: 3
+    explanation: "A escape analysis decide o que pode ficar na pilha. Um argumento passado a `Sprintf` vira `any`, e o compilador não prova que ele não escapa, então aloca no heap a cada chamada. Não é vazamento: o GC coleta depois. No caminho quente, `strings.Builder` com `Grow` e `strconv.AppendInt` evitam essas alocações."

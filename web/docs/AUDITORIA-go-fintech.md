@@ -364,3 +364,55 @@ As páginas do gRPC, da AIP-193 e do testcontainers foram conferidas no reposit�
 site. A do `buf` voltou para a URL raiz da documentação.
 
 **Viés das respostas:** opções ajustadas. A correta é a mais longa em 4 de 18 questões.
+
+## 14. Fase E — Bloco D (marcos 12 a 14)
+
+**Ambiente da conferência.**
+- Módulo temporário com `go 1.27` (toolchain 1.27.3).
+- OpenTelemetry SDK v1.47.0 (com o exportador em memória `tracetest`).
+- `govulncheck` v1.9.0 e `benchstat` (x/perf).
+- Docker na sessão, com `golang:1.27-alpine` e `gcr.io/distroless/static-debian12:nonroot`.
+
+**Marco 12 (observabilidade).** Provado:
+- todo log tem o `trace_id` do span (exportador em memória do SDK);
+- o CPF não aparece no log nem nos atributos do span (`slog.LogValuer`);
+- config inválida falha na subida e cita as três variáveis;
+- `/readyz` responde 503 no drain, enquanto `/healthz` continua 200.
+
+**Marco 13 (segurança e módulos).**
+- **`govulncheck`:** o `vuln.go.dev` é bloqueado pelo proxy. A base local foi montada com o registro
+  OSV real do GO-2021-0113, tirado do repositório `golang/vulndb`.
+  - `x/text@v0.3.6` com `language.Parse` chamado: código 3, com o rastro da chamada.
+  - Mesma versão sem chamar `Parse`: código 0, com o aviso de que o pacote é importado sem ser
+    chamado.
+  - Depois do upgrade para v0.3.7: código 0.
+- **mTLS:** recusa cliente sem certificado e TLS 1.1 (CA gerada em memória).
+- **SSRF:** o `Control` do `Dialer` recusa loopback, rede privada, link-local (inclusive
+  `169.254.169.254`), IPv6 local e IPv4 mapeado em IPv6, e aceita IP público.
+- **`os.Root`:** barra `..`, caminho absoluto e `a/../../x`.
+- **Build reprodutível:** com `-trimpath -ldflags=-buildid=`, o mesmo código em dois diretórios deu o
+  mesmo SHA-256; sem a flag, deu dois diferentes, e o caminho local aparece no binário.
+- **Imagem:** *distroless* `nonroot`, sem `/bin/sh` (`stat /bin/sh: no such file or directory`),
+  15,7 MB.
+  - O build multi-stage **dentro** do Docker não rodou aqui: o contêiner de build não alcança o
+    proxy de módulos. O binário foi compilado no host e copiado para a mesma imagem final.
+- Os seis riscos da tabela OWASP foram conferidos na lista oficial de 2023 (repositório
+  `OWASP/API-Security`).
+
+**Marco 14 (runtime e performance).**
+- **`GOMAXPROCS`:** num contêiner com `--cpus=2` numa máquina de 4 núcleos, o Go 1.27 reportou
+  `NumCPU 4` e `GOMAXPROCS 2`.
+- **`GOMEMLIMIT`:** com 36 MiB vivos e lixo constante num contêiner de 64 MiB, o processo foi morto
+  por OOM (código 137) sem `GOMEMLIMIT`, e sobreviveu com `GOMEMLIMIT=50MiB`, ao custo de 3.223
+  coletas em 4 s.
+- **Benchmark do recibo** (`benchstat`, `-count=10`, `p=0,000`):
+  - de 12 para 1 alocação por operação;
+  - de 400 para 96 bytes por operação;
+  - de 596 para 94 ns por operação.
+- **Escape analysis:** mostra o argumento do `Sprintf` escapando para o heap.
+- **Números das notas e da documentação, conferidos na fonte:**
+  - PGO: de 2% a 14%, na documentação `doc/pgo`, medido com o Go 1.22;
+  - Green Tea: de 10% a 40% (Go 1.26);
+  - preempção assíncrona: Go 1.14.
+
+**Viés das respostas:** a correta é a mais longa em 2 de 14 questões.
