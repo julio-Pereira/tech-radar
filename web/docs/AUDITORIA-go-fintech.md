@@ -202,3 +202,38 @@ reescrito nas Fases B a F.
   - o teste "sem `reviewedAt`" passou a remover os campos explicitamente;
   - um teste novo confere o dado real.
 - Este documento.
+
+## 10. Fase A — renumeração (resultado)
+
+**Arquivos.**
+- Os 8 marcos antigos e seus quizzes foram renomeados com `git mv`, mantendo o `id`.
+- Os 8 marcos novos entraram como stubs no molde da `conectividade-multicloud`: frontmatter, aviso
+  de stub e resumo. Não têm quiz nem `## Hands-on` (o compilador não exige nenhum dos dois) e
+  entram no `wantNoSection` do `sections_test.go` até o bloco deles ser escrito.
+- O `course.yaml` é o do §6 do plano: 16 marcos e `estimatedHours: 28`. A soma real de minutos
+  fica abaixo do alvo de 845 até a Fase F, porque os marcos antigos ainda declaram os minutos da
+  versão anterior.
+
+**Pontes.**
+- As 37 ocorrências literais em 15 arquivos de outras trilhas foram reescritas numa só passada,
+  para evitar a troca em cadeia de 03→06 seguida de 06→12.
+- O `/05` herdado em `system-design/12`, linha 64, virou `/10`.
+- O snapshot "depois" (`web/docs/pontes-go-fintech-depois.txt`) foi comparado com o "antes" pelo
+  próprio `TestPontesSnapshot`:
+
+```sh
+PONTES_ANTES=../web/docs/pontes-go-fintech-antes.txt \
+PONTES_RENOMEAR="03-concorrencia.md=06-concorrencia.md,..." \
+go test ./internal/course/ -run TestPontesSnapshot
+```
+
+- **Resultado:** 37 pontes antes e 37 depois, e nenhuma posição mudou de destino.
+- A checagem foi validada com um snapshot adulterado: ela reprova.
+- Nenhuma ponte mora dentro da própria `go-fintech`.
+
+**Outros ajustes.**
+- **`PROJETO.md`:** a tabela "Incrementos por marco" recebeu a numeração nova. O conteúdo dela é
+  reescrito na Fase F.
+- **Progresso:** o teste novo `go-fintech-renumeracao.spec.js` prova que o progresso gravado com os
+  8 ids antigos marca os mesmos marcos, agora nas posições novas, e mostra 8 de 16. Ele também
+  confere que a ponte herdada `/10` de `system-design/12` chega ao `grpc-antifraude`.

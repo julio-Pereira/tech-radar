@@ -150,7 +150,7 @@ usar tokens do adquirente em vez de manipular qualquer dado de cartão diretamen
 
 A resiliência de cliente de `spring-boot/08` (timeout, *circuit breaker*) é o padrão que o
 orquestrador do marco 09 aplicará a cada chamada entre as quatro partes deste fluxo, e a detecção
-de fraude de `go-fintech/05` é o sinal de risco que alimenta a decisão de acionar 3-D Secure.
+de fraude de `go-fintech/10` é o sinal de risco que alimenta a decisão de acionar 3-D Secure.
 
 ## Principais aprendizados
 

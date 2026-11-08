@@ -135,6 +135,11 @@ func textualRefs(root, slug string) ([]string, error) {
 //	  go test ./internal/course/ -run TestPontesSnapshot
 //
 // Without the variables it only checks that the snapshot can be built.
+//
+// To prove a renumbering kept every destination, point PONTES_ANTES at the
+// snapshot taken before it and PONTES_RENOMEAR at the file renames
+// ("03-concorrencia.md=06-concorrencia.md,..."): every bridge, at its
+// (renamed) file and line, must still resolve to the same milestone id.
 func TestPontesSnapshot(t *testing.T) {
 	slug := os.Getenv("PONTES_SLUG")
 	if slug == "" {
@@ -147,6 +152,9 @@ func TestPontesSnapshot(t *testing.T) {
 	refs, err := textualRefs(filepath.Dir(contentDir), slug)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if antes := os.Getenv("PONTES_ANTES"); antes != "" {
+		comparePontes(t, antes, os.Getenv("PONTES_RENOMEAR"), hits)
 	}
 	out := os.Getenv("PONTES_SNAPSHOT")
 	if out == "" {
@@ -165,5 +173,63 @@ func TestPontesSnapshot(t *testing.T) {
 	}
 	if err := os.WriteFile(out, []byte(b.String()), 0o644); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// comparePontes checks the destination column of a previous snapshot
+// against the bridges resolved now, position by position.
+func comparePontes(t *testing.T, antesPath, renames string, hits []bridgeHit) {
+	t.Helper()
+	data, err := os.ReadFile(antesPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rename := map[string]string{}
+	for _, pair := range strings.Split(renames, ",") {
+		if a, b, ok := strings.Cut(strings.TrimSpace(pair), "="); ok {
+			rename[a] = b
+		}
+	}
+	key := func(file string, line int) string {
+		dir, base := filepath.Split(file)
+		if nb, ok := rename[base]; ok {
+			base = nb
+		}
+		return fmt.Sprintf("%s%s:%d", dir, base, line)
+	}
+	before := map[string][]string{}
+	n := 0
+	for _, l := range strings.Split(string(data), "\n") {
+		if strings.HasPrefix(l, "# Toda") {
+			break // the literal-occurrence section is not position-checked
+		}
+		parts := strings.Split(l, "\t")
+		if strings.HasPrefix(l, "#") || len(parts) != 3 {
+			continue
+		}
+		file, lineStr, _ := strings.Cut(parts[0], ":")
+		var line int
+		fmt.Sscanf(lineStr, "%d", &line)
+		k := key(file, line)
+		before[k] = append(before[k], parts[2])
+		n++
+	}
+	after := map[string][]string{}
+	for _, h := range hits {
+		k := fmt.Sprintf("%s:%d", h.File, h.Line)
+		after[k] = append(after[k], h.Slug+"/"+h.ID)
+	}
+	if len(hits) != n {
+		t.Errorf("antes: %d pontes, agora: %d", n, len(hits))
+	}
+	for k, want := range before {
+		if got := after[k]; strings.Join(got, ",") != strings.Join(want, ",") {
+			t.Errorf("%s: destino antes %v, agora %v", k, want, got)
+		}
+	}
+	for k, got := range after {
+		if _, ok := before[k]; !ok {
+			t.Errorf("%s: ponte nova %v, sem correspondente no snapshot antes", k, got)
+		}
 	}
 }

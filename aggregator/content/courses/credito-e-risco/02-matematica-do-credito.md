@@ -144,7 +144,7 @@ você conheça (mantendo os dados específicos privados, só comparando o result
 > representação decimal sem ponto flutuante que `calc/` usa para todo valor monetário neste
 > marco — nenhuma função aqui inventa uma representação própria.
 
-A concorrência de `go-fintech/03` é relevante quando múltiplos cronogramas são calculados em
+A concorrência de `go-fintech/06` é relevante quando múltiplos cronogramas são calculados em
 paralelo sobre a carteira sintética; o custo e a escala de métricas de `observabilidade/16` se
 aplicam quando a geração de cronogramas para 50 mil contratos precisa ser monitorada em produção;
 e as anomalias de transação e isolamento de `dados-distribuidos/04` seguem relevantes sempre que o

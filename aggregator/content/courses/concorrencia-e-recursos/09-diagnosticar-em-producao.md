@@ -68,7 +68,7 @@ goroutine no perfil de mutex esperando o mesmo `Mutex` são a mesma assinatura �
 esperando um recurso que M participantes seguram" — só que cada runtime expõe isso com um
 vocabulário e um comando diferentes.
 
-> **Reencontro — `go-fintech/07`.** O `pprof` de CPU e heap daquele marco responde "onde o tempo
+> **Reencontro — `go-fintech/14`.** O `pprof` de CPU e heap daquele marco responde "onde o tempo
 > vai" e "o que ocupa memória". Os perfis de goroutine, mutex e block respondem a pergunta que
 > falta: "o que está **esperando**, e por quê" — a mesma ferramenta, uma dimensão que o marco de
 > performance não cobriu.

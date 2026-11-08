@@ -125,11 +125,11 @@ alterado, usando seleção de testes por mudança.
 4. Por que todo *gate* precisa de um teste que o faz falhar de propósito?
 
 > **Reencontro — `spring-boot/11`; `arquitetura-eventos/12`; `kafka/07`; `concorrencia-e-recursos/08`;
-> `go-fintech/08`.** A pirâmide de testes de `spring-boot/11` ganha aqui a dimensão de custo e
+> `go-fintech/16`.** A pirâmide de testes de `spring-boot/11` ganha aqui a dimensão de custo e
 > feedback dentro da esteira. O teste de contrato de `arquitetura-eventos/12` e `kafka/07` é
 > incorporado diretamente como *gate* de CI. A disciplina de "lado correto com asserção rígida, lado
 > quebrado com demonstração, sob semente fixa" de `concorrencia-e-recursos/08` é exatamente a regra
-> usada para o *gate* de corrida deste marco. E a comparação Java × Go de `go-fintech/08` é onde a
+> usada para o *gate* de corrida deste marco. E a comparação Java × Go de `go-fintech/16` é onde a
 > aplicação prática de detector de corrida e ordem aleatória nas duas linguagens já apareceu antes.
 
 ## Principais aprendizados

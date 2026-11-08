@@ -74,7 +74,7 @@ orçamento do cliente sem nunca saber que já devia ter desistido. **BFF** (Back
 agrega várias chamadas internas numa resposta moldada para um cliente específico (app mobile, web)
 — não é um padrão de autenticação nem de autorização, é um padrão de agregação e formato.
 
-> **Reencontro — `go-fintech/05`.** A implementação de gRPC em Go, com os detalhes de código-gerado
+> **Reencontro — `go-fintech/10`.** A implementação de gRPC em Go, com os detalhes de código-gerado
 > e streaming, é daquele marco; aqui é o critério de **quando** usar gRPC, não o como. E
 > `arquitetura-eventos/05` já tratou o evento como contrato versionado — a mesma disciplina de
 > `oasdiff`/`buf` aplicada a Kafka.

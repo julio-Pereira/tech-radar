@@ -30,7 +30,7 @@ confirma presença. `-count=N` roda o mesmo teste N vezes (útil porque a interc
 execução); `-shuffle=on` embaralha a ordem dos testes; `-cpu=1,2,4` varia o `GOMAXPROCS` entre
 execuções, expondo bugs que só aparecem com mais de um núcleo disponível.
 
-> **Reencontro — `go-fintech/03`.** O teste de corrida de saldo daquele marco já usava
+> **Reencontro — `go-fintech/06`.** O teste de corrida de saldo daquele marco já usava
 > `go test -race` com 500 goroutines sobre um conjunto pequeno de contas — exatamente a receita
 > `-count` + contenção forçada que separa um `-race` decorativo de um que de fato tem chance de
 > pegar o bug.
