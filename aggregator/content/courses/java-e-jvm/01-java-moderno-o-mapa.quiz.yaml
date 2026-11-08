@@ -1,0 +1,36 @@
+questions:
+  - question: "O time quer usar padrões de tipo primitivo no `pix-core`, que ainda são *preview* no Java 25. Qual o problema concreto de ligar `--enable-preview` em produção?"
+    options:
+      - "A JVM desliga o JIT para classes compiladas com recursos em preview"
+      - "As classes ficam presas à versão exata: num JDK 27, a JVM recusa carregá-las"
+      - "O recurso em preview roda mais devagar, porque é interpretado a cada chamada pelo javac"
+      - "Nenhum: preview é só um aviso de documentação, sem efeito no bytecode"
+    answer: 1
+    explanation: "A classe compilada com *preview* é marcada com a versão do JDK (`class file version 69.65535` no 25). Rodada num JDK 27, falha com `compiled with preview features that are unsupported`. O recurso pode mudar ou sair entre versões, então o serviço fica preso ao JDK exato. Não há efeito no JIT nem no desempenho."
+
+  - question: "O `pom.xml` usa `-source 15 -target 15` e o código chama `Stream.toList()`, que só existe desde o Java 16. Compilando com o JDK 25, o que acontece?"
+    options:
+      - "Não compila: o javac recusa a chamada, porque a API não existe no 15"
+      - "Não compila: o javac 25 não aceita mais `-source` abaixo de 17"
+      - "Compila com um aviso, e o bytecode falha num JDK 15 com `NoSuchMethodError`"
+      - "Compila sem aviso, e o javac reescreve a chamada para `collect(Collectors.toList())`"
+    answer: 2
+    explanation: "`-source`/`-target` controlam a sintaxe e o formato do bytecode, mas compilam contra a API do JDK instalado: a chamada passa, com o aviso `location of system modules is not set`. Num JDK 15 de verdade, falharia em tempo de execução. `--release 15` confere também a API e recusa a chamada na compilação."
+
+  - question: "Um valor de tarifa chega de uma API como o texto `\"0.10\"`. Qual construção dá exatamente esse valor?"
+    options:
+      - "`new BigDecimal(0.10)`, que converte o double sem passar por texto"
+      - "`BigDecimal.valueOf(Double.parseDouble(\"0.10\"))`, com escala de 2 casas"
+      - "`new BigDecimal(\"0.10\")`, que preserva o valor e a escala do texto"
+      - "`BigDecimal.valueOf(10, 1)`, que representa dez centavos em escala 1"
+    answer: 2
+    explanation: "O construtor de `String` não passa por ponto flutuante: dá `0.10`, escala 2. `new BigDecimal(0.10)` converte o `double` exatamente como está guardado (`0.1000000000000000055511...`). `valueOf(double)` passa por `Double.toString` e dá `0.1`, escala 1. E `valueOf(10, 1)` vale `1.0`, um real."
+
+  - question: "R$ 100,00 é rateado entre 3 parceiros. Qual resultado preserva o total e é reprodutível?"
+    options:
+      - "33,33, 33,33 e 33,33, descartando o centavo que sobra da divisão"
+      - "33,34, 33,33 e 33,33, com o centavo do resto sempre na primeira parcela"
+      - "33,333... em cada parcela, guardando a dízima com escala ilimitada"
+      - "33,33, 33,33 e 33,34, com o centavo numa parcela sorteada a cada execução"
+    answer: 1
+    explanation: "Em centavos, 10.000 / 3 dá 3.333 com resto 1, e o resto vai para as primeiras parcelas: 33,34 + 33,33 + 33,33 = 100,00. Descartar perde dinheiro; a dízima não tem representação finita (o `divide` lança `ArithmeticException` sem arredondamento); sortear quebra a reprodutibilidade do fechamento."

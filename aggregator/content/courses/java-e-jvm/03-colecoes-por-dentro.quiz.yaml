@@ -1,0 +1,71 @@
+questions:
+  - question: "O que este código imprime?"
+    code: |
+      List<String> l = new ArrayList<>(List.of("a", "b", "c"));
+      for (String s : l) {
+          if (s.equals("b")) l.remove(s);
+      }
+      IO.println(l);
+    options:
+      - "Lança `ConcurrentModificationException`"
+      - "[a, c]"
+      - "[a, b, c]"
+      - "[a]"
+    answer: 1
+    explanation: "Remover `\"b\"`, o penúltimo, reduz o tamanho para 2 com o cursor já em 2: o `hasNext()` devolve `false` e o laço termina antes da checagem de modificação. Remover `\"a\"` lançaria a exceção. O *fail-fast* é melhor esforço, como a documentação avisa; para remover durante a iteração, use `Iterator.remove()` ou `removeIf`."
+
+  - question: "O que este código imprime?"
+    code: |
+      Map<String, Integer> lru = new LinkedHashMap<>(16, 0.75f, true) {
+          @Override protected boolean removeEldestEntry(Map.Entry<String, Integer> e) {
+              return size() > 2;
+          }
+      };
+      lru.put("a", 1);
+      lru.put("b", 2);
+      lru.get("a");
+      lru.put("c", 3);
+      IO.println(lru.keySet());
+    options:
+      - "[b, c]"
+      - "[a, b, c]"
+      - "[a, c]"
+      - "[c, a]"
+    answer: 2
+    explanation: "O terceiro argumento `true` liga a ordem de acesso: o `get(\"a\")` move `a` para o fim, e a ordem vira `b, a`. O `put(\"c\")` deixa o mapa com 3 entradas, e `removeEldestEntry` remove a mais antiga, `b`. Resta `a, c`, na ordem do menos para o mais recentemente usado."
+
+  - question: "Um `HashMap` com 10 mil chaves cujo `hashCode()` devolve sempre a mesma constante. O que acontece com o `get`?"
+    options:
+      - "Fica igual a um mapa com hash bom, porque o espalhamento de bits corrige a constante"
+      - "Lança `IllegalStateException` quando o bucket passa do limite de colisões"
+      - "Degrada pouco, porque o bucket vira árvore e a busca é sempre O(log n)"
+      - "Vai a um bucket só, em árvore; sem `Comparable`, a busca percorre muitas chaves"
+    answer: 3
+    explanation: "Todas as chaves caem no mesmo *bucket*, que vira árvore acima de 8 entradas (com tabela de 64 ou mais). A árvore só ordena se as chaves forem `Comparable`; sem isso, a busca examina muitos nós. Medido com JMH no JDK 25: ~8 ns com hash bom, ~200 ns com hash constante e chave `Comparable`, ~74 µs sem `Comparable`. O espalhamento (`h ^ (h >>> 16)`) não ajuda com uma constante."
+
+  - question: "Por que `ConcurrentHashMap` recusa `null` como valor, enquanto `HashMap` aceita?"
+    options:
+      - "Porque o `null` não pode ser guardado num campo `volatile`, que o mapa usa"
+      - "Porque `get` devolvendo `null` precisa significar \"não existe\" sem outra chamada"
+      - "Porque o hash de `null` é sempre zero e concentraria todas as entradas num segmento"
+      - "Por compatibilidade com `Hashtable`, que já recusava `null` desde o Java 1.0"
+    answer: 1
+    explanation: "Num mapa concorrente, `get` devolver `null` precisa ter um significado só. Se `null` pudesse ser valor, distinguir \"ausente\" de \"presente com null\" exigiria um `containsKey` depois, e outra thread poderia mudar o mapa entre as duas chamadas. `volatile` aceita `null`; e a semelhança com `Hashtable` existe, mas não é o motivo."
+
+  - question: "16 threads incrementam o mesmo contador num `ConcurrentHashMap` com `Long v = m.get(k); m.put(k, v == null ? 1 : v + 1);`. O que acontece?"
+    options:
+      - "O total fica correto, porque cada operação do `ConcurrentHashMap` é atômica"
+      - "O mapa se corrompe e passa a lançar `ConcurrentModificationException`"
+      - "O total fica abaixo do esperado: duas threads leem o mesmo valor e gravam"
+      - "O total fica acima do esperado, porque o `put` repete quando há disputa"
+    answer: 2
+    explanation: "Cada chamada é atômica, mas o par `get` + `put` não é: duas threads leem o mesmo valor e gravam o mesmo resultado, e um incremento se perde. Medido: 16 threads × 10 mil deram de 73 mil a 137 mil, de 160 mil. `merge(k, 1L, Long::sum)` ou `compute` fazem leitura e escrita sob a trava da chave, e deram 160 mil nas três rodadas."
+
+  - question: "Qual estrutura usar como fila de pedidos a processar, com inserção no fim e retirada no começo, numa só thread?"
+    options:
+      - "`ArrayDeque`: array circular, pontas em O(1), sem um nó por elemento"
+      - "`LinkedList`, porque inserir e remover nas pontas é O(1) com ponteiros"
+      - "`ArrayList` com `remove(0)`, porque o acesso por índice é O(1) e é simples"
+      - "`Stack`, que é a pilha do JDK e serve também de fila usando `push` e `pop` juntos"
+    answer: 0
+    explanation: "`ArrayDeque` faz as duas pontas em O(1) num array circular, sem alocar um nó por elemento e com melhor localidade de cache. `LinkedList` também é O(1) nas pontas, mas paga um objeto por elemento. `remove(0)` num `ArrayList` desloca todos os elementos (O(n)), e `Stack` é uma pilha legada e sincronizada, não uma fila."

@@ -1,0 +1,112 @@
+questions:
+  - question: "O que este código imprime?"
+    code: |
+      Integer a = 127, b = 127;
+      Integer c = 128, d = 128;
+      IO.println((a == b) + " " + (c == d) + " " + c.equals(d));
+    options:
+      - "true true true"
+      - "true false true"
+      - "false false true"
+      - "true false false"
+    answer: 1
+    explanation: "Com *autoboxing*, `Integer.valueOf` devolve objetos de um cache de −128 a 127: `a` e `b` são a mesma referência. 128 está fora do cache, então `c` e `d` são objetos distintos e `==`, que compara referências, dá `false`. `equals` compara o valor. Com `-XX:AutoBoxCacheMax=1000`, a linha imprimiria `true true true`, o que só esconde o bug."
+
+  - question: "O que este código imprime?"
+    code: |
+      var x = new BigDecimal("2.0");
+      var y = new BigDecimal("2.00");
+      Set<BigDecimal> hash = new HashSet<>(List.of(x, y));
+      Set<BigDecimal> tree = new TreeSet<>(List.of(x, y));
+      IO.println(x.equals(y) + " " + hash.size() + " " + tree.size());
+    options:
+      - "true 1 1"
+      - "false 2 2"
+      - "false 2 1"
+      - "false 1 2"
+    answer: 2
+    explanation: "`BigDecimal.equals` compara valor e escala, e `2.0` (escala 1) é diferente de `2.00` (escala 2): o `HashSet` guarda os dois. O `TreeSet` usa `compareTo`, que ignora a escala e dá zero, então guarda um só. É o caso clássico de `compareTo` inconsistente com `equals`."
+
+  - question: "O que este código imprime?"
+    code: |
+      class Chave {
+          String cliente;
+          Chave(String c) { this.cliente = c; }
+          @Override public boolean equals(Object o) {
+              return o instanceof Chave k && k.cliente.equals(cliente);
+          }
+          @Override public int hashCode() { return cliente.hashCode(); }
+      }
+
+      Set<Chave> vistas = new HashSet<>();
+      Chave k = new Chave("ana");
+      vistas.add(k);
+      k.cliente = "bia";
+      IO.println(vistas.contains(k) + " " + vistas.contains(new Chave("ana")) + " " + vistas.size());
+    options:
+      - "true false 1"
+      - "false true 1"
+      - "false false 1"
+      - "false false 0"
+    answer: 2
+    explanation: "O objeto foi guardado no *bucket* do hash de `\"ana\"`. Com o campo alterado, `contains(k)` procura no *bucket* de `\"bia\"` e não acha. `contains(new Chave(\"ana\"))` vai ao *bucket* certo, mas o objeto que está lá agora tem `cliente` igual a `\"bia\"`, e o `equals` falha. O elemento continua no conjunto: `size()` é 1."
+
+  - question: "O que este código imprime?"
+    code: |
+      class Ponto {
+          final int x, y;
+          Ponto(int x, int y) { this.x = x; this.y = y; }
+          @Override public boolean equals(Object o) {
+              return o instanceof Ponto p && p.x == x && p.y == y;
+          }
+          @Override public int hashCode() { return 31 * x + y; }
+      }
+      class PontoColorido extends Ponto {
+          final String cor;
+          PontoColorido(int x, int y, String cor) { super(x, y); this.cor = cor; }
+          @Override public boolean equals(Object o) {
+              return o instanceof PontoColorido p && super.equals(p) && p.cor.equals(cor);
+          }
+      }
+
+      var p = new Ponto(1, 2);
+      var pc = new PontoColorido(1, 2, "azul");
+      IO.println(p.equals(pc) + " " + pc.equals(p));
+    options:
+      - "true true"
+      - "false false"
+      - "true false"
+      - "false true"
+    answer: 2
+    explanation: "`p.equals(pc)` usa o `equals` de `Ponto`: `pc` é um `Ponto` com as mesmas coordenadas, então dá `true`. `pc.equals(p)` usa o de `PontoColorido`, e `p` não é um `PontoColorido`: `false`. A simetria quebrou. Estender uma classe instanciável acrescentando estado à igualdade não preserva o contrato; a saída é composição ou `final`."
+
+  - question: "O que este código imprime?"
+    code: |
+      record Lote(String id, int[] valores) {}
+
+      var a = new Lote("L1", new int[] {10, 20});
+      var b = new Lote("L1", new int[] {10, 20});
+      a.valores()[0] = 99;
+      IO.println(a.equals(b) + " " + a.equals(a) + " " + a.valores()[0]);
+    options:
+      - "true true 10"
+      - "false true 99"
+      - "true true 99"
+      - "false false 10"
+    answer: 1
+    explanation: "O `equals` gerado compara cada componente com o `equals` dele, e o de um array é identidade: dois arrays distintos com o mesmo conteúdo não são iguais, então `a.equals(b)` é `false` antes mesmo da alteração. O acessor devolve a referência do array, e `a.valores()[0] = 99` altera o record. Componente mutável pede cópia defensiva, e array como componente é melhor evitar."
+
+  - question: "O que este código imprime?"
+    code: |
+      List<String> base = new ArrayList<>(List.of("a", "b"));
+      List<String> visao = Collections.unmodifiableList(base);
+      List<String> copia = List.copyOf(base);
+      base.add("c");
+      IO.println(visao.size() + " " + copia.size());
+    options:
+      - "2 2"
+      - "3 3"
+      - "2 3"
+      - "3 2"
+    answer: 3
+    explanation: "`unmodifiableList` é uma visão sobre `base`: recusa alteração por quem a recebe (`UnsupportedOperationException`), mas mostra o que muda na origem, então tem 3 elementos. `List.copyOf` é uma cópia imutável, feita antes do `add`, e continua com 2. Para um tipo de domínio, a garantia vem da cópia."

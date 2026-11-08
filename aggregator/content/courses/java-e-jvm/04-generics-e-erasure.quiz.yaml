@@ -1,0 +1,56 @@
+questions:
+  - question: "O que este código imprime?"
+    code: |
+      List<String> a = new ArrayList<>();
+      List<Integer> b = new ArrayList<>();
+      IO.println((a.getClass() == b.getClass()) + " " + a.getClass().getName());
+    options:
+      - "false java.util.ArrayList<java.lang.String>"
+      - "true java.util.ArrayList"
+      - "false java.util.ArrayList"
+      - "Não compila: classes de tipos diferentes não se comparam"
+    answer: 1
+    explanation: "A erasure apaga os argumentos de tipo: em tempo de execução, as duas são a mesma classe, `java.util.ArrayList`. O compilador confere os tipos e insere os *casts*; o objeto não sabe que era `List<String>`. É por isso que `new T()` e `instanceof List<String>` (a partir de um `Object`) não compilam."
+
+  - question: "O que este código imprime?"
+    code: |
+      Object[] objetos = new String[2];
+      objetos[0] = "pix";
+      try {
+          objetos[1] = 42;
+          IO.println("gravou");
+      } catch (ArrayStoreException e) {
+          IO.println("ArrayStoreException: " + e.getMessage());
+      }
+    options:
+      - "gravou"
+      - "Não compila: Integer não pode ir para um array de String"
+      - "ArrayStoreException: java.lang.Integer"
+      - "ClassCastException na primeira linha"
+    answer: 2
+    explanation: "Arrays são covariantes: `String[]` é um `Object[]`, e a atribuição compila. Mas o array lembra o próprio tipo, e gravar um `Integer` nele falha em tempo de execução com `ArrayStoreException`. Os generics são invariantes justamente para trocar essa falha tardia por um erro de compilação: `List<Object> o = listaDeString` não compila."
+
+  - question: "Qual assinatura deixa copiar uma `List<Integer>` tanto para uma `List<Number>` quanto para uma `List<Object>`?"
+    options:
+      - "`<T> void copiar(List<T> origem, List<T> destino)`"
+      - "`<T> void copiar(List<? super T> origem, List<? extends T> destino)`"
+      - "`void copiar(List<Number> origem, List<Object> destino)`"
+      - "`<T> void copiar(List<? extends T> origem, List<? super T> destino)`"
+    answer: 3
+    explanation: "PECS: a origem produz `T` (`? extends T`) e o destino consome `T` (`? super T`). Com `T = Integer`, a origem aceita `List<Integer>` e o destino aceita `List<Number>` ou `List<Object>`. Sem curinga, `List<T>` exige o mesmo tipo dos dois lados; invertido, não dá para ler `T` da origem nem gravar no destino; e `List<Number>` não aceita `List<Integer>`."
+
+  - question: "O que acontece ao rodar este código?"
+    code: |
+      static <T> T[] doisDe(T a, T b) { return paraArray(a, b); }
+
+      @SafeVarargs
+      static <T> T[] paraArray(T... itens) { return itens; }
+
+      String[] s = doisDe("a", "b");
+    options:
+      - "Funciona: `@SafeVarargs` garante que o array criado é um `String[]`"
+      - "`ClassCastException`: o array criado em `doisDe` é um `Object[]`"
+      - "Não compila: varargs genérico exige o tipo concreto na chamada"
+      - "Funciona, porque a inferência escolhe `T = String` nas duas chamadas"
+    answer: 1
+    explanation: "Dentro de `doisDe`, `T` foi apagado, e o array de *varargs* criado ali é `Object[]`. Ele escapa por `paraArray` e o *cast* para `String[]` na chamada falha: é *heap pollution*. `@SafeVarargs` é só uma promessa de que o array não escapa, e aqui ela é falsa; o `javac` ainda emite `[varargs] ... could cause heap pollution`."
