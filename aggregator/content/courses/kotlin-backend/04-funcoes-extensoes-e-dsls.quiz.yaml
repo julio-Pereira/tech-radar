@@ -1,0 +1,63 @@
+questions:
+  - question: "O que `e.rotulo()` devolve?"
+    code: |
+      open class Evento
+      class Liquidacao : Evento()
+
+      fun Evento.rotulo() = "evento"
+      fun Liquidacao.rotulo() = "liquidação"
+
+      val e: Evento = Liquidacao()
+      println(e.rotulo())
+    options:
+      - "`liquidação`, porque o objeto em tempo de execução é uma `Liquidacao` e a extensão mais específica vence"
+      - "`evento`, porque a extensão é escolhida pelo tipo declarado"
+      - "Não compila: duas extensões com o mesmo nome são ambíguas"
+      - "Lança `ClassCastException`, porque `Evento` não tem o método"
+    answer: 1
+    explanation: "Uma extensão é uma função estática que recebe o objeto como parâmetro, e a escolha acontece na compilação, pelo tipo declarado (`Evento`). Executado: `evento`. Com `(e as Liquidacao).rotulo()`, sai `liquidação`. Um método `open` sobrescrito daria `liquidação`, porque método é despacho dinâmico. Comportamento que depende do subtipo é método ou `when` sobre tipo selado, não extensão."
+
+  - question: "O que `primeiroNegativo(listOf(3, -1, -7))` devolve?"
+    code: |
+      fun primeiroNegativo(xs: List<Int>): Int? {
+          xs.forEach { if (it < 0) return it }
+          return null
+      }
+    options:
+      - "`null`: o `return` só sai da lambda, o `forEach` continua até o fim e a função devolve o `null` final"
+      - "`-7`: o `forEach` percorre tudo e o último `return` vence"
+      - "Não compila: `return` sem rótulo é proibido dentro de lambda"
+      - "`-1`: o `return` sai da função de fora, porque `forEach` é `inline`"
+    answer: 3
+    explanation: "`forEach` é `inline`: o corpo da lambda é copiado para dentro de `primeiroNegativo`, e o `return` sai da função de fora (*non-local return*). Executado: `-1`. Com uma função de alta ordem que não é `inline`, o mesmo código não compila (`'return' is prohibited here`), e só o `return@forEach` local seria permitido."
+
+  - question: "Cada chamada de `map` e de `filter` acrescenta uma entrada ao `log`. O que o `log` contém no fim?"
+    code: |
+      val log = mutableListOf<String>()
+      listOf(1, 2, 3).asSequence()
+          .map { log += "m$it"; it * 2 }
+          .filter { log += "f$it"; it > 2 }
+          .first()
+      println(log)
+    options:
+      - "`[m1, m2, m3, f2, f4, f6]`"
+      - "`[m1, f2, m2, f4]`"
+      - "`[m1, f2, m2, f4, m3, f6]`"
+      - "`[]`: a `Sequence` só calcula na operação terminal, e `first` não conta"
+    answer: 1
+    explanation: "A `Sequence` é preguiçosa: cada elemento passa pela cadeia inteira antes do próximo, e o `first()` para no primeiro que satisfaz o `filter`. O `1` vira `2` e é recusado; o `2` vira `4` e é aceito. Executado: `[m1, f2, m2, f4]`. Sem `asSequence()`, a `List` ansiosa produz `[m1, m2, m3, f2, f4, f6]`: cada etapa processa tudo e cria uma lista nova."
+
+  - question: "O que este código imprime?"
+    code: |
+      val sb = StringBuilder("a")
+      val r1 = sb.also { it.append("b") }
+      val r2 = "x".let { it.length }
+      val r3 = StringBuilder().apply { append("c") }
+      println("$r1 $r2 $r3")
+    options:
+      - "`ab 1 c`"
+      - "`a 1 c`, porque `also` trabalha sobre uma cópia"
+      - "`ab x c`, porque `let` devolve o próprio objeto"
+      - "`kotlin.Unit 1 kotlin.Unit`, porque `also` e `apply` devolvem o bloco"
+    answer: 0
+    explanation: "`also` e `apply` devolvem o próprio objeto (o bloco é efeito colateral ou configuração); `let` e `run` devolvem o resultado do bloco. `also` recebe o objeto como `it` e `apply` como `this`. O `StringBuilder` é o mesmo objeto, então o `append` aparece. Executado: `ab 1 c`."

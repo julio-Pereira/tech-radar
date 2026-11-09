@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 230, "desafio": 277, "invariantes": 269, "complemento": 259, "checagem": 275, "gabarito": 5,
+		"tutorial": 234, "desafio": 281, "invariantes": 273, "complemento": 263, "checagem": 279, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -428,11 +428,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		"kotlin-backend/concorrencia-estruturada-e-cancelamento",
 		"kotlin-backend/coroutines-fundamentos",
 		"kotlin-backend/flow-e-backpressure",
-		"kotlin-backend/funcoes-extensoes-e-dsls",
-		"kotlin-backend/kotlin-para-quem-vem-de-java",
 		"kotlin-backend/ktor-interop-e-capstone",
-		"kotlin-backend/modelagem-com-data-sealed-e-value",
-		"kotlin-backend/null-safety-e-o-sistema-de-tipos",
 		"kotlin-backend/spring-com-kotlin",
 	}
 	if !equalStrings(noSection, wantNoSection) {

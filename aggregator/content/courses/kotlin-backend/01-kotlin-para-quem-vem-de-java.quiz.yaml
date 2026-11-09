@@ -1,0 +1,46 @@
+questions:
+  - question: "O que acontece ao compilar este código?"
+    code: |
+      class Conta(var limite: Long?)
+
+      fun dobro(c: Conta): Long =
+          if (c.limite != null) c.limite * 2 else 0
+    options:
+      - "Compila: o teste `!= null` faz o *smart cast* de `c.limite` para `Long`"
+      - "Não compila: `limite` é `var`, e outra thread pode trocá-lo entre o teste e o uso"
+      - "Compila, mas lança `NullPointerException` quando `limite` é `null`"
+      - "Não compila: `Long?` não aceita a multiplicação, nem depois de um teste de `null`"
+    answer: 1
+    explanation: "O compilador só faz *smart cast* do que ele consegue provar que não muda. Uma propriedade `var` de outro objeto pode ser trocada entre o teste e o uso, e o erro é `smart cast to 'Long' is impossible, because 'limite' is a mutable property that could be mutated concurrently`. Com `val limite`, o mesmo código compila; com `var`, copie para um `val` local antes (`val l = c.limite`)."
+
+  - question: "Um time abriu à mão um serviço (`open class`) para corrigir o erro `Cannot subclass final class` no *startup*, mas deixou `final` o método anotado com `@Transactional`. O que acontece, no Spring Framework 7?"
+    options:
+      - "O contexto continua sem subir, com o mesmo erro de classe final"
+      - "O Spring abre o método em tempo de execução, e a transação funciona"
+      - "O contexto sobe, e o método roda sem transação, com só um `WARNING` no log"
+      - "O contexto sobe, e o método lança `IllegalStateException` na primeira chamada"
+    answer: 2
+    explanation: "O proxy CGLIB é uma subclasse, e uma subclasse não sobrescreve um método `final`: a chamada vai direto para o método original, sem o aspecto. Testado no Spring 7.0.10: `TransactionSynchronizationManager.isActualTransactionActive()` dá `false`, e o log diz `Public final method ... cannot get proxied via CGLIB`. O plugin `kotlin-spring` abre a classe anotada e os membros dela, e evita os dois problemas."
+
+  - question: "Uma classe Kotlin tem `companion object { fun of(reais: String): Money = ... }`, sem anotação. Como o código Java chama essa fábrica?"
+    options:
+      - "`Money.of(\"1.00\")`, igual a um método estático"
+      - "`Money.Companion.of(\"1.00\")`, pela instância do *companion*"
+      - "`MoneyKt.of(\"1.00\")`, pela classe gerada para o arquivo"
+      - "Java não enxerga funções de *companion object* sem `@JvmField`"
+    answer: 1
+    explanation: "O *companion object* vira um campo estático `Companion`, e a função é um método de instância dele: `Money.Companion.of(...)`. Com `@JvmStatic` na função, o compilador gera também um método estático na própria classe, e o Java escreve `Money.of(...)`. A classe com sufixo `Kt` é para funções de nível de arquivo, e `@JvmField` é para propriedades."
+
+  - question: "O que acontece ao compilar esta função?"
+    code: |
+      fun tarifa(valor: Long): String {
+          val t = if (valor > 1000) "0.50" else if (valor > 0) "0.10"
+          return t
+      }
+    options:
+      - "Compila: o `if` sem `else` devolve `null`, e `t` vira `String?`"
+      - "Compila: o `if` sem `else` devolve `Unit`, e o `return` converte para `String`"
+      - "Não compila: um `if` usado como expressão precisa de `else`"
+      - "Não compila: `if` nunca devolve valor; use `when` para isso"
+    answer: 2
+    explanation: "Em Kotlin, `if` é expressão, mas, para devolver valor, todos os caminhos precisam produzir um: sem o `else` final, o erro é `'if' must have both main and 'else' branches when used as an expression`. É o mesmo raciocínio do `switch` exaustivo do Java. O `when` também é expressão e tem a mesma regra."
