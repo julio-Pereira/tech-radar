@@ -1,0 +1,26 @@
+id: jj-pilha-e-heap
+tipo: topologia
+titulo: "Pilha e heap: o frame guarda o primitivo e a referência; o objeto mora no heap"
+descricao: >
+  Cada chamada de método empilha um frame na pilha da thread, com as variáveis locais e os
+  operandos. Um long local fica no próprio frame; uma variável do tipo Pagamento guarda só a
+  referência, e o objeto fica no heap. O GC parte das raízes, que são as variáveis dos
+  frames vivos e os campos estáticos (que, no HotSpot, ficam no heap, dentro do objeto Class da classe),
+  e marca tudo o que alcança. O Money antigo, que nenhuma
+  raiz alcança mais, é lixo, e a próxima coleta o recupera.
+grupos:
+  - { id: pilha, rotulo: "pilha da thread", col: 0, row: 0, cols: 1, rows: 3 }
+  - { id: heap, rotulo: "heap", col: 1, row: 0, cols: 2, rows: 3 }
+nos:
+  - { id: fmain, rotulo: "frame: main", grupo: pilha, col: 0, row: 0 }
+  - { id: fautorizar, rotulo: "frame: autorizar", grupo: pilha, col: 0, row: 1, papel: destaque }
+  - { id: local, rotulo: "long limite = 50_000", grupo: pilha, col: 0, row: 2 }
+  - { id: pagamento, rotulo: "Pagamento", grupo: heap, col: 1, row: 1 }
+  - { id: money, rotulo: "Money (valor)", grupo: heap, col: 2, row: 1 }
+  - { id: cache, rotulo: "cache de chaves DICT", grupo: heap, col: 1, row: 0 }
+  - { id: lixo, rotulo: "Money antigo (inalcançável)", grupo: heap, col: 2, row: 2, papel: externo }
+  - { id: estatico, rotulo: "campo estático (raiz)", grupo: heap, col: 2, row: 0 }
+arestas:
+  - { de: fautorizar, para: pagamento, rotulo: "referência" }
+  - { de: pagamento, para: money }
+  - { de: estatico, para: cache, estilo: tracejada }

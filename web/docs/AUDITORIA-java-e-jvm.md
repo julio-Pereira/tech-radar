@@ -427,3 +427,62 @@ esqueleto e passam com a referência, nos dois desafios.
 abaixo do limite de 40%.
 
 O marco 11 usa os dois desafios nas rodadas cronometradas.
+
+## 8. Pilha, heap e *virtual threads* por dentro
+
+Esta seção fecha duas lacunas de fundamento que a trilha tinha:
+
+- o modelo de pilha × heap;
+- o funcionamento interno das *virtual threads*.
+
+Todos os números foram medidos no JDK 25 (Temurin 25.0.4.1), numa máquina de 4 CPUs.
+
+**`java-e-jvm/08`, seção "Pilha, heap e o que o GC enxerga"** (60 → 70 min). Ela cobre:
+
+- o que vai no *frame* e o que vai no heap, e a passagem da referência por valor;
+- o diagrama tipado `jj-pilha-e-heap`;
+- as raízes do GC, marcar, varrer, compactar e copiar, e o *safepoint*.
+
+As medições e o que cada uma mostrou:
+
+- **`StackOverflowError`:** a profundidade foi medida com `-Xss` de 256k, 512k e 1m. Só no
+  interpretador, ela fica em 1.793, 4.772 e 10.730 *frames*. Com o JIT, varia de 3.946 a 26.250
+  entre execuções com a mesma `-Xss`.
+- ***Escape analysis*:** medida com `getThreadAllocatedBytes`. O objeto que vive só dentro de uma
+  iteração custa 0 B por chamada; com `-XX:-DoEscapeAnalysis`, 72.000 B. Com o acumulador
+  atravessando o laço, a JVM eliminou só a metade: 24.024 × 48.024 B.
+- **`StackChunk` no heap:** 10.000 *virtual threads* estacionadas, medidas com
+  `GC.class_histogram`. A profundidade 1 ocupou 17,6 MB; a 50, 27,3 MB; a 200, 51,9 MB.
+
+O marco também ganhou 2 invariantes, 2 itens de checagem, 2 questões (6 → 8) e 3 verbetes de
+glossário (*frame*, GC root, compactação). A questão com código foi executada e imprime
+`AUTORIZADO`.
+
+**`concorrencia-e-recursos/06`, seção "Por dentro: *carrier*, escalonador e quando não usar"**
+(60 → 70 min). Ela cobre o `ForkJoinPool` próprio do escalonador, que aparece no
+`Thread.currentThread()` como `...@ForkJoinPool-1-worker-1`, e a cópia da pilha ao montar e
+desmontar.
+
+- **Fome de *carrier*,** com paralelismo 2 e duas tarefas de CPU de 2 s. A tarefa curta esperou:
+  - 1.900 ms com as tarefas de CPU em *virtual threads*;
+  - os mesmos 1.900 ms com `Thread.yield()` a cada fatia, que não cedeu a vez nesse teste;
+  - 1 ms com `Thread.sleep(1)`;
+  - 1 ms com as tarefas em threads de plataforma.
+- **Vazão:**
+  - com 10.000 esperas de 100 ms, o *pool* de 200 threads de plataforma levou 5.040 ms, o
+    *pool* fixo de 200 *virtual threads* levou 5.036 ms (o antipadrão), e uma *virtual thread*
+    por tarefa levou ~200 ms;
+  - com 32 tarefas de CPU, o *pool* de 4 threads de plataforma levou 193 ms e as *virtual
+    threads* ~190 ms.
+
+O marco também ganhou 2 invariantes, 2 itens de checagem, 2 questões (6 → 8) e 2 verbetes
+(escalonador de *virtual threads*, fome de *carrier*). A `java-e-jvm/08` aponta para cá, e esta
+seção aponta de volta.
+
+**Horas.** As horas não mudam:
+
+- `java-e-jvm`: Σ 600 min, 600 × 2 / 60 = 20 h. O teste de auditoria passou para 600 min e
+  52 questões.
+- `concorrencia-e-recursos`: Σ 610 min, 610 × 2 / 60 = 20,3 → 20 h.
+
+Nas 4 questões novas, a opção correta nunca é a estritamente mais longa.

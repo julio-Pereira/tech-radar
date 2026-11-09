@@ -2,10 +2,12 @@
 id: virtual-threads-e-cancelamento
 title: "Virtual threads, cancelamento e goroutines"
 summary: "Quando a thread fica barata, o recurso escasso deixa de ser a thread — e o que sobra é cancelar a tempo e não vazar."
-estimatedMinutes: 60
+estimatedMinutes: 70
 references:
   - title: "JEP 444 — Virtual Threads"
     url: https://openjdk.org/jeps/444
+  - title: "Virtual Threads (Java SE 25, Core Libraries)"
+    url: https://docs.oracle.com/en/java/javase/25/core/virtual-threads.html
   - title: "JEP 491 — Synchronize Virtual Threads without Pinning"
     url: https://openjdk.org/jeps/491
   - title: "JEP 506 — Scoped Values"
@@ -90,6 +92,68 @@ multiplica por milhões quando a população de threads cresce nessa ordem de gr
 execução de um bloco, e é automaticamente limpo ao sair dele) e não carrega o custo de manter um
 mapa por thread.
 
+## Por dentro: *carrier*, escalonador e quando não usar
+
+Uma *virtual thread* é uma tarefa que o JDK escalona sobre threads de plataforma, as **carriers**.
+Dentro de uma, `Thread.currentThread()` mostra as duas coisas:
+`VirtualThread[#24]/runnable@ForkJoinPool-1-worker-1`.
+
+- **O escalonador é um `ForkJoinPool` próprio**, não o `commonPool` do `parallelStream`
+  (`java-e-jvm/06`). O paralelismo padrão é o número de processadores, ajustável com
+  `-Djdk.virtualThreadScheduler.parallelism`.
+- **Montar e desmontar é copiar pilha.** Quando a *virtual thread* bloqueia (I/O, `sleep`,
+  `Lock`, `BlockingQueue`), os *frames* dela vão para um objeto do heap, e a *carrier* pega outra
+  tarefa. Quanto mais funda a pilha no momento do bloqueio, mais memória ela ocupa
+  (`java-e-jvm/08` mediu: ~1,8 KB a 1 nível, ~5,2 KB a 200).
+
+### Sem preempção por tempo: a fome de *carrier*
+
+O sistema operacional tira uma thread de plataforma da CPU quando o tempo dela acaba. O escalonador
+de *virtual threads* não faz isso: uma *virtual thread* só larga a *carrier* quando bloqueia. Trabalho
+de CPU longo, sem bloqueio, prende a *carrier* até terminar.
+
+Medido no JDK 25, com o paralelismo do escalonador em 2. Duas tarefas de CPU de 2 s ocupam as duas
+*carriers*, e então chega uma tarefa curta, que só quer rodar por um instante:
+
+| As duas tarefas de CPU rodam em | A tarefa curta esperou |
+| --- | ---: |
+| *virtual threads* | **1.900 ms** |
+| *virtual threads* que chamam `Thread.yield()` a cada fatia | 1.900 ms |
+| *virtual threads* que chamam `Thread.sleep(1)` a cada fatia | 1 ms |
+| threads de plataforma | 1 ms |
+
+Nesse teste, o `Thread.yield()` não liberou a vez para a tarefa que chegou de fora do pool. O
+Javadoc do `yield` o define como uma sugestão ao escalonador, que pode ignorá-la; só um bloqueio de
+verdade liberou. Com threads de plataforma, a preempção do sistema operacional resolveu sozinha.
+
+Num serviço, isso é uma rota de cálculo pesado (um relatório, uma assinatura com criptografia cara)
+rodando em *virtual threads* ao lado das rotas de I/O: com tarefas pesadas suficientes, as rotas
+leves esperam o cálculo acabar.
+
+### Quando usar, e o antipadrão do pool
+
+Medido no JDK 25, com 4 CPUs:
+
+| Carga | *Pool* de threads de plataforma | Uma *virtual thread* por tarefa |
+| --- | ---: | ---: |
+| 10.000 tarefas de I/O de 100 ms | 5.040 ms (*pool* de 200) | **~200 ms** |
+| 32 tarefas de CPU | 193 ms (*pool* de 4) | ~190 ms |
+
+A leitura é a da documentação da Oracle: *virtual threads* dão **escala**, não velocidade. Com I/O,
+200 threads de plataforma limitam o serviço a 200 esperas simultâneas, e as *virtual threads* esperam
+as 10.000 de uma vez. Com CPU, a conta é a mesma, porque o limite é o número de núcleos, e não há
+ganho nenhum.
+
+Três regras saem disso:
+
+- **Uma *virtual thread* por tarefa, nunca um *pool* delas.** O *pool* existe para reaproveitar uma
+  thread cara, e a *virtual thread* não é cara. Para limitar a concorrência, use o `Semaphore` da
+  seção anterior.
+- **CPU longa vai para um *pool* de plataforma dimensionado** (o marco 05), separado do caminho de
+  I/O. A rota de I/O continua em *virtual threads*.
+- **O ganho depende do destino.** Se as 10.000 tarefas disputam um *pool* de 20 conexões, a escala
+  vira fila no *pool* (marco 07).
+
 ## Cancelamento: cooperativo em Java, por `context` em Go
 
 **Interrupção em Java é cooperativa**: chamar `interrupt()` numa thread não a para à força — ela
@@ -170,6 +234,13 @@ linha de base depois.
    o mesmo teste gera um evento por chamada: rodando nas duas versões, você vê o JEP 491
    acontecer.
 
+6. Com `-Djdk.virtualThreadScheduler.parallelism=2` e duas tarefas de CPU de 2 s em *virtual
+   threads*, uma tarefa curta espera mais de 1 s. Com as tarefas de CPU num *pool* de plataforma
+   separado, a mesma tarefa curta espera menos de 50 ms. O teste mede as duas esperas.
+7. Com 10.000 tarefas de I/O simulado de 100 ms, `newVirtualThreadPerTaskExecutor()` termina em
+   menos de 1 s, e um `newFixedThreadPool(200)` leva mais de 4 s. O mesmo par, com tarefas de CPU,
+   fica dentro de 20% um do outro.
+
 **Complemento — o mesmo invariante em 12 linhas.** Reimplemente o Tutorial Java com o
 `StructuredTaskScope` mostrado acima (`--enable-preview`, JDK 25). O invariante 3 — irmãs
 interrompidas em até 100 ms — deve passar nas duas versões. A lição é o contraste: o código
@@ -189,6 +260,9 @@ diferença — a mesma flag aparece em `spring-boot/12`.
 3. No JDK que o leitor usa hoje, o pinning em `synchronized` ainda ocorre? Como verificar?
 4. O que "cancelamento cooperativo" significa, e o que acontece quando o código ignora o sinal de
    cancelamento?
+5. Por que uma tarefa de CPU longa em *virtual thread* atrasa as outras *virtual threads*, e uma em
+   thread de plataforma não?
+6. Por que colocar *virtual threads* num *pool* fixo é um antipadrão, e o que usar no lugar?
 
 **Gabarito.** (3) Depende da versão: no JDK 24 em diante (inclusive no 25, a base desta
 trilha), não — o JEP 491 fez a virtual thread desmontar dentro de `synchronized` e de
@@ -207,6 +281,10 @@ coisa alguma.
 - `ScopedValue` é final no 25 e é herdado pelas subtarefas de um `StructuredTaskScope`;
   `StructuredTaskScope` segue em preview (25 e 27) e mudou de API no 25 — não amarre código de
   produção a ela.
+- *Virtual threads* rodam num `ForkJoinPool` próprio, sem preempção por tempo: CPU longa prende a
+  *carrier*, e `Thread.yield()` não garante a vez. Trabalho de CPU vai para um *pool* de plataforma.
+- *Virtual threads* dão escala, não velocidade: com I/O, 10.000 esperas de 100 ms em ~200 ms; com
+  CPU, nenhum ganho. Uma por tarefa, nunca um *pool*.
 - Cancelamento é cooperativo nas duas linguagens: `interrupt()` em Java e `context.Done()` em Go
   não param nada sozinhos — o código precisa checar e reagir.
 - Vazamento de goroutine (channel sem receptor, `Ticker` esquecido, `select` sem `ctx.Done()`) é

@@ -193,6 +193,24 @@ marco onde o conceito aparece na prática.
 
 ## A JVM
 
+### Frame
+**Em uma frase:** o bloco que cada chamada de método empilha na pilha da thread, com as variáveis locais, os operandos e o endereço de volta.
+**No pix-core:** o *frame* de `autorizar` guarda o `long` do limite e a referência ao `Pagamento`, que mora no heap.
+**Erro comum:** recursão sobre entrada externa, como uma cadeia de estornos, que esgota a pilha com `StackOverflowError`.
+**Onde na prática:** marco 08.
+
+### GC root
+**Em uma frase:** uma referência de onde o GC começa a marcação: variáveis dos *frames* vivos, campos estáticos e referências globais de JNI.
+**No pix-core:** o campo estático que segura o cache de chaves DICT é uma raiz, e tudo o que o cache alcança está vivo.
+**Erro comum:** achar que um ciclo de objetos vaza; sem caminho a partir de uma raiz, o ciclo é coletado.
+**Onde na prática:** marco 08.
+
+### Compactação
+**Em uma frase:** mover os objetos vivos para juntá-los e atualizar as referências, acabando com a fragmentação que a varredura deixa.
+**No pix-core:** o G1 evacua as regiões do heap do serviço durante a pausa, e o ZGC faz o mesmo com a aplicação rodando.
+**Erro comum:** achar que mais lixo deixa a coleta jovem mais lenta; copiar e compactar custam proporcionalmente ao que está vivo.
+**Onde na prática:** marco 08.
+
 ### Heap
 **Em uma frase:** a área de memória dos objetos Java, limitada por `-Xmx` e dividida em gerações.
 **No pix-core:** o README dimensiona o heap em 60% do limite do contêiner.

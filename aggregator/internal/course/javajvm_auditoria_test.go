@@ -9,7 +9,7 @@ import (
 
 // TestJavaEJvmAuditoria is the closing audit of the java-e-jvm trilha (Fase 4,
 // web/docs/AUDITORIA-java-e-jvm.md): the shape the plan promised — 11 marcos,
-// 590 min, 20 h, 50 questions, the five hands-on blocks everywhere — checked on
+// 600 min, 20 h, 52 questions, the five hands-on blocks everywhere — checked on
 // every build. It reuses hasTitlePrefix and isStrictlyLongest from the
 // go-fintech audit; content checks (code that compiles, outputs that match)
 // stay in the audit document.
@@ -23,11 +23,13 @@ func TestJavaEJvmAuditoria(t *testing.T) {
 		t.Fatalf("java-e-jvm has %d marcos, want 11", len(manifest.Milestones))
 	}
 	if manifest.Level != "advanced" || manifest.EstimatedHours != 20 {
-		t.Errorf("level %q estimatedHours %d, want advanced and 20 (590 x 2 / 60)", manifest.Level, manifest.EstimatedHours)
+		t.Errorf("level %q estimatedHours %d, want advanced and 20 (600 x 2 / 60)", manifest.Level, manifest.EstimatedHours)
 	}
 
 	sixMonths := map[string]bool{"01": true, "08": true, "09": true}
-	sixQuestions := map[string]bool{"02": true, "03": true, "08": true}
+	// 02 and 03 have the extended quiz (6); 08 has 8 since the section on
+	// stack, heap and what the GC sees (2 more questions).
+	extraQuestions := map[string]int{"02": 6, "03": 6, "08": 8}
 	wantBlocks := []string{"tutorial", "desafio", "invariantes", "complemento", "checagem"}
 
 	totalMin, totalQ, longest := 0, 0, 0
@@ -83,8 +85,8 @@ func TestJavaEJvmAuditoria(t *testing.T) {
 			t.Fatal(err)
 		}
 		wantQ := 4
-		if sixQuestions[nn] {
-			wantQ = 6
+		if n, ok := extraQuestions[nn]; ok {
+			wantQ = n
 		}
 		if len(qs) != wantQ {
 			t.Errorf("%s: %d questions, want %d", file, len(qs), wantQ)
@@ -96,13 +98,13 @@ func TestJavaEJvmAuditoria(t *testing.T) {
 			}
 		}
 	}
-	if totalMin != 590 {
-		t.Errorf("sum of estimatedMinutes = %d, want 590", totalMin)
+	if totalMin != 600 {
+		t.Errorf("sum of estimatedMinutes = %d, want 600", totalMin)
 	}
-	if totalQ != 50 {
-		t.Errorf("total questions = %d, want 50", totalQ)
+	if totalQ != 52 {
+		t.Errorf("total questions = %d, want 52", totalQ)
 	}
-	// Measured at 0 of 50 when the audit closed; a quarter would be chance.
+	// Measured at 0 of 52 after the stack and heap section; a quarter would be chance.
 	if longest*5 > totalQ {
 		t.Errorf("the correct option is the strictly longest in %d of %d questions; keep it under 20%%", longest, totalQ)
 	}

@@ -1,12 +1,14 @@
 ---
 id: memoria-e-gc
 title: "Memória e GC"
-summary: "Quase todo incidente de JVM em produção começa com uma suposição errada sobre memória. O que conta no limite do contêiner além do heap, o pod de 1 GB que roda SerialGC, MaxRAMPercentage, o OOMKilled com o heap em 60%, os tipos de OutOfMemoryError, e G1 × ZGC × Parallel medidos com a mesma carga."
-estimatedMinutes: 60
-reviewedAt: 2026-11-08
+summary: "Quase todo incidente de JVM em produção começa com uma suposição errada sobre memória. Pilha, heap e o que o GC enxerga (frames, raízes, compactação, escape analysis medida e a pilha da virtual thread no heap), o que conta no limite do contêiner além do heap, o pod de 1 GB que roda SerialGC, MaxRAMPercentage, o OOMKilled com o heap em 60%, os tipos de OutOfMemoryError, e G1 × ZGC × Parallel medidos com a mesma carga."
+estimatedMinutes: 70
+reviewedAt: 2026-11-09
 reviewEvery: 6m
 competencies: [performance, confiabilidade]
 references:
+  - title: "The Java Virtual Machine Specification (Java SE 25), cap. 2: Run-Time Data Areas"
+    url: https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html
   - title: "HotSpot Virtual Machine Garbage Collection Tuning Guide (Release 25)"
     url: https://docs.oracle.com/en/java/javase/25/gctuning/
   - title: "JEP 439: Generational ZGC"
@@ -16,6 +18,118 @@ references:
   - title: "jcmd (Java SE 25 Tools Reference), com VM.native_memory"
     url: https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html
 ---
+
+## Pilha, heap e o que o GC enxerga
+
+A pergunta clássica é "o que fica na pilha e o que fica no heap?". A resposta curta cabe numa frase:
+o **frame** guarda o primitivo e a referência; o **objeto** mora no heap.
+
+Cada thread tem a sua **pilha**. Cada chamada de método empilha um *frame* com as variáveis locais,
+os operandos das contas em andamento e o endereço de volta; o `return` desempilha. Um `long limite`
+local fica dentro do *frame*. Uma variável `Pagamento p` também fica no *frame*, mas guarda só a
+referência: o objeto `Pagamento`, e o `Money` dentro dele, estão no **heap**, compartilhado por todas
+as threads.
+
+Daí sai a outra pergunta de entrevista: **Java passa tudo por valor**. Ao chamar `autorizar(p)`, o
+valor da referência é copiado para o *frame* novo. Reatribuir o parâmetro (`p = outro`) não muda nada
+no chamador; mutar o objeto (`p.cancelar()`) muda, porque os dois *frames* apontam para o mesmo
+objeto. Com tipos de valor imutáveis, como os records do `pix-core`, a diferença deixa de ser armadilha.
+
+```diagrama
+jj-pilha-e-heap
+```
+
+### A pilha tem tamanho fixo, e a profundidade não é contrato
+
+A pilha de uma thread de plataforma é reservada na criação (`-Xss`, 1 MB por padrão no Linux x64), e
+esgotá-la lança `StackOverflowError`. Medido no JDK 25, com um método recursivo de um parâmetro, numa
+thread nova:
+
+| `-Xss` | Só interpretado (`-Xint`) | Com o JIT (padrão), em execuções diferentes |
+| --- | ---: | ---: |
+| 256k | 1.793 *frames* | 3.946 a 9.866 |
+| 512k | 4.772 | 10.500 a 26.250 |
+| 1m | 10.730 | 23.608 |
+
+Duas lições:
+
+- **A profundidade depende do tamanho do *frame*.** Um *frame* compilado é menor que um
+  interpretado, e o JIT pode juntar chamadas. Com a **mesma** `-Xss`, a profundidade variou mais de
+  duas vezes entre execuções. Com quatro parâmetros e duas variáveis locais `long`, a versão interpretada
+  chegou à metade.
+- **Recursão sobre entrada externa é um risco.** JSON aninhado, uma cadeia de estornos, uma árvore de
+  contas: se quem manda o dado decide a profundidade, decide também quando a pilha estoura. Itere com
+  uma pilha explícita (`ArrayDeque`) ou limite a profundidade na entrada.
+
+`StackOverflowError` não é `OutOfMemoryError`. É um `Error` da thread que estourou, a JVM continua de
+pé, e o heap nem foi tocado. O perigo é o estado que ficou no meio do caminho: um contador
+incrementado, um *lock* que um `finally` mais acima ainda vai liberar.
+
+### Raízes, marcação e compactação
+
+O GC não procura lixo: ele procura o que está **vivo**, partindo das **raízes** (*GC roots*):
+
+- as variáveis locais e os operandos dos *frames* vivos, em todas as threads;
+- os campos estáticos das classes carregadas;
+- as referências globais de JNI, os monitores em uso e outras referências internas da JVM.
+
+Tudo o que se alcança das raízes está vivo; o resto é lixo, inclusive um ciclo de objetos que só se
+referenciam entre si. Por isso o vazamento em Java é sempre uma referência esquecida a partir de uma
+raiz (ver o vazamento, mais abaixo).
+
+Depois de **marcar**, há três jeitos de recuperar o espaço:
+
+- **Varrer** devolve os buracos para uma lista livre. É rápido, mas fragmenta: sobra memória livre em
+  pedaços pequenos demais para um objeto grande.
+- **Compactar** move os vivos para o começo e atualiza todas as referências para eles.
+- **Copiar** os vivos para outra área, que é o que a geração jovem faz, do *eden* para o *survivor*.
+  O custo é proporcional ao que sobrevive, não ao lixo, e é por isso que a hipótese geracional
+  compensa.
+
+Mover um objeto exige saber onde estão todas as referências para ele. A JVM para as threads em
+pontos onde o mapa de referências de cada *frame* é conhecido, os **safepoints**, e é essa a pausa
+*stop-the-world*. O G1 move os vivos dentro dessa pausa (a evacuação de regiões). O ZGC move os
+vivos com a aplicação rodando, usando barreiras na leitura de referências, e por isso pausa
+microssegundos.
+
+### *Escape analysis*: o objeto que nunca chega ao heap
+
+Se o JIT prova que um objeto não sai do método, ele pode não alocá-lo: os campos viram variáveis no
+*frame* (*scalar replacement*). Medido no JDK 25 com `ThreadMXBean.getThreadAllocatedBytes`, depois
+do aquecimento, somando 1.000 valores com um record `Centavos`:
+
+| Código | Padrão | `-XX:-DoEscapeAnalysis` |
+| --- | ---: | ---: |
+| objeto vive só dentro de uma iteração, total num `long` | **0 B** por chamada | 72.000 B |
+| acumulador `Centavos total` atravessa o laço | 24.024 B | 48.024 B |
+| cada objeto é publicado num campo estático | 48.024 B | 48.024 B |
+
+O primeiro caso some por inteiro. No segundo, só a metade some: o JIT eliminou o objeto temporário,
+mas não o acumulador que passa de uma iteração para a outra. No terceiro, o objeto escapa, e nada é
+eliminado. É uma otimização, não uma garantia de linguagem: ela muda com a forma do código e com a
+versão do JIT, e só a medição diz o que aconteceu.
+
+### A pilha da *virtual thread* mora no heap
+
+Uma *virtual thread* não tem pilha reservada. Quando ela bloqueia e desmonta da *carrier*, os
+*frames* dela são copiados para um objeto do heap (`jdk.internal.vm.StackChunk`), e voltam para a
+pilha da *carrier* quando ela monta de novo. Medido no JDK 25 com o histograma de classes
+(`jcmd <pid> GC.class_histogram`), com 10.000 *virtual threads* estacionadas:
+
+| Profundidade da recursão antes de estacionar | `StackChunk` no heap | Por *virtual thread* |
+| ---: | ---: | ---: |
+| 1 | 17,6 MB | ~1,8 KB |
+| 50 | 27,3 MB | ~2,7 KB |
+| 200 | 51,9 MB | ~5,2 KB |
+
+O ponto de partida já inclui os *frames* do `CountDownLatch.await`. A conta mostra as duas faces:
+
+- 10.000 threads de plataforma reservariam 10 GB de endereço só de pilha. As *virtual threads*
+  ocupam o que a pilha de fato usa.
+- Essa pilha é heap: o GC a enxerga e a coleta, e pilha funda vezes milhões de threads vira pressão
+  de GC.
+
+O escalonador e a *carrier* estão em `concorrencia-e-recursos/06`.
 
 ## O que conta no limite do contêiner
 
@@ -139,6 +253,9 @@ o GC, porque o pod de 1 CPU estava rodando SerialGC.
 `Java heap space`, a memória direta com `-XX:MaxDirectMemorySize=32m`, e o `OOMKilled` com o heap em
 60% (`docker inspect --format '{{.State.OOMKilled}}'`).
 
+Antes dos contêineres, rode o `Profundidade` com `-Xss256k`, `512k` e `1m`, com e sem `-Xint`, e o
+`Escape` com e sem `-XX:-DoEscapeAnalysis`, e compare com as tabelas acima.
+
 **Desafio.** Dimensione a memória de um serviço: dado um limite de contêiner, calcule heap,
 *metaspace* (`-XX:MaxMetaspaceSize`), pilhas (threads × `-Xss`), memória direta
 (`-XX:MaxDirectMemorySize`) e uma folga para o resto, e escreva o cálculo no README do `pix-core`.
@@ -156,6 +273,13 @@ o GC, porque o pod de 1 CPU estava rodando SerialGC.
    a tabela de operações, pausa p99 e tempo para chegar ao *safepoint*. O README a traz, e o p99 do
    tempo parado no *safepoint* do ZGC fica abaixo de 1 ms.
 
+4. A cadeia de estornos de *fixture*, com 100 mil elementos, é percorrida por uma versão iterativa
+   sem erro com `-Xss256k`; a versão recursiva da mesma função falha com `StackOverflowError` (o
+   teste roda numa thread com pilha pequena, `new Thread(null, r, "t", 256 * 1024)`).
+5. Depois do aquecimento, a soma com o objeto só dentro da iteração aloca **0 bytes** por chamada,
+   medido com `getThreadAllocatedBytes`; numa JVM filha com `-XX:-DoEscapeAnalysis`, a mesma soma
+   aloca. O teste guarda os dois números.
+
 **Complemento.** Refaça a tabela dos coletores com `--cpus=4`, e veja o que acontece com o
 *throughput* do ZGC e com o tempo para chegar ao *safepoint*.
 
@@ -165,8 +289,18 @@ o GC, porque o pod de 1 CPU estava rodando SerialGC.
 2. Qual heap e qual GC a JVM escolhe num contêiner de 1 GB com 1 CPU, e por quê?
 3. O que a pausa de 40 µs do ZGC não conta, e por que o *throughput* dele caiu com 2 CPUs?
 4. Como um `ThreadLocal` vaza num pool de threads?
+5. O que fica no *frame* e o que fica no heap numa chamada `autorizar(p)`, e por que reatribuir `p`
+   dentro dela não muda o chamador?
+6. Por que a profundidade de um `StackOverflowError` muda entre execuções com a mesma `-Xss`?
 
 ## Principais aprendizados
+
+- O *frame* guarda o primitivo e a referência; o objeto mora no heap. Java passa a referência por
+  valor.
+- A pilha tem tamanho fixo e a profundidade depende do JIT: recursão sobre entrada externa é risco.
+- O GC marca o que as raízes alcançam e copia ou compacta os vivos; mover exige *safepoint*. A
+  *escape analysis* pode eliminar a alocação, e só a medição diz quando.
+- A pilha da *virtual thread* é um objeto do heap (`StackChunk`), proporcional à profundidade.
 
 - O limite do contêiner vale para heap, *metaspace*, pilhas, *code cache*, memória direta e nativa; o
   NMT mostra cada parte.

@@ -5,8 +5,8 @@ category: "Concorrência"
 tags: [concorrencia, paralelismo, threads, goroutines, race-condition, data-race, deadlock, locks, modelo-de-memoria, thread-pool, connection-pool, virtual-threads, java, go, fintech]
 level: advanced
 lang: pt-BR
-# 10 marcos, 600 min. A regra é ~2x a soma dos estimatedMinutes (leitura mais
-# hands-on): 600 x 2 / 60 = 20. Registrada no PROJETO.md.
+# 10 marcos, 610 min. A regra é ~2x a soma dos estimatedMinutes (leitura mais
+# hands-on): 610 x 2 / 60 = 20,3 -> 20. Registrada no PROJETO.md.
 estimatedHours: 20
 glossary: GLOSSARIO.md
 sources:

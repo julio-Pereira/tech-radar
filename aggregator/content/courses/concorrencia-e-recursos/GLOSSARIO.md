@@ -291,6 +291,18 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Erro comum:** ler um `jcmd Thread.print` num serviço em virtual threads e achar que as carriers são todas as threads que existem — as virtual threads só aparecem no `Thread.dump_to_file`.
 **Onde na prática:** marco 06, também no marco 09.
 
+### Escalonador de virtual threads
+**Em uma frase:** o `ForkJoinPool` próprio do JDK que monta as virtual threads nas carriers, com paralelismo padrão igual ao número de processadores.
+**No fin-platform:** `-Djdk.virtualThreadScheduler.parallelism=2` reproduz, num notebook, a disputa de carriers de um pod com 2 CPUs.
+**Erro comum:** confundi-lo com o `commonPool` do `parallelStream`; são pools diferentes.
+**Onde na prática:** marco 06.
+
+### Fome de carrier
+**Em uma frase:** virtual threads esperando porque todas as carriers estão presas em trabalho de CPU que não bloqueia, já que o escalonador não tira a vez por tempo.
+**No fin-platform:** duas tarefas de CPU de 2 s, com paralelismo 2, fizeram uma tarefa curta esperar 1.900 ms.
+**Erro comum:** confiar em `Thread.yield()` para ceder a vez; no teste do marco, só um bloqueio real liberou a carrier.
+**Onde na prática:** marco 06.
+
 ### StructuredTaskScope
 **Em uma frase:** a API de *structured concurrency* que amarra o tempo de vida das subtarefas a um bloco: uma falha cancela as irmãs, e nenhuma sobrevive ao fim do bloco (JEP 505).
 **No fin-platform:** as três chamadas do extrato num `StructuredTaskScope.open(...)`, canceladas juntas quando uma falha.

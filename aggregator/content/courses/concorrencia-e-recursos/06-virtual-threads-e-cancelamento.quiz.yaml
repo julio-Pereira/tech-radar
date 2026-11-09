@@ -52,3 +52,21 @@ questions:
       - "Nada: a opção não tem efeito desde o JDK 24, e a ausência de saída não prova nada"
     answer: 3
     explanation: "A propriedade foi removida no JDK 24 junto com o JEP 491: a JVM aceita a opção e simplesmente não faz nada. Quem conclui \"não há pinning\" pela falta de saída se engana. O diagnóstico atual é o evento JFR `jdk.VirtualThreadPinned`, de preferência com o limiar zerado para pegar bloqueios curtos."
+
+  - question: "Com o escalonador de *virtual threads* em paralelismo 2, duas tarefas de CPU de 2 s rodam em *virtual threads*. Logo depois chega uma tarefa curta, também em *virtual thread*. O que acontece, medido no JDK 25?"
+    options:
+      - "A tarefa curta roda em 1 ms, porque a JVM tira a vez das tarefas longas por tempo"
+      - "A tarefa curta espera ~1,9 s, até uma tarefa de CPU soltar a *carrier*"
+      - "A JVM cria uma terceira *carrier* para a tarefa curta, que roda sem esperar"
+      - "A tarefa curta é rejeitada, porque o escalonador não aceita fila"
+    answer: 1
+    explanation: "O escalonador de *virtual threads* não tem preempção por tempo: uma *virtual thread* só larga a *carrier* quando bloqueia. Com as duas *carriers* presas em CPU, a tarefa curta esperou 1.900 ms. Com as tarefas de CPU em threads de plataforma, o sistema operacional as tira da CPU, e a espera foi de 1 ms. CPU longa vai para um *pool* de plataforma separado."
+
+  - question: "Um time troca `Executors.newFixedThreadPool(200)` por `Executors.newFixedThreadPool(200, Thread.ofVirtual().factory())` para \"ganhar com *virtual threads*\" num serviço de I/O. O que eles ganharam?"
+    options:
+      - "Nada de escala: continuam com no máximo 200 tarefas simultâneas"
+      - "Escala ilimitada, porque o pool cria *virtual threads* sob demanda além das 200"
+      - "Menos memória e a mesma escala de `newVirtualThreadPerTaskExecutor()`"
+      - "Proteção contra fome de *carrier*, porque o pool limita as *virtual threads*"
+    answer: 0
+    explanation: "O pool fixo continua limitando a 200 tarefas em execução, agora sobre *virtual threads*: o gargalo é o mesmo. O *pool* existe para reaproveitar threads caras, e a *virtual thread* não é cara. O certo é uma por tarefa (`newVirtualThreadPerTaskExecutor()`), com um `Semaphore` para limitar o acesso ao recurso escasso. Medido no JDK 25 com 10.000 esperas de 100 ms: 5.036 ms no pool fixo de 200 *virtual threads*, o mesmo que os 5.040 ms do pool de 200 threads de plataforma, e ~200 ms com uma *virtual thread* por tarefa."
