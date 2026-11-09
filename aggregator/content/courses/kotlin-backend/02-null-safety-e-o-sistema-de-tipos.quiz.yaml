@@ -1,0 +1,86 @@
+questions:
+  - question: "`AssinadorLegado` é uma classe Java sem anotação de nulidade, e `assinar(\"\")` devolve `null`. O que acontece?"
+    code: |
+      val assinatura: String = AssinadorLegado().assinar("")
+      println(assinatura.length)
+    options:
+      - "Não compila: o Kotlin exige `String?` para todo retorno de método Java"
+      - "Imprime `0`: o Kotlin converte o `null` de Java em texto vazio"
+      - "NPE na atribuição: `assinar(...) must not be null`"
+      - "NPE só no `println`, ao chamar `length` em `null`"
+    answer: 2
+    explanation: "O retorno é um tipo de plataforma (`String!`): o compilador deixa atribuí-lo a `String`, por sua conta. Para garantir o tipo declarado, ele insere uma checagem na atribuição, que lança `NullPointerException: assinar(...) must not be null` (executado com Kotlin 2.3.21). Com `@NullMarked` e `@Nullable` do JSpecify no lado Java, a mesma linha deixa de compilar."
+
+  - question: "O mapa não tem a chave `P2`. Qual a diferença entre as duas linhas?"
+    code: |
+      val mapa = mapOf("P1" to "e2e-1")
+      val a = mapa["P2"]!!.uppercase()
+      val b = (mapa["P2"] ?: error("pagamento P2 sem e2eId")).uppercase()
+    options:
+      - "Nenhuma diferença: as duas lançam `NullPointerException` com a mesma mensagem, gerada pelo compilador"
+      - "`a` lança NPE com a mensagem `null`; `b` lança `IllegalStateException` com o contexto"
+      - "`a` devolve `null` e segue; só `b` interrompe a execução"
+      - "`b` não compila, porque `error(...)` não é uma `String`"
+    answer: 1
+    explanation: "`!!` lança `NullPointerException` sem contexto (a mensagem é `null`). `error(...)` lança `IllegalStateException` com a mensagem escrita, e compila porque devolve `Nothing`, subtipo de `String`. Executado: `a` dá `NullPointerException: null`; `b` dá `IllegalStateException: pagamento P2 sem e2eId`. Por isso o `!!` sai do código de produção."
+
+  - question: "O que este código imprime, e o que acontece na última linha?"
+    code: |
+      class Cliente {
+          lateinit var token: String
+          fun pronto() = ::token.isInitialized
+      }
+
+      val c = Cliente()
+      println(c.pronto())
+      println(c.token.length)
+    options:
+      - "Imprime `false`; depois `UninitializedPropertyAccessException`"
+      - "Imprime `false`; depois `0`, porque `lateinit` começa com texto vazio"
+      - "Imprime `true`, porque `lateinit` é inicializado com `null` na construção"
+      - "Não compila: `lateinit` exige que `token` seja `String?`"
+    answer: 0
+    explanation: "`lateinit` diz ao compilador que a propriedade vai ser preenchida depois da construção, por alguém de fora. Até lá, `::token.isInitialized` é `false`, e o acesso lança `UninitializedPropertyAccessException: lateinit property token has not been initialized`. `lateinit` só vale para `var` de tipo não-nulo e não primitivo."
+
+  - question: "Com `open class Evento` e `class EventoPix : Evento()`, qual destas funções não compila?"
+    code: |
+      interface Fonte<out T> { fun proximo(): T }
+      interface Destino<in T> { fun enviar(t: T) }
+
+      fun a(f: Fonte<EventoPix>): Fonte<Evento> = f
+      fun b(d: Destino<Evento>): Destino<EventoPix> = d
+      fun c(f: Fonte<Evento>): Fonte<EventoPix> = f
+    options:
+      - "`a`: uma `Fonte` de um subtipo nunca serve como `Fonte` do supertipo, nem com `out`"
+      - "`b`: `in` não permite passar um `Destino` do supertipo"
+      - "`c`: uma `Fonte<Evento>` pode produzir um evento que não é `EventoPix`"
+      - "Nenhuma: Kotlin não confere variância sem *wildcard*"
+    answer: 2
+    explanation: "`out T` torna `Fonte` covariante: `Fonte<EventoPix>` é uma `Fonte<Evento>` (a). `in T` torna `Destino` contravariante: quem aceita qualquer `Evento` aceita um `EventoPix` (b). O contrário de `a` não vale: o erro em `c` é `return type mismatch: expected 'Fonte<EventoPix>', actual 'Fonte<Evento>'`. É o PECS do Java, declarado uma vez na interface em vez de em cada uso."
+
+  - question: "`Money` sobrescreve `equals` comparando o valor com escala fixa de 2 casas. O que este código imprime?"
+    code: |
+      val a = Money.of("1.00")
+      val b = Money.of("1.0")
+      println("${a == b} ${a === b}")
+    options:
+      - "`true true`, porque o compilador reaproveita o objeto"
+      - "`true false`"
+      - "`false false`, porque as escalas de entrada são diferentes"
+      - "`false true`"
+    answer: 1
+    explanation: "`==` chama `equals` (e trata `null`): as duas fábricas fixam a escala em 2, e os valores são iguais. `===` compara a referência, e são dois objetos. Executado: `true false`. Cuidado com tipos anuláveis de número: `val x: Long? = 127L` e `val y: Long? = 127L` dão `x === y` verdadeiro, pelo cache de `Long`; com `128L`, falso."
+
+  - question: "O que `tarifa(\"x\", mapOf(\"y\" to 5L))` devolve?"
+    code: |
+      fun tarifa(id: String, tabela: Map<String, Long>): Long {
+          val base = tabela[id] ?: return 0
+          return base * 2
+      }
+    options:
+      - "Lança `NullPointerException`, porque `tabela[\"x\"]` é `null`"
+      - "Não compila: o *elvis* só aceita um valor do lado direito"
+      - "`0`: o *elvis* executa o `return` quando a chave não existe"
+      - "`10`: o *elvis* usa o primeiro valor do mapa como padrão"
+    answer: 2
+    explanation: "`return` é uma expressão do tipo `Nothing`, subtipo de qualquer tipo, e por isso pode ser o lado direito do *elvis*. Sem a chave, a função devolve `0` ali mesmo; daqui para baixo, `base` é `Long`, não `Long?`. O mesmo vale para `?: throw` e `?: error(...)`. Executado: `0`."

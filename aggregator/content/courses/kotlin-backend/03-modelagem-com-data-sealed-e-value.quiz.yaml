@@ -1,0 +1,52 @@
+questions:
+  - question: "Um time modelou a entidade JPA do pagamento como `data class Pagamento(@Id @GeneratedValue var id: Long? = null, ...)`, com uma associação preguiçosa para os eventos. Qual o problema principal?"
+    options:
+      - "`data class` não aceita anotações JPA no construtor primário, e o *build* falha na compilação"
+      - "`equals`/`hashCode` usam o id, que muda ao persistir, e o `toString` percorre a associação"
+      - "O Hibernate não aceita `Long?` como tipo do id gerado, só o `Long` com valor padrão zero"
+      - "`data class` não aceita `var` no construtor primário, e o id gerado pelo banco exige `var`"
+    answer: 1
+    explanation: "A identidade de uma entidade é o id, que nasce `null` e muda ao persistir: com o `hashCode` gerado sobre todos os campos, a entidade some do `HashSet` em que entrou antes do `persist`. O `toString` gerado percorre a associação preguiçosa e dispara consultas, ou `LazyInitializationException`, num log. `data class` aceita `var` e anotações no construtor; o problema não é compilar, é o comportamento. Para entidade, classe comum com igualdade pelo id."
+
+  - question: "`PixKey` é uma `@JvmInline value class` sobre `String`. Em qual destes usos ela vira um objeto `PixKey` em tempo de execução?"
+    options:
+      - "Como parâmetro de `fun registrar(chave: PixKey)`"
+      - "Como campo `val chave: PixKey` de uma `data class`"
+      - "Como elemento de uma `List<PixKey>`"
+      - "Como retorno de `fun chaveDe(id: PaymentId): PixKey`"
+    answer: 2
+    explanation: "Num parâmetro, num campo ou num retorno com o tipo estático `PixKey`, o *bytecode* usa a `String` direto (o parâmetro de `registrar` aparece como `registrar-mvVK3hg(String)`). Num genérico, como `List<PixKey>`, numa variável `Any` ou num `PixKey?`, ela vira objeto: o teste mostra `javaClass.name == \"...PixKey\"` para o elemento da lista."
+
+  - question: "A máquina de estados tem um `when` sobre `Estado` em cada ramo, sem `else`. O que acontece ao acrescentar `data object Cancelado : Estado` e recompilar?"
+    code: |
+      fun rotulo(estado: Estado): String = when (estado) {
+          Estado.Criado -> "criado"
+          is Estado.Autorizado -> "autorizado"
+          is Estado.Liquidado -> "liquidado"
+          is Estado.Rejeitado -> "rejeitado"
+          is Estado.Estornado -> "estornado"
+      }
+    options:
+      - "Compila, e `rotulo(Cancelado)` lança `NoWhenBranchMatchedException`"
+      - "Compila, e `rotulo(Cancelado)` devolve `null`"
+      - "Não compila: o `when` usado como expressão precisa cobrir `Cancelado`"
+      - "Compila com um aviso, porque `data object` não conta na exaustividade"
+    answer: 2
+    explanation: "O `when` usado como expressão sobre uma `sealed interface` precisa ser exaustivo, e o compilador conhece todos os subtipos. Testado com Kotlin 2.3.21: `'when' expression must be exhaustive. Add the 'Cancelado' branch or an 'else' branch`. É por isso que a máquina não tem `else`: ele desligaria essa proteção. A `NoWhenBranchMatchedException` só aparece quando a hierarquia é recompilada e o `when` não."
+
+  - question: "No Kotlin 2.3, o que acontece com este código?"
+    code: |
+      data class Valor private constructor(val centavos: Long) {
+          companion object {
+              fun of(c: Long): Valor { require(c >= 0); return Valor(c) }
+          }
+      }
+
+      val burla = Valor.of(10).copy(centavos = -5)
+    options:
+      - "Não compila: o construtor é privado, e o `copy` herda essa visibilidade"
+      - "Compila com avisos, e cria um `Valor` negativo sem passar pela validação"
+      - "Compila, e o `copy` lança `IllegalArgumentException` porque chama o `of`"
+      - "Compila sem aviso nenhum: o `copy` é sempre público em `data class`"
+    answer: 1
+    explanation: "O `copy` gerado chama o construtor primário direto, e no Kotlin 2.3.21 isso compila com o aviso `non-public primary constructor is exposed via the generated 'copy()' method`, que vira erro na linguagem 2.5 (KT-11914). O `require` do `of` não roda. Com `@ConsistentCopyVisibility` na classe, o `copy` fica privado e a linha não compila: `cannot access 'fun copy(...)': it is private`."
