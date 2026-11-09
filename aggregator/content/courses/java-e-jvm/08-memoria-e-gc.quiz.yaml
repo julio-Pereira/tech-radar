@@ -52,3 +52,35 @@ questions:
       - "Objetos grandes vivem pouco, e por isso ficam separados dos pequenos no heap"
     answer: 1
     explanation: "A observação é que a maioria dos objetos (um pedido, os intermediários de um *stream*) morre logo depois de criada. A geração jovem, coletada com frequência, é quase toda lixo, e copiar os poucos sobreviventes é barato; o que sobrevive a algumas coletas vai para a velha. A divisão por thread é a TLAB, um pedaço do *eden* para alocar sem disputa."
+
+  - question: "O que este código imprime?"
+    code: |
+      static class Pagamento { String estado = "CRIADO"; }
+
+      static void autorizar(Pagamento p) {
+          p.estado = "AUTORIZADO";
+          p = new Pagamento();
+          p.estado = "CANCELADO";
+      }
+
+      public static void main(String[] a) {
+          Pagamento p = new Pagamento();
+          autorizar(p);
+          System.out.println(p.estado);
+      }
+    options:
+      - "CRIADO"
+      - "AUTORIZADO"
+      - "CANCELADO"
+      - "null, porque o parâmetro foi reatribuído"
+    answer: 1
+    explanation: "Java passa tudo por valor, e o valor de `p` é uma referência. O *frame* de `autorizar` recebe uma cópia dela: a primeira linha muda o objeto que o `main` também enxerga. A reatribuição troca só a cópia local, e o `CANCELADO` vai para um objeto novo, que vira lixo no `return`. Executado no JDK 25: imprime `AUTORIZADO`."
+
+  - question: "Um serviço estaciona 10.000 *virtual threads*, cada uma no fundo de uma recursão de 200 níveis. Onde ficam os *frames* delas enquanto estão estacionadas?"
+    options:
+      - "Na pilha de 1 MB que cada uma reservou ao ser criada, fora do heap"
+      - "Em objetos `StackChunk` no heap, que o GC enxerga e pode coletar"
+      - "Na pilha da *carrier*, que fica presa até a *virtual thread* voltar"
+      - "Em memória nativa do escalonador, contada só pelo NMT"
+    answer: 1
+    explanation: "Ao desmontar, os *frames* da *virtual thread* são copiados para um `jdk.internal.vm.StackChunk` no heap, e a *carrier* fica livre. Medido no JDK 25 com `GC.class_histogram`: 51,9 MB de `StackChunk` para 10.000 *virtual threads* a 200 níveis, contra 17,6 MB a 1 nível. A pilha reservada de 1 MB é da thread de plataforma; a *carrier* presa é o *pinning*, que não é o caso aqui."

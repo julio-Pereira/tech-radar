@@ -75,5 +75,6 @@ JEP 507 no 25) e `StructuredTaskScope`. Aparecem só como *callout*.
 
 ## Regra das horas
 
-A trilha soma 590 minutos de `estimatedMinutes`. A regra do repositório é ~2x a soma, para cobrir o
-hands-on: 590 x 2 / 60 = 19,7, arredondado para **20 horas**.
+A trilha soma 600 minutos de `estimatedMinutes` (eram 590; o marco 08 ganhou 10 minutos com a seção
+de pilha e heap). A regra do repositório é ~2x a soma, para cobrir o hands-on: 600 x 2 / 60 =
+**20 horas**.

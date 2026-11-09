@@ -5,8 +5,8 @@ category: "Java/Spring"
 tags: [java, jvm, colecoes, generics, records, sealed, pattern-matching, streams, gc, jit, jfr, entrevista, fintech]
 level: advanced
 lang: pt-BR
-# 11 marcos, 590 min (web/docs/AUDITORIA-java-e-jvm.md). A regra é ~2x a soma
-# dos estimatedMinutes: 590 x 2 / 60 = 19,7 -> 20.
+# 11 marcos, 600 min (web/docs/AUDITORIA-java-e-jvm.md). A regra é ~2x a soma
+# dos estimatedMinutes: 600 x 2 / 60 = 20.
 estimatedHours: 20
 glossary: GLOSSARIO.md
 sources:

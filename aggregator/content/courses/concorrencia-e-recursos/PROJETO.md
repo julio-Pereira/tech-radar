@@ -102,4 +102,5 @@ quebrar.
 ## Regra do tempo declarado
 
 `estimatedHours` ≈ 2 × Σ `estimatedMinutes`. Aqui quase todo hands-on é *provocar uma
-falha e medi-la*, que custa mais que ler; os 600 min de leitura viram ~20h.
+falha e medi-la*, que custa mais que ler; os 610 min de leitura (eram 600; o marco 06 ganhou a
+seção sobre o escalonador de virtual threads) viram ~20h.
