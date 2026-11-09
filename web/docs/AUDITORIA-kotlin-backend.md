@@ -192,3 +192,68 @@ Os trechos dos quizzes foram executados, e cada explicação traz o resultado:
 - **Linguagens da tabela.** A tabela coroutines × *virtual threads* × goroutines junta a documentação
   com as medições acima. A preempção assíncrona das goroutines é a do Go 1.14 em diante.
 - **Revisão independente.** A revisão dos marcos 05 e 06 fica para a Fase 4, como no plano.
+
+## 4. Fase 3 — Bloco C (marcos 08 e 09), capstone e conceitos
+
+Os marcos 08 e 09 estão completos, com os cinco blocos de Hands-on e quizzes de 4 questões cada. O
+marco 09 tem o `## Capstone`, com a entrega, os critérios de pronto e a pergunta final do plano.
+
+- **Glossário:** ganhou 9 verbetes, na seção "No servidor". São 50 no total.
+- **`conceitos.yaml`:** ganhou `tipo-de-plataforma` (dono `kotlin-backend/02`) e
+  `concorrencia-estruturada` (dono `kotlin-backend/06`).
+- **`wantNoSection`:** voltou a ficar vazio.
+
+### Código conferido
+
+Foram usados dois projetos de verificação novos, além do `pix-status` das fases anteriores.
+
+**`pix-status-boot`**: Spring Boot 4.1.2 com WebFlux, R2DBC/H2, validation, o *starter* de
+OpenTelemetry, o módulo Kotlin do Jackson 3, `kotlinx-coroutines-reactor`, BlockHound e MockK
+1.14.12. São 8 testes, todos verdes:
+
+- o `GET /payments/{id}/status` devolve o estado certo depois de cada uma das 5 transições, e 404
+  para pagamento inexistente;
+- `@Transactional suspend` com R2DBC: a falha entre as duas gravações deixa 0 eventos;
+- o `trace_id` aparece na linha de log escrita depois do `delay`, em outra thread
+  (`trace_id=f0d7e37b...`), com `spring.reactor.context-propagation=auto`;
+- com o BlockHound instalado, 20 consultas passam sem `BlockingOperationError`;
+- `limite-por-recebedor=0` impede o *startup*, com `ConfigurationPropertiesBindException` e
+  `Binding validation errors`, apontando `limitePorRecebedor`;
+- o `BeanRegistrarDsl` registra o *bean*;
+- o MockK simula a função `suspend` com `coEvery` e confere com `coVerify`;
+- o teste de contrato passa.
+
+**`pix-status-mvc`**: Spring Boot 4.1.2 com Spring MVC e JDBC/H2.
+
+- O *controller* `suspend` funciona: começa em `http-nio-...-exec-1` e continua numa thread do
+  `kotlinx.coroutines` depois do `delay`.
+- **`@Transactional suspend` com o `JdbcTransactionManager`:** o log de `TRACE` mostra
+  `Creating new transaction` e `Completing transaction` antes do `insert`. Com a falha, a linha
+  ficou gravada (1 → 2), e nada foi desfeito nem avisado.
+- O mesmo método sem `suspend` faz o *rollback* normal.
+
+**`pix-status-ktor`**: Ktor 3.6.1 com Netty, `ktor-serialization-jackson` (Jackson 2) e StatusPages.
+São 4 testes, todos verdes:
+
+- o mesmo arquivo de contrato que roda no Spring. Os quatro corpos e o 404 deram as mesmas linhas
+  nos dois projetos, por exemplo
+  `{"pagamentoId":"R","estado":"REJEITADO","e2eId":null,"motivo":"saldo"}`;
+- o teste em Java chama `ConsultaStatus.emMemoria()` (`@JvmStatic`), `consultar("P1")`
+  (`@JvmOverloads`) e `exigir(id)` com `catch` da exceção verificada (`@Throws`);
+- o `null` passado pelo Java falha com `Parameter specified as non-null is null: method
+  ...consultar, parameter id`;
+- `add` numa lista de `listOf` lança `UnsupportedOperationException`;
+- com `K2JVMCompiler` e `javax.tools`, a API sem `@Throws` deixa o `catch` Java sem compilar
+  (`exception NaoAchou is never thrown in body of corresponding try statement`), e com `@Throws`
+  compila.
+
+### Decisões e desvios do plano
+
+- **`@Transactional` com `suspend`.** O plano pedia para conferir suporte e limites. O teste mostrou
+  que a anotação funciona com o gerenciador reativo e falha em silêncio com o JDBC. O marco 08 traz
+  a tabela e as duas regras práticas, e o Exemplo numa fintech usa esse caso.
+- **Contrato byte a byte.** As duas pilhas usam versões diferentes do Jackson (3 no Boot 4, 2 no
+  Ktor). Por isso o contrato compara o texto do corpo, e não um mapa desserializado, o que também
+  pega a ordem dos campos e o `null` explícito.
+- **Fontes do marco 08.** O `docs.spring.io` não resolve neste ambiente. As URLs da referência foram
+  conferidas por busca (§1), e todo comportamento citado no marco foi testado aqui.

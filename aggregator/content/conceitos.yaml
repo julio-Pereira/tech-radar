@@ -260,3 +260,15 @@
   termo: "JFR (JDK Flight Recorder)"
   dono: java-e-jvm/10
   apelidos: ["JFR", "JDK Flight Recorder", "Flight Recorder"]
+
+# ── Kotlin no backend ──────────────────────────────────────────────────────
+- id: tipo-de-plataforma
+  termo: "Tipo de plataforma"
+  dono: kotlin-backend/02
+  apelidos: ["tipo de plataforma", "tipos de plataforma"]
+  ignorarCaixa: true
+- id: concorrencia-estruturada
+  termo: "Concorrência estruturada"
+  dono: kotlin-backend/06
+  apelidos: ["concorrência estruturada"]
+  ignorarCaixa: true
