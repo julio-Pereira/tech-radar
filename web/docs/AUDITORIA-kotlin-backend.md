@@ -139,3 +139,56 @@ e o cache de `Long` (`127` idêntico, `128` não).
   2.0.21; a linha 2.0, que acompanha o Kotlin atual, ainda é *alpha*.
 - **Bibliotecas de asserção.** JUnit 6 e AssertJ, com a escolha registrada numa ADR do Tutorial do
   marco 01. O Kotest fica como alternativa citada.
+
+## 3. Fase 2 — Bloco B (marcos 05 a 07)
+
+Os marcos 05, 06 e 07 ganharam o texto completo, os cinco blocos de Hands-on e quizzes de 6, 6 e 4
+questões. O glossário ganhou 18 verbetes e chegou a 41. O `reviewEvery` é `6m` em 05 e 06, e `12m`
+em 07.
+
+### Código conferido
+
+O projeto de verificação `pix-status` ganhou:
+
+- `kotlinx-coroutines-core`, `-reactor`, `-test` e `-debug` 1.10.2, a versão do Boot 4.1.2;
+- BlockHound 1.0.18.
+
+Cada classe de teste roda numa JVM própria (`forkEvery = 1`), porque o BlockHound é global. São
+53 testes, todos verdes.
+
+| Marco | O que foi provado |
+| --- | --- |
+| 05 | 10 mil entregas HTTP reais, para 100 recebedores, a um `HttpServer` do JDK que responde em 200 ms, com 2 threads e limite de 50 por recebedor: 3,8 s, todas 200, e o pico medido no recebedor ficou no limite |
+| 05 | o mesmo cliente bloqueante (`HttpClient.send`) em `Dispatchers.Default`, com 4 threads: 200 entregas em 10,1 s |
+| 05 | prazo de 5 s com `runTest`: `Expirou`, `currentTime = 5000` e 5 ms de tempo real |
+| 05 | `Semaphore(7)` com mil entregas: pico exatamente 7, em 28,6 s virtuais |
+| 05 | BlockHound com a integração do `kotlinx-coroutines-debug`: `Thread.sleep` no `Default` lança `BlockingOperationError: Blocking call! java.lang.Thread.sleepNanos0`, e no IO passa |
+| 05 | memória por unidade parada, com 100 mil de cada: coroutine ~370 B, *virtual thread* ~994 B (JDK 25), goroutine ~2.695 B, dos quais 2.052 B de pilha (Go 1.24.7, o Go disponível neste ambiente) |
+| 06 | o cliente cancela aos 150 ms (tempo virtual), e as três fontes registram o cancelamento aos 150 ms |
+| 06 | falha opcional → `null` e as irmãs continuam; falha obrigatória → as opcionais são canceladas no mesmo instante; opcional lenta → `null` aos 300 ms |
+| 06 | `catch (e: Exception)` em volta de `delay`: a coroutine cancelada aos 250 ms roda as 50 voltas; com `ensureActive()` no `catch`, para em 2 |
+| 06 | laço de CPU de 300 ms em `withTimeoutOrNull(50)`: sem `ensureActive`, `terminou` em 300 ms; com ele, `null` em 52 ms |
+| 06 | `DebugProbes`: 10 mil consultas deram 40 mil coroutines vivas no meio e 0 depois do cancelamento |
+| 06 | regra de PSI: acusa só o `catch` genérico que engole, entre cinco variantes da *fixture* |
+| 07 | pendentes máximos com consumidor de 10 ms: 1 sem *buffer* e 18 com `buffer(16)`; `conflate` coletou `[0, 3, 6, 9]` |
+| 07 | ordem por pagamento com 8 partições: mil eventos de 50 pagamentos, todos em ordem, pico de concorrência 8; com `flatMapMerge(8)`, 31 dos 50 ficaram fora de ordem |
+| 07 | retry com *backoff*: transitório entregue na terceira tentativa, permanente na DLQ com 1 tentativa, o que esgota na DLQ depois de 4; tempo virtual 1.000 ms |
+| 07 | frio executa por coletor (2) e `shareIn` uma vez (1); `withContext` dentro do `flow { }` lança `Flow invariant is violated` |
+| 07 | `asFlux()` com `request(5)`: 5 recebidos e 5 produzidos; `Flux.range(1, 3).asFlow()` dá `[1, 2, 3]` |
+
+Os trechos dos quizzes foram executados, e cada explicação traz o resultado:
+
+- a ordem `[D, A, C, B]`;
+- o `async` em paralelo (1.000 ms) e com `await` imediato (2.000 ms);
+- `[B cancelado, scope: A falhou]` × `[handler: C falhou, D terminou]`;
+- o `withTimeout` dentro de `launch`, que cancela em silêncio e não chama o *handler*;
+- o *handler* que só vale na raiz;
+- as threads do `flowOn`.
+
+### Decisões
+
+- **Linter de `CancellationException`.** É um teste de PSI, como o de `!!` do marco 02, pelo mesmo
+  motivo (detekt).
+- **Linguagens da tabela.** A tabela coroutines × *virtual threads* × goroutines junta a documentação
+  com as medições acima. A preempção assíncrona das goroutines é a do Go 1.14 em diante.
+- **Revisão independente.** A revisão dos marcos 05 e 06 fica para a Fase 4, como no plano.

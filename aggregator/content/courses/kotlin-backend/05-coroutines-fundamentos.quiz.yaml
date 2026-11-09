@@ -1,0 +1,74 @@
+questions:
+  - question: "Em que ordem as letras são adicionadas à lista?"
+    code: |
+      val out = mutableListOf<String>()
+      coroutineScope {
+          launch { out += "A"; delay(100); out += "B" }
+          launch { out += "C" }
+          out += "D"
+      }
+    options:
+      - "`[A, B, C, D]`: cada `launch` roda até o fim antes do próximo"
+      - "`[A, C, D, B]`: o `launch` começa a rodar assim que é chamado"
+      - "`[D, A, C, B]`"
+      - "`[D, C, A, B]`: o último `launch` lançado roda primeiro"
+    answer: 2
+    explanation: "`launch` agenda a coroutine e devolve na hora; ela só roda quando a coroutine atual suspende ou termina. O corpo do `coroutineScope` adiciona `D` e espera as filhas: a primeira roda até o `delay` (`A`), a segunda roda inteira (`C`), e depois do `delay` vem `B`. Executado: `[D, A, C, B]`."
+
+  - question: "Quanto tempo (virtual) cada bloco leva?"
+    code: |
+      // bloco 1
+      coroutineScope {
+          val a = async { delay(1000); 1 }
+          val b = async { delay(1000); 2 }
+          a.await() + b.await()
+      }
+      // bloco 2
+      coroutineScope {
+          val a = async { delay(1000); 1 }.await()
+          val b = async { delay(1000); 2 }.await()
+          a + b
+      }
+    options:
+      - "1.000 ms nos dois: `async` sempre roda em paralelo"
+      - "2.000 ms nos dois: `async` dentro de `coroutineScope` é sequencial"
+      - "1.000 ms no bloco 1 e 2.000 ms no bloco 2"
+      - "2.000 ms no bloco 1 e 1.000 ms no bloco 2"
+    answer: 2
+    explanation: "No bloco 1, os dois `async` começam antes do primeiro `await`, e os dois `delay` correm juntos. No bloco 2, o `await` logo depois do primeiro `async` espera ele terminar antes de começar o segundo. Medido em tempo virtual: 1.000 ms e 2.000 ms."
+
+  - question: "O `pix-status` chama `HttpClient.send` (bloqueante) dentro de `launch`, no `Dispatchers.Default`, numa máquina com 4 núcleos. O recebedor responde em 200 ms. Quantas entregas por segundo, no máximo?"
+    options:
+      - "Ilimitadas: coroutines são leves, e cada uma espera sem custo"
+      - "Cerca de 20: 4 threads presas por 200 ms cada"
+      - "Cerca de 320: o `Default` cria 64 threads quando detecta bloqueio"
+      - "Cerca de 5.000: o `HttpClient` é assíncrono por dentro"
+    answer: 1
+    explanation: "O `Default` tem tantas threads quanto núcleos, e uma chamada bloqueante prende a thread, coroutine ou não: 4 ÷ 0,2 s = 20 por segundo. Medido: 200 entregas em 10,1 s. Com `sendAsync(...).await()`, a thread fica livre durante a espera: 10 mil entregas em 3,8 s com 2 threads. O limite de 64 é do `Dispatchers.IO`, e o `Default` não cresce."
+
+  - question: "Um *controller* do Spring MVC tradicional (não `suspend`) chama `runBlocking { servico.consultar(id) }`. O que acontece?"
+    options:
+      - "Nada de errado: `runBlocking` devolve a thread ao Tomcat enquanto a coroutine espera a resposta"
+      - "A thread da requisição fica presa até a coroutine terminar, e não há ganho nenhum"
+      - "Não compila: `runBlocking` só pode ser chamado de `main`"
+      - "O Spring converte a chamada num *controller* `suspend` automaticamente"
+    answer: 1
+    explanation: "`runBlocking` é a ponte do mundo bloqueante para o suspenso, e **bloqueia** a thread que o chama até a coroutine acabar. Num *controller*, isso prende a thread da requisição como uma chamada bloqueante comum. Ele serve em `main` e em teste. No servidor, o *framework* chama a função `suspend` direto (marco 08)."
+
+  - question: "Qual o papel de `withContext(Dispatchers.IO) { repositorio.buscar(id) }` numa função `suspend`?"
+    options:
+      - "Lança uma coroutine nova em paralelo no IO e devolve um `Deferred` que quem chamou precisa aguardar"
+      - "Roda o bloco nas threads do IO, suspende quem chamou e devolve o valor do bloco"
+      - "Transforma a chamada JDBC bloqueante em não bloqueante"
+      - "Aumenta o limite de threads do `Default` enquanto o bloco roda"
+    answer: 1
+    explanation: "`withContext` troca o *dispatcher* só para aquele bloco e devolve o resultado; não cria concorrência. A chamada JDBC continua bloqueando, mas bloqueia uma thread do IO, que existe para isso, e não uma das poucas do `Default`. Para isolar um recurso, `Dispatchers.IO.limitedParallelism(10)` cria uma vista com no máximo 10 threads."
+
+  - question: "Na comparação entre coroutines e *virtual threads*, qual afirmação está certa?"
+    options:
+      - "*Virtual threads* exigem marcar as funções, e coroutines não"
+      - "Coroutines pedem `suspend` na cadeia e dão em troca cancelamento estruturado"
+      - "As duas são preemptivas por tempo, como as goroutines"
+      - "Uma *virtual thread* parada ocupa menos memória que uma coroutine suspensa, porque não tem objeto de *continuation*"
+    answer: 1
+    explanation: "*Virtual threads* rodam o código bloqueante que já existe, sem mudança, e coroutines pedem `suspend` (a cor da função). Em troca, as coroutines cancelam, propagam prazo e falha pela árvore de `Job`. Nenhuma das duas é preemptiva por tempo; goroutines são, desde o Go 1.14. Medido com 100 mil unidades paradas: ~370 B por coroutine, ~994 B por *virtual thread* e ~2,7 KB por goroutine."
