@@ -117,18 +117,19 @@ mecanismo. Explique cada um em voz alta, em até 2 minutos, com a estrutura "par
 provar". Grave a si mesmo.
 
 **Desafio.** Duas rodadas cronometradas de 45 minutos.
-1. O desafio `rate-limiter-concorrente` do banco, na versão Java: os testes de referência estão no
+1. O desafio `cache-lru-ttl` do banco: o cache da consulta DICT, com os testes de referência no
    próprio desafio.
-2. O `CacheLru` com TTL do marco 03, escrito do zero, sem consultar a sua versão anterior, contra os
-   testes do marco 03.
+2. O desafio `transferencia-sem-deadlock` do banco: transferências concorrentes entre contas, sem
+   *deadlock* e sem perder dinheiro.
 
 Na segunda, fale os invariantes antes de escrever.
 
 **Invariantes testáveis**
 
-1. Na rodada do `rate-limiter-concorrente`, os 6 testes de referência do banco passam, no JDK 25.
-2. Na rodada do `CacheLru`, os testes do marco 03 passam, inclusive o de estresse com 16 threads, em 5
-   repetições.
+1. Na rodada do `cache-lru-ttl`, os testes de referência do banco passam, inclusive as 5 repetições do
+   teste com 16 threads.
+2. Na rodada do `transferencia-sem-deadlock`, os testes de referência passam, inclusive as transferências
+   opostas com 8 threads e a conservação da soma com 16 threads.
 3. O tempo de cada rodada fica registrado, com o ponto em que você travou e o porquê.
 
 **Complemento.** Faça uma rodada com outra pessoa no papel da banca, e peça a ela para interromper

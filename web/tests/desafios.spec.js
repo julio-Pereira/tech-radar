@@ -1,7 +1,7 @@
 // @ts-check
 // Banco de desafios (jornada de entrevistas, Fases 2-3): #/desafios catalog,
 // study mode and simulated mode, against the real compiled desafios.json
-// (the 10 desafios of the bank),
+// (the 12 desafios of the bank),
 // plus one mocked comportamental desafio for the privacy test.
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
@@ -33,13 +33,13 @@ test.beforeEach(async ({ page }) => {
 test('the catalog lists the pilot, with filters and the lock from pre-requisites', async ({ page }) => {
   await page.reload();
   const cards = page.locator('.desafio-card');
-  await expect(cards).toHaveCount(10);
+  await expect(cards).toHaveCount(12);
   await expect(page.locator('.desafio-card[data-id="pix-10k-tps"] .desafio-lock')).toHaveText('Faltam 4 marcos');
   // Title placeholders show the range, never a drawn number.
   await expect(page.locator('.desafio-card[data-id="pix-10k-tps"] .course-card-title')).toContainText('2.000–20.000');
 
   await page.locator('#desafios-tipo').selectOption('lld');
-  await expect(cards).toHaveCount(1);
+  await expect(cards).toHaveCount(3);
   await page.locator('#desafios-tipo').selectOption('');
   await page.locator('#desafios-liberados').check();
   await expect(page.locator('.empty')).toContainText('Nenhum desafio com esses filtros');
@@ -240,7 +240,7 @@ test('every desafio of the bank renders in both modes, without console errors, a
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   const ids = await page.evaluate(async () => (await (await fetch('./data/desafios.json')).json()).desafios.map((d) => d.id));
-  expect(ids.length).toBe(10);
+  expect(ids.length).toBe(12);
   for (const id of ids) {
     await page.goto(`/#/desafios/${id}/estudo/11`);
     await expect(page.locator('.desafio-estudo .learn-title')).not.toContainText('{');

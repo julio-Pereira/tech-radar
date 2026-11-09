@@ -92,7 +92,8 @@ sem hands-on (os 11 stubs, que saem dela bloco a bloco) e o `capstone.spec.js` (
 - O marco 11 cita dois desafios do banco, `cache-lru-ttl` e `transferencia-sem-deadlock`, que **não
   existem** em `content/desafios` (o plano os atribui a um adendo que não está no repositório). Na
   Fase 3, ou eles são criados com testes de referência em Java (como o `rate-limiter-concorrente`),
-  ou o marco usa o `rate-limiter-concorrente`, que já tem a versão Java.
+  ou o marco usa o `rate-limiter-concorrente`, que já tem a versão Java. **Resolvido depois:** os
+  dois foram criados no banco (ver §7).
 - O "adendo de sinais, Bloco 4", citado nos critérios de aceite para a jornada `entrevista-senior`,
   também não está no repositório; a jornada será atualizada pelo objetivo da trilha, como na
   `go-fintech`.
@@ -336,7 +337,8 @@ no JDK 25 do host. Todas as cargas são sintéticas, e o texto as descreve como 
   - o `CacheLru` do marco 03, escrito do zero contra os testes do marco 03.
 
   Criar os dois desafios novos no banco (com esqueleto, referência e o job LLD do CI) fica como
-  proposta para um PR próprio.
+  proposta para um PR próprio. **Feito depois:** os dois existem, e o marco 11 passou a usá-los
+  (ver §7).
 
 **Glossário.** 50 verbetes, todos com os quatro campos e "marco NN"; o golden de cobertura deu 50/50.
 
@@ -397,3 +399,31 @@ Os achados foram conferidos antes de corrigir:
 | 01 (fora do escopo pedido) | Desde o JDK 23, o `javac` não roda processadores achados no *classpath* sem `-proc:full`: o `BenchmarkList` só foi gerado com a flag (conferido) | O tutorial manda declarar o processador do JMH em `annotationProcessorPaths`, como o `pom` do `pix-core` já faz |
 
 O marco 02 não teve achado bloqueante.
+
+## 7. Os desafios `cache-lru-ttl` e `transferencia-sem-deadlock`
+
+O desvio da §5 foi desfeito: os dois desafios que o plano pedia para o marco 11 agora existem no banco,
+do tipo `lld`, com esqueleto e testes em Java (JUnit 5.10, Java 17, como o `rate-limiter-concorrente`)
+e uma referência.
+
+**Conferido com o `tools/desafios/check-lld.sh` do CI, no JDK 21 que o job usa:** os testes falham no
+esqueleto e passam com a referência, nos dois desafios.
+
+- **`cache-lru-ttl`:** é o cache do marco 03, com relógio `LongSupplier` em nanossegundos, comparando
+  pela diferença por causa da volta do `nanoTime`. São 10 testes: configuração, capacidade, ordem de
+  despejo, vencimento, recomeço da validade no `put`, e o teste de 16 threads com o relógio congelado
+  por fase (5 repetições). Uma referência sem `synchronized` é reprovada nas 5 repetições.
+- **`transferencia-sem-deadlock`:** uma trava por conta, adquiridas pela ordem do id. São 9 testes:
+  transferência simples, saldo insuficiente, entradas inválidas, transferências opostas com 8 threads
+  (3 repetições) e a conservação da soma com 16 threads e 10 contas (3 repetições).
+  - As threads do teste são *daemon*, e cada `Future.get` tem prazo de 15 s: um *deadlock* vira falha
+    com mensagem, e a JVM consegue encerrar.
+  - Uma referência ingênua, que trava na ordem do pedido, é reprovada por *deadlock* em ~93 s; a
+    referência passa em ~4 s.
+  - A primeira versão do teste esperava até 30 s e 60 s em 5 repetições, e passava de 400 s no caso de
+    *deadlock*. Os prazos e as repetições foram reduzidos.
+
+**Viés das decisões no banco:** 5 de 33 decisões têm a correta como a opção estritamente mais longa,
+abaixo do limite de 40%.
+
+O marco 11 usa os dois desafios nas rodadas cronometradas.
