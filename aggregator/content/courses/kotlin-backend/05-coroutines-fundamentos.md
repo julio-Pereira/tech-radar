@@ -1,7 +1,7 @@
 ---
 id: coroutines-fundamentos
 title: "Coroutines: fundamentos"
-summary: "Coroutine é computação suspensível; quem bloqueia a thread dentro dela anula tudo. O que o compilador faz com suspend, launch × async, dispatchers e withContext, o cliente bloqueante que prende o Dispatchers.Default (medido: 200 entregas em 10 s × 10 mil em 3,8 s), BlockHound acusando o bloqueio, tempo virtual para provar prazo, Semaphore por recebedor, e coroutines × virtual threads × goroutines numa tabela conferida."
+summary: "Coroutine é computação suspensível; quem bloqueia a thread dentro dela anula tudo. O que o compilador faz com suspend, launch × async, dispatchers e withContext, o cliente bloqueante que prende o Dispatchers.Default (medido: 200 entregas em 10 s × 10 mil em 2,8 s), BlockHound acusando o bloqueio, tempo virtual para provar prazo, Semaphore por recebedor, e coroutines × virtual threads × goroutines numa tabela conferida."
 estimatedMinutes: 65
 reviewedAt: 2026-11-09
 reviewEvery: 6m
@@ -35,7 +35,8 @@ na JVM:
   `Continuation` com o resultado.
 
 Duas consequências práticas. A coroutine parada custa um objeto no heap, não uma pilha: medido no JDK
-25, 100 mil coroutines suspensas ocuparam ~370 B cada. E `suspend` tem **cor**: uma função comum não
+25, 100 mil coroutines rasas (um só nível de suspensão) ocuparam ~370 B cada; cada função `suspend`
+a mais na cadeia acrescenta outro objeto de *continuation*. E `suspend` tem **cor**: uma função comum não
 chama uma função `suspend`, e a palavra se propaga pela base de código. É o preço do modelo, e a
 comparação com *virtual threads* gira em torno dele.
 
@@ -56,8 +57,11 @@ coroutineScope {
     val b = async { delay(1000); 2 }
     a.await() + b.await()            // 1.000 ms
 }
-val a = async { delay(1000); 1 }.await()   // espera aqui
-val b = async { delay(1000); 2 }.await()   // 2.000 ms no total
+coroutineScope {
+    val a = async { delay(1000); 1 }.await()   // espera aqui
+    val b = async { delay(1000); 2 }.await()   // 2.000 ms no total
+    a + b
+}
 ```
 
 `runBlocking` é a ponte do mundo bloqueante para o suspenso, e bloqueia a thread que o chama. Dentro de
@@ -68,7 +72,8 @@ servidor, o *framework* chama o seu código `suspend` direto (marco 08).
 
 O *dispatcher* decide **em que threads** a coroutine roda:
 
-- **`Dispatchers.Default`:** tantas threads quanto núcleos. É para CPU.
+- **`Dispatchers.Default`:** tantas threads quanto núcleos, com no mínimo 2 (num *pod* de 1 vCPU, são
+  2). É para CPU.
 - **`Dispatchers.IO`:** um *pool* elástico, com limite padrão de 64 threads (ou o número de núcleos,
   se for maior). É para chamada que bloqueia de verdade, como JDBC, arquivo ou um SDK sem versão
   assíncrona.
@@ -87,13 +92,15 @@ thread**, e com 4 núcleos o serviço tem 4 threads. Medido no `pix-status`, com
 que responde em 200 ms:
 
 | Cliente | Entregas | Threads | Tempo |
-| --- | ---: | ---: | ---: |
-| `HttpClient.send` (bloqueante) em `Dispatchers.Default` | 200 | 4 | 10,1 s |
-| `sendAsync(...).await()` (suspenso), limite de 50 por recebedor | 10.000 | 2 | 3,8 s |
+| --- | ---: | --- | ---: |
+| `HttpClient.send` (bloqueante) em `Dispatchers.Default` | 200 | 4 do `Default` | 10,1 s |
+| `sendAsync(...).await()` (suspenso), limite de 50 por recebedor | 10.000 | 2 do *dispatcher* + 2 do `HttpClient` (executor fixo) | 2,8 s |
 
 A conta do bloqueante é a de qualquer *pool*: 200 × 0,2 s ÷ 4 = 10 s. Para 10 mil entregas, seriam
-~500 s. O suspenso fez 50 vezes mais entregas com metade das threads, porque nenhuma delas fica
-esperando a resposta.
+~500 s. O suspenso fez 50 vezes mais entregas com o mesmo número de threads, porque nenhuma delas fica
+esperando a resposta. O executor do `HttpClient` precisa ser fixado
+(`HttpClient.newBuilder().executor(...)`): sem isso, o cliente do JDK completa as respostas num *pool*
+próprio que cresce conforme a carga, e a revisão deste marco contou 225 threads nele no mesmo teste.
 
 Como pegar o bloqueio: o **BlockHound** (`spring-boot/13`) tem integração com coroutines no
 `kotlinx-coroutines-debug`. Instalado no teste, um `Thread.sleep` dentro de
@@ -127,7 +134,7 @@ goroutines no Go 1.24.
 | memória parada | ~370 B | ~994 B | ~2,7 KB (2 KB de pilha) |
 | quem escalona | o *dispatcher* (biblioteca) | `ForkJoinPool` do JDK (`concorrencia-e-recursos/06`) | o *runtime* do Go |
 | preempção por tempo | não; só nos pontos de suspensão | não; só ao bloquear | sim, assíncrona desde o Go 1.14 |
-| código bloqueante | prende a thread do *dispatcher* | desmonta (exceto chamada nativa) | o *runtime* lida com a *syscall* |
+| código bloqueante | prende a thread do *dispatcher* | desmonta na maioria das esperas; I/O de arquivo e chamada nativa prendem a *carrier* | o *runtime* lida com a *syscall* |
 | cor na função | sim: `suspend` | não | não |
 | cancelamento | estruturado, pela hierarquia de `Job` (marco 06) | `interrupt` cooperativo; `StructuredTaskScope` ainda em *preview* | `context.Context` passado à mão (`go-fintech/06`) |
 
@@ -160,7 +167,8 @@ recebedor, devolvendo `Entregue`, `Recusada` ou `Expirou`.
 **Invariantes testáveis**
 
 1. **Sem bloqueio.** 10 mil entregas para 100 recebedores, com o recebedor respondendo em 200 ms,
-   terminam em menos de 15 s com **2 threads** (medido: 3,8 s), todas `Entregue(200)`. Um segundo
+   terminam em menos de 15 s com **2 threads** de *dispatcher* e o `HttpClient` com executor fixo de 2
+   threads (medido: 2,8 s), todas `Entregue(200)`. Um segundo
    teste instala o BlockHound e prova que um `Thread.sleep` em `Dispatchers.Default` lança
    `BlockingOperationError`.
 2. **Prazo em tempo virtual.** Com um transporte que demora 10 s e prazo de 5 s, o resultado é
@@ -190,7 +198,7 @@ memória de 100 mil coroutines suspensas e de 100 mil *virtual threads* paradas 
   `runBlocking` só em `main` e teste.
 - `Default` para CPU, `IO` para bloqueio de verdade, `limitedParallelism` para isolar um recurso;
   `Main` não existe no servidor.
-- Bloquear no `Default` derruba o serviço: 200 entregas em 10 s contra 10 mil em 3,8 s. BlockHound
+- Bloquear no `Default` derruba o serviço: 200 entregas em 10 s contra 10 mil em 2,8 s. BlockHound
   acusa.
 - Tempo virtual (`runTest`) prova prazo em milissegundos; `Semaphore` limita por recebedor.
 - *Virtual threads* barateiam o código bloqueante que já existe; coroutines cobram `suspend` e dão

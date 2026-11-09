@@ -158,7 +158,7 @@ Cada classe de teste roda numa JVM própria (`forkEvery = 1`), porque o BlockHou
 
 | Marco | O que foi provado |
 | --- | --- |
-| 05 | 10 mil entregas HTTP reais, para 100 recebedores, a um `HttpServer` do JDK que responde em 200 ms, com 2 threads e limite de 50 por recebedor: 3,8 s, todas 200, e o pico medido no recebedor ficou no limite |
+| 05 | 10 mil entregas HTTP reais, para 100 recebedores, a um `HttpServer` do JDK que responde em 200 ms, com 2 threads e limite de 50 por recebedor: 3,8 s, todas 200, e o pico medido no recebedor ficou no limite (refeito na Fase 4 com o executor do `HttpClient` fixado: 2,8 s; ver §5) |
 | 05 | o mesmo cliente bloqueante (`HttpClient.send`) em `Dispatchers.Default`, com 4 threads: 200 entregas em 10,1 s |
 | 05 | prazo de 5 s com `runTest`: `Expirou`, `currentTime = 5000` e 5 ms de tempo real |
 | 05 | `Semaphore(7)` com mil entregas: pico exatamente 7, em 28,6 s virtuais |
@@ -257,3 +257,70 @@ São 4 testes, todos verdes:
   pega a ordem dos campos e o `null` explícito.
 - **Fontes do marco 08.** O `docs.spring.io` não resolve neste ambiente. As URLs da referência foram
   conferidas por busca (§1), e todo comportamento citado no marco foi testado aqui.
+
+## 5. Fase 4 — auditoria final e revisão independente
+
+### Auditoria automatizada
+
+`aggregator/internal/course/kotlinbackend_auditoria_test.go` confere a forma da trilha em todo
+*build*, no molde do teste da `java-e-jvm`:
+
+- 9 marcos, `level: advanced` e `estimatedHours: 16`;
+- Σ `estimatedMinutes` = 490, e 490 × 2 / 60 = 16,3 → 16;
+- `reviewEvery` `6m` em 05, 06, 08 e 09, e `12m` nos demais, todos com `reviewedAt`;
+- de 1 a 3 `competencies` e ao menos uma referência por marco;
+- "Exemplo numa fintech", "Hands-on" e "Principais aprendizados" em todos os marcos, e cada um dos
+  cinco blocos de Hands-on exatamente uma vez;
+- `## Capstone` só no 09;
+- questões: 6 em 02, 05 e 06, 4 nos demais, 42 no total;
+- a opção correta estritamente mais longa em menos de 20% das questões (medido: 0 de 42);
+- glossário com ≥30 verbetes (são 50), todos apontando para marcos de 01 a 09;
+- toda ponte `kotlin-backend/NN`, de qualquer trilha, resolve. Isso inclui as três que
+  `java-e-jvm/05`, `java-e-jvm/11` e `spring-boot/13` faziam antes de a trilha existir.
+
+O código dos tutoriais e dos quizzes foi compilado e executado nas fases 1 a 3 (§2 a §4). Na Fase 4, a
+suíte inteira do `pix-status` rodou de novo: 61 testes verdes.
+
+### Revisão independente dos marcos 05 e 06
+
+Um revisor separado leu os dois marcos e os quizzes. Ele conferiu as afirmações contra a
+documentação do `kotlinx.coroutines` em kotlinlang.org e rodou os testes do projeto de verificação,
+mais experimentos próprios. Foram 17 achados: 2 bloqueantes, 6 importantes e 9 menores. Todos foram
+tratados.
+
+| Achado | Severidade | Correção |
+| --- | --- | --- |
+| Quiz 05, questão 1: a ordem `[D, A, C, B]` só vale num *dispatcher* de uma thread; no `Default`, o revisor viu quatro ordens em 2.000 execuções | bloqueante | o enunciado e o código fixam `runBlocking`, e a explicação diz o que muda com várias threads |
+| 06: "o *handler* só vale na raiz" é falso para filhas de `supervisorScope`/`SupervisorJob` (doc e teste) | bloqueante | regra reescrita: raiz e filha direta de supervisor; filha comum ignora; `async` não usa; aprendizados e quiz 6 alinhados |
+| 05: "2 threads" ignorava o *pool* do `HttpClient`, que chegou a 225 threads | importante | o teste fixa `executor(2)`, medido de novo (2,8 s), e o texto explica o *pool* próprio |
+| 06: `IllegalStateException` e `RuntimeException` também engolem o cancelamento | importante | texto, invariante e regra de PSI ampliados; a *fixture* acusa o caso `IllegalStateException` (medido: 50 voltas); o `runCatching` fica fora da regra, com a alternativa citada |
+| 06, quiz 3: o laço devolve o valor porque nunca suspendeu | importante | texto e explicação acrescentam o caso com suspensão antes do laço (medido: `null` em 301 ms) |
+| 06: faltava chamada bloqueante e `runInterruptible` | importante | parágrafo novo, medido: `Thread.sleep(300)` em 312 ms, e `null` em 52 ms com `runInterruptible` |
+| 06: na tabela, "a falha fica com quem chamou `await`" | importante | `async` → `await`; `launch` → *handler* ou *uncaught handler* |
+| 06: "o erro do `GlobalScope` se perde" | importante | vai para o *uncaught exception handler*; texto, quiz 5 e glossário |
+| 05: *virtual thread* "desmonta (exceto chamada nativa)" | importante | "I/O de arquivo e chamada nativa prendem a *carrier*" |
+| 05: `Default` com "tantas threads quanto núcleos" | menor | "no mínimo 2" |
+| 06: "escopo raiz com `SupervisorJob`" sugeria que o `SupervisorJob` é necessário | menor | "com `Job` ou `SupervisorJob`" |
+| 06, quiz 1: explicação citava C e D, que não estão no trecho | menor | alinhada ao código |
+| 06: "o ledger falha aos 150 ms" era o relógio absoluto do teste | menor | "50 ms depois do início da consulta" |
+| 06, Complemento: `CoroutineScope(Dispatchers.IO)` sai do tempo virtual | menor | `CoroutineScope(Job())` com o *dispatcher* de teste |
+| 06: "quando confere `isActive`" | menor | "e sai por conta própria", com `ensureActive()`/`yield()` |
+| 06: `NonCancellable` | menor | "função suspensa cancelável", e só em `withContext` |
+| redação: "toda coroutine" no 06, "~370 B" e `async` fora de escopo no 05, `runCatching` no quiz 6 do 06 | menor | "em regra", "coroutine rasa", `coroutineScope { }` no exemplo, `runCatching` no código |
+
+O revisor marcou como não verificados por fonte primária:
+
+- os números de memória de *virtual thread* e goroutine, medidos na Fase 2;
+- os detalhes de *pinning* do JDK, porque o openjdk.org não resolve neste ambiente. A redação da
+  tabela segue o que `concorrencia-e-recursos/06` já mediu e cita.
+
+### Critérios de aceite do plano
+
+- [x] 9 marcos com os cinco blocos de `## Hands-on` e invariantes testáveis (teste de auditoria).
+- [x] Paridade com o `pix-core` (rateio e os 20 pares de transição) e entre Spring e Ktor (contrato
+      byte a byte).
+- [x] Tabela coroutines × *virtual threads* × goroutines no marco 05, conferida contra a
+      documentação e revista.
+- [x] `GLOSSARIO.md` com 50 verbetes, `reviewEvery` em todos os marcos, `pix-status` em
+      `capstones.yaml`.
+- [x] `go test ./...` e os testes do front verdes.

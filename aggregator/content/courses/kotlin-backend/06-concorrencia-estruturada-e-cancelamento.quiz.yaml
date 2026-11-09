@@ -11,7 +11,7 @@ questions:
       - "`coroutineScope` cancela `B` e propaga a exceção; `supervisorScope` deixa `B` terminar"
       - "No `supervisorScope`, `B` é cancelada; no `coroutineScope`, ela termina"
     answer: 2
-    explanation: "No `coroutineScope`, a falha de uma filha cancela o pai e as irmãs, e a exceção sobe. No `supervisorScope`, cada filha é independente: `B` termina, e a falha de `A` vai para o *handler* (ou para quem chamar `await`). Testado: `[B cancelado, scope: A falhou]` e `[handler: C falhou, D terminou]`."
+    explanation: "No `coroutineScope`, a falha de uma filha cancela o pai e as irmãs, e a exceção sobe. No `supervisorScope`, cada filha é independente: `B` termina, e a falha de `A`, num `launch`, vai para o `CoroutineExceptionHandler` do contexto ou, sem ele, para o *uncaught handler* da thread. Testado com o mesmo desenho: no `coroutineScope`, a irmã foi cancelada e a exceção subiu; no `supervisorScope`, a irmã terminou e o *handler* recebeu a falha."
 
   - question: "A coroutine é cancelada aos 250 ms (tempo virtual). Quantas voltas o laço dá?"
     code: |
@@ -44,7 +44,7 @@ questions:
       - "Lança `TimeoutCancellationException` em ~50 ms"
       - "`null` em ~300 ms: o prazo é conferido só no fim do bloco"
     answer: 1
-    explanation: "O cancelamento é cooperativo: só é visto num ponto de suspensão ou numa conferência explícita. O laço de CPU não tem nenhum, e o bloco termina normalmente. Medido: `terminou` em 300 ms. Com `ensureActive()` dentro do laço, o resultado foi `null` em 52 ms."
+    explanation: "O cancelamento é cooperativo: só é visto num ponto de suspensão ou numa conferência explícita. O laço de CPU não tem nenhum e roda os 300 ms. Medido: `terminou` em 300 ms. O valor sai porque o bloco nunca suspendeu; com uma suspensão antes do laço, o resultado seria `null`, mas também depois de 300 ms. Com `ensureActive()` dentro do laço, o resultado foi `null` em 52 ms."
 
   - question: "Num escopo com `CoroutineExceptionHandler`, a coroutine abaixo estoura o prazo. O que acontece?"
     code: |
@@ -64,25 +64,25 @@ questions:
   - question: "Um serviço lança o envio de auditoria com `GlobalScope.launch { auditoria.gravar(evento) }` dentro de uma função `suspend` do *controller*. Qual o problema?"
     options:
       - "Nenhum: `GlobalScope` é o escopo recomendado para tarefas de fundo"
-      - "A coroutine não tem pai: ninguém a cancela, ninguém a espera, e o erro dela se perde"
+      - "A coroutine não tem pai: ninguém a cancela, ninguém a espera, e o erro não volta a quem chamou"
       - "Não compila: `GlobalScope` só existe no Android"
       - "A gravação roda na thread da requisição, e a resposta só sai depois que a auditoria termina de gravar"
     answer: 1
-    explanation: "Uma coroutine no `GlobalScope` não pertence à árvore da requisição: nada a espera, nada a cancela, e uma exceção dela não chega a quem poderia tratar. O mesmo vale para `CoroutineScope(Dispatchers.IO)` criado e esquecido no método. Tarefa de fundo pertence a um escopo com dono (o do *bean*, cancelado no `@PreDestroy`), ou à própria requisição."
+    explanation: "Uma coroutine no `GlobalScope` não pertence à árvore da requisição: nada a espera, nada a cancela, e uma exceção dela não chega a quem poderia tratar; vai só para o *uncaught exception handler* da thread, um *stack trace* no log. O mesmo vale para `CoroutineScope(Dispatchers.IO)` criado e esquecido no método. Tarefa de fundo pertence a um escopo com dono (o do *bean*, cancelado no `@PreDestroy`), ou à própria requisição."
 
   - question: "Onde um `CoroutineExceptionHandler` é chamado?"
     code: |
       val handler = CoroutineExceptionHandler { _, e -> log += "handler: ${e.message}" }
 
       // caso 1
-      coroutineScope { launch(handler) { error("boom") } }
+      runCatching { coroutineScope { launch(handler) { error("boom") } } }
 
       // caso 2
       CoroutineScope(SupervisorJob() + handler).launch { error("boom raiz") }
     options:
-      - "Nos dois casos, porque o *handler* está no contexto da coroutine que falhou"
+      - "Nos dois casos, porque o *handler* está no contexto da coroutine que falhou, seja ela filha ou raiz"
       - "Só no caso 1, porque o caso 2 não tem pai para avisar"
-      - "Só no caso 2: numa filha ele é ignorado, e a exceção sobe para o pai"
+      - "Só no caso 2: numa filha de `coroutineScope` ele é ignorado, e a exceção sobe"
       - "Em nenhum: o *handler* só vale para `async`"
     answer: 2
-    explanation: "Uma filha entrega a exceção ao pai, e o *handler* dela é ignorado: no caso 1, o `coroutineScope` lança `boom`. O *handler* só é chamado na coroutine raiz, como a lançada direto num escopo com `SupervisorJob`. Testado: o log tem só `handler: boom raiz`. Para `async`, a exceção vai para quem chama `await`."
+    explanation: "Uma filha comum entrega a exceção ao pai, e o *handler* dela é ignorado: no caso 1, o `coroutineScope` lança `boom` (e o `runCatching` a captura). O *handler* é chamado na coroutine raiz, como a do caso 2, e também numa filha direta de `supervisorScope`, que não tem a quem entregar a falha. Testado: o log tem só `handler: boom raiz`. Para `async`, a exceção vai para quem chama `await`."

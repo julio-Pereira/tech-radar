@@ -212,7 +212,7 @@ marco onde o conceito aparece na prática.
 ### `GlobalScope`
 **Em uma frase:** um escopo sem dono, que vive o processo inteiro: a coroutine lançada nele não tem pai.
 **No pix-status:** nenhuma; a regra é nunca usá-lo no `pix-status`.
-**Erro comum:** lançar tarefa de fundo nele; ninguém a cancela, ninguém a espera, e o erro dela se perde.
+**Erro comum:** lançar tarefa de fundo nele; ninguém a cancela, ninguém a espera, e o erro dela só aparece como um *stack trace* do *uncaught handler*.
 **Onde na prática:** marco 06.
 
 ### `Flow`
