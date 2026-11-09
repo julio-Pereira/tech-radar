@@ -23,11 +23,11 @@ questions:
       - "Nos headers da mensagem, propagados pelo produtor"
     answer: 3
     explanation: "Sem propagar nos headers, o consumidor abre um trace novo e a cadeia se parte exatamente no ponto mais difícil de investigar. O consumo se liga ao produtor por span link."
-  - question: "Por que colocar tenant_id em baggage é útil e perigoso ao mesmo tempo?"
+  - question: "O time vai trocar o agente proprietário pelo SDK do OTel. Por que mandar o mesmo dado para o destino antigo e para o novo, pelo Collector, antes de desligar o agente?"
     options:
-      - "Porque ele fica disponível na cadeia toda e vira atributo em todo lugar"
-      - "Porque o header de baggage estoura o limite de tamanho de alguns proxies"
-      - "Porque o baggage não é propagado por HTTP, só dentro do mesmo processo"
-      - "Porque o baggage só é preservado nos traces efetivamente amostrados"
-    answer: 0
-    explanation: "Vem com o custo de cardinalidade e o risco de vazar PII. Baggage é lido por qualquer serviço adiante: nunca ponha dado sensível ali — ele se espalha por toda a telemetria e depois é praticamente impossível de remover."
+      - "Porque o OTLP não consegue enviar para um destino só, e o Collector exige dois exportadores"
+      - "Para comparar painéis e alertas sobre o mesmo dado e desligar o antigo só depois da paridade"
+      - "Porque o destino novo só aceita dado que já passou pelo destino antigo, que faz a tradução"
+      - "Para dobrar a retenção dos dados, já que cada destino guarda uma cópia por um ano a mais"
+    answer: 1
+    explanation: "Na troca direta, um alerta que dependia de um nome de métrica que mudou fica mudo, e ninguém descobre até o incidente. Com envio duplo, os dois destinos recebem o mesmo dado durante a transição, a paridade de painéis e alertas é conferida (inclusive com alerta de ausência de dado), e só então o agente sai. No laboratório do marco, o mesmo conjunto de trace_id chegou aos dois destinos, e uma queda longa de um deles apareceu como diferença."

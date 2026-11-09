@@ -222,6 +222,24 @@ o Bloco A cria o vocabulário, e os blocos seguintes o reencontram.
 **Erro comum:** inventar nome próprio onde a convenção existe, quebrando painel e consulta entre stacks.
 **Onde na prática:** marco 05, também no marco 10.
 
+### Envio duplo
+**Em uma frase:** mandar a mesma telemetria, pelo Collector, para o destino antigo e para o novo durante uma migração, com dois exportadores no mesmo *pipeline*.
+**No fin-platform:** o Collector do `fin-watch` exporta os *traces* para o Tempo e para um segundo destino, e um *script* confere os `trace_id` dos dois.
+**Erro comum:** desligar o agente antigo no mesmo dia em que o novo entra, sem período de comparação.
+**Onde na prática:** marco 05.
+
+### Paridade de alertas
+**Em uma frase:** a prova de que cada alerta do destino antigo tem um equivalente no novo, que dispara nas mesmas condições sobre o mesmo dado.
+**No fin-platform:** os alertas de SLO do `pix-gateway` existem nos dois destinos até o desligamento do agente antigo.
+**Erro comum:** comparar só os painéis, que parecem iguais, enquanto um alerta ficou mudo porque o nome da métrica mudou.
+**Onde na prática:** marco 05, também no marco 13.
+
+### Alerta de ausência de dado
+**Em uma frase:** um alerta que dispara quando uma série esperada para de chegar, em vez de esperar que ela passe de um limite.
+**No fin-platform:** `absent_over_time` sobre a métrica de pagamentos autorizados avisa quando a métrica some depois de uma troca de instrumentação.
+**Erro comum:** confiar só em alertas de limite, que ficam em silêncio, parecendo saudáveis, quando a métrica deixa de existir.
+**Onde na prática:** marco 05, também no marco 13.
+
 ### Resource attribute
 **Em uma frase:** atributos que descrevem quem emitiu, anexados a todo sinal do processo.
 **No fin-platform:** `service.name`, `service.version`, `k8s.pod.name`.

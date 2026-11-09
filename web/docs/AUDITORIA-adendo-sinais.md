@@ -136,3 +136,37 @@ esteira.
 
 A tabela "conceito → serviço" e as pontes para `aws-para-backend` ficam para depois daquela trilha,
 como o próprio plano prevê.
+
+## 2. Fase 1 — Bloco 1 (observabilidade)
+
+**`observabilidade/05`.** O marco ganhou:
+
+- a seção "Migrar de um agente proprietário para OTel" (~600 palavras), com:
+  - os três motivos da troca;
+  - o fim de suporte do SDK do X-Ray como exemplo;
+  - a sequência instrumentar → envio duplo → paridade;
+  - quatro armadilhas: nome de métrica, cardinalidade, alerta mudo (com `absent_over_time`) e produto
+    proprietário que não lê OTel;
+  - a tabela conferida na Fase 0;
+- o Complemento de envio duplo, com o invariante e os quatro resultados do laboratório da §1;
+- `otelcol-contrib validate`, conferido: ele acusa
+  `'max_elapsed_time' must not be less than 'initial_interval'` sem subir o Collector;
+- o item (e) da checagem e um aprendizado novo;
+- `reviewedAt` e `reviewEvery: 6m`, porque o marco agora depende de nomes de produto;
+- as referências do Datadog e do fim de suporte do X-Ray.
+
+**Quiz do 05.** A questão de *baggage* saiu, porque o tema continua na checagem (d). Entrou uma questão
+sobre envio duplo × troca direta, e o marco continua com 4 questões. Na questão nova, a correta não é a
+estritamente mais longa.
+
+**`observabilidade/16`.** O marco ganhou um parágrafo sobre a conta em SaaS: as alavancas são as
+mesmas, e só muda a linha da fatura em que o desperdício aparece.
+
+**Glossário da `observabilidade`.** Entraram três verbetes: envio duplo, paridade de alertas e alerta
+de ausência de dado. "Semantic convention" já existia e foi mantido. A trilha passa a ter 47
+verbetes.
+
+**Pontes de retorno.** `go-fintech/12` e `spring-boot/10` passam a citar `observabilidade/05` para a
+migração.
+
+**Testes.** O golden de seções ganhou +1 bloco de complemento (269), e o de glossário foi regenerado.

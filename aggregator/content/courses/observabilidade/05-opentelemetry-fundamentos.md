@@ -3,6 +3,8 @@ id: opentelemetry
 title: "OpenTelemetry: fundamentos"
 summary: "O padrão que separa instrumentação de fornecedor: API, SDK, OTLP, semantic conventions e a propagação de contexto que faz a correlação existir."
 estimatedMinutes: 45
+reviewedAt: 2026-11-09
+reviewEvery: 6m
 references:
   - title: "OpenTelemetry — Documentation"
     url: https://opentelemetry.io/docs/
@@ -10,6 +12,10 @@ references:
     url: https://opentelemetry.io/docs/concepts/semantic-conventions/
   - title: "W3C — Trace Context"
     url: https://www.w3.org/TR/trace-context/
+  - title: "Datadog — OpenTelemetry in Datadog"
+    url: https://docs.datadoghq.com/opentelemetry/
+  - title: "AWS X-Ray — SDK and daemon end of support timeline"
+    url: https://docs.aws.amazon.com/xray/latest/devguide/xray-daemon-eos.html
 ---
 
 ## O problema que ele resolve
@@ -130,6 +136,56 @@ Cuidado com o excesso: um span por método produz traces de 400 spans que ningu�
 custo que ninguém previu. Span é para **unidade de trabalho significativa** — uma chamada
 externa, uma consulta, uma decisão.
 
+## Migrar de um agente proprietário para OTel
+
+A maioria dos times não começa do zero: começa com um agente de fornecedor instalado há anos. Três
+motivos levam à troca:
+
+- **custo**, porque o preço por host, por GB ingerido e por série cresce com o serviço (marco 16);
+- **dependência**, porque reinstrumentar para trocar de fornecedor é o que mantém a telemetria refém;
+- **padronização**, com o mesmo SDK, o mesmo formato e as mesmas convenções em Go, Java e Kotlin.
+
+O próprio mercado empurra nessa direção. A AWS colocou o SDK e o *daemon* do X-Ray em manutenção em
+25 fev 2026, com fim de suporte em 25 fev 2027, e aponta o OpenTelemetry como o caminho. Para quem está
+na AWS, o "agente proprietário" que sai é o do X-Ray.
+
+A troca não é *big bang*. A sequência que funciona:
+
+1. **Instrumentar com o SDK do OTel**, serviço a serviço, mantendo o agente antigo ou exportando para o
+   mesmo destino. As convenções semânticas viram o **contrato**: `http.request.method`, `db.system` e
+   `service.name` iguais em todo serviço, e atributos próprios com o prefixo `fin.`.
+2. **Envio duplo pelo Collector.** Um *pipeline* com dois exportadores manda o mesmo dado para o destino
+   antigo e para o novo durante a transição. Nada no código muda quando o destino muda.
+3. **Paridade antes de desligar.** Cada painel e cada alerta do destino antigo tem um equivalente no
+   novo, conferido com o mesmo período de dado. Só então o agente antigo sai.
+
+As armadilhas são previsíveis:
+
+- **O nome da métrica muda.** `trace.http.request.duration` de um agente vira
+  `http.server.request.duration` na convenção do OTel. As unidades e os *buckets* do histograma também
+  podem mudar.
+- **A cardinalidade explode na troca.** Um atributo que o agente antigo descartava agora vira *label*.
+- **O alerta fica mudo.** Uma regra sobre um nome que não existe mais não dispara nunca, e parece
+  saudável. A defesa é alertar também sobre a **ausência** do dado: `absent_over_time(...)` no
+  Prometheus, ou a condição de "sem dado" do fornecedor.
+- **Produto proprietário que não lê OTel.** No Datadog, por exemplo, dado vindo do SDK do OTel não
+  alimenta alguns produtos, entre eles o Continuous Profiler. A paridade precisa listar o que fica sem
+  dado.
+
+O mapa abaixo foi conferido na documentação dos fornecedores em 9 nov 2026. Nomes de produto mudam;
+este marco é revisado a cada 6 meses.
+
+| Conceito (catálogo) | Datadog | New Relic | AWS | Elastic |
+| --- | --- | --- | --- | --- |
+| Entrada de OTLP | OTLP no Agent, DDOT Collector ou *endpoint* OTLP direto | *endpoint* OTLP nativo (`otlp.nr-data.net`) | ADOT Collector; *endpoints* OTLP do CloudWatch (*traces* e *logs*; métricas em *preview*) | EDOT Collector ou *Managed OTLP Endpoint* |
+| Métricas (Prometheus/Mimir) | Metrics | Metrics | CloudWatch Metrics | Metrics |
+| *Logs* (Loki) | Log Management | Logs | CloudWatch Logs | Logs |
+| *Traces* (Tempo) | APM | Distributed Tracing | X-Ray e Application Signals | APM |
+| *Profiling* (Pyroscope) | Continuous Profiler | Continuous Profiling (por agente) | CodeGuru Profiler | Universal Profiling |
+| SLO e *error budget* | Service Level Objectives | Service Levels | SLOs do Application Signals | SLOs |
+
+As fontes de cada célula estão em `web/docs/AUDITORIA-adendo-sinais.md`.
+
 ## Exemplo numa fintech
 
 No `fin-platform`, o mínimo que faz diferença:
@@ -232,10 +288,43 @@ curl -v -X POST http://localhost:8080/payments 2>&1 | grep -i traceparent
    propagar o contexto. Veja o trace se partir. Conserte. Escreva 3 linhas sobre por que
    esse é o bug mais comum de instrumentação.
 
+**Complemento — o envio duplo da migração.** Suba um Collector com **dois exportadores** no mesmo
+*pipeline* de *traces*: o Tempo (o destino "antigo") e um Jaeger local (o "novo").
+
+```yaml
+exporters:
+  otlp/tempo:  { endpoint: tempo:4317,  tls: { insecure: true } }
+  otlp/jaeger: { endpoint: jaeger:4317, tls: { insecure: true } }
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo, otlp/jaeger]
+```
+
+Gere 200 *traces* com um programa que grava cada `trace_id` enviado num arquivo, e escreva um *script*
+que confere cada um em `GET /api/traces/{id}` do Tempo (porta 3200) e do Jaeger (porta 16686).
+
+- **Invariante:** o mesmo conjunto de `trace_id` chega aos dois destinos. O *script* termina com erro
+  se faltar um único `trace_id` em qualquer lado.
+- **Medido no laboratório do repositório:** 200 de 200 nos dois.
+- **Derrube o Jaeger por alguns segundos durante o envio:** a fila de *retry* do exportador segura os
+  dados e entrega quando ele volta (100 de 100).
+- **Deixe-o fora por mais tempo que o `max_elapsed_time` do `retry_on_failure`:** o Collector registra
+  `Exporting failed. Dropping data.`, o Tempo fica com 100 e o Jaeger com 0, e o *script* acusa a
+  diferença.
+- **Uma lição a mais:** uma configuração inválida (`max_elapsed_time` menor que `max_interval`) impede
+  o Collector de subir, e aí os **dois** destinos ficam sem dado. Valide a configuração na esteira
+  (`otelcol-contrib validate --config=...`, que acusa esse erro sem subir nada) antes de qualquer
+  troca.
+
 **Checagem.** (a) Por que uma biblioteca pode usar a API do OTel sem impor custo a quem a
 usa? (b) O que quebra se dois serviços nomearem o mesmo conceito de formas diferentes?
 (c) Onde viaja o contexto num fluxo assíncrono via Kafka? (d) Por que `tenant_id` em
-baggage é útil e perigoso ao mesmo tempo?
+baggage é útil e perigoso ao mesmo tempo? (e) Por que a migração de um agente proprietário usa
+envio duplo em vez de troca direta, e o que fica de fora da paridade se só os painéis forem
+comparados?
 
 ## Principais aprendizados
 
@@ -247,3 +336,6 @@ baggage é útil e perigoso ao mesmo tempo?
   fronteira assíncrona, que é onde mais se precisa dela.
 - Auto para o transporte, manual para o negócio; span é unidade de trabalho
   significativa, não método.
+- Migrar de um agente proprietário é instrumentar com OTel, mandar para os dois destinos pelo
+  Collector e provar a paridade de painéis e alertas, inclusive com alerta de ausência de dado,
+  antes de desligar o antigo.
