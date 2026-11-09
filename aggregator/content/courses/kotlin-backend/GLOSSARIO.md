@@ -1,6 +1,5 @@
 Um verbete por termo: definição em uma frase, o exemplo no `pix-status`, o erro comum associado e o
-marco onde o conceito aparece na prática. O glossário completo chega com o Bloco C; os verbetes do
-Bloco A já estão aqui.
+marco onde o conceito aparece na prática.
 
 ## A linguagem
 
@@ -251,3 +250,59 @@ Bloco A já estão aqui.
 **No pix-status:** a leitura do *broker* roda no IO com `flowOn`, e o pipeline coleta no seu próprio contexto.
 **Erro comum:** usar `withContext` dentro do `flow { }`, que lança `Flow invariant is violated`.
 **Onde na prática:** marco 07.
+
+## No servidor
+
+### `kotlin-jpa`
+**Em uma frase:** o plugin de compilador que gera um construtor sem argumentos para as classes com `@Entity`, `@Embeddable` e `@MappedSuperclass`.
+**No pix-status:** não há entidade JPA no `pix-status`; o plugin aparece no marco 02, no caso do JSON que nasce com `null`.
+**Erro comum:** achar que ele abre a classe; para o *lazy loading* por proxy, a entidade também precisa do `all-open`.
+**Onde na prática:** marco 08.
+
+### `@Transactional` em `suspend`
+**Em uma frase:** a anotação de transação numa função `suspend`, que o Spring trata como chamada reativa e só transaciona com um `ReactiveTransactionManager`.
+**No pix-status:** com R2DBC, a falha entre as duas gravações deixa zero linhas.
+**Erro comum:** usá-la com JDBC: a transação fecha antes do corpo rodar, e nada é desfeito, sem aviso.
+**Onde na prática:** marco 08.
+
+### `BeanRegistrarDsl`
+**Em uma frase:** a DSL Kotlin do `BeanRegistrar` do Spring 7, que registra *beans* com código comum em vez de métodos `@Bean`.
+**No pix-status:** o `RelogioDeNegocio` é registrado por um `BeanRegistrarDsl` importado na aplicação.
+**Erro comum:** usar a DSL para o que um `@Component` resolve; ela compensa quando o registro tem `if` ou `for`.
+**Onde na prática:** marco 08.
+
+### Propagação de contexto em coroutines
+**Em uma frase:** o mecanismo que leva o MDC e o *trace* através das trocas de thread de uma coroutine, ligado no Boot 4 por `spring.reactor.context-propagation=auto`.
+**No pix-status:** a linha de log escrita depois do `delay` sai com o mesmo `trace_id` de antes.
+**Erro comum:** esperar que o `ThreadLocal` do MDC sobreviva sozinho à troca de thread.
+**Onde na prática:** marco 08.
+
+### Ktor
+**Em uma frase:** o *framework* de servidor da JetBrains, em Kotlin e com coroutines na base: *plugins*, rotas `suspend` e *engine*, sem container nem proxy.
+**No pix-status:** a versão Ktor do `pix-status` passa o mesmo contrato HTTP da versão Spring.
+**Erro comum:** escolhê-lo onde o time precisa de transação declarativa, segurança e Actuator prontos.
+**Onde na prática:** marco 09.
+
+### `@JvmStatic`
+**Em uma frase:** a anotação que gera um método estático na classe para uma função do `companion object` ou de um `object`.
+**No pix-status:** o Java escreve `ConsultaStatus.emMemoria()`, sem `Companion`.
+**Erro comum:** esquecê-la numa biblioteca usada por Java, e obrigar os clientes a escrever `Classe.Companion.metodo()`.
+**Onde na prática:** marco 09.
+
+### `@JvmOverloads`
+**Em uma frase:** a anotação que gera uma sobrecarga Java para cada parâmetro com valor padrão, a partir do último.
+**No pix-status:** o Java chama `consultar("P1")` sem o segundo argumento.
+**Erro comum:** removê-la numa versão nova da biblioteca, e quebrar a compilação dos clientes Java.
+**Onde na prática:** marco 09.
+
+### `@Throws`
+**Em uma frase:** a anotação que declara, para o Java, as exceções verificadas que uma função Kotlin lança.
+**No pix-status:** o `catch (PagamentoNaoEncontrado e)` do teste Java só compila por causa dela.
+**Erro comum:** omiti-la: o Java não consegue capturar a exceção (`never thrown in body of corresponding try statement`).
+**Onde na prática:** marco 09.
+
+### Teste de contrato
+**Em uma frase:** um teste que fixa a resposta de uma interface (status, cabeçalhos, corpo) e roda igual contra cada implementação.
+**No pix-status:** o mesmo arquivo de contrato compara byte a byte os corpos do Spring e do Ktor.
+**Erro comum:** testar só o domínio e supor que a borda HTTP é igual nas duas pilhas.
+**Onde na prática:** marco 09.

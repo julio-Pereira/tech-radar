@@ -1,0 +1,48 @@
+questions:
+  - question: "O Java chama uma função Kotlin pública passando `null` num parâmetro declarado como `String`. O que acontece?"
+    code: |
+      // Kotlin
+      fun consultar(id: String, incluirMotivo: Boolean = true): StatusResposta? = ...
+
+      // Java
+      consulta.consultar(null);
+    options:
+      - "Não compila: o Java respeita a nulidade do Kotlin"
+      - "`NullPointerException` na entrada da função, com o nome do parâmetro"
+      - "O Kotlin trata o `null` como texto vazio e segue"
+      - "A NPE só aparece quando o `id` for usado dentro da função, longe da chamada"
+    answer: 1
+    explanation: "O Java não conhece a nulidade do Kotlin (só a IDE avisa, pelas anotações `@NotNull` na assinatura). Para proteger o código Kotlin, o compilador põe uma checagem no começo de cada função pública com parâmetro não-nulo. Testado: `NullPointerException: Parameter specified as non-null is null: method ...consultar, parameter id`, na hora da chamada."
+
+  - question: "Uma função Kotlin lança `NaoAchou : Exception()`, sem `@Throws`. O que acontece com este código Java?"
+    code: |
+      try {
+          new Api().exigir("x");
+      } catch (NaoAchou e) {
+          // tratar
+      }
+    options:
+      - "Compila e funciona: o Java captura qualquer `Exception`"
+      - "Não compila: para o Java, o `catch` é inalcançável"
+      - "Compila, mas a exceção escapa do `catch` em tempo de execução e derruba a thread"
+      - "Não compila: Kotlin não pode estender `Exception`"
+    answer: 1
+    explanation: "Kotlin não tem exceção verificada, e sem `@Throws` a assinatura não declara nada. `NaoAchou` estende `Exception` e é verificada para o Java, que recusa um `catch` de uma exceção verificada que nada no `try` declara. Testado: `exception NaoAchou is never thrown in body of corresponding try statement`. Com `@Throws(NaoAchou::class)`, compila."
+
+  - question: "Uma biblioteca Kotlin publicou `fun consultar(id: String, incluirMotivo: Boolean = true)`, sem `@JvmOverloads`. Como o Java a chama?"
+    options:
+      - "`consultar(\"P1\")`, porque o padrão vale para o Java também"
+      - "Só `consultar(\"P1\", true)`"
+      - "`consultar(\"P1\", null)`, e o Kotlin aplica o padrão"
+      - "Não chama: função com valor padrão é invisível para o Java"
+    answer: 1
+    explanation: "O valor padrão é um recurso do compilador Kotlin, e o Java não o conhece: só existe a assinatura com todos os parâmetros. `@JvmOverloads` gera uma sobrecarga para cada parâmetro com padrão, a partir do último. Remover a anotação, ou esquecê-la, quebra a compilação dos clientes Java que chamavam a forma curta."
+
+  - question: "O `pix-status` tem uma versão em Spring e outra em Ktor. O que prova que as duas respondem igual ao cliente?"
+    options:
+      - "Os dois usam Jackson, então o JSON é necessariamente o mesmo"
+      - "O mesmo teste de contrato nos dois, com o corpo comparado byte a byte"
+      - "Um teste de unidade do serviço de domínio, que é o mesmo nas duas"
+      - "Comparar o OpenAPI gerado pelas duas implementações, campo a campo, no *build*"
+    answer: 1
+    explanation: "Mesmo com Jackson, as pilhas diferem (o Boot 4 usa Jackson 3, o `ktor-serialization-jackson` usa o 2), e a configuração de cada uma decide ordem de campos e `null`. O teste de contrato, o mesmo arquivo nos dois projetos, comparou os quatro corpos e o 404, e passou nos dois. O domínio igual não prova a borda HTTP, e o OpenAPI descreve o esperado, não o que sai."

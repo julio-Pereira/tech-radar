@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 237, "desafio": 284, "invariantes": 276, "complemento": 266, "checagem": 282, "gabarito": 5,
+		"tutorial": 239, "desafio": 286, "invariantes": 278, "complemento": 268, "checagem": 284, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -422,12 +422,9 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	// The kotlin-backend stubs (Fase 0) leave this list as each block is
-	// written; once the trilha is complete it must be empty again.
-	wantNoSection := []string{
-		"kotlin-backend/ktor-interop-e-capstone",
-		"kotlin-backend/spring-com-kotlin",
-	}
+	// Every milestone has a hands-on section again since the kotlin-backend
+	// Fase 3; a new one without it is a regression.
+	var wantNoSection []string
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}

@@ -1,0 +1,43 @@
+questions:
+  - question: "O projeto aplica o plugin `kotlin-spring`. Qual destas classes continua `final`?"
+    options:
+      - "`@Service class EntregaDeWebhook`"
+      - "`@Configuration class Beans`, meta-anotada com `@Component`"
+      - "`class FormatadorDeStatus`, sem nenhuma anotação do Spring"
+      - "`@Transactional class ServicoDeEstorno`, sem `@Component`"
+    answer: 2
+    explanation: "O `kotlin-spring` é o `all-open` configurado para `@Component`, `@Transactional`, `@Async`, `@Cacheable` e `@SpringBootTest`, e para as anotações meta-anotadas com elas (`@Service`, `@Configuration`, `@Repository`, `@RestController`). Ele abre a classe e os membros. A classe sem nenhuma dessas anotações continua `final`, que é o padrão do Kotlin e o que se quer para o que o Spring não gerencia."
+
+  - question: "Num serviço com Spring MVC e JDBC, o método `@Transactional suspend fun registrar(...)` grava duas linhas e falha entre elas. O que acontece, no Spring Framework 7.0.10?"
+    options:
+      - "*Rollback* das duas, como em qualquer método `@Transactional`"
+      - "O contexto não sobe: `@Transactional` não aceita função `suspend`"
+      - "A transação fecha antes do corpo rodar, e a linha fica gravada"
+      - "O Spring troca o gerenciador JDBC por um reativo automaticamente e desfaz as duas gravações"
+    answer: 2
+    explanation: "Para uma função `suspend`, o aspecto de transação trata a chamada como reativa e precisa de um `ReactiveTransactionManager`. Com o gerenciador JDBC, o log de `TRACE` mostra `Creating new transaction` e `Completing transaction` antes do `insert`, e a linha ficou no banco depois da falha. Com R2DBC, a mesma função desfez as duas gravações. Com JDBC, a função transacional não deve ser `suspend`."
+
+  - question: "Por que a anotação de validação de uma `@ConfigurationProperties` em Kotlin é escrita `@field:Min(1)` e não só `@Min(1)`?"
+    code: |
+      @Validated
+      @ConfigurationProperties("pix-status.webhook")
+      data class WebhookProps(
+          @field:Min(1) @field:Max(200) val limitePorRecebedor: Int,
+          val prazo: Duration,
+      )
+    options:
+      - "Por estilo: as duas formas geram o mesmo *bytecode*"
+      - "Sem `@field:`, a anotação vai para o parâmetro, e o validador não a vê"
+      - "`@Min` sem alvo só vale para propriedades `var`"
+      - "O Spring Boot 4 exige `@field:` em toda anotação de `data class`, mesmo fora de configuração"
+    answer: 1
+    explanation: "Uma propriedade declarada no construtor primário gera um parâmetro, um campo e um *getter*. Sem alvo explícito, a anotação vai para o parâmetro, e o Bean Validation procura no campo ou no *getter*. Com `@field:`, ela vai para o campo. Testado: com o limite em 0, o contexto não subiu, com `Binding validation errors on pix-status.webhook` apontando `limitePorRecebedor`."
+
+  - question: "Um time Kotlin precisa simular um `Recebedor` com `suspend fun notificar(id: String): Int` nos testes. Qual afirmação está certa?"
+    options:
+      - "Mockito não consegue simular classes Kotlin, porque elas são `final`"
+      - "MockK simula a função `suspend` com `coEvery` e confere com `coVerify`"
+      - "Funções `suspend` não podem ser simuladas por nenhuma biblioteca; é preciso escrever uma implementação de teste"
+      - "MockK só funciona com `runBlocking`, não com `runTest`"
+    answer: 1
+    explanation: "O MockK foi feito para Kotlin: `coEvery { r.notificar(\"P1\") } returns 202` e `coVerify(exactly = 1) { ... }` tratam a função `suspend`, e o teste roda com `runTest`. O Mockito 5 tem o *mock maker inline* por padrão e simula classes `final`, e o `mockito-kotlin` ajuda com `suspend`, com mais atrito. O critério é o time e a base de testes, não uma impossibilidade."
