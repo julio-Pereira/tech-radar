@@ -1,8 +1,8 @@
 questions:
-  - question: "Em que ordem as letras são adicionadas à lista?"
+  - question: "Num `runBlocking`, que roda tudo numa thread só, em que ordem as letras são adicionadas à lista?"
     code: |
-      val out = mutableListOf<String>()
-      coroutineScope {
+      runBlocking {
+          val out = mutableListOf<String>()
           launch { out += "A"; delay(100); out += "B" }
           launch { out += "C" }
           out += "D"
@@ -13,7 +13,7 @@ questions:
       - "`[D, A, C, B]`"
       - "`[D, C, A, B]`: o último `launch` lançado roda primeiro"
     answer: 2
-    explanation: "`launch` agenda a coroutine e devolve na hora; ela só roda quando a coroutine atual suspende ou termina. O corpo do `coroutineScope` adiciona `D` e espera as filhas: a primeira roda até o `delay` (`A`), a segunda roda inteira (`C`), e depois do `delay` vem `B`. Executado: `[D, A, C, B]`."
+    explanation: "Num *dispatcher* de uma thread, como o do `runBlocking` ou do `runTest`, `launch` agenda a filha e devolve na hora; ela só roda quando a coroutine atual suspende ou termina. O corpo adiciona `D` e termina; a primeira filha roda até o `delay` (`A`), a segunda roda inteira (`C`), e depois do `delay` vem `B`. Executado: `[D, A, C, B]`. Num *dispatcher* com várias threads, como o `Default`, as filhas rodam em paralelo e a ordem muda a cada execução (a revisão deste marco viu `[D, C, A, B]` com mais frequência), e a `mutableListOf` nem é segura entre threads."
 
   - question: "Quanto tempo (virtual) cada bloco leva?"
     code: |
@@ -44,7 +44,7 @@ questions:
       - "Cerca de 320: o `Default` cria 64 threads quando detecta bloqueio"
       - "Cerca de 5.000: o `HttpClient` é assíncrono por dentro"
     answer: 1
-    explanation: "O `Default` tem tantas threads quanto núcleos, e uma chamada bloqueante prende a thread, coroutine ou não: 4 ÷ 0,2 s = 20 por segundo. Medido: 200 entregas em 10,1 s. Com `sendAsync(...).await()`, a thread fica livre durante a espera: 10 mil entregas em 3,8 s com 2 threads. O limite de 64 é do `Dispatchers.IO`, e o `Default` não cresce."
+    explanation: "O `Default` tem tantas threads quanto núcleos, e uma chamada bloqueante prende a thread, coroutine ou não: 4 ÷ 0,2 s = 20 por segundo. Medido: 200 entregas em 10,1 s. Com `sendAsync(...).await()`, a thread fica livre durante a espera: 10 mil entregas em 2,8 s com 2 threads de *dispatcher* (e o executor do `HttpClient` fixado em 2). O limite de 64 é do `Dispatchers.IO`, e o `Default` não cresce."
 
   - question: "Um *controller* do Spring MVC tradicional (não `suspend`) chama `runBlocking { servico.consultar(id) }`. O que acontece?"
     options:
