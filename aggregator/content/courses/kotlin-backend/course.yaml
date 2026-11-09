@@ -1,0 +1,31 @@
+slug: kotlin-backend
+title: "Kotlin no Backend para Fintech"
+subtitle: "O delta que importa para quem vem de Java e Spring: tipos sem null, modelagem fechada e concorrência estruturada com coroutines — num serviço de status e notificação Pix."
+category: "Java/Spring"
+tags: [kotlin, coroutines, flow, null-safety, spring, ktor, jvm, backend, fintech, entrevista]
+level: advanced
+lang: pt-BR
+# 9 marcos, 490 min (web/docs/AUDITORIA-kotlin-backend.md). A regra é ~2x a
+# soma dos estimatedMinutes: 490 x 2 / 60 = 16,3 -> 16.
+estimatedHours: 16
+glossary: GLOSSARIO.md
+sources:
+  - { title: "Kotlin documentation", url: https://kotlinlang.org/docs/home.html }
+  - { title: "Kotlin coroutines guide", url: https://kotlinlang.org/docs/coroutines-guide.html }
+  - { title: "kotlinx.coroutines (GitHub)", url: https://github.com/Kotlin/kotlinx.coroutines }
+  - { title: "Spring Framework — Kotlin support", url: https://docs.spring.io/spring-framework/reference/languages/kotlin.html }
+  - { title: "Ktor documentation", url: https://ktor.io/docs/ }
+  - { title: "Spring blog — Next level Kotlin support in Spring Boot 4", url: https://spring.io/blog/2025/12/18/next-level-kotlin-support-in-spring-boot-4/ }
+milestones:
+  # Bloco A — A linguagem como delta
+  - 01-kotlin-para-quem-vem-de-java.md
+  - 02-null-safety-e-o-sistema-de-tipos.md
+  - 03-modelagem-com-data-sealed-e-value.md
+  - 04-funcoes-extensoes-e-dsls.md
+  # Bloco B — Coroutines
+  - 05-coroutines-fundamentos.md
+  - 06-concorrencia-estruturada-e-cancelamento.md
+  - 07-flow-e-backpressure.md
+  # Bloco C — No servidor
+  - 08-spring-com-kotlin.md
+  - 09-ktor-interop-e-capstone.md

@@ -26,6 +26,12 @@
   artifacts:
     - { path: "pix-core/", check: exists }
 
+- track: kotlin-backend
+  component: pix-status
+  depends_on: [pix-gateway, pix-core]
+  artifacts:
+    - { path: "pix-status/", check: exists }
+
 - track: go-fintech
   component: ledger-core
   depends_on: []
