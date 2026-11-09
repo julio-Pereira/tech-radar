@@ -1,0 +1,55 @@
+questions:
+  - question: "Quantas vezes o bloco de cada fluxo executa?"
+    code: |
+      var execucoes = 0
+      val frio = flow { execucoes++; emit(1) }
+      frio.toList(); frio.toList()          // (a)
+
+      val quente = flow { execucoes++; emit(1) }
+          .shareIn(escopo, SharingStarted.Eagerly, replay = 1)
+      // dois coletores em quente     // (b)
+    options:
+      - "(a) 1 vez, porque o `Flow` guarda o resultado; (b) 2 vezes"
+      - "(a) 2 vezes; (b) 1 vez"
+      - "(a) 2 vezes; (b) 2 vezes, porque `shareIn` não muda a execução"
+      - "(a) 1 vez; (b) 1 vez"
+    answer: 1
+    explanation: "Um `Flow` frio é uma receita: cada `collect` executa o bloco do começo. `shareIn` o transforma em quente: o bloco roda uma vez no escopo dono, e os coletores recebem os valores compartilhados (com `replay` para quem chega depois). Testado: 2 execuções para o frio e 1 para o compartilhado."
+
+  - question: "O produtor emite 0 a 9, um a cada 10 ms; o coletor demora 35 ms por item. O que o coletor recebe com `conflate()`?"
+    code: |
+      flow { repeat(10) { emit(it); delay(10) } }
+          .conflate()
+          .collect { vistos += it; delay(35) }
+    options:
+      - "`[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]`, com o produtor esperando o coletor"
+      - "`[0, 3, 6, 9]`: só o mais recente é guardado"
+      - "`[9]`: `conflate` entrega só o último valor do fluxo"
+      - "`[0, 9]`: o primeiro e o último, e o resto é descartado"
+    answer: 1
+    explanation: "`conflate` põe um *buffer* de tamanho 1 que guarda só o mais recente: o produtor não espera, e o coletor, ao terminar um item, recebe o último emitido nesse meio-tempo. Testado: `[0, 3, 6, 9]`. Com `buffer(16)`, todos chegam, e o produtor adianta até 16 itens. Use `conflate` quando só o estado atual importa."
+
+  - question: "Em que threads rodam o `emit`, o `map` e o `collect`?"
+    code: |
+      runBlocking {
+          flow { emit(threadAtual()) }
+              .map { "$it | map: ${threadAtual()}" }
+              .flowOn(Dispatchers.IO)
+              .collect { println("$it | collect: ${threadAtual()}") }
+      }
+    options:
+      - "Todos no IO: `flowOn` muda o contexto do fluxo inteiro"
+      - "`emit` e `map` no IO; `collect` na thread de quem chamou"
+      - "Só o `emit` no IO; `map` e `collect` na thread de quem chamou"
+      - "Todos na thread de quem chamou: `flowOn` só vale para `SharedFlow`"
+    answer: 1
+    explanation: "`flowOn` muda o *dispatcher* do que vem **antes** dele (o *upstream*). O `collect` continua no contexto de quem coleta. Testado: `emit` e `map` numa `DefaultDispatcher-worker` (o IO e o `Default` compartilham as threads), `collect` na thread do teste. Trocar o contexto com `withContext` dentro do `flow { }` lança `IllegalStateException: Flow invariant is violated`."
+
+  - question: "Um `Flow` de mil itens é exposto como `Flux` com `asFlux()`. O assinante pede `request(5)` e para. Quantos itens o `Flow` produz?"
+    options:
+      - "Os mil: o `Flow` não conhece o `request(n)` do Reactor"
+      - "Cerca de 5: a ponte traduz o pedido em suspensão do `emit`"
+      - "256, o tamanho do *buffer* padrão do Reactor"
+      - "Nenhum: um `Flow` frio exposto como `Flux` só produz com `request(Long.MAX_VALUE)`"
+    answer: 1
+    explanation: "A ponte do `kotlinx-coroutines-reactor` liga o *backpressure* dos dois lados: o `emit` suspende até haver pedido. Testado: `request(5)` deu 5 recebidos e 5 produzidos. É o que permite expor um `Flow` num *controller* WebFlux sem perder o *backpressure* (marco 08)."

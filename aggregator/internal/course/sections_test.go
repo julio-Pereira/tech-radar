@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 234, "desafio": 281, "invariantes": 273, "complemento": 263, "checagem": 279, "gabarito": 5,
+		"tutorial": 237, "desafio": 284, "invariantes": 276, "complemento": 266, "checagem": 282, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -425,9 +425,6 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	// The kotlin-backend stubs (Fase 0) leave this list as each block is
 	// written; once the trilha is complete it must be empty again.
 	wantNoSection := []string{
-		"kotlin-backend/concorrencia-estruturada-e-cancelamento",
-		"kotlin-backend/coroutines-fundamentos",
-		"kotlin-backend/flow-e-backpressure",
 		"kotlin-backend/ktor-interop-e-capstone",
 		"kotlin-backend/spring-com-kotlin",
 	}

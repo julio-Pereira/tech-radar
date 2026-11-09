@@ -143,3 +143,111 @@ Bloco A já estão aqui.
 **No pix-status:** o cliente desiste da consulta de status, e as buscas filhas recebem o cancelamento.
 **Erro comum:** um `catch (e: Exception)` que engole o cancelamento e transforma a desistência em sucesso.
 **Onde na prática:** marco 06.
+
+### Continuation
+**Em uma frase:** o objeto que o compilador passa escondido a toda função `suspend`, e que sabe continuar a execução depois da suspensão.
+**No pix-status:** as variáveis da entrega que atravessam o `await` viram campos da *continuation*, no heap.
+**Erro comum:** achar que a coroutine parada guarda uma pilha; ela guarda um objeto, de ~370 B no caso medido.
+**Onde na prática:** marco 05.
+
+### Dispatcher
+**Em uma frase:** o componente que decide em que threads uma coroutine roda: `Default` (núcleos), `IO` (até 64) ou uma vista com `limitedParallelism`.
+**No pix-status:** o cliente JDBC legado roda numa vista do IO com no máximo 10 threads.
+**Erro comum:** pôr chamada bloqueante no `Default`, que tem só tantas threads quanto núcleos.
+**Onde na prática:** marco 05.
+
+### `launch` e `async`
+**Em uma frase:** os construtores de coroutine: `launch` devolve um `Job`, sem valor; `async` devolve um `Deferred`, com `await()`.
+**No pix-status:** cada entrega é um `launch`; as buscas paralelas do status são `async`.
+**Erro comum:** chamar `await()` logo depois de cada `async`, o que tira o paralelismo.
+**Onde na prática:** marco 05.
+
+### `withContext`
+**Em uma frase:** troca o *dispatcher* (ou outro elemento do contexto) só para um bloco, suspende quem chamou e devolve o valor do bloco.
+**No pix-status:** `withContext(Dispatchers.IO) { repositorio.buscar(id) }` isola a chamada bloqueante.
+**Erro comum:** esperar concorrência; `withContext` executa o bloco e espera, sem lançar nada em paralelo.
+**Onde na prática:** marco 05.
+
+### `runBlocking`
+**Em uma frase:** a ponte do mundo bloqueante para o suspenso: roda uma coroutine e bloqueia a thread que chamou até ela terminar.
+**No pix-status:** só aparece no `main` de uma ferramenta de linha de comando e em testes.
+**Erro comum:** usar dentro de um *controller*, que prende a thread da requisição.
+**Onde na prática:** marco 05.
+
+### Concorrência estruturada
+**Em uma frase:** o modelo em que toda coroutine pertence a um escopo, que espera as filhas, cancela as filhas ao ser cancelado e recebe a falha delas.
+**No pix-status:** a consulta de status não deixa nenhuma busca viva depois de responder ou de ser cancelada.
+**Erro comum:** criar um escopo à mão dentro de um método, fora da árvore da requisição.
+**Onde na prática:** marco 06.
+
+### `coroutineScope`
+**Em uma frase:** o escopo em que a falha de uma filha cancela as irmãs e sobe para quem chamou: tudo ou nada.
+**No pix-status:** o ledger, obrigatório, roda no `coroutineScope` da consulta de status.
+**Erro comum:** usá-lo para partes independentes, e perder a resposta inteira por causa de uma opcional.
+**Onde na prática:** marco 06.
+
+### `supervisorScope`
+**Em uma frase:** o escopo em que a falha de uma filha não cancela as irmãs; cada uma é tratada por quem chama `await` ou pelo *handler*.
+**No pix-status:** o antifraude e o DICT, opcionais, rodam num `supervisorScope`, e a falha de um vira `null`.
+**Erro comum:** esquecer de tratar a falha da filha, que então vai para o *handler* do escopo pai.
+**Onde na prática:** marco 06.
+
+### Cancelamento cooperativo
+**Em uma frase:** o cancelamento que só tem efeito quando a coroutine chega a um ponto de suspensão ou confere `isActive`/`ensureActive()`.
+**No pix-status:** o laço de conciliação chama `ensureActive()` a cada bloco de eventos.
+**Erro comum:** um laço de CPU sem ponto de suspensão, que roda até o fim mesmo cancelado (300 ms contra os 50 ms do prazo).
+**Onde na prática:** marco 06.
+
+### `withTimeout`
+**Em uma frase:** o prazo de um bloco suspenso: lança `TimeoutCancellationException` ao estourar; `withTimeoutOrNull` devolve `null`.
+**No pix-status:** cada entrega de *webhook* tem `withTimeout(prazo)`, e cada fonte opcional `withTimeoutOrNull(300 ms)`.
+**Erro comum:** deixar o `withTimeout` estourar dentro de `launch`: a coroutine é cancelada em silêncio, sem passar pelo *handler*.
+**Onde na prática:** marco 06.
+
+### `NonCancellable`
+**Em uma frase:** o contexto que deixa um bloco suspenso rodar mesmo com a coroutine já cancelada, para limpeza.
+**No pix-status:** a devolução da conexão e a gravação da auditoria no `finally` rodam em `withContext(NonCancellable)`.
+**Erro comum:** chamar uma função suspensa no `finally` de uma coroutine cancelada sem ele, e receber outra `CancellationException`.
+**Onde na prática:** marco 06.
+
+### `GlobalScope`
+**Em uma frase:** um escopo sem dono, que vive o processo inteiro: a coroutine lançada nele não tem pai.
+**No pix-status:** nenhuma; a regra é nunca usá-lo no `pix-status`.
+**Erro comum:** lançar tarefa de fundo nele; ninguém a cancela, ninguém a espera, e o erro dela se perde.
+**Onde na prática:** marco 06.
+
+### `Flow`
+**Em uma frase:** uma sequência assíncrona fria e sequencial, em que o `emit` suspende até o coletor terminar.
+**No pix-status:** as mudanças de estado chegam como um `Flow<MudancaDeEstado>` e alimentam o pipeline de *webhooks*.
+**Erro comum:** achar que um `Flow` guarda o resultado; cada coletor executa o bloco de novo.
+**Onde na prática:** marco 07.
+
+### `SharedFlow`
+**Em uma frase:** um fluxo quente que transmite cada valor para todos os coletores ativos, com `replay` opcional.
+**No pix-status:** o fluxo de mudanças é compartilhado entre o pipeline de *webhooks* e as métricas, com `shareIn`.
+**Erro comum:** criá-lo com um escopo que vive para sempre, o que é um `GlobalScope` com outro nome.
+**Onde na prática:** marco 07.
+
+### `StateFlow`
+**Em uma frase:** um `SharedFlow` com valor atual e `conflate` embutido: quem coleta recebe o estado atual e as mudanças seguintes.
+**No pix-status:** o último estado conhecido de cada pagamento, para a consulta rápida.
+**Erro comum:** usar para eventos que não podem se perder; o `StateFlow` guarda só o último.
+**Onde na prática:** marco 07.
+
+### `buffer`
+**Em uma frase:** o operador que desacopla produtor e coletor com um *buffer* limitado; cheio, o produtor suspende.
+**No pix-status:** com `buffer(16)`, o produtor ficou no máximo 18 itens à frente do consumidor lento.
+**Erro comum:** usar *buffer* ilimitado, que troca o *backpressure* por memória.
+**Onde na prática:** marco 07.
+
+### `conflate`
+**Em uma frase:** o operador que guarda só o valor mais recente enquanto o coletor trabalha, descartando os intermediários.
+**No pix-status:** o painel de status mostra o último estado e pula os intermediários (`[0, 3, 6, 9]` no teste).
+**Erro comum:** usar em eventos que precisam todos ser processados, como as mudanças que viram *webhook*.
+**Onde na prática:** marco 07.
+
+### `flowOn`
+**Em uma frase:** o operador que muda o *dispatcher* da parte do fluxo que vem antes dele; o coletor fica onde estava.
+**No pix-status:** a leitura do *broker* roda no IO com `flowOn`, e o pipeline coleta no seu próprio contexto.
+**Erro comum:** usar `withContext` dentro do `flow { }`, que lança `Flow invariant is violated`.
+**Onde na prática:** marco 07.

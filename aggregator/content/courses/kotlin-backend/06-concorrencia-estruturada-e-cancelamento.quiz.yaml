@@ -1,0 +1,88 @@
+questions:
+  - question: "A filha `A` falha em 10 ms; a filha `B` espera 1 s. O que acontece com `B` em cada escopo?"
+    code: |
+      coroutineScope {          // ou supervisorScope
+          launch { delay(10); error("A falhou") }
+          launch { delay(1000); println("B terminou") }
+      }
+    options:
+      - "Nos dois, `B` termina: a falha de uma filha nunca afeta as irmãs, só o pai, que registra o erro"
+      - "Nos dois, `B` é cancelada: a falha sempre cancela as irmãs"
+      - "`coroutineScope` cancela `B` e propaga a exceção; `supervisorScope` deixa `B` terminar"
+      - "No `supervisorScope`, `B` é cancelada; no `coroutineScope`, ela termina"
+    answer: 2
+    explanation: "No `coroutineScope`, a falha de uma filha cancela o pai e as irmãs, e a exceção sobe. No `supervisorScope`, cada filha é independente: `B` termina, e a falha de `A` vai para o *handler* (ou para quem chamar `await`). Testado: `[B cancelado, scope: A falhou]` e `[handler: C falhou, D terminou]`."
+
+  - question: "A coroutine é cancelada aos 250 ms (tempo virtual). Quantas voltas o laço dá?"
+    code: |
+      var voltas = 0
+      val job = launch {
+          while (voltas < 50) {
+              try { delay(100); voltas++ }
+              catch (e: Exception) { voltas++ }
+          }
+      }
+      delay(250); job.cancel(); job.join()
+    options:
+      - "2: o cancelamento interrompe o laço no `delay` seguinte"
+      - "3: a volta em andamento termina, e o laço para"
+      - "50: o `catch` engole o cancelamento"
+      - "0: `cancel` desfaz as voltas já contadas"
+    answer: 2
+    explanation: "Cada `delay` de uma coroutine cancelada lança `CancellationException`, que é uma `Exception`. O `catch` a engole, e o `while` continua. Testado: 50 voltas. A correção é relançar a `CancellationException`, capturar só a exceção específica, ou chamar `currentCoroutineContext().ensureActive()` no `catch`. Com `ensureActive()`, o mesmo laço para em 2."
+
+  - question: "No `Dispatchers.Default`, o que este código devolve, e em quanto tempo?"
+    code: |
+      withTimeoutOrNull(50) {
+          val fim = System.nanoTime() + 300_000_000   // 300 ms
+          while (System.nanoTime() < fim) { contador++ }
+          "terminou"
+      }
+    options:
+      - "`null` em ~50 ms: o `withTimeoutOrNull` interrompe a thread"
+      - "`\"terminou\"` em ~300 ms: o laço não vê o prazo"
+      - "Lança `TimeoutCancellationException` em ~50 ms"
+      - "`null` em ~300 ms: o prazo é conferido só no fim do bloco"
+    answer: 1
+    explanation: "O cancelamento é cooperativo: só é visto num ponto de suspensão ou numa conferência explícita. O laço de CPU não tem nenhum, e o bloco termina normalmente. Medido: `terminou` em 300 ms. Com `ensureActive()` dentro do laço, o resultado foi `null` em 52 ms."
+
+  - question: "Num escopo com `CoroutineExceptionHandler`, a coroutine abaixo estoura o prazo. O que acontece?"
+    code: |
+      val job = escopo.launch {
+          withTimeout(100) { delay(1000) }
+          log += "depois"
+      }
+      job.join()
+    options:
+      - "O *handler* recebe a `TimeoutCancellationException`, e `depois` não é registrado"
+      - "`depois` é registrado: o `withTimeout` só cancela o bloco interno"
+      - "O *job* termina cancelado, `depois` não roda, e o *handler* não é chamado"
+      - "A exceção sobe e derruba o escopo inteiro"
+    answer: 2
+    explanation: "`TimeoutCancellationException` é uma `CancellationException`: não capturada dentro do `launch`, ela cancela a coroutine, e cancelamento não é falha. Testado: `log = []`, `job.isCancelled = true`, *handler* em silêncio. Quando o prazo é um resultado possível, use `withTimeoutOrNull` e trate o `null`."
+
+  - question: "Um serviço lança o envio de auditoria com `GlobalScope.launch { auditoria.gravar(evento) }` dentro de uma função `suspend` do *controller*. Qual o problema?"
+    options:
+      - "Nenhum: `GlobalScope` é o escopo recomendado para tarefas de fundo"
+      - "A coroutine não tem pai: ninguém a cancela, ninguém a espera, e o erro dela se perde"
+      - "Não compila: `GlobalScope` só existe no Android"
+      - "A gravação roda na thread da requisição, e a resposta só sai depois que a auditoria termina de gravar"
+    answer: 1
+    explanation: "Uma coroutine no `GlobalScope` não pertence à árvore da requisição: nada a espera, nada a cancela, e uma exceção dela não chega a quem poderia tratar. O mesmo vale para `CoroutineScope(Dispatchers.IO)` criado e esquecido no método. Tarefa de fundo pertence a um escopo com dono (o do *bean*, cancelado no `@PreDestroy`), ou à própria requisição."
+
+  - question: "Onde um `CoroutineExceptionHandler` é chamado?"
+    code: |
+      val handler = CoroutineExceptionHandler { _, e -> log += "handler: ${e.message}" }
+
+      // caso 1
+      coroutineScope { launch(handler) { error("boom") } }
+
+      // caso 2
+      CoroutineScope(SupervisorJob() + handler).launch { error("boom raiz") }
+    options:
+      - "Nos dois casos, porque o *handler* está no contexto da coroutine que falhou"
+      - "Só no caso 1, porque o caso 2 não tem pai para avisar"
+      - "Só no caso 2: numa filha ele é ignorado, e a exceção sobe para o pai"
+      - "Em nenhum: o *handler* só vale para `async`"
+    answer: 2
+    explanation: "Uma filha entrega a exceção ao pai, e o *handler* dela é ignorado: no caso 1, o `coroutineScope` lança `boom`. O *handler* só é chamado na coroutine raiz, como a lançada direto num escopo com `SupervisorJob`. Testado: o log tem só `handler: boom raiz`. Para `async`, a exceção vai para quem chama `await`."
