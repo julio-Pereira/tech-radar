@@ -38,6 +38,12 @@
   artifacts:
     - { path: "fin-iac/", check: exists }
 
+- track: aws-para-backend
+  component: fin-aws
+  depends_on: [fin-iac, ledger-core, pix-gateway, pix-stream, fin-watch, fin-contention, fin-interconnect]
+  artifacts:
+    - { path: "fin-aws/", check: exists }
+
 - track: go-fintech
   component: ledger-core
   depends_on: []
