@@ -1,0 +1,54 @@
+questions:
+  - question: "Uma instância numa sub-rede com NACL padrão recebe conexões na porta 8443, liberadas pelo *security group*. Alguém troca a NACL por uma que só permite entrada na 8443 e nada de saída. O que acontece com as conexões?"
+    options:
+      - "Continuam funcionando, porque o *security group* tem estado"
+      - "Quebram: a NACL não tem estado e bloqueia a resposta"
+      - "Continuam funcionando, porque a NACL só vale para tráfego entre sub-redes da mesma VPC"
+      - "Quebram só as conexões novas; as abertas continuam pelo estado da NACL"
+    answer: 1
+    explanation: "A NACL é sem estado: a resposta de uma conexão precisa de uma regra de saída, para as portas efêmeras do cliente. O *security group* é com estado e deixa a resposta voltar, mas a NACL é avaliada também, na borda da sub-rede. Por isso a NACL fica para negação grossa, e o filtro do dia a dia é o *security group*."
+
+  - question: "O `ledger-core`, numa sub-rede privada, grava no DynamoDB pelo NAT Gateway. Qual troca reduz custo e mantém o tráfego fora da internet?"
+    options:
+      - "Um *gateway endpoint* do DynamoDB"
+      - "Um NAT Gateway por AZ, para não pagar transferência entre AZs"
+      - "Um *interface endpoint* do DynamoDB em cada AZ, com DNS privado"
+      - "Mover o `ledger-core` para uma sub-rede pública, sem NAT"
+    answer: 0
+    explanation: "Para S3 e DynamoDB existe o *gateway endpoint*: uma entrada na tabela de rotas, sem custo por hora nem por GB, e com política de *endpoint*. O NAT cobra US$ 0,045/h e US$ 0,045/GB em `us-east-1` (nov 2026), mais a transferência entre AZs. Um NAT por AZ reduz só a parte entre AZs. O *interface endpoint* também funciona, mas é cobrado. Sub-rede pública para o ledger viola a regra de saída."
+
+  - question: "Qual é a diferença entre *gateway endpoint* e *interface endpoint*?"
+    options:
+      - "O *gateway* é para tráfego de entrada; o *interface*, para saída"
+      - "O *gateway* exige NAT; o *interface* dispensa"
+      - "O *gateway* vale para todos os serviços da região; o *interface*, só para S3 e DynamoDB"
+      - "O *gateway* é rota gratuita, só para S3 e DynamoDB; o *interface*, cobrado"
+    answer: 3
+    explanation: "O *gateway endpoint* é uma entrada na tabela de rotas e só existe para S3 e DynamoDB, sem cobrança. O *interface endpoint* (PrivateLink) é uma interface de rede na sub-rede, com IP privado e DNS privado, para SQS, Secrets Manager, KMS e os demais, cobrado por hora e por GB. Nenhum dos dois precisa de NAT, e os dois aceitam política de *endpoint*."
+
+  - question: "O papel do `pix-gateway` tem, por engano, permissão de leitura em todas as tabelas DynamoDB da conta. O que uma política no *gateway endpoint* da VPC acrescenta?"
+    options:
+      - "Nada: a política de *endpoint* só vale para tráfego entre contas"
+      - "Ela substitui a política do papel"
+      - "Ela limita o que passa por aquele caminho"
+      - "Ela só registra as chamadas, sem negar nenhuma"
+    answer: 2
+    explanation: "A política de *endpoint* é mais um corte: a chamada que passa pelo *endpoint* precisa ser permitida pela identidade e pela política do *endpoint*. Com a política restrita à tabela do `pix-gateway`, a permissão larga do papel não alcança as outras tabelas por aquele caminho. Ela não substitui o menor privilégio do papel (marco 02); é defesa em profundidade. O registro é dos *flow logs* e do CloudTrail."
+
+  - question: "A fintech tem 12 VPCs e precisa que toda saída para a internet passe por inspeção de domínio. Qual desenho atende?"
+    options:
+      - "*VPC peering* entre todas as VPCs, cada uma com o próprio NAT"
+      - "Transit Gateway para uma VPC de saída com Network Firewall"
+      - "Um *internet gateway* em cada VPC, com *security groups* restritos por porta e por destino"
+      - "Um *gateway endpoint* para a internet em cada VPC"
+    answer: 1
+    explanation: "O *peering* não é transitivo e não leva a uma inspeção central. O Transit Gateway roteia todas as VPCs para uma VPC de saída, onde o Network Firewall filtra por domínio (pelo SNI) antes do NAT. No modelo centralizado, o `HOME_NET` do *firewall* precisa incluir os CIDRs das VPCs atendidas. *Security group* não filtra domínio, e *gateway endpoint* só existe para S3 e DynamoDB."
+
+  - question: "Um serviço numa AZ conversa o tempo todo com um cache em outra AZ da mesma região. Em `us-east-1`, nov 2026, o que custa esse tráfego?"
+    options:
+      - "Nada: tráfego dentro da região é gratuito"
+      - "US$ 0,045 por GB, a tarifa do NAT Gateway"
+      - "Só a saída é cobrada, US$ 0,09 por GB"
+      - "US$ 0,01 por GB em cada direção"
+    answer: 3
+    explanation: "Transferência entre AZs na mesma região custa US$ 0,01/GB em cada direção (para EC2, RDS, ElastiCache, interfaces de rede e *peering*); dentro da mesma AZ é grátis. Num serviço tagarela, isso pesa, e é um argumento para manter cliente e cache na mesma AZ quando o desenho permite. O NAT cobra à parte, e a saída para a internet tem outra tarifa."

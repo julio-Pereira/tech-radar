@@ -1,0 +1,36 @@
+questions:
+  - question: "Um time quer isolar o ambiente de testes de carga da produção do Pix, de modo que um erro de permissão num não alcance o outro. Qual é a fronteira certa?"
+    options:
+      - "Uma VPC separada na mesma conta"
+      - "Uma região diferente na mesma conta, com outra VPC e outras sub-redes"
+      - "Uma conta separada, em outra OU"
+      - "Uma AZ diferente, com sub-redes próprias"
+    answer: 2
+    explanation: "A conta é a fronteira de segurança e de custo: identidade, cota e fatura não cruzam contas sem configuração explícita. Na mesma conta, um papel com permissão larga alcança a VPC, a região e a AZ vizinhas, porque o IAM é global dentro da conta. Região isola falha geográfica e residência; AZ isola falha física."
+
+  - question: "Na conta do ledger, dentro da OU de produção, a SCP tem `Allow` para `sqs:*`. O papel do serviço não tem nenhuma política de identidade. O serviço consegue publicar na fila?"
+    options:
+      - "Sim: a SCP com `Allow` concede a ação a todas as identidades da conta, inclusive ao papel"
+      - "Não: a SCP só limita; falta uma política que conceda"
+      - "Sim, mas só se a fila estiver na mesma região da SCP"
+      - "Não, porque SCP só se aplica ao usuário raiz"
+    answer: 1
+    explanation: "A SCP define o máximo permitido, não concede nada. A ação precisa passar pela SCP e ser concedida por uma política de identidade ou de recurso (marco 02). A SCP vale para todas as identidades das contas membro, inclusive o usuário raiz; a exceção é a conta de gerenciamento da organização."
+
+  - question: "Num serviço em Lambda, o que continua sendo responsabilidade do cliente no modelo de responsabilidade compartilhada?"
+    options:
+      - "Atualizar o sistema operacional do servidor que executa a função"
+      - "Corrigir falhas do *hypervisor*"
+      - "Substituir o *hardware* com defeito na AZ"
+      - "O papel de execução da função e os dados que ela grava"
+    answer: 3
+    explanation: "Em Lambda, a AWS cuida do *runtime* gerenciado, do sistema operacional, do *hypervisor* e do *hardware*. O cliente continua dono da permissão (o papel de execução e o menor privilégio dele), da configuração de rede e concorrência, do código e dos dados. Permissão, dado e chave nunca passam para a AWS, em nenhum serviço."
+
+  - question: "Qual destes recursos é global, e não regional nem zonal?"
+    options:
+      - "Um papel IAM"
+      - "Uma tabela DynamoDB"
+      - "Uma sub-rede"
+      - "Uma fila SQS"
+    answer: 0
+    explanation: "O IAM é global dentro da conta: um papel criado uma vez vale em todas as regiões. Fila SQS e tabela DynamoDB são regionais (a *global table* é uma réplica explícita entre regiões, marco 07). A sub-rede é zonal: pertence a uma AZ. Saber o escopo evita procurar um recurso na região errada e explica por que a SCP de regiões deixa o IAM de fora."

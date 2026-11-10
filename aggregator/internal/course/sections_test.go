@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 246, "desafio": 293, "invariantes": 285, "complemento": 276, "checagem": 291, "gabarito": 5,
+		"tutorial": 249, "desafio": 296, "invariantes": 288, "complemento": 279, "checagem": 294, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -428,11 +428,8 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		"aws-para-backend/computacao-ecs-eks-ou-lambda",
 		"aws-para-backend/dados-gerenciados-rds-aurora-dynamodb",
 		"aws-para-backend/finops-e-capstone",
-		"aws-para-backend/iam-a-fundo",
 		"aws-para-backend/mensageria-sqs-sns-e-eventbridge",
-		"aws-para-backend/modelo-mental-da-aws",
 		"aws-para-backend/observabilidade-na-aws",
-		"aws-para-backend/rede-vpc-e-saida-controlada",
 		"aws-para-backend/resiliencia-multi-az-e-dr",
 		"aws-para-backend/s3-kms-e-segredos",
 		"aws-para-backend/serverless-de-verdade",
