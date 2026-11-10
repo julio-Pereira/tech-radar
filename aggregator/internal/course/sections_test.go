@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 239, "desafio": 286, "invariantes": 278, "complemento": 269, "checagem": 284, "gabarito": 5,
+		"tutorial": 242, "desafio": 289, "invariantes": 281, "complemento": 272, "checagem": 287, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -428,10 +428,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		"terraform-e-iac/ambientes-e-composicao",
 		"terraform-e-iac/automacao-qualidade-e-capstone",
 		"terraform-e-iac/brownfield-import-e-refatoracao",
-		"terraform-e-iac/estado-remoto-e-bloqueio",
 		"terraform-e-iac/modulos-versoes-e-provedores",
-		"terraform-e-iac/o-grafo-e-o-ciclo-de-vida",
-		"terraform-e-iac/segredos-e-valores-efemeros",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)

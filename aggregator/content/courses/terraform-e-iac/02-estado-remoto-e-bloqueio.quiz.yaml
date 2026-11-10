@@ -1,0 +1,63 @@
+questions:
+  - question: "Dois engenheiros rodam `apply` ao mesmo tempo num estado sem bloqueio, cada um mudando um recurso diferente. Os dois terminam sem erro. Qual é o efeito mais provável?"
+    options:
+      - "Nenhum: como mexeram em recursos diferentes, os dois estados se fundem"
+      - "O Terraform detecta a corrida e reverte o segundo `apply`"
+      - "O estado gravado por último perde o recurso criado pelo outro"
+      - "Os dois recursos são criados em dobro na nuvem"
+    answer: 2
+    explanation: "Os dois leram a mesma versão do estado e gravaram uma versão inteira cada um. A última gravação vence, sem o recurso que o outro criou. O objeto continua existindo no mundo real, mas sumiu do estado: o próximo `plan` tenta criá-lo de novo, e o erro aparece longe da causa. O bloqueio faz o segundo `apply` falhar logo no início, com `Error acquiring the state lock`."
+
+  - question: "Um time migra o *backend* `s3` para o bloqueio nativo. Qual configuração está certa no Terraform 1.17?"
+    code: |
+      terraform {
+        backend "s3" {
+          bucket = "fin-tfstate"
+          key    = "rede-pix/terraform.tfstate"
+          region = "us-east-1"
+          # ?
+        }
+      }
+    options:
+      - "`use_lockfile = true`, que grava um `.tflock` por escrita condicional"
+      - "`dynamodb_table = \"tf-lock\"`, que continua sendo o mecanismo recomendado"
+      - "Nenhuma: o *backend* `s3` bloqueia sozinho desde a 1.10"
+      - "`lock = true`, que liga o versionamento do *bucket* como bloqueio"
+    answer: 0
+    explanation: "O bloqueio nativo veio na 1.10 e ficou estável na 1.11, quando o `dynamodb_table` passou a ser obsoleto (na 1.17, o `init` avisa `Deprecated Parameter`). O padrão de `use_lockfile` é `false`: sem ele, não há bloqueio. Durante a migração, os dois podem ficar ligados juntos, e o Terraform adquire os dois."
+
+  - question: "Um *job* da esteira foi cancelado no meio de um `apply` com o *backend* `s3` e `use_lockfile`. O próximo `plan` falha com `Error acquiring the state lock` e um `ID:`. O que fazer?"
+    options:
+      - "Rodar `force-unlock` com o ID imediatamente, para destravar a esteira"
+      - "Apagar o objeto de estado e rodar o `apply` de novo"
+      - "Esperar: o `.tflock` expira sozinho depois de alguns minutos"
+      - "Confirmar que o *job* morreu e então rodar `force-unlock` com o ID"
+    answer: 3
+    explanation: "Medido aqui: depois de um `kill -9`, o `.tflock` do S3 fica órfão e não expira. O `force-unlock` é a ferramenta certa, mas só depois de confirmar que o dono do bloqueio morreu: destravar um bloqueio vivo permite a corrida que o bloqueio existia para impedir. No *backend* `pg`, o mesmo cancelamento não deixa bloqueio, porque o *advisory lock* acaba com a sessão."
+
+  - question: "Por que o papel da aplicação não deve ter leitura sobre o estado do Terraform?"
+    options:
+      - "Porque a leitura do estado aplica as mudanças pendentes da última execução que falhou"
+      - "Porque o estado guarda atributos em texto claro, inclusive segredos"
+      - "Porque a leitura bloqueia o estado e trava a esteira"
+      - "Porque o estado só pode ser lido pelo usuário que o criou"
+    answer: 1
+    explanation: "O estado guarda os atributos de cada objeto como foram lidos, inclusive senhas e chaves que a configuração marcou como `sensitive` (marco 03). Quem lê o estado lê esses valores. O acesso fica em três papéis: a esteira que aplica (escrita), a que planeja (leitura) e o resto (nada). No `pg`, um papel sem *grant* recebe `permission denied for schema`."
+
+  - question: "O estado da aplicação precisa do *endpoint* do banco, que vive no estado de dados. Qual é a desvantagem de usar `terraform_remote_state`?"
+    options:
+      - "Ele exige ler o estado inteiro do vizinho, com todos os segredos dele"
+      - "Ele não funciona com *backends* remotos, só com o local"
+      - "Ele recria o banco toda vez que o estado da aplicação muda de versão ou de *backend*"
+      - "Ele só lê saídas marcadas como `sensitive`"
+    answer: 0
+    explanation: "`terraform_remote_state` lê as saídas do outro estado, mas a permissão é sobre o objeto de estado inteiro. A esteira da aplicação passa a poder ler as senhas do estado de dados. A alternativa é publicar as saídas num lugar feito para isso (um parâmetro do SSM, um segredo) e lê-las com um *data source* comum, com permissão só sobre aquele valor."
+
+  - question: "O objeto de estado no *bucket* versionado foi sobrescrito com conteúdo inválido, e o `plan` falha com `Unsupported state file format`. Qual é a recuperação, e como provar que ela deu certo?"
+    options:
+      - "Rodar `terraform init -reconfigure`, que regenera o estado a partir do que existe na nuvem"
+      - "Rodar `terraform refresh`, que reescreve o estado com o que existe"
+      - "Apagar o estado e rodar `apply`, que reconcilia tudo"
+      - "Restaurar a versão anterior do objeto e conferir que o `plan` seguinte sai vazio"
+    answer: 3
+    explanation: "O versionamento do *bucket* é o *backup* do estado. Copiar a versão anterior por cima da atual e ver o `plan` vazio (`-detailed-exitcode` = 0) prova que o estado voltou a descrever o mundo real. Testado aqui no `moto`. Apagar o estado e aplicar tentaria criar tudo de novo, e `init` e `refresh` precisam de um estado legível para começar."
