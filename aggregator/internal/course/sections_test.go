@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 249, "desafio": 296, "invariantes": 288, "complemento": 279, "checagem": 294, "gabarito": 5,
+		"tutorial": 252, "desafio": 299, "invariantes": 291, "complemento": 282, "checagem": 297, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -425,14 +425,11 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	// The aws-para-backend stubs (Fase 0) leave this list as each block is
 	// written; once the trilha is complete it must be empty again.
 	wantNoSection := []string{
-		"aws-para-backend/computacao-ecs-eks-ou-lambda",
 		"aws-para-backend/dados-gerenciados-rds-aurora-dynamodb",
 		"aws-para-backend/finops-e-capstone",
-		"aws-para-backend/mensageria-sqs-sns-e-eventbridge",
 		"aws-para-backend/observabilidade-na-aws",
 		"aws-para-backend/resiliencia-multi-az-e-dr",
 		"aws-para-backend/s3-kms-e-segredos",
-		"aws-para-backend/serverless-de-verdade",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)

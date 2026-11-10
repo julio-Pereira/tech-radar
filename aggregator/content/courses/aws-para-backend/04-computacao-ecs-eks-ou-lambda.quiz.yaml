@@ -1,0 +1,36 @@
+questions:
+  - question: "Um time de quatro pessoas, sem experiência com Kubernetes, vai rodar dois serviços HTTP contínuos. O que pesa a favor do ECS no Fargate?"
+    options:
+      - "A AWS opera servidores e agendador; o time cuida da tarefa"
+      - "O Fargate é sempre mais barato por hora que o EKS em EC2, para qualquer tamanho de frota"
+      - "O ECS não precisa de papéis IAM"
+      - "O Fargate dispensa *load balancer* para tráfego HTTP"
+    answer: 0
+    explanation: "A escolha é de quem opera o quê. No Fargate não há instância, nem *cluster* Kubernetes, nem *add-on* para manter: o time descreve a tarefa e o serviço. O preço por hora não é sempre menor; para frotas grandes e estáveis, EC2 pode sair mais barato. O ECS usa dois papéis (execução e tarefa) e um ALB na frente do serviço HTTP."
+
+  - question: "Na *task definition* do `pix-gateway`, `task_role_arn` e `execution_role_arn` apontam para o mesmo papel, que lê todos os segredos da conta. Qual é o problema?"
+    options:
+      - "Nenhum, se o papel tiver *permissions boundary*"
+      - "O ECS recusa a *task definition* com os dois papéis iguais e o serviço não sobe"
+      - "O código herda as permissões do agente"
+      - "O agente do ECS perde acesso ao ECR"
+    answer: 2
+    explanation: "O papel de execução é do agente (baixar a imagem, injetar segredos no início, mandar *logs*); o *task role* é do código. Com os dois iguais, qualquer chamada do código à AWS tem as permissões do agente. O ECS aceita a configuração, e por isso ela precisa de uma regra sobre o plano: *task role* própria, com o menor privilégio do serviço."
+
+  - question: "No EKS, o que a AWS opera por você?"
+    options:
+      - "Os nós de trabalho e o *patch* deles, sempre"
+      - "O *control plane*: API, etcd e agendador"
+      - "O AWS Load Balancer Controller e o Karpenter, instalados e atualizados no *cluster*"
+      - "As permissões de cada *pod*"
+    answer: 1
+    explanation: "No EKS, a AWS opera o *control plane* em várias AZs. Os nós (a menos que você use Fargate ou o modo automático), os *add-ons* como o Load Balancer Controller e o Karpenter, e a identidade de cada *pod* (Pod Identity ou IRSA) são escolhas e operação suas."
+
+  - question: "O `pix-gateway` faz *graceful shutdown* de até 30 s. A *task definition* não define `stopTimeout`. O que acontece num *deploy*?"
+    options:
+      - "Nada: o ECS espera o *drain* terminar, sem limite"
+      - "O ECS usa o *deregistration delay* do ALB como `stopTimeout`"
+      - "O Fargate usa sempre 120 s, o máximo permitido, quando o campo fica vazio"
+      - "O padrão de 30 s empata com o *drain*, e o `SIGKILL` pode cortá-lo"
+    answer: 3
+    explanation: "Sem `stopTimeout`, o ECS usa 30 s entre o `SIGTERM` e o `SIGKILL`; no Fargate, o máximo é 120 s. Com o padrão igual ao *drain*, qualquer atraso corta requisições no meio. O `stopTimeout` precisa ser maior que o *drain*, e o *deregistration delay* do *target group* (padrão 300 s) também, porque é ele que segura as conexões em voo no ALB."

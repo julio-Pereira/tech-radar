@@ -1,0 +1,54 @@
+questions:
+  - question: "Uma função é invocada de forma assíncrona por uma notificação do S3 e falha em todas as tentativas. Sem destino de falha configurado, o que acontece com o evento?"
+    options:
+      - "Fica numa DLQ automática por 14 dias, criada pelo Lambda na primeira falha"
+      - "O S3 reenvia a notificação a cada hora"
+      - "Mais duas tentativas, e depois o descarte"
+      - "O Lambda tenta indefinidamente até a função voltar a funcionar"
+    answer: 2
+    explanation: "Na invocação assíncrona, o Lambda tenta mais duas vezes (1 min depois, e 2 min depois da segunda), configurável de 0 a 2, dentro de uma idade máxima de 60 a 21.600 s. Esgotado, o evento vai para o destino de falha, se houver; sem ele, é descartado. Estrangulamentos e erros de sistema têm outro caminho, com até 6 horas por padrão. O S3 não reenvia."
+
+  - question: "Uma função consome lotes de 10 mensagens do SQS. Uma mensagem do lote falha. Sem `ReportBatchItemFailures`, o que acontece?"
+    options:
+      - "Só a mensagem com falha volta para a fila"
+      - "O lote inteiro volta, com as 9 que deram certo"
+      - "A mensagem com falha vai direto para a DLQ"
+      - "O Lambda descarta a mensagem com falha e apaga do SQS as outras nove do mesmo lote"
+    answer: 1
+    explanation: "Sem o *partial batch response*, um erro faz o lote inteiro ficar visível de novo quando a visibilidade vence, e as mensagens que deram certo voltam a ser processadas, por isso a idempotência. Com `ReportBatchItemFailures`, a função devolve `batchItemFailures` com os `itemIdentifier` das que falharam, e só elas voltam. A DLQ só entra depois de `maxReceiveCount`."
+
+  - question: "Mil arquivos chegam ao mesmo tempo, e cada linha vira uma invocação que grava no Postgres (`max_connections` = 100). Qual é o risco principal, e o controle?"
+    options:
+      - "O Lambda recusa mais de 100 invocações; nada a fazer"
+      - "O *cold start* atrasa as gravações; usar SnapStart"
+      - "O S3 estrangula as notificações de evento; pedir aumento da cota de notificações do S3"
+      - "O banco recusa conexões; limitar concorrência e usar RDS Proxy"
+    answer: 3
+    explanation: "Cada ambiente atende um evento por vez, e a cota padrão é de 1.000 concorrentes. Medido: 200 conexões diretas a um Postgres com 100 vagas tiveram 100 recusadas com `too many clients`; com um limite de 20, nenhuma. Os controles: concorrência reservada da função, concorrência máxima do *event source mapping* (2 a 1.000) e RDS Proxy, com o número tirado do dimensionamento do *pool*."
+
+  - question: "Uma função Java tem *cold start* longo, que aparece no *p99* de uma API síncrona. Qual afirmação sobre SnapStart está certa?"
+    options:
+      - "Restaura um *snapshot*; em Java gerenciado, sem custo extra"
+      - "Ele mantém ambientes sempre aquecidos, cobrados por hora"
+      - "Ele só funciona para Node.js e Python"
+      - "Ele elimina a necessidade de idempotência, porque reaproveita o estado do ambiente inicializado"
+    answer: 0
+    explanation: "O SnapStart faz o `init` uma vez, tira um *snapshot* e restaura a partir dele. Cobre Java 11+, Python 3.12+, .NET 8+ e imagens de contêiner; em Java gerenciado é sem custo extra, nos demais cobra *cache* e restauração. Manter ambientes prontos é a *provisioned concurrency*. O *snapshot* também traz cuidados de unicidade (sementes de aleatoriedade), e a idempotência continua obrigatória."
+
+  - question: "Um processo de estorno tem quatro etapas, espera por resposta de outro banco e compensação se uma etapa falhar. Por que Step Functions e não uma função chamando a próxima?"
+    options:
+      - "Porque uma função não pode chamar outra"
+      - "Porque o estado e a compensação ficam no serviço"
+      - "Porque Step Functions dispensa idempotência nas etapas, já que cada uma roda só uma vez"
+      - "Porque uma cadeia de funções é sempre mais cara"
+    answer: 1
+    explanation: "Numa cadeia de funções, o estado do processo vive na memória da execução atual, os *timeouts* se somam e uma falha no meio deixa o processo sem dono. No Step Functions, a máquina de estados guarda onde o processo está, espera sem pagar função parada, e declara *retry* e compensação: é a saga de `arquitetura-eventos/09`. Cada etapa continua precisando ser idempotente."
+
+  - question: "Em qual destes casos uma função Lambda é a pior escolha?"
+    options:
+      - "Um processamento disparado por *upload* de arquivo, algumas vezes por dia"
+      - "Uma regra que reage a eventos do EventBridge"
+      - "Uma API com carga constante o dia todo e *p99* de 50 ms"
+      - "Um *job* noturno de 5 minutos"
+    answer: 2
+    explanation: "Carga constante faz o modelo por invocação e GB-segundo custar mais que um contêiner por hora de vCPU e memória, e o *cold start* aparece justamente na cauda de latência. A conta se faz com os preços do dia, na calculadora oficial. Eventos intermitentes, reações a eventos e *jobs* curtos são o caso bom de função."
