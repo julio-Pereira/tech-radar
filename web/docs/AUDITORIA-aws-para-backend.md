@@ -120,3 +120,66 @@ cada domínio para os marcos e diz o que a trilha não cobre.
 - **`conceitos.yaml`:** *envelope encryption* já tem dono em `seguranca-aplicacao/09`, e a trilha não o
   registra. Os candidatos próprios (avaliação de política IAM e *VPC endpoint*) entram na Fase 4, se forem
   citados fora do dono.
+
+## 2. Fase 1 — Bloco A (marcos 01 a 03)
+
+Os três marcos têm:
+
+- os cinco blocos de `## Hands-on`;
+- a tabela "No Azure → na AWS";
+- `reviewedAt: 2026-11-10` e `reviewEvery: 6m`;
+- 16 questões (4 + 6 + 6), com a resposta certa distribuída e nunca a opção mais longa.
+
+Os laboratórios usaram Terraform 1.17.1, o provedor `aws` 6.72.0 e Conftest 0.71.1, sem conta AWS. O
+`plan` roda com `skip_credentials_validation` e `skip_requesting_account_id`, sem chamada a conta real.
+
+### Medições
+
+| Marco | Experimento | Resultado |
+| --- | --- | --- |
+| 01 | `plan` de OUs, contas, SCP de regiões e anexo | `6 to add`, sem conta |
+| 01 | política: conta fora de OU com SCP (segue a referência `parent_id` na configuração do plano) | a conta presa à raiz reprovou |
+| 01 | política: provedor fora das regiões aprovadas | a *fixture* em `us-west-2` reprovou |
+| 01 | política de *tags* lendo só `after.tags_all` | **passou calada** na *fixture* sem `default_tags`: o `tags_all` vira `after_unknown`. Com a regra que trata o desconhecido como ausente, 5 recursos reprovaram, e o plano com `default_tags` passou |
+| 02 | avaliador didático em Go (identidade, recurso, SCP, *boundary*, `Deny`) | 9 casos tirados das páginas "Policy evaluation logic" e "Cross-account policy evaluation logic" passaram, e a matriz do `pix-gateway` também; com curinga em `Resource`, o avaliador deu `Allow` na fila de estornos |
+| 03 | `plan` da VPC em três AZs (18 recursos), com duas violações de propósito | `aws_security_group.app aceita 0.0.0.0/0 na porta 22` e `s3 sem gateway endpoint com política restrita` |
+| 03 | mutação: rota para o *internet gateway* na tabela das sub-redes de aplicação | reprovou, depois de corrigir a regra (abaixo) |
+| 03 | sobreposição de CIDR com `net.cidr_intersects` | `10.40.0.0/16` contra uma borda `10.40.128.0/17` reprovou; contra `10.20.0.0/16` e `10.30.0.0/16`, passou |
+
+**Armadilha medida no 03.** No JSON do plano, o `route` do `aws_route_table` aparece na configuração como
+um atributo com uma lista de `references`, e não como uma lista de blocos. A primeira versão da regra
+procurava a lista de blocos, e a mutação passou. Corrigida a regra, a mutação reprovou. O texto do marco
+registra o caso como argumento para a *fixture* que faz cada regra falhar.
+
+### Números conferidos (10 nov 2026)
+
+Os números vieram de trechos de páginas oficiais que a busca devolveu (`aws.amazon.com/vpc/pricing`,
+`nat-gateway-pricing`, *blogs* oficiais de transferência de dados):
+
+- NAT Gateway em `us-east-1`: US$ 0,045 por hora e US$ 0,045 por GB processado;
+- transferência entre AZs: US$ 0,01 por GB em cada direção;
+- *gateway endpoint*: sem custo;
+- *interface endpoint*: cobrado por hora e por GB. O valor exato não é citado no texto, porque a busca só
+  trouxe o número de um *blog*.
+
+### Lógica de avaliação do IAM
+
+Conferida nas páginas oficiais (entre contas, *permissions boundary*):
+
+- na mesma conta, basta um `Allow` de identidade ou de recurso;
+- entre contas, os dois lados precisam permitir;
+- o `Deny` explícito vence;
+- SCP, RCP, *boundary* e *session policy* precisam permitir;
+- uma política de recurso que nomeia um usuário ou uma sessão não é limitada pela negação implícita do
+  *boundary*, e uma que nomeia o ARN do papel é.
+
+O marco 01 registra que a SCP não limita a conta de gerenciamento.
+
+### Pontes
+
+- `arquitetura-de-solucoes/05`;
+- `system-design/13`;
+- `entrega-continua-e-devops/06`;
+- `seguranca-aplicacao/08`, `/10` e `/11`;
+- `kubernetes/10` e `/11`;
+- `conectividade-multicloud/02` e `/08`.

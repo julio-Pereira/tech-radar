@@ -1,0 +1,54 @@
+questions:
+  - question: "Um papel tem uma política com `Allow` para `sqs:*` em `*` e outra com `Deny` para `sqs:SendMessage` na fila de estornos. O papel tenta publicar nessa fila. Qual é o resultado?"
+    options:
+      - "Permitido, porque o `Allow` é mais amplo"
+      - "Depende da ordem em que as políticas foram anexadas"
+      - "Negado: o `Deny` explícito vence qualquer `Allow`"
+      - "Permitido, se a fila tiver política de recurso que aceite o papel"
+    answer: 2
+    explanation: "Na lógica de avaliação, uma negação explícita aplicável em qualquer política encerra a decisão com `Deny`, sem importar quantos `Allow` existam ou de onde venham, inclusive da política de recurso. Não há ordem entre políticas. No avaliador didático, o caso deu `ExplicitDeny`."
+
+  - question: "Um papel da conta A (222222222222) precisa publicar numa fila da conta B (111111111111). A política de identidade do papel permite `sqs:SendMessage` na fila. O que mais é necessário?"
+    options:
+      - "Nada: a política de identidade basta, como acontece numa requisição dentro da mesma conta"
+      - "A política de recurso da fila também permitir o papel"
+      - "Uma SCP na conta B com `Allow` para a conta A"
+      - "Um `permissions boundary` na conta B"
+    answer: 1
+    explanation: "Entre contas, os dois lados precisam permitir: a identidade na conta de origem e a política de recurso na conta de destino. Na mesma conta, um dos dois basta. No avaliador, só a identidade deu `ImplicitDeny`, só o recurso também, e os dois juntos deram `Allow`. SCP e *boundary* só cortam; não concedem acesso a outra conta."
+
+  - question: "A política de identidade de um papel permite `sqs:SendMessage` e `s3:GetObject`. O *permissions boundary* do papel permite só `s3:GetObject`. O papel tenta `sqs:SendMessage` numa fila da mesma conta, cuja política de recurso não menciona o papel. Qual é o resultado?"
+    options:
+      - "Negado: a ação não está no *boundary*"
+      - "Permitido: o *boundary* só vale para ações de S3"
+      - "Permitido: a política de identidade é avaliada antes do *boundary*"
+      - "Negado com `ExplicitDeny`, porque o *boundary* nega tudo o que não lista"
+    answer: 0
+    explanation: "O efetivo é a interseção entre a política de identidade e o *boundary*. Como a ação não está no *boundary*, a identidade não a concede, e nenhuma política de recurso concede. O resultado é negação implícita, não explícita: o *boundary* não tem `Deny`, só não tem o `Allow`. Uma política de recurso que nomeasse a sessão do papel não seria limitada por essa negação implícita."
+
+  - question: "A fila de liquidação aceita mensagens do SNS com a condição só `\"Principal\": {\"Service\": \"sns.amazonaws.com\"}`. Qual é o risco?"
+    options:
+      - "Nenhum: só o serviço SNS pode publicar"
+      - "O SNS entrega as mensagens fora de ordem"
+      - "A fila passa a aceitar mensagens de qualquer região, mas só de tópicos da própria conta"
+      - "*Confused deputy*: qualquer tópico, de qualquer conta, publica na fila"
+    answer: 3
+    explanation: "O principal é o serviço, não o seu tópico. Qualquer tópico, de qualquer conta, é \"o SNS\". A defesa é condicionar à origem com `aws:SourceArn` (o ARN do seu tópico) ou `aws:SourceAccount`. Para um terceiro que assume um papel na sua conta, a defesa equivalente é o `ExternalId`. É o invariante 3 do marco."
+
+  - question: "Por que uma chave de acesso de longo prazo é tratada como dívida, mesmo com permissões mínimas?"
+    options:
+      - "Porque não expira e exige rotação manual"
+      - "Porque ela ignora as SCPs da organização e as condições das políticas de recurso"
+      - "Porque ela só funciona na região onde foi criada"
+      - "Porque ela dá acesso de raiz à conta"
+    answer: 0
+    explanation: "A chave de longo prazo vale até alguém revogá-la. Copiada para um `.env`, um *log* ou um repositório, ela continua funcionando. Papéis entregam credenciais temporárias, que expiram sozinhas. A chave respeita SCP e permissões, vale em todas as regiões, e não é de raiz por si só; o problema é a vida longa."
+
+  - question: "Um serviço roda no EKS em nós EC2 e precisa de um papel IAM. Qual é a recomendação atual da AWS, e onde a alternativa ainda é necessária?"
+    options:
+      - "IRSA sempre; o Pod Identity é só para Fargate"
+      - "Uma chave de acesso no *Secret* do Kubernetes, com rotação mensal"
+      - "Pod Identity; IRSA onde ele não chega, como no Fargate"
+      - "O *instance profile* do nó, compartilhado por todos os *pods* que rodam nele"
+    answer: 2
+    explanation: "A documentação de boas práticas do EKS recomenda o Pod Identity: sem provedor OIDC por *cluster* e sem o limite de 100 provedores OIDC por conta, com um agente em cada nó. O IRSA continua suportado e é o caminho onde o Pod Identity não chega. O *instance profile* do nó daria o mesmo papel a todos os *pods*, o oposto do menor privilégio."
