@@ -112,7 +112,8 @@ O OTLP é o mesmo para qualquer *backend* que o aceite. O Datadog Agent recebe O
 para gRPC e 4318 para HTTP), e o New Relic tem *endpoint* OTLP nativo. Trocar de fornecedor muda o
 destino do exportador, não a instrumentação. Duas ressalvas do lado do fornecedor: no Datadog, *logs*
 por OTLP vêm desligados por padrão, e alguns produtos proprietários dele não usam dados do SDK
-OpenTelemetry.
+OpenTelemetry. A migração de um agente proprietário para o OTel, com envio duplo pelo Collector e
+paridade de alertas antes de desligar o antigo, está em `observabilidade/05`.
 
 **Exemplars** costuram métrica e trace: um ponto no histograma de latência carrega o
 `traceId` de uma requisição real daquele balde. Você vê o pico de p99 no Grafana e pula

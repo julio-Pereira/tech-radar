@@ -54,6 +54,8 @@ recebe o `ctx` da requisição continua o mesmo trace.
 As **métricas de negócio** (valor transacionado, taxa de aprovação, lançamentos por tipo) contam
 tanto quanto CPU e latência, e são o assunto de `observabilidade/08`. O mesmo OTLP chega a qualquer
 backend que o aceite, inclusive Datadog e New Relic: a instrumentação não depende do fornecedor.
+Quem chega a um serviço Go que já usa o agente de um fornecedor migra com o envio duplo e a paridade
+de alertas de `observabilidade/05`, sem desligar o agente antigo no primeiro dia.
 
 ```diagrama
 go-observabilidade

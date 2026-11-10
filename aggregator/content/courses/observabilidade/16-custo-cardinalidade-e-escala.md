@@ -29,6 +29,13 @@ alavanca mais eficaz nem é técnica — é `DEBUG` ligado em produção. O `DEB
 ligou "só por hoje" para investigar algo, e que continua ligado três meses depois, é
 provavelmente a maior economia disponível hoje no seu ambiente.
 
+**E num fornecedor SaaS?** A conta muda de forma, não de causa. Datadog, New Relic, CloudWatch e
+Elastic cobram por combinações diferentes de host, volume ingerido, retenção, séries de métrica
+customizada e usuários. As alavancas deste marco (cardinalidade, amostragem, nível de log, retenção)
+são as mesmas em qualquer um deles; o que muda é a linha da fatura onde o desperdício aparece. Na
+migração de um agente para o OTel (marco 05), confira essa linha antes e depois da troca: um atributo
+que o agente antigo descartava pode virar série cobrada no destino novo.
+
 ## Cardinalidade: onde o dinheiro vaza em métricas
 
 A explosão é multiplicativa (marcos 04 e 07). Um label novo com 1.000 valores distintos
