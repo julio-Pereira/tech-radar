@@ -282,3 +282,85 @@ nas páginas oficiais, junto com os limites dos marcos 02, 03, 05, 06 e 08.
 - `seguranca-aplicacao/09` e `/10`;
 - `ledger-e-contabilidade/08`;
 - `terraform-e-iac/03`.
+
+## 5. Fase 4 — Bloco D (marcos 09 a 11), capstone, glossário e conceitos
+
+Marcos escritos: 09 (observabilidade), 10 (resiliência e DR) e 11 (FinOps e capstone). Com eles,
+`wantNoSection` volta a ser vazio, e os *goldens* de seções sobem para 257/304/296/287/302. Os três quizzes
+têm 4 questões, e a opção correta nunca é a estritamente mais longa (conferido por *script*, depois de
+rebalancear 10 das 12). A trilha soma **54 questões** (4 + 6 + 6 + 4 + 6 + 6 + 4 + 6 + 4 + 4 + 4).
+
+### Medições
+
+| Marco | Experimento | Resultado |
+| --- | --- | --- |
+| 09 | plano com 3 filas, tabela, função, 2 grupos de *log*, trilha do CloudTrail e alarmes, contra `politicas/operacao.rego` com os SLOs em `slos.json` | a primeira versão do plano bom foi **reprovada**: `SLO ledger-lancamento-disponibilidade sem alarme`. Depois do alarme, 7 de 7. A mutação sem os alarmes de operação e com um grupo sem retenção reprovou em **5 regras**; a trilha de uma região, em 1 |
+| 10 | ADR de DR como dados contra `regras_dr.py` | a boa passou; a ruim reprovou em **4 linhas** (*pilot light* com RTO de 5 min, tempo para escalar maior que o RTO, *warm standby* com RPO 0, componente sem custo) |
+| 10 | "nenhuma AZ única": `terraform test` com `mock_provider` e regra sobre o plano | bom: passou. Mutação "uma AZ": o `terraform test` falhou (1 AZ, mínimo 2) e a regra reprovou o banco sem Multi-AZ |
+| 10 | *game day*: duas "AZs" em processos, banco compartilhado, 200 pagamentos com chave idempotente, uma AZ derrubada no 100º | **200 de 200** confirmados, nenhuma falha vista pelo cliente, **50 tentativas extras**, **200 lançamentos** depois de repetir os 200 |
+| 11 | modelo de custo (`custo.py`) lendo o plano, os preços datados e um perfil de 30 milhões de transações/mês | com *endpoints*: US$ 692,05 em rede e *logs*, **US$ 0,0231 por mil**; *logs* US$ 530 contra NAT US$ 112. Sem os *gateway endpoints*: NAT de **US$ 13,50 para US$ 261,00**, custo por mil US$ 0,0313, e o teste reprovou. Sem orçamento: reprovou |
+
+**Duas armadilhas de ferramenta no marco 10, que viraram conteúdo:**
+
+- nas `references` da configuração, um condicional traz as sub-redes dos **dois** ramos; a primeira regra
+  contou 3 AZs na mutação de uma AZ;
+- `subnets` do `aws_ecs_service` é um *set*, e o `after_unknown` dele é `true` inteiro, sem tamanho.
+
+Por isso, a regra de AZ foi para o `terraform test` com `mock_provider`, e o `.rego` ficou com o
+Multi-AZ do banco.
+
+A paridade de `trace_id` do invariante 5 do marco 09 reutiliza a medição do envio duplo de
+`observabilidade/05` (AUDITORIA-adendo-sinais §1: 200 de 200 nos dois destinos), sem um laboratório novo.
+
+### Números conferidos (10 nov 2026)
+
+- **X-Ray:** SDKs e *daemon* em manutenção desde 25 fev 2026, fim do suporte em 25 fev 2027. *Traces*
+  por OTLP no X-Ray com SigV4 desde nov 2024; métricas OTel no CloudWatch anunciadas em jun 2026.
+- **CloudWatch Logs:** retenção de 1 dia a 10 anos, ou para sempre (o padrão). Ingestão Standard
+  US$ 0,50/GB e Infrequent Access US$ 0,25/GB (us-east-1, primeiros 10 TB); armazenamento igual nas duas.
+  A Infrequent Access não tem *metric filters*.
+- **Aurora Global Database:** RPO "tipicamente em segundos" e RTO "na ordem de minutos", pela
+  documentação. O "abaixo de 1 segundo" de fontes de terceiros **não** entrou.
+- **S3 RTC:** o SLA é de **99,9%** dos objetos em 15 minutos (a meta de projeto é 99,99%). Uma busca
+  trazia "SLA de 99,99%", e foi corrigida pela página do SLA. Não vale acima da cota de 1 Gbps.
+- **FIS:** cenário de queda de energia de AZ; com *zonal autoshift*, o tráfego sai cinco minutos depois.
+- **Serviços globais:** plano de controle numa única região e plano de dados distribuído (*whitepaper*
+  Fault Isolation Boundaries). Para o DNS público do Route 53, a região é us-east-1. Para o IAM, a região
+  **não** foi confirmada, e o texto não a nomeia.
+- **Rede:** NAT US$ 0,045/h e US$ 0,045/GB (já no marco 03); tráfego entre AZs US$ 0,01/GB por sentido.
+- ***Spot*:** aviso de dois minutos antes de tomar a instância. Os percentuais de desconto de *Savings
+  Plans* e *spot* **não** foram conferidos, e o marco não os cita.
+
+### Glossário, conceitos e capstone
+
+- **`GLOSSARIO.md`:** de 4 para **50 verbetes**, nas seções Fundação, Identidade, Rede, Computação e
+  funções, Mensageria, Dados e chaves, e Operar. Os conceitos neutros continuam nas trilhas donas. O
+  primeiro rascunho tinha 9 verbetes com "marcos NN e MM"; o teste de cobertura exige "marco NN", e eles
+  foram corrigidos (50/50).
+- **`conceitos.yaml`:** a trilha passa a ser dona de dois conceitos citados fora dela:
+  - `aws-secrets-manager` (dono `aws-para-backend/08`), ligado em `kubernetes/03` e `terraform-e-iac/03`;
+  - `adot` (dono `aws-para-backend/09`), ligado em `observabilidade/05`.
+
+  Outros candidatos (estabilidade estática, Object Lock, SCP) não são citados fora da trilha e ficaram de
+  fora. *Pilot light* é ensinado em `system-design/13`, e partição quente em `dados-distribuidos`.
+- **`capstones.yaml`:** o `fin-devplatform` passa a depender do `fin-aws`.
+- **Capstone:** no marco 11, com a entrega de 11 itens (um por marco), 9 critérios de pronto, todos sem
+  conta, e a pergunta final do plano.
+
+### Para a revisão independente (Fase 5)
+
+Além dos marcos 02, 03, 05, 06 e 08, conferir:
+
+- o tráfego entre AZs (US$ 0,01/GB por sentido): várias fontes concordam, mas a página oficial de
+  transferência do EC2 não foi aberta;
+- a espera de exclusão de chave KMS (7 a 30 dias) e a criptografia padrão SSE-S3 desde jan 2023 (§4).
+
+### Pontes
+
+- `observabilidade/05`, `/06`, `/12` e `/16`;
+- `kubernetes/12`;
+- `system-design/02`, `/13` e `/14`;
+- `dados-distribuidos/02`, `/03` e `/12`;
+- `kafka/12`;
+- `ledger-e-contabilidade/08`;
+- `engenharia-de-plataforma/08`.
