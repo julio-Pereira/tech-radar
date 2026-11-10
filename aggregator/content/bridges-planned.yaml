@@ -15,3 +15,6 @@
 - ref: design-de-codigo/05
   motivo: "spring-boot/04 (padrões que o Spring já usa) aponta para o catálogo de padrões da trilha design-de-codigo, ainda não publicada (adendo de entrevista da spring-boot, §4)."
   ate: 2027-05-01
+- ref: aws-para-backend/08
+  motivo: "terraform-e-iac/02 (saídas publicadas em SSM em vez de terraform_remote_state) e /03 (segredo lido do cofre) apontam para o marco de S3, KMS e segredos da trilha aws-para-backend, planejada para depois da terraform-e-iac (plano da terraform-e-iac, §7)."
+  ate: 2027-05-01

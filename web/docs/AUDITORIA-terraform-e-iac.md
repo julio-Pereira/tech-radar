@@ -126,3 +126,55 @@ os recursos do `moto` por `terraform query`.
   não publicadas. Elas entram em `bridges-planned.yaml` no PR do marco que as cita.
 - **Legado e modernização** (marco 06) fica em `arquitetura-de-solucoes/03` ("Core bancário e legado")
   e `/07` ("Modernização de portfólio").
+
+## 2. Fase 1 — marcos 01 a 03
+
+Os três marcos têm os cinco blocos de `## Hands-on`, `reviewedAt: 2026-11-10` e `reviewEvery: 6m`, e
+somam 16 questões (4 + 6 + 6). Todo número citado no texto foi medido no laboratório da §1, com o
+Terraform 1.17.1.
+
+### Medições novas
+
+| Marco | Experimento | Resultado |
+| --- | --- | --- |
+| 01 | mudar `lc_collate` de `postgresql_database` | `must be replaced`, com `# forces replacement` em `lc_collate` e `lc_ctype`; no JSON, `["delete", "create"]` |
+| 01 | o mesmo com `prevent_destroy = true` | `Error: Instance cannot be destroyed`, saída 1 |
+| 01 | o mesmo com `create_before_destroy = true` e nome fixo | `database "ledger_prod" already exists` |
+| 01 | pré-condição de retenção com `mock_provider` e `expect_failures` | `terraform test`: 2 passaram, sem banco |
+| 01 | Conftest com a lista de recursos críticos | nega `["delete", "create"]`; aprova com a exceção em `--data` |
+| 01 | `lifecycle { destroy = false }` (1.16) | num `terraform destroy`, o papel sai do estado e continua no Postgres. Com o bloco apagado do código, o plano voltou a dizer `will be destroyed`. O texto do marco foi corrigido: a primeira versão dizia que ele protegia também depois de o bloco sair |
+| 02 | `kill -9` no meio do `apply` | no `s3`, o `.tflock` ficou órfão (`Error acquiring the state lock` com `ID:`) até o `force-unlock`; no `pg`, o próximo `plan` rodou |
+| 02 | substituição interrompida | o plano seguinte pediu `1 to add`: o objeto velho já tinha saído |
+| 02 | estado sobrescrito com lixo no *bucket* versionado | `Unsupported state file format`; com a versão anterior copiada por cima, o `plan` saiu vazio |
+| 02 | `init -migrate-state` de `local` para `pg` | as mesmas 3 linhas no `state list` antes e depois |
+| 02 | papel sem *grant* no esquema do estado | `permission denied for schema rede_pix` |
+| 03 | rotação por `password_wo_version` 2 → 3, com o valor novo no cofre | a senha antiga é recusada, a nova é aceita, e o estado não tem nenhuma das duas |
+| 03 | `TF_LOG=TRACE` | com a senha por `-var`, 2 ocorrências no log, nos argumentos da linha de comando; com o efêmero, 0 |
+
+### Armadilha do laboratório
+
+A imagem oficial do Postgres usa `trust` para `127.0.0.1` no `pg_hba.conf`: por `localhost`, dentro do
+contêiner, **qualquer senha entra**. A primeira checagem de autenticação da §1 foi feita assim, e por
+isso não provava nada. Ela foi refeita pelo IP do contêiner, onde vale o `scram-sha-256`:
+
+- o `ledger_app` (*write-only*) entrou com a senha certa e foi recusado com a antiga;
+- o `ledger_app_antes` (`sensitive`) entrou com a senha certa e foi recusado com uma senha errada.
+
+O Tutorial do marco 03 avisa sobre a armadilha e manda conectar pela porta publicada ou pelo IP. O
+`permission denied` do marco 02 é autorização, não autenticação, e vale por `localhost`.
+
+### Conteúdo
+
+- **Pontes:**
+  - `entrega-continua-e-devops/02` e `/06`;
+  - `seguranca-aplicacao/10`;
+  - `aws-para-backend/08`, registrada em `bridges-planned.yaml` até a trilha existir.
+- **Caixas "E no OpenTofu?":**
+  - no 01, o `mock_provider` na 1.8;
+  - no 02, a criptografia no cliente (1.7) e a mudança do bloqueio do `pg` (1.10);
+  - no 03, efêmeros e *write-only* na 1.11.
+- **HCL dos marcos:** os 3 blocos passam no `terraform fmt -check`. Um deles estava fora do formato
+  (alinhamento do `command`) e foi corrigido.
+- **Quizzes:** 16 questões. A resposta certa foi distribuída entre as quatro posições, e nenhuma é a
+  opção estritamente mais longa.
+- **Testes:** os golden de seções sobem +3 em cada bloco, e os três marcos saem de `wantNoSection`.

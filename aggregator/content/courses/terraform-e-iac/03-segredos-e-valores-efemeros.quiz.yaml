@@ -1,0 +1,54 @@
+questions:
+  - question: "A senha do papel de aplicação vem de uma variável com `sensitive = true` e entra no argumento `password`. O que essa marcação garante?"
+    options:
+      - "Que a senha não é gravada no estado"
+      - "Que a senha não é enviada ao provedor"
+      - "Que a senha é cifrada no plano salvo com a chave do *backend* remoto"
+      - "Que a senha não aparece na saída do `plan` e do `apply`"
+    answer: 3
+    explanation: "`sensitive` é sobre exibição: a saída mostra `(sensitive value)`. O estado guarda o atributo inteiro em texto claro, porque precisa dele para comparar na próxima execução, e o plano salvo também, porque o `apply` executa exatamente o que foi planejado. Medido com a mesma senha: 1 ocorrência no estado e 2 no plano salvo."
+
+  - question: "Qual combinação tira a senha do estado e do plano salvo, no Terraform 1.11 ou mais novo?"
+    options:
+      - "Um `ephemeral` que lê o cofre, ligado a um argumento *write-only* como `password_wo`"
+      - "Uma variável `sensitive` com o argumento `password`"
+      - "Uma saída `sensitive` no módulo raiz com o valor da senha, lida pelos outros estados que precisam dela"
+      - "Um `terraform_data` que guarda a senha num atributo `input`"
+    answer: 0
+    explanation: "O recurso efêmero (1.10) lê o valor na hora, sem gravar. O argumento *write-only* (1.11) é o ponto onde um valor efêmero entra num recurso comum: o provedor recebe no `apply`, e o Terraform não grava. Medido: 0 ocorrências da senha no estado e no plano, com a aplicação autenticando. Uma saída comum e o `input` de um `terraform_data` gravam o valor no estado."
+
+  - question: "O papel usa `password_wo` com `password_wo_version = 2`. A senha foi trocada no cofre. O que é preciso para o Terraform enviar a senha nova?"
+    options:
+      - "Nada: o Terraform detecta a mudança do valor efêmero no próximo `plan`"
+      - "Rodar `terraform apply -replace` no papel"
+      - "Subir `password_wo_version` para 3"
+      - "Apagar o papel do estado e importar de novo"
+    answer: 2
+    explanation: "O Terraform não guarda o valor *write-only*, então não tem com o que comparar. O provedor oferece um argumento de versão, guardado no estado, e mudar a versão faz o Terraform reenviar o valor. Medido: o plano mostrou `~ password_wo_version = \"2\" -> \"3\"`, a senha antiga passou a ser recusada e a nova foi aceita. Recriar o papel derrubaria as conexões e perderia os *grants*."
+
+  - question: "A esteira guarda o `plan -out` como artefato do PR, para o `apply` usar no merge. O que ele pode conter?"
+    options:
+      - "Só a lista de ações, sem valores de atributos"
+      - "Os valores de atributos, inclusive os marcados como `sensitive`"
+      - "Só os valores públicos; os `sensitive` são removidos ao salvar"
+      - "Nada sensível, porque o arquivo é cifrado com a credencial do provedor"
+    answer: 1
+    explanation: "O plano salvo precisa de tudo que o `apply` vai executar, inclusive os valores sensíveis (medido: 2 ocorrências da senha). O Terraform não cifra o arquivo; quem cifra plano e estado no cliente é o OpenTofu, desde a 1.7. O artefato do plano merece o mesmo cuidado do estado: acesso restrito e retenção curta. Os valores efêmeros e *write-only* não entram nele."
+
+  - question: "Para depurar um erro, alguém roda `TF_LOG=TRACE terraform apply -var senha=...`. O que acontece com a senha?"
+    options:
+      - "Ela aparece no log de *trace*, nos argumentos da linha de comando"
+      - "Nada: o Terraform mascara variáveis sensíveis em todo log"
+      - "O Terraform recusa o `-var` quando o `TF_LOG` está ligado"
+      - "Ela só aparece se o provedor também estiver em modo *debug*, com o `TF_LOG_PROVIDER` ligado"
+    answer: 0
+    explanation: "Medido: com `TF_LOG=TRACE`, a senha passada por `-var` apareceu 2 vezes no log, nos argumentos da linha de comando, antes de qualquer mascaramento. Ela também fica no histórico do *shell* e na lista de processos. Com a senha lida do cofre por um recurso efêmero, o log teve 0 ocorrências. Log de *debug* do Terraform é artefato sensível."
+
+  - question: "Como a esteira deve obter a credencial que o provedor `aws` usa para criar os recursos?"
+    options:
+      - "Uma chave de acesso fixa num `terraform.tfvars` fora do Git"
+      - "Uma chave de acesso no bloco `provider`, marcada como `sensitive`"
+      - "Um *token* OIDC do *job*, trocado por um papel temporário de permissões mínimas"
+      - "A credencial pessoal do engenheiro que aprovou o PR, guardada como segredo do repositório"
+    answer: 2
+    explanation: "Com OIDC, o *job* recebe um *token* assinado pelo provedor da esteira e o troca por credenciais temporárias de um papel com permissões mínimas (`entrega-continua-e-devops/02`). Não há segredo de longa duração para vazar nem para rotacionar. Uma chave fixa num arquivo, mesmo fora do Git, acaba copiada; no bloco `provider`, ela vai para o código."

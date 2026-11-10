@@ -1,0 +1,40 @@
+questions:
+  - question: "Um `postgresql_grant` precisa que o banco `ledger` exista antes dele. Qual é o jeito preferível de expressar isso?"
+    options:
+      - "Referenciar `postgresql_database.ledger.name` no argumento `database` do *grant*"
+      - "`depends_on = [postgresql_database.ledger]` no *grant*"
+      - "Rodar `terraform apply -target=postgresql_database.ledger` antes do `apply` completo"
+      - "Declarar o banco antes do *grant* no mesmo arquivo `.tf`"
+    answer: 0
+    explanation: "A referência a um atributo cria a dependência implícita: o Terraform desenha a aresta, cria o banco antes e destrói o *grant* antes do banco, e o código explica a si mesmo. O `depends_on` é o último recurso, para dependências que o código não mostra; ele é largo (o recurso inteiro) e precisa de comentário. A ordem no arquivo não importa para o grafo, e `-target` é ferramenta de emergência."
+
+  - question: "O plano mostra a saída abaixo para uma mudança de duas linhas. O que vai acontecer no `apply`?"
+    code: |
+      # postgresql_database.ledger must be replaced
+          ~ lc_collate = "en_US.utf8" -> "C" # forces replacement
+      Plan: 1 to add, 0 to change, 1 to destroy.
+    options:
+      - "O banco é alterado no lugar, com um `ALTER DATABASE`"
+      - "O `apply` falha, porque `lc_collate` não pode mudar"
+      - "O Terraform pede confirmação extra antes de destruir, porque é um banco"
+      - "O banco é destruído e criado de novo, vazio"
+    answer: 3
+    explanation: "`# forces replacement` marca um atributo *ForceNew*: o objeto não aceita a mudança no lugar, e o plano vira destruir e criar (no JSON, `\"actions\": [\"delete\", \"create\"]`). O banco novo nasce vazio. Não há confirmação especial para bancos: a proteção é `prevent_destroy`, que faz o `plan` falhar, ou uma política que reprova `delete` em recurso crítico."
+
+  - question: "O banco `ledger_prod` tem nome fixo. O time põe `create_before_destroy = true` para trocar a ordenação de texto sem interrupção. O que acontece?"
+    options:
+      - "A troca ocorre sem interrupção: o novo banco sobe e o velho sai"
+      - "O `apply` falha ao criar o novo banco, porque o nome já existe"
+      - "O Terraform ignora `create_before_destroy` em bancos de dados"
+      - "O Terraform renomeia o banco velho automaticamente antes de criar o novo"
+    answer: 1
+    explanation: "Com `create_before_destroy`, o Terraform cria o substituto antes de destruir o original. Com nome fixo, os dois não podem existir ao mesmo tempo: medido com o provedor `postgresql` 1.27.0, o `apply` falhou com `database \"ledger_prod\" already exists`. Ou o nome varia (um sufixo gerado, e a aplicação passa a ler o nome de uma saída), ou a troca não é sem interrupção."
+
+  - question: "Um time roda `terraform apply -target=module.app` em todo deploy, porque o `plan` completo leva 12 minutos. Qual é o problema principal?"
+    options:
+      - "`-target` não funciona com módulos, só com recursos"
+      - "`-target` desliga o bloqueio de estado"
+      - "O resto do estado fica para trás, e a configuração diverge do que foi aplicado"
+      - "`-target` aplica o módulo duas vezes, uma no `plan` e outra no `apply`, e duplica os recursos"
+    answer: 2
+    explanation: "`-target` limita o plano a um pedaço do grafo. O que fica fora não é planejado nem aplicado, e mudanças pendentes em outras partes se acumulam sem ninguém ver. O próprio Terraform avisa que a opção não é para uso rotineiro. Um `plan` lento demais é sinal de estado grande demais: a correção é dividir o estado por fronteira (marco 02), não recortar o grafo em todo deploy."
