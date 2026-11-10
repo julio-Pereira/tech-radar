@@ -235,3 +235,50 @@ Conferidos nos trechos das páginas oficiais que a busca devolveu:
 - `kotlin-backend/07`;
 - `concorrencia-e-recursos/07`;
 - `arquitetura-de-solucoes/05`.
+
+## 4. Fase 3 — Bloco C (marcos 07 e 08)
+
+Marcos escritos: 07 (dados gerenciados: RDS, Aurora e DynamoDB) e 08 (S3, KMS e segredos). Os dois saem
+de `wantNoSection`, e os *goldens* de seções sobem para 254/301/293/284/299. O quiz do 07 tem 4 questões;
+o do 08, que é crítico, tem 6. A opção correta nunca é a estritamente mais longa (conferido por *script*).
+
+### Medições
+
+| Marco | Experimento | Resultado |
+| --- | --- | --- |
+| 07 | 50 `PutItem` concorrentes com a mesma chave e `attribute_not_exists`, no DynamoDB Local 3.3.2 | **1 sucesso, 49 `ConditionalCheckFailedException`**, 1 item na tabela |
+| 07 | `TransactWriteItems` com débito de saldo e registro de idempotência; repetição da chave e débito sem saldo | as duas canceladas com `ConditionalCheckFailed` na ação certa; saldo em 70 e a segunda chave não gravada |
+| 07 | Postgres reiniciado com o *pool* aberto, 20 gravações depois da volta | sem verificação de conexão: 4 falhas (uma por conexão morta); com verificação: 1. Nenhuma confirmada se perdeu, e não foi preciso reiniciar a aplicação |
+| 08 | envelope com `GenerateDataKey` do `moto` 5.2.5 e AES-GCM local | o objeto não continha o texto em claro; contexto certo abriu, contexto errado e ausência de contexto deram `InvalidCiphertextException`. **O `moto` exige o contexto**, mas não avalia a política de chave |
+| 08 | plano com 7 recursos (BPA da conta, *bucket*, BPA, SSE-KMS, política de *bucket*, chave, política de chave) contra `politicas/dados.rego` | o plano bom passou. A *fixture* `extratos` (sem BPA no *bucket*, sem SSE-KMS e sem política de TLS) reprovou em **3 regras**. A mutação com o papel da aplicação recebendo `kms:*` sem condição reprovou nas **duas regras de KMS** |
+
+### Números conferidos (10 nov 2026)
+
+- **RDS:** *failover* de 60 a 120 s no Multi-AZ de instância e abaixo de 35 s no Multi-AZ de *cluster*.
+- **DynamoDB:** transação de até 100 ações e 4 MB, custo dobrado, capacidade consumida mesmo cancelada;
+  item de até 400 KB. *Global tables* MRSC disponível desde jun 2025: exatamente três regiões (ou duas e
+  uma testemunha), sem transações, sem TTL e sem LSI, modo fixo na criação.
+- **S3:** consistência forte desde dez 2020; *Block Public Access* ligado e ACLs desligadas por padrão em
+  *bucket* novo desde abr 2023. URL pré-assinada: até 7 dias com usuário IAM (SigV4); com credencial
+  temporária, expira junto com ela. Object Lock *compliance*: nem o *root* apaga ou encurta; o modo não
+  muda.
+- **KMS:** rotação automática de 365 dias por padrão, configurável de 90 a 2.560 (abr 2024), sob demanda
+  disponível; só chaves simétricas com material do KMS; US$ 1 por mês por rotação, até a segunda.
+- **Segredos:** Secrets Manager a US$ 0,40 por segredo por mês e US$ 0,05 por 10.000 chamadas; Parameter
+  Store padrão sem custo, avançado a US$ 0,05 por parâmetro por mês.
+
+**Correção durante a escrita.** O primeiro texto do 07 dizia que *global tables* resolvem conflito pela
+última escrita, sem ressalva. O modo MRSC, de consistência forte, mudou isso; o texto, o quiz e a checagem
+agora dizem por que nem o MRSC serve ao saldo do ledger (ele não aceita transações).
+
+**Para a revisão independente (Fase 5).** Os prazos de espera da exclusão de chave (7 a 30 dias) e a
+criptografia padrão SSE-S3 desde jan 2023 entraram no 08 como fatos estáveis; a revisão confere os dois
+nas páginas oficiais, junto com os limites dos marcos 02, 03, 05, 06 e 08.
+
+### Pontes
+
+- `dados-distribuidos/07`, `/09`, `/12`, `/13`, `/16` e `/18`;
+- `concorrencia-e-recursos/07`;
+- `seguranca-aplicacao/09` e `/10`;
+- `ledger-e-contabilidade/08`;
+- `terraform-e-iac/03`.
