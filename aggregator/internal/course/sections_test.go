@@ -422,9 +422,17 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	// Every milestone has a hands-on section again since the kotlin-backend
-	// Fase 3; a new one without it is a regression.
-	var wantNoSection []string
+	// The terraform-e-iac stubs (Fase 0) leave this list as each fase is
+	// written; once the trilha is complete it must be empty again.
+	wantNoSection := []string{
+		"terraform-e-iac/ambientes-e-composicao",
+		"terraform-e-iac/automacao-qualidade-e-capstone",
+		"terraform-e-iac/brownfield-import-e-refatoracao",
+		"terraform-e-iac/estado-remoto-e-bloqueio",
+		"terraform-e-iac/modulos-versoes-e-provedores",
+		"terraform-e-iac/o-grafo-e-o-ciclo-de-vida",
+		"terraform-e-iac/segredos-e-valores-efemeros",
+	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}
