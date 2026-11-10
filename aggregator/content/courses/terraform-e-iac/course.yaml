@@ -1,0 +1,31 @@
+slug: terraform-e-iac
+title: "Terraform e Infraestrutura como Código, Além do Básico"
+subtitle: "Estado remoto e bloqueio, segredos fora do estado, módulos versionados, múltiplos ambientes, infraestrutura que já existe e automação em PR — o Terraform de quem mantém a IaC de um time, provado localmente."
+category: "Cloud"
+tags: [terraform, opentofu, iac, estado, modulos, import, refatoracao, politica-como-codigo, gitops, fintech, entrevista]
+level: advanced
+lang: pt-BR
+# 7 marcos, 425 min (web/docs/AUDITORIA-terraform-e-iac.md). A regra é ~2x a
+# soma dos estimatedMinutes: 425 x 2 / 60 = 14,2 -> 14.
+estimatedHours: 14
+glossary: GLOSSARIO.md
+sources:
+  - { title: "Terraform — Language documentation", url: https://developer.hashicorp.com/terraform/language }
+  - { title: "Terraform — Backend block: s3", url: https://developer.hashicorp.com/terraform/language/backend/s3 }
+  - { title: "Terraform — Manage sensitive data in your configuration", url: https://developer.hashicorp.com/terraform/language/manage-sensitive-data }
+  - { title: "Terraform — Use temporary write-only arguments", url: https://developer.hashicorp.com/terraform/language/manage-sensitive-data/write-only }
+  - { title: "Terraform — Import", url: https://developer.hashicorp.com/terraform/language/import }
+  - { title: "Terraform — Refactor modules (moved/removed)", url: https://developer.hashicorp.com/terraform/language/modules/develop/refactoring }
+  - { title: "Terraform — Refactor state", url: https://developer.hashicorp.com/terraform/language/state/refactor }
+  - { title: "Terraform — Tests", url: https://developer.hashicorp.com/terraform/language/tests }
+  - { title: "Terraform — CHANGELOG", url: https://github.com/hashicorp/terraform/blob/main/CHANGELOG.md }
+  - { title: "OpenTofu — documentation", url: https://opentofu.org/docs/ }
+  - { title: "Terraform Associate (004) — exam content list", url: https://developer.hashicorp.com/terraform/tutorials/certification-004/associate-review-004 }
+milestones:
+  - 01-o-grafo-e-o-ciclo-de-vida.md
+  - 02-estado-remoto-e-bloqueio.md
+  - 03-segredos-e-valores-efemeros.md
+  - 04-modulos-versoes-e-provedores.md
+  - 05-ambientes-e-composicao.md
+  - 06-brownfield-import-e-refatoracao.md
+  - 07-automacao-qualidade-e-capstone.md

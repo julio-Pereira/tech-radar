@@ -32,6 +32,12 @@
   artifacts:
     - { path: "pix-status/", check: exists }
 
+- track: terraform-e-iac
+  component: fin-iac
+  depends_on: [fin-pipeline, fin-landscape, ledger-core]
+  artifacts:
+    - { path: "fin-iac/", check: exists }
+
 - track: go-fintech
   component: ledger-core
   depends_on: []
