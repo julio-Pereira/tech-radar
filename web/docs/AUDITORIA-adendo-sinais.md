@@ -170,3 +170,36 @@ verbetes.
 migração.
 
 **Testes.** O golden de seções ganhou +1 bloco de complemento (269), e o de glossário foi regenerado.
+
+## 3. Fase 3 — Bloco 3 (banco de desafios)
+
+O banco passa de 12 para 15 desafios, e dois dos que já existiam ganham a variante Go. Todos os
+desafios com código passam no `tools/desafios/check-lld.sh`, o mesmo do CI: os testes falham no
+esqueleto e passam na referência, com `-race` no Go e com Go 1.27 e JDK 21, as versões do job.
+
+| Desafio | Linguagens | Prova extra: a implementação errada que os testes reprovam |
+| --- | --- | --- |
+| `cache-lru-ttl` | Java (#128) + **Go** novo | sem o `Mutex`: 10 avisos de *data race* com `-race` |
+| `transferencia-sem-deadlock` | Java (#128) + **Go** novo | travas na ordem do pedido: "deadlock?" em 15 s; referência com `-race` em 1,8 s |
+| `fetcher-concorrente-limitado` (novo) | Go | sem o `wg.Wait()`: o `goleak` mostra as goroutines; vaga adquirida dentro da goroutine: chamadas começam depois do primeiro erro |
+| `pipeline-com-backpressure` (novo) | Go | partição pela sequência em vez da chave: pagamento fora de ordem; fila sem limite: 392 pendentes contra o máximo de 37 |
+| `elevar-o-nivel-do-time` (novo) | comportamental | rubrica de 5 itens: evidência, mecanismo (não heroísmo), medida, o que não funcionou, crédito ao time |
+
+**Pré-requisitos.** O compilador trata os pré-requisitos como uma lista que precisa estar inteira
+concluída para o desafio ser liberado. Por isso, nos dois desafios que ganharam Go, os pré-requisitos
+continuam os da versão Java. Os marcos de Go (`go-fintech/03` e `go-fintech/09`) entram nas Dicas: se
+entrassem como pré-requisito, quem estuda só Java teria o desafio bloqueado. Os novos usam os
+pré-requisitos do plano:
+
+- `go-fintech/06` e `/07` no *fetcher*;
+- `go-fintech/06` e `kotlin-backend/07` no *pipeline*;
+- `lideranca-tecnica/07` e `/08` no comportamental.
+
+**Kotlin.** Como decidido na §1, o `pipeline-com-backpressure` sai só em Go, e o enunciado aponta o
+Desafio do marco `kotlin-backend/07` como a versão Kotlin.
+
+**Viés das decisões.** As 6 decisões novas não têm a correta como a opção estritamente mais longa. No
+banco inteiro, isso acontece em 5 de 39 decisões, abaixo do limite de 40%.
+
+**Testes web.** Os testes de desafios e da jornada passam a esperar 15 desafios, e o filtro `lld`
+passa a esperar 5.

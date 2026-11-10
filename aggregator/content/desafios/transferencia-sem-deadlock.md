@@ -1,6 +1,6 @@
 ---
 id: transferencia-sem-deadlock
-titulo: "Transferências concorrentes sem deadlock"
+titulo: "Transferências concorrentes sem deadlock, em Java e Go"
 tipo: lld
 nivel: senior
 duracaoMin: 45
@@ -51,10 +51,11 @@ Implemente um banco em memória com contas e transferências entre elas, seguro 
 nada, se a origem não tiver saldo. Nenhuma combinação de transferências simultâneas pode travar, o
 total de dinheiro nunca muda, e nenhum saldo fica negativo.
 
-O esqueleto e os testes estão em `aggregator/content/desafios/transferencia-sem-deadlock/java/`. Os
-testes falham até a implementação estar certa.
+O esqueleto e os testes estão em `aggregator/content/desafios/transferencia-sem-deadlock/`, em `java/`
+e em `go/`. Escolha a linguagem da vaga. Os testes falham até a implementação estar certa.
 
 - Java: `cd java && mvn -q test`
+- Go: `cd go && go test -race ./...`
 
 ## Dicas
 
@@ -62,7 +63,10 @@ testes falham até a implementação estar certa.
 - Escreva a versão que trava cada conta na ordem do pedido e rode o teste de transferências opostas:
   ver o *deadlock* acontecer é o melhor jeito de entender a correção.
 - `concorrencia-e-recursos/04` tem as quatro condições do *deadlock*; `concorrencia-e-recursos/03`, as
-  travas; `ledger-e-contabilidade/01`, por que a soma tem de fechar.
+  travas; `ledger-e-contabilidade/01`, por que a soma tem de fechar. Em Go, `go-fintech/09` mostra o
+  mesmo problema com travas de linha no banco.
+- Os testes não ficam presos num *deadlock*: em Java, cada `Future.get` tem prazo; em Go, um `select`
+  com `time.After` reprova o teste em 15 s.
 
 ## Gabarito comentado
 
@@ -78,6 +82,11 @@ Os erros mais comuns:
 - usar uma trava global, que é correta mas serializa o banco inteiro;
 - travar só a origem e creditar o destino fora da trava;
 - conferir o saldo fora da trava, o que deixa duas transferências simultâneas gastarem o mesmo saldo.
+
+Em Go, o desenho é o mesmo: um `sync.Mutex` por conta, adquiridos na ordem do id, com `defer` para
+liberar. Um `Total` que trava todas as contas na mesma ordem lê a soma consistente no meio das
+transferências, e o teste confere isso a cada 100 operações. A versão que trava na ordem do pedido foi
+reprovada por *deadlock* no prazo de 15 s; a referência passou com `-race` em menos de 2 s.
 
 Uma alternativa à ordem global é o `tryLock` com prazo e nova tentativa, que evita o *deadlock* ao
 custo de possível *livelock* e de mais código. No banco de dados, o mesmo problema aparece com

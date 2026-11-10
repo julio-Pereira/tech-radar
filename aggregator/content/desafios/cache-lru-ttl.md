@@ -1,6 +1,6 @@
 ---
 id: cache-lru-ttl
-titulo: "Cache LRU com TTL para a consulta DICT"
+titulo: "Cache LRU com TTL para a consulta DICT, em Java e Go"
 tipo: lld
 nivel: senior
 duracaoMin: 45
@@ -49,10 +49,11 @@ Implemente o cache do resultado da consulta DICT: guarda no máximo `capacidade`
 usada há mais tempo quando enche, e cada entrada vale por `ttl` a partir do `put`. Uma entrada nunca é
 devolvida no instante do vencimento ou depois. O cache é usado por todas as threads do serviço.
 
-O esqueleto e os testes estão em `aggregator/content/desafios/cache-lru-ttl/java/`. Os testes falham
-até a implementação estar certa.
+O esqueleto e os testes estão em `aggregator/content/desafios/cache-lru-ttl/`, em `java/` e em `go/`.
+Escolha a linguagem da vaga. Os testes falham até a implementação estar certa.
 
 - Java: `cd java && mvn -q test`
+- Go: `cd go && go test -race ./...`
 
 ## Dicas
 
@@ -62,6 +63,8 @@ até a implementação estar certa.
   por que um teste concorrente também precisa estar certo.
 - `java-e-jvm/03` tem o `HashMap` e o `LinkedHashMap` por dentro; `concorrencia-e-recursos/08`, o teste
   de concorrência.
+- Em Go não há `LinkedHashMap`: o par clássico é um `map` para achar e um `container/list` para a ordem
+  de uso. `go-fintech/03` explica por que o `map` não é seguro entre goroutines.
 
 ## Gabarito comentado
 
@@ -74,6 +77,13 @@ A trava é um `synchronized` em `get`, `put` e `size`, porque o `get` reordena a
 uma escrita. Os erros mais comuns: um `ReadWriteLock` com a trava de leitura no `get`, que corrompe a
 lista sob concorrência; trocar por `ConcurrentHashMap` e perder a ordem de acesso; e testar com o
 relógio real e `sleep`, o que deixa os testes lentos e instáveis.
+
+Em Go, o mesmo desenho vem em duas peças: `map[K]*list.Element` para achar em O(1) e um
+`*list.List` com a entrada mais recente na frente. O `Get` faz `MoveToFront`, o `Put` faz `PushFront`
+e despeja o `Back()` quando passa da capacidade, e o vencimento é conferido com
+`!agora().Before(expiraEm)`. Um `sync.Mutex` protege as duas estruturas. O `sync.RWMutex` tem a mesma
+armadilha do `ReadWriteLock`, porque o `Get` escreve. Sem a trava, o teste de 16 goroutines com
+`-race` acusa *data race* na primeira execução.
 
 Com muito tráfego, o monitor único vira gargalo. As saídas são segmentar o cache por hash da chave
 (cada segmento com sua trava e uma fração da capacidade) ou usar uma biblioteca como o Caffeine, que
