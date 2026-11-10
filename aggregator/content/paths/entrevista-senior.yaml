@@ -59,27 +59,50 @@ steps:
   - ref: concorrencia-e-recursos/08
     group: "Código e LLD"
     why: "Testar concorrência, com -race e testes determinísticos, é o critério de aceite dos desafios LLD."
-  - ref: java-e-jvm/02
-    group: "Código e LLD"
-    why: "O contrato de equals e hashCode, o cache de Integer e o BigDecimal.equals são as perguntas de Java mais antigas da banca."
-  - ref: java-e-jvm/03
-    group: "Código e LLD"
-    why: "HashMap por dentro e ConcurrentHashMap com operações atômicas: a base do cache LRU e do limite diário em live coding."
-  - ref: java-e-jvm/08
-    group: "Código e LLD"
-    why: "OOMKilled com o heap em 60% e a escolha do GC no contêiner são o diagnóstico de JVM mais cobrado de um sênior."
+  - ref: go-fintech/03
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
+    why: "Escolha só a linguagem da vaga: Go, Java ou Kotlin. Em Go, slices, maps e strings concentram as perguntas \"o que esse código imprime?\" mais comuns."
   - ref: go-fintech/04
-    group: "Código e LLD"
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
     why: "Interfaces pequenas no consumidor e o nil tipado são as pegadinhas de Go mais cobradas no live coding."
   - ref: go-fintech/06
-    group: "Código e LLD"
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
     why: "Channels, context e errgroup com limite: a concorrência idiomática que o rate limiter em Go precisa mostrar."
   - ref: go-fintech/07
-    group: "Código e LLD"
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
     why: "Vazamento de goroutine, provado com goleak e synctest, é o que a banca procura no código concorrente."
+  - ref: go-fintech/14
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
+    why: "Runtime, performance e profiling dão os números de alocação e GC que respondem \"como você otimizaria isso?\" em Go."
   - ref: go-fintech/16
-    group: "Código e LLD"
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
     why: "\"Por que Go e não Java?\" com critérios e números medidos, em vez de folclore sobre desempenho."
+  - ref: java-e-jvm/02
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
+    why: "O contrato de equals e hashCode, o cache de Integer e o BigDecimal.equals são as perguntas de Java mais antigas da banca."
+  - ref: java-e-jvm/03
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
+    why: "HashMap por dentro e ConcurrentHashMap com operações atômicas: a base do cache LRU e do limite diário em live coding."
+  - ref: java-e-jvm/08
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
+    why: "OOMKilled com o heap em 60% e a escolha do GC no contêiner são o diagnóstico de JVM mais cobrado de um sênior."
+  - ref: spring-boot/13
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
+    why: "Programação reativa a fundo cobre a vaga que pede reativo e streaming, e a resposta de quando não usar."
+  - ref: kotlin-backend/06
+    group: "Linguagem (escolha a da vaga)"
+    optional: true
+    why: "Concorrência estruturada e cancelamento são o diferencial de Kotlin que a banca usa para medir profundidade."
   - ref: pagamentos-e-liquidacao/02
     group: "Domínio fintech como diferencial"
     why: "Conhecer o Pix por dentro transforma uma resposta genérica numa resposta de quem já operou pagamentos."

@@ -203,3 +203,46 @@ banco inteiro, isso acontece em 5 de 39 decisões, abaixo do limite de 40%.
 
 **Testes web.** Os testes de desafios e da jornada passam a esperar 15 desafios, e o filtro `lld`
 passa a esperar 5.
+
+## 4. Fase 4 — Bloco 4 (jornada `entrevista-senior`)
+
+O grupo novo **"Linguagem (escolha a da vaga)"** entra entre "Código e LLD" e "Domínio fintech como
+diferencial". Todas as etapas dele são `optional: true`, e o `why` da primeira diz que se escolhe
+só a linguagem da vaga.
+
+**Desvio do plano.** O plano pedia nove etapas novas, mas sete marcos de linguagem já estavam na jornada,
+no grupo "Código e LLD":
+
+- `java-e-jvm/02`, `/03` e `/08`, pelo plano da `java-e-jvm`;
+- `go-fintech/04`, `/06`, `/07` e `/16`, pelo plano da `go-fintech`.
+
+O compilador recusa `ref` duplicado. A solução foi **mover** esses sete para o grupo novo, mantendo os
+`why` que já descreviam cada marco pelo título real, e **acrescentar** os quatro que faltavam:
+
+| `ref` | Título real | `why` |
+| --- | --- | --- |
+| `go-fintech/03` | Slices, maps e strings: a semântica que derruba entrevista | escolha a linguagem da vaga; slices, maps e strings concentram o "o que esse código imprime?" |
+| `go-fintech/14` | Runtime, performance e profiling | os números de alocação e GC respondem "como você otimizaria isso?" |
+| `spring-boot/13` | Programação reativa a fundo | cobre a vaga que pede reativo e streaming, e quando não usar |
+| `kotlin-backend/06` | Concorrência estruturada e cancelamento | o diferencial de Kotlin que a banca usa para medir profundidade |
+
+`go-fintech/06` (canais e `errgroup`) e `go-fintech/16` (Java × Go), que não estavam na lista do plano,
+ficam no grupo de linguagem porque são específicos de Go. O grupo tem 11 etapas, e a jornada passa de
+35 para 39.
+
+**Testes.**
+
+- `go test ./...` passou, inclusive a validação de `ref` e da ordem de pré-requisitos entre trilhas.
+- O `jornada.spec.js` passa a esperar o grupo novo na lista de grupos e "39 etapas".
+- Playwright: os 18 testes de `jornada.spec.js` e `paths.spec.js` passaram, depois de a suíte completa
+  ter falhado só na lista de grupos, que era o ajuste esperado.
+
+## Critérios de aceite
+
+- [x] Tabela do Bloco 1 com cada célula conferida e a fonte de cada linha (§1). A tabela do Bloco 2
+      fica para depois da `aws-para-backend`.
+- [x] Complemento novo do Bloco 1 com invariante testável, rodando sem conta em nuvem (§1, §2).
+- [x] Desafios `lld` passando no `check-lld.sh` (§3).
+- [x] Jornada com o grupo de linguagem, todos os `ref` resolvendo e os `why` fiéis ao título real (§4).
+- [x] Bloco 5 não implementado.
+- [x] `go test ./...` e testes do front verdes.
