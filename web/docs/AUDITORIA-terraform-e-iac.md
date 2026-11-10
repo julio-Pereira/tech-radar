@@ -178,3 +178,44 @@ O Tutorial do marco 03 avisa sobre a armadilha e manda conectar pela porta publi
 - **Quizzes:** 16 questões. A resposta certa foi distribuída entre as quatro posições, e nenhuma é a
   opção estritamente mais longa.
 - **Testes:** os golden de seções sobem +3 em cada bloco, e os três marcos saem de `wantNoSection`.
+
+## 3. Fase 2 — marcos 04 e 05
+
+Os dois marcos têm os cinco blocos de `## Hands-on`, `reviewEvery: 6m` e 4 questões cada. As medições
+usaram o laboratório da §1, com o Terraform 1.17.1.
+
+### Medições novas
+
+| Marco | Experimento | Resultado |
+| --- | --- | --- |
+| 04 | módulo `postgres-servico` com `validation` e `optional`, testado por `terraform test` com `mock_provider` | 3 casos passaram: nome válido com a saída esperada, nome com maiúscula e limite 0 rejeitados na variável certa |
+| 04 | consumidor na v1.0.0 (*tag* Git local) atualizando para a v2.0.0-rc1, que renomeia `postgresql_role.app` sem `moved` | `app will be destroyed` e `aplicacao will be created`, `Plan: 1 to add, 0 to change, 1 to destroy` |
+| 04 | o mesmo para a v2.0.0, com `moved` | `has moved to`, `Plan: 0 to add, 0 to change, 0 to destroy` |
+| 04 | a mesma suíte com o `postgresql` 1.26.0 e o 1.27.0, fixados por `matriz_override.tf` | 3 passaram nas duas versões; o lock registrou a versão de cada rodada |
+| 04 | `terraform providers lock -platform=linux_amd64 -platform=darwin_arm64` (`aws` 6.72.0, por `-fs-mirror`) | dois *hashes* `h1:`, um por plataforma |
+| 05 | plano salvo em `homologacao` aplicado com `producao` selecionado (*backend* `pg`) | recusado: `The plan file describes changes to the "homologacao" workspace, but the "producao" workspace is currently in use` (comportamento da 1.15) |
+| 05 | política de mínimos por ambiente sobre o plano em JSON (`input.variables`) | produção com 30 dias e 1 réplica reprovada em 2 regras; dev com 7 dias e 1 réplica aprovado |
+
+O provedor `postgresql` 1.26.0 foi compilado do código-fonte, como o 1.27.0, para a matriz.
+
+### Correções durante a escrita
+
+- **Variáveis na fonte do módulo.** A primeira versão punha a novidade da 1.15 do Terraform dentro da
+  caixa do OpenTofu. O *changelog* do OpenTofu mostra que ela chegou lá antes, na 1.8 ("Variables and
+  Locals allowed in module sources and backend configurations"). O texto passou a dar as duas versões.
+- **Bloco HCL fora do formato** no `tests/contrato.tftest.hcl` do laboratório (alinhamento de `=`),
+  pego pelo `fmt -check`. Os blocos HCL dos marcos 04 e 05 passam no `fmt -check`.
+
+### Conteúdo
+
+- **Pontes:**
+  - `entrega-continua-e-devops/05`;
+  - `engenharia-de-plataforma/05`;
+  - `kubernetes/13`;
+  - `design-de-codigo/08`, registrada em `bridges-planned.yaml`.
+- **Caixas "E no OpenTofu?":**
+  - no 04, o registro próprio, que muda o endereço no lock, e as variáveis na fonte do módulo;
+  - no 05, o `for_each` em configuração de provedor (1.9) e a ausência do Stacks.
+- **Quizzes:** 8 questões, com a resposta certa distribuída e nunca a opção mais longa. A trilha soma
+  24 de 34.
+- **Testes:** os golden de seções sobem +2 em cada bloco, e os dois marcos saem de `wantNoSection`.

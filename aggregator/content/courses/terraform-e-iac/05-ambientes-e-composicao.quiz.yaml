@@ -1,0 +1,36 @@
+questions:
+  - question: "Um time usa *workspaces* para dev, homologação e produção no mesmo diretório. Qual risco continua existindo no Terraform 1.17?"
+    options:
+      - "Aplicar um plano salvo de homologação com `producao` selecionado"
+      - "Rodar `apply` sem plano salvo no *workspace* errado, sem nenhum aviso"
+      - "Perder o estado de dev quando o *workspace* de produção é criado"
+      - "Os três *workspaces* gravarem no mesmo estado, porque o *backend* é um só"
+    answer: 1
+    explanation: "Um *workspace* é um estado a mais para o mesmo código, e o selecionado é estado invisível do terminal. Desde a 1.15, um plano salvo de outro *workspace* é recusado (medido: `The plan file describes changes to the \"homologacao\" workspace`). Mas um `apply` sem plano salvo vai para onde o seletor aponta. Cada *workspace* tem estado próprio; o problema é o seletor e o acesso compartilhado, que o diretório por ambiente resolve."
+
+  - question: "O `terraform.tfvars` de produção pede `retencao_dias = 30`. O mínimo regulatório é 1825. Onde essa regra deve ser barrada para valer só em produção?"
+    options:
+      - "Numa política sobre o plano em JSON, que lê as variáveis e o ambiente"
+      - "Num comentário no `tfvars`, revisado no PR"
+      - "Numa validação da variável no módulo, com o mínimo de produção para todos"
+      - "No `terraform validate` da esteira"
+    answer: 0
+    explanation: "O plano em JSON carrega as variáveis, e a política pode exigir mínimos só quando `ambiente == \"producao\"`. Medido: o Conftest reprovou o plano de produção (`retencao_dias = 30, mínimo 1825`) e aprovou o de dev com 7 dias. Uma validação no módulo com o mínimo de produção impediria dev de ser barato; ela serve para o mínimo absoluto. O `validate` não lê valores de ambiente."
+
+  - question: "Os estados do `fin-iac` são rede, dados e aplicação. O arquivo de dependências declara aplicação → dados e dados → aplicação. O que o *script* de ordem deve fazer?"
+    options:
+      - "Aplicar os dois em paralelo, com bloqueio, e repetir até o plano dos dois esvaziar"
+      - "Aplicar em ordem alfabética para desempatar"
+      - "Falhar: um ciclo não tem ordem válida e indica fronteira mal cortada"
+      - "Aplicar dados primeiro, porque bancos sempre vêm antes"
+    answer: 2
+    explanation: "A ordem de `apply` entre estados é a ordem topológica do grafo de dependências, o mesmo raciocínio do grafo de recursos do marco 01, um nível acima. Um ciclo não tem ordem válida: um dos dois estados nunca terá o valor que precisa. Na prática, é sinal de que um recurso está do lado errado da fronteira, ou de que uma saída deveria ser publicada em vez de lida do outro estado."
+
+  - question: "O time quer que o Terraform crie o *cluster* e também aplique os manifestos das aplicações. Qual é o problema?"
+    options:
+      - "O Terraform não tem provedor para Kubernetes"
+      - "Os manifestos ficam no estado em texto claro"
+      - "O `plan` fica lento demais, porque cada manifesto vira uma chamada à API do *cluster*"
+      - "Dois sistemas gerenciam o mesmo objeto, e um desfaz o outro"
+    answer: 3
+    explanation: "O Terraform cuida do que está em volta do *cluster* (rede, contas, bancos, o *cluster* em si); o GitOps (`kubernetes/13`) cuida do que roda dentro. Quando os dois gerenciam os mesmos manifestos, o controlador do *cluster* aplica uma versão e o próximo `apply` do Terraform reverte para outra. A costura é uma saída do Terraform (o *endpoint*, o papel de IAM) publicada onde o GitOps lê."

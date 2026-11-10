@@ -18,3 +18,6 @@
 - ref: aws-para-backend/08
   motivo: "terraform-e-iac/02 (saídas publicadas em SSM em vez de terraform_remote_state) e /03 (segredo lido do cofre) apontam para o marco de S3, KMS e segredos da trilha aws-para-backend, planejada para depois da terraform-e-iac (plano da terraform-e-iac, §7)."
   ate: 2027-05-01
+- ref: design-de-codigo/08
+  motivo: "terraform-e-iac/04 (módulo como API pública) aponta para o marco de design de API de biblioteca da trilha design-de-codigo, ainda não publicada (plano da terraform-e-iac, §7)."
+  ate: 2027-05-01
