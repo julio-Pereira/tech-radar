@@ -1,0 +1,36 @@
+questions:
+  - question: "O time quer tirar os relatórios pesados da instância RDS Postgres de produção, que tem Multi-AZ de instância. A *standby* pode atender esses relatórios?"
+    options:
+      - "Sim: a *standby* do Multi-AZ de instância atende leitura por padrão, com a mesma latência da primária"
+      - "Sim, mas só fora do horário comercial"
+      - "Não: ela só existe para o *failover*; para leitura, é preciso uma réplica de leitura"
+      - "Não, porque a *standby* fica em outra região"
+    answer: 2
+    explanation: "No Multi-AZ de instância, a *standby* é síncrona, em outra AZ da mesma região, e não atende leitura: ela existe para o *failover*. A leitura vai para uma réplica de leitura, assíncrona e possivelmente atrasada. O Multi-AZ de *cluster* é a exceção: as duas *standby* atendem leitura, e o *failover* fica abaixo de 35 s, contra 60 a 120 s do de instância."
+
+  - question: "Durante um *failover* do RDS, o *pool* de conexões do `pix-gateway` continua entregando conexões abertas antes da queda. O que acontece, e o que resolve?"
+    options:
+      - "Nada: o *driver* reconecta sozinho, sem falha visível"
+      - "As conexões mortas falham; verificação no *pool* e *retry* idempotente resolvem"
+      - "O RDS mantém as conexões abertas vivas e as transfere, sem queda, para a nova primária"
+      - "Só um reinício do serviço recupera o *pool*"
+    answer: 1
+    explanation: "No *failover*, o DNS passa a apontar para a nova primária e as conexões antigas morrem. Medido: sem verificação, 4 das 20 gravações falharam (uma por conexão morta); com verificação antes de entregar, 1. Em nenhum caso foi preciso reiniciar o serviço, e nenhuma transação confirmada se perdeu. A operação que pegou a conexão morta precisa de *retry* com idempotência. O RDS Proxy encurta o que a aplicação vê."
+
+  - question: "A tabela do índice de idempotência usa como chave de partição a data da operação. Num dia de pico, as escritas são estranguladas com a tabela longe da capacidade contratada. Por quê?"
+    options:
+      - "O modo sob demanda tem um teto diário de escritas, e o pico do dia passou desse teto"
+      - "Todas as escritas do dia caem na mesma partição, que tem limite próprio de vazão"
+      - "A transação custa o dobro e consome a capacidade"
+      - "O TTL apaga itens durante o pico e bloqueia escritas"
+    answer: 1
+    explanation: "O DynamoDB distribui os itens em partições pela chave de partição, e cada partição tem limite próprio de vazão. Uma chave que concentra o tráfego, como a data, estrangula a partição, qualquer que seja a capacidade total. A correção é uma chave de alta cardinalidade, como o identificador fim a ponta do Pix, com o relatório por dia num índice secundário. O TTL não bloqueia escritas."
+
+  - question: "Para o saldo do ledger em duas regiões, o time propõe *global tables* com o modo de consistência forte multirregião (MRSC). Qual é o obstáculo?"
+    options:
+      - "O MRSC só existe em uma região"
+      - "O MRSC resolve conflito pela última escrita, exatamente como o modo padrão de consistência eventual"
+      - "O MRSC exige escrita só na região primária"
+      - "O MRSC exige três regiões e não aceita transações, das quais o débito depende"
+    answer: 3
+    explanation: "O modo padrão das *global tables* é eventual, com a última escrita vencendo, o que perde dinheiro num saldo. O MRSC, disponível desde jun 2025, é forte, mas exige exatamente três regiões (três réplicas, ou duas e uma testemunha) e não aceita `TransactWriteItems` nem TTL. O débito do ledger é transacional (saldo e idempotência juntos), então a saída continua sendo uma região dona das escritas de cada conta."

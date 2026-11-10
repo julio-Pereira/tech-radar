@@ -1,0 +1,54 @@
+questions:
+  - question: "Um time cria um *bucket* com uma política que dá `s3:GetObject` a `\"Principal\": \"*\"`. A conta tem o *Block Public Access* com as quatro chaves ligadas. O que acontece?"
+    options:
+      - "O *bucket* fica público, porque a política do próprio *bucket* sempre vence a configuração da conta"
+      - "A política pública é bloqueada: o mais restritivo, entre conta e *bucket*, vence"
+      - "O *bucket* fica público só para leitura, e a escrita continua bloqueada"
+      - "A política é aceita, mas só vale depois de 24 horas"
+    answer: 1
+    explanation: "O *Block Public Access* existe na conta e em cada *bucket*, e o mais restritivo vence. Com `BlockPublicPolicy` ligado na conta, a política que tornaria o *bucket* público é recusada, e `RestrictPublicBuckets` corta o acesso público que já exista. Numa organização, uma SCP impede que alguém desligue a camada da conta."
+
+  - question: "Na criptografia envelope com KMS, para um arquivo de liquidação de 2 GB, o que vai para o KMS?"
+    options:
+      - "O arquivo inteiro, em partes de até 4 KB"
+      - "Uma cópia da chave mestra, que a aplicação baixa e usa localmente para cifrar"
+      - "Nada: o S3 cifra sem falar com o KMS"
+      - "Só a chave de dados: o arquivo é cifrado localmente com ela"
+    answer: 3
+    explanation: "A aplicação pede `GenerateDataKey`, recebe a chave de dados em claro e cifrada, cifra o arquivo localmente (AES-GCM) e guarda só a chave cifrada ao lado. Para ler, manda a chave cifrada para `Decrypt`. A chave mestra nunca sai do KMS, e cada `Decrypt` fica no CloudTrail."
+
+  - question: "O serviço de extratos cifra com o contexto `servico=extratos`. Um serviço de relatórios, com permissão de `kms:Decrypt` na mesma chave, tenta decifrar a chave de dados sem informar contexto. O que acontece?"
+    options:
+      - "Falha com `InvalidCiphertextException`: o contexto é autenticado e precisa ser o mesmo"
+      - "Decifra normalmente, porque o contexto só serve para registrar a chamada na auditoria do CloudTrail"
+      - "Decifra, mas o CloudTrail registra um alerta"
+      - "Falha com `AccessDenied`, porque o serviço não é dono da chave"
+    answer: 0
+    explanation: "O contexto entra como dado autenticado: decifrar exige o mesmo contexto. Medido no `moto`, o contexto errado e a ausência dele deram `InvalidCiphertextException`. Além disso, o contexto vira condição na política (`kms:EncryptionContext:servico`), e o serviço de relatórios nem chega a ter permissão para o contexto dos extratos."
+
+  - question: "Os arquivos da conciliação precisam de retenção de 5 anos que nem o administrador da conta consiga encurtar. Qual configuração atende, e qual o cuidado?"
+    options:
+      - "Versionamento sem Object Lock, com MFA para apagar"
+      - "Object Lock em governança, porque só ele permite retenção longa"
+      - "Object Lock em *compliance*, testado antes em governança, porque o prazo não tem volta"
+      - "Uma política de *bucket* que nega `s3:DeleteObject` a todos os principais da conta, inclusive o administrador"
+    answer: 2
+    explanation: "No modo *compliance*, nenhum usuário, nem o *root*, apaga a versão ou encurta a retenção até ela vencer, e o modo não muda. Em governança, quem tem `s3:BypassGovernanceRetention` desfaz. Uma política de *bucket* pode ser trocada por quem administra a conta. Como um prazo errado no *compliance* não tem volta, e o armazenamento é cobrado até o fim, teste em governança primeiro."
+
+  - question: "A senha do Postgres de produção precisa trocar a cada 30 dias, sem derrubar o `ledger-core`. Onde ela fica, e como a aplicação lida com a troca?"
+    options:
+      - "Numa variável do Terraform marcada como `sensitive`, com um novo valor aplicado pelo *pipeline* a cada 30 dias"
+      - "No Secrets Manager, com rotação nativa; a aplicação relê o segredo quando a autenticação falha"
+      - "No Parameter Store padrão, que roda a rotação sem custo"
+      - "No repositório, cifrada com a chave KMS do time"
+    answer: 1
+    explanation: "O Secrets Manager tem rotação nativa, integrada ao RDS, e a estratégia de usuário alternado mantém duas credenciais válidas durante a troca. O Parameter Store guarda `SecureString`, mas a rotação é sua. Uma variável `sensitive` some da saída, não do *state*. A aplicação não guarda a senha para sempre na memória: relê o segredo quando a conexão falha por autenticação."
+
+  - question: "O `pix-gateway` gera URLs pré-assinadas para o cliente baixar o comprovante. Qual desenho é o certo?"
+    options:
+      - "URL de 7 dias, gerada com um usuário IAM com acesso ao *bucket* todo"
+      - "URL sem expiração, porque o objeto é cifrado com KMS"
+      - "URL de 7 dias, e o *log* do *proxy* guarda a URL inteira para auditoria"
+      - "URL de minutos, assinada por um papel que só lê o prefixo do cliente"
+    answer: 3
+    explanation: "A URL pré-assinada é um portador: quem a tem baixa o objeto até ela expirar, com a permissão de quem assinou. Com usuário IAM, ela vale até 7 dias; com credencial temporária, expira junto com a credencial. Prazo curto, um papel de quem assina com pouco acesso, e a URL inteira nunca vai para o *log*."
