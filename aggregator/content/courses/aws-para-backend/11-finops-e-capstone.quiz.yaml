@@ -1,0 +1,36 @@
+questions:
+  - question: "A conta subiu 40% sem aumento de volume, e o crescimento está no NAT Gateway. Qual é a causa mais provável a investigar primeiro?"
+    options:
+      - "Tráfego para S3 ou DynamoDB saindo pelo NAT, sem passar pelo *gateway endpoint*"
+      - "O preço do NAT Gateway subiu no meio do mês, sem aviso"
+      - "O NAT Gateway passou a cobrar também pelo tráfego que entra da internet nas respostas aos serviços"
+      - "O *Savings Plan* da conta venceu"
+    answer: 0
+    explanation: "Todo GB que passa pelo NAT paga processamento (US$ 0,045/GB em us-east-1, nov 2026). O tráfego para S3 e DynamoDB pode ir pelo *gateway endpoint*, gratuito, desde que a sub-rede esteja na tabela de rotas dele. Uma sub-rede nova fora dessa tabela manda tudo pelo NAT. No laboratório, tirar os *endpoints* levou o processamento do NAT de US$ 13,50 para US$ 261 por mês."
+
+  - question: "O time quer comprar um *Savings Plan* de 3 anos para a computação. O que deve vir antes?"
+    options:
+      - "Migrar tudo para *spot*, que é mais barato que qualquer compromisso"
+      - "O *rightsizing*, para não travar por três anos o desperdício de instâncias grandes demais"
+      - "Comprar antes as instâncias reservadas para o RDS, que o *Savings Plan* de computação também cobre"
+      - "Desligar as *tags* de custo, que são cobradas por recurso"
+    answer: 1
+    explanation: "Compromisso trava o padrão de gasto. Comprado sobre instâncias superdimensionadas, ele paga o desperdício por anos. Primeiro se ajusta o tamanho ao uso medido, depois se compra o compromisso sobre a base estável. O *Savings Plan* de computação não cobre o RDS, que usa instâncias reservadas."
+
+  - question: "Onde *spot* serve num sistema de pagamentos?"
+    options:
+      - "No `pix-gateway`, que tem carga constante e pode usar a capacidade mais barata"
+      - "No banco do ledger, com *failover* automático e imediato para outra instância *spot* em outra AZ"
+      - "No processamento de lote e no reprocessamento, que podem ser interrompidos e refeitos"
+      - "Em nenhum lugar, porque *spot* não tem aviso antes de ser tomado"
+    answer: 2
+    explanation: "A capacidade *spot* pode ser tomada de volta com um aviso de dois minutos. Serve para trabalho interrompível e idempotente (lote, CI, reprocessamento), nunca para o caminho síncrono do pagamento nem para o banco."
+
+  - question: "Por que o custo por mil transações Pix é a métrica de FinOps do produto, e não o total do mês?"
+    options:
+      - "Porque a AWS fatura o Pix por transação"
+      - "Porque o total do mês não inclui computação nem banco, só a rede"
+      - "Porque o Banco Central exige que a instituição informe o custo por transação Pix no relatório regulatório mensal enviado a ele"
+      - "Porque separa o custo da arquitetura do volume: uma mudança que piora a eficiência aparece mesmo com o total estável"
+    answer: 3
+    explanation: "O total sobe e desce com o volume. O custo por mil transações mostra se a arquitetura ficou mais cara para fazer a mesma coisa. Uma mudança que dobra o custo por mil quando o volume cai aparece. A métrica sai do modelo de custo e vai para o painel do produto (`system-design/14`)."

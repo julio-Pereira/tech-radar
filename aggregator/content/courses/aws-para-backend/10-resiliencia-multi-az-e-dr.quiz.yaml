@@ -1,0 +1,36 @@
+questions:
+  - question: "Na falha de uma AZ, o plano do `pix-gateway` é o *auto scaling* criar tarefas nas outras duas AZs. O que a estabilidade estática diz sobre isso?"
+    options:
+      - "Que o plano está certo, porque o *auto scaling* é gerenciado pela AWS"
+      - "Que basta configurar o *auto scaling* com um passo maior e um *cooldown* menor, para escalar mais rápido na falha"
+      - "Que a capacidade para perder uma AZ deve estar provisionada antes, sem depender do plano de controle"
+      - "Que o serviço deveria rodar numa AZ só, para não ter tráfego entre AZs"
+    answer: 2
+    explanation: "Estabilidade estática é continuar funcionando na falha sem mudar nada. Na queda de uma AZ, todo mundo tenta criar capacidade ao mesmo tempo, e o plano de controle fica sobrecarregado. Com três AZs, cada uma aguenta a metade do pico, e a perda de uma deixa as outras duas com 100%."
+
+  - question: "O RTO do `pix-gateway` é de 15 minutos. O time compara *pilot light* e *warm standby*. Qual é a diferença que decide?"
+    options:
+      - "O *warm standby* já roda uma versão menor e só escala; o *pilot light* precisa criar a computação na falha"
+      - "O *pilot light* replica os dados entre as regiões continuamente, e o *warm standby* não replica nada até a falha acontecer"
+      - "Os dois são iguais em RTO e em RPO; a diferença entre eles está só no custo mensal das duas regiões"
+      - "O *pilot light* só existe para bancos relacionais"
+    answer: 0
+    explanation: "No *pilot light*, os dados estão replicados, mas a computação está desligada ou mínima e precisa ser criada ou escalada na falha. Isso depende do plano de controle e das cotas da região secundária, e costuma levar dezenas de minutos. No *warm standby*, a versão menor já atende e só escala. Os dois replicam dados."
+
+  - question: "O ledger usa Aurora Global Database entre duas regiões. A região primária cai. O que acontece com as últimas transações confirmadas?"
+    options:
+      - "Nada se perde: a replicação do Aurora Global é síncrona entre regiões"
+      - "As confirmadas que ainda não chegaram à secundária se perdem ou ficam presas: o RPO é maior que zero"
+      - "O Aurora desfaz automaticamente as transações da primária que não replicaram, para que as duas regiões fiquem iguais"
+      - "A secundária recusa escrita até a primária voltar, para não haver perda"
+    answer: 1
+    explanation: "A replicação entre regiões é assíncrona, com RPO tipicamente em segundos pela documentação. O que foi confirmado na primária e ainda não chegou à secundária se perde, ou fica preso até a primária voltar. Para o ledger, isso exige que a conciliação ache e reponha o buraco. O parâmetro `rds.global_db_rpo` limita o atraso, ao custo de segurar a escrita."
+
+  - question: "No exercício de DR, o serviço na região secundária precisava subir para 60 tarefas e parou em 20. O que faltou no plano?"
+    options:
+      - "Um *health check* do Route 53 com intervalo menor"
+      - "Uma réplica de leitura do banco na região secundária"
+      - "Um *Savings Plan* cobrindo a região secundária"
+      - "A cota de tarefas da região secundária, pedida antes"
+    answer: 3
+    explanation: "Cota é risco de DR: a região secundária com a cota padrão não aguenta a carga da primária, e o aumento leva tempo para sair. A cota esperada entra no plano de DR e no Terraform, e o tempo para escalar entra na ADR, medido a cada exercício. *Savings Plan* é desconto, não capacidade."

@@ -1,0 +1,36 @@
+questions:
+  - question: "A auditoria pergunta quem desligou a rotação da chave KMS do ledger na semana passada. Onde está a resposta?"
+    options:
+      - "No CloudTrail, que registra as chamadas de API à AWS, com quem fez e quando"
+      - "Nos *logs* da aplicação do `ledger-core`, que registram cada operação feita no ledger"
+      - "No X-Ray, pelo *trace* da chamada que mudou a configuração da chave"
+      - "Nas métricas do KMS no CloudWatch"
+    answer: 0
+    explanation: "O CloudTrail registra chamadas de API à AWS: quem chamou `DisableKeyRotation`, de onde e quando. Os *logs* da aplicação dizem o que aconteceu com a transação, não quem mexeu na conta. Para servir de auditoria, a trilha é de organização, multirregião, numa conta de *log* separada, com Object Lock e validação de integridade."
+
+  - question: "Um desenvolvedor acrescenta a dimensão `cliente_id` à métrica `PagamentoConcluido` no CloudWatch. Qual é o problema?"
+    options:
+      - "Nenhum: o CloudWatch agrega as dimensões sem custo extra"
+      - "O CloudWatch recusa dimensões com mais de mil valores diferentes por métrica"
+      - "Cada combinação de dimensões vira uma métrica cobrada: uma por cliente"
+      - "A métrica deixa de aparecer nos alarmes compostos"
+    answer: 2
+    explanation: "No CloudWatch, cada combinação diferente de valores de dimensão é uma métrica separada, cobrada separadamente. É a explosão de cardinalidade de `observabilidade/16`, com fatura. A dimensão fica com baixa cardinalidade (serviço, operação, resultado); o cliente individual vai para o *log* ou para o *trace*."
+
+  - question: "O time vai instrumentar um serviço novo e pergunta se usa o SDK do X-Ray. O que mudou em 2026?"
+    options:
+      - "O X-Ray deixou de receber *traces* em 2026 e foi substituído pelo CloudTrail como destino de rastreamento distribuído"
+      - "O SDK e o *daemon* do X-Ray entraram em manutenção em fev 2026; o padrão é OTel, com o destino no Collector"
+      - "O SDK do X-Ray passou a ser o único jeito de alimentar o Application Signals"
+      - "Nada: o SDK do X-Ray continua recebendo novas funcionalidades e é o recomendado"
+    answer: 1
+    explanation: "O SDK e o *daemon* do X-Ray entraram em modo de manutenção em 25 fev 2026, com fim do suporte em 25 fev 2027. O X-Ray continua recebendo *traces*, inclusive por OTLP, e o Application Signals usa esse caminho. Instrumentar com OTel (ou ADOT) e escolher o destino no Collector permite mandar o mesmo *trace* para o X-Ray e para outro *backend*."
+
+  - question: "A fila de liquidação tem alarme quando passa de 10 mil mensagens. O consumidor travou com 4 mil na fila. Qual alarme teria pegado?"
+    options:
+      - "Um alarme de CPU das tarefas do consumidor, que cai perto de zero quando ele trava num *deadlock*"
+      - "Um alarme de 5 mil mensagens, mais baixo que o de 10 mil"
+      - "Um alarme de erros 5xx no *load balancer* do `pix-gateway`"
+      - "Um alarme na idade da mensagem mais antiga, que só sobe quando o processamento para"
+    answer: 3
+    explanation: "O número de mensagens oscila com o volume e não separa \"muito tráfego\" de \"consumidor parado\". A `ApproximateAgeOfOldestMessage` só sobe quando nada está sendo processado, e ela é o atraso que o cliente vê. O limiar vem do SLO de atraso da liquidação, e toda DLQ tem alarme acima de zero."

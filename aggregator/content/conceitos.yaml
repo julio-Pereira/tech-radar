@@ -279,3 +279,13 @@
   dono: terraform-e-iac/03
   apelidos: ["argumento write-only", "argumentos write-only"]
   ignorarCaixa: true
+
+# ── AWS para backend ───────────────────────────────────────────────────────
+- id: aws-secrets-manager
+  termo: "AWS Secrets Manager"
+  dono: aws-para-backend/08
+  apelidos: ["Secrets Manager"]
+- id: adot
+  termo: "ADOT (AWS Distro for OpenTelemetry)"
+  dono: aws-para-backend/09
+  apelidos: ["ADOT", "AWS Distro for OpenTelemetry"]
