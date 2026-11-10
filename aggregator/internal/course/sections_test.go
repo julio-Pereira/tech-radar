@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 242, "desafio": 289, "invariantes": 281, "complemento": 272, "checagem": 287, "gabarito": 5,
+		"tutorial": 244, "desafio": 291, "invariantes": 283, "complemento": 274, "checagem": 289, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -425,10 +425,8 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	// The terraform-e-iac stubs (Fase 0) leave this list as each fase is
 	// written; once the trilha is complete it must be empty again.
 	wantNoSection := []string{
-		"terraform-e-iac/ambientes-e-composicao",
 		"terraform-e-iac/automacao-qualidade-e-capstone",
 		"terraform-e-iac/brownfield-import-e-refatoracao",
-		"terraform-e-iac/modulos-versoes-e-provedores",
 	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)

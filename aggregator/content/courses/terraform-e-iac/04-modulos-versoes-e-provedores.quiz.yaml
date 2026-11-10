@@ -1,0 +1,36 @@
+questions:
+  - question: "O que o `.terraform.lock.hcl` do módulo raiz trava, e onde ele fica?"
+    options:
+      - "A versão de cada módulo filho; fica fora do Git, porque é gerado"
+      - "As versões do Terraform e dos provedores; fica num *bucket* ao lado do estado remoto"
+      - "A versão de cada provedor e os *hashes* dos pacotes; vai para o Git"
+      - "Os valores das variáveis de cada ambiente; vai para o Git sem os segredos"
+    answer: 2
+    explanation: "O lock grava a versão de cada provedor escolhida pelo `init` e os *hashes* dos pacotes, por plataforma. O próximo `init` recusa um pacote com *hash* diferente, então a esteira e o laptop usam o mesmo binário. Ele vai para o Git na raiz, que é quem fixa versões; o módulo filho declara só a faixa. Gerado só no Linux, falha no Mac: `providers lock -platform=...` cobre as duas."
+
+  - question: "A v2 de um módulo renomeia o recurso interno `postgresql_role.app` para `postgresql_role.aplicacao`, sem mudar variáveis nem saídas. O que acontece com quem atualiza da v1?"
+    options:
+      - "O plano destrói e recria o papel, a menos que a v2 traga `moved`"
+      - "Nada: o chamador não vê endereços internos, então a mudança é compatível"
+      - "O `init -upgrade` falha, porque o endereço do recurso mudou"
+      - "O Terraform detecta o mesmo nome no Postgres e renomeia o endereço sozinho, sem ação"
+    answer: 0
+    explanation: "O endereço interno faz parte do contrato, mesmo invisível. Medido: com a v2.0.0-rc1, sem `moved`, o plano mostrou `postgresql_role.app will be destroyed` e `postgresql_role.aplicacao will be created`. Com a v2.0.0, com `moved`, mostrou `has moved` e plano vazio. Por isso mudar endereço interno é versão maior, com `moved`."
+
+  - question: "Por que um módulo filho não deve ter um bloco `provider` com credencial e região?"
+    options:
+      - "Porque o Terraform recusa qualquer bloco `provider` fora do módulo raiz"
+      - "Porque prende o chamador a uma configuração alheia e impede `for_each` no módulo"
+      - "Porque o bloco `provider` no módulo duplica a entrada do provedor no *lock file* da raiz"
+      - "Porque o provedor configurado no módulo não lê variáveis"
+    answer: 1
+    explanation: "Quem sabe a credencial, a região e o *endpoint* é o módulo raiz, que roda em cada ambiente. Um módulo com `provider` próprio não pode ser instanciado com `for_each` ou `count` e não pode ser apontado para outra conta. O módulo declara só `required_providers` com a faixa de versões que suporta. O Terraform não proíbe; é uma regra de desenho, que o `fin-iac` verifica com análise estática."
+
+  - question: "O time vai subir o provedor `aws` de uma versão maior para a seguinte. Qual é o critério de pronto em cada ambiente?"
+    options:
+      - "O `terraform validate` passar com a versão nova"
+      - "O `init -upgrade` concluir sem aviso de obsolescência"
+      - "Os testes de contrato dos módulos passarem com *mock*"
+      - "O `plan` com a versão nova sair vazio, sem nenhuma ação"
+    answer: 3
+    explanation: "A atualização do provedor, sozinha, não deve mudar a infraestrutura. Se o `plan` mostra mudanças, é porque o *schema* mudou (um padrão diferente, um argumento renomeado) e a configuração precisa ser ajustada até o plano esvaziar. A sequência: ler o guia de atualização, `init -upgrade` num ramo, plano vazio em dev, depois nos outros ambientes, com o lock novo no mesmo PR. `validate` e testes com *mock* não olham o mundo real."
