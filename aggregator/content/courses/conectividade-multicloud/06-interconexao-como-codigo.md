@@ -88,7 +88,11 @@ III do 12-factor, configuração que muda por ambiente — e segredo acima de tu
 não do repositório. As credenciais de API vêm do pipeline, por identidade de carga de trabalho
 sempre que o provedor aceitar; a senha MD5 vem do cofre de segredos, por ambiente. Lembre que o
 **estado** do Terraform guarda os valores dos recursos, inclusive os sensíveis: o backend remoto
-precisa de criptografia e de acesso restrito, e quem pode ler o estado pode ler a senha.
+precisa de criptografia e de acesso restrito, e quem pode ler o estado pode ler a senha. O *backend*
+remoto com bloqueio, versionamento e um papel de acesso separado para a esteira está em
+`terraform-e-iac/02`. Melhor ainda é a senha nem entrar no estado: num argumento write-only
+(Terraform 1.11), o provedor recebe o valor no `apply`, e o estado não o guarda. Confira no registro
+quais recursos de cada provedor oferecem esse argumento.
 
 ## Política sobre o plano
 
@@ -175,3 +179,4 @@ rotação e nenhum segredo no Git.
   outro lugar.
 - Política sobre o plano pega filtro ausente, caminho único, anúncio amplo e recurso sem dono.
 - *Drift* vira alerta e PR; desligamento é o grafo ao contrário.
+- A senha BGP fica fora do estado quando o recurso aceita valor efêmero (`terraform-e-iac/03`).

@@ -101,6 +101,13 @@ entre o que Kubernetes/Helm gerencia (o que roda **dentro** do cluster) e o que 
 infraestrutura **em volta** do cluster — redes, contas, o cluster em si) é uma decisão de "quem é
 dono do quê" que precisa estar explícita, não implícita.
 
+## Para ir além
+
+A trilha `terraform-e-iac` parte deste marco e cobre o que vem depois do primeiro `apply`: o estado
+remoto com bloqueio, versionamento e recuperação (`terraform-e-iac/02`), o segredo fora do estado com
+valores efêmeros e argumentos *write-only* (`terraform-e-iac/03`) e a infraestrutura que já existe, com
+`import`, `moved`, `removed` e a divisão de estados (`terraform-e-iac/06`).
+
 ## Exemplo numa fintech
 
 Um módulo cria um "ambiente" (um diretório, um arquivo de configuração, uma chave gerada
@@ -128,7 +135,7 @@ com `plan`, `apply`, `destroy`.
    `.gitignore` e a listagem de arquivos rastreados pelo Git.
 6. **Demonstração** (não correção, só prova do risco): um valor marcado como "secreto" na
    configuração aparece em **texto claro** no arquivo de estado, confirmando por que o estado nunca
-   pode ser tratado como seguro por padrão.
+   pode ser tratado como seguro por padrão. O conserto está em `terraform-e-iac/03`.
 
 **Complemento.** Desenhe como você dividiria o estado do `fin-platform` inteiro por fronteira (um
 estado por sistema? por ambiente? uma combinação?), com a justificativa do raio de explosão

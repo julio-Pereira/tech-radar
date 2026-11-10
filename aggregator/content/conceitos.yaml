@@ -272,3 +272,10 @@
   dono: kotlin-backend/06
   apelidos: ["concorrência estruturada"]
   ignorarCaixa: true
+
+# ── Terraform e IaC ────────────────────────────────────────────────────────
+- id: argumento-write-only
+  termo: "Argumento write-only"
+  dono: terraform-e-iac/03
+  apelidos: ["argumento write-only", "argumentos write-only"]
+  ignorarCaixa: true
