@@ -422,9 +422,21 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	// Every milestone has a hands-on section again since the terraform-e-iac
-	// Fase 3; a new one without it is a regression.
-	var wantNoSection []string
+	// The aws-para-backend stubs (Fase 0) leave this list as each block is
+	// written; once the trilha is complete it must be empty again.
+	wantNoSection := []string{
+		"aws-para-backend/computacao-ecs-eks-ou-lambda",
+		"aws-para-backend/dados-gerenciados-rds-aurora-dynamodb",
+		"aws-para-backend/finops-e-capstone",
+		"aws-para-backend/iam-a-fundo",
+		"aws-para-backend/mensageria-sqs-sns-e-eventbridge",
+		"aws-para-backend/modelo-mental-da-aws",
+		"aws-para-backend/observabilidade-na-aws",
+		"aws-para-backend/rede-vpc-e-saida-controlada",
+		"aws-para-backend/resiliencia-multi-az-e-dr",
+		"aws-para-backend/s3-kms-e-segredos",
+		"aws-para-backend/serverless-de-verdade",
+	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}

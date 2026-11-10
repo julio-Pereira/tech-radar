@@ -1,0 +1,37 @@
+slug: aws-para-backend
+title: "AWS para Backend em Fintech"
+subtitle: "Identidade, rede, computação, mensageria, dados, chaves, observabilidade, resiliência e custo: as decisões que um backend sênior defende na AWS — provadas sobre o plano de infraestrutura e em emuladores, antes de existir uma conta."
+category: "Cloud"
+tags: [aws, iam, vpc, ecs, eks, lambda, serverless, sqs, sns, eventbridge, dynamodb, rds, aurora, s3, kms, cloudwatch, finops, terraform, fintech, entrevista]
+level: advanced
+lang: pt-BR
+# 11 marcos, 655 min (web/docs/AUDITORIA-aws-para-backend.md). A regra é ~2x
+# a soma dos estimatedMinutes: 655 x 2 / 60 = 21,8 -> 22.
+estimatedHours: 22
+glossary: GLOSSARIO.md
+sources:
+  - { title: "AWS Well-Architected Framework", url: https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html }
+  - { title: "AWS Well-Architected — Financial Services Industry Lens", url: https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/financial-services-industry-lens.html }
+  - { title: "IAM — Policy evaluation logic", url: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html }
+  - { title: "Amazon Builders' Library", url: https://aws.amazon.com/builders-library/ }
+  - { title: "AWS Prescriptive Guidance", url: https://docs.aws.amazon.com/prescriptive-guidance/ }
+  - { title: "AWS SDK for Go v2 — Developer Guide", url: https://docs.aws.amazon.com/sdk-for-go/v2/developer-guide/ }
+  - { title: "AWS SDK for Java 2.x — Developer Guide", url: https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/home.html }
+  - { title: "Terraform AWS Provider", url: https://registry.terraform.io/providers/hashicorp/aws/latest/docs }
+  - { title: "AWS Certified Solutions Architect – Associate (SAA-C03) — exam guide", url: https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/solutions-architect-associate-03.html }
+milestones:
+  # Bloco A — Fundação: identidade e rede
+  - 01-modelo-mental-da-aws.md
+  - 02-iam-a-fundo.md
+  - 03-rede-vpc-e-saida-controlada.md
+  # Bloco B — Onde o código roda e como conversa
+  - 04-computacao-ecs-eks-ou-lambda.md
+  - 05-mensageria-sqs-sns-e-eventbridge.md
+  - 06-serverless-de-verdade.md
+  # Bloco C — Dados e chaves
+  - 07-dados-gerenciados-rds-aurora-dynamodb.md
+  - 08-s3-kms-e-segredos.md
+  # Bloco D — Operar
+  - 09-observabilidade-na-aws.md
+  - 10-resiliencia-multi-az-e-dr.md
+  - 11-finops-e-capstone.md
