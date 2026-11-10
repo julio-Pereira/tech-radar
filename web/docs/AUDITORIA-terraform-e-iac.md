@@ -219,3 +219,59 @@ O provedor `postgresql` 1.26.0 foi compilado do código-fonte, como o 1.27.0, pa
 - **Quizzes:** 8 questões, com a resposta certa distribuída e nunca a opção mais longa. A trilha soma
   24 de 34.
 - **Testes:** os golden de seções sobem +2 em cada bloco, e os dois marcos saem de `wantNoSection`.
+
+## 4. Fase 3 — marcos 06 e 07, capstone, glossário e pontes
+
+Os marcos 06 (quiz de 6) e 07 (quiz de 4) completam a trilha: 7 marcos, 425 minutos e **34 questões**.
+O 07 traz o `## Capstone`, com **Entrega**, **Critérios de pronto** e a pergunta final do plano.
+
+### Medições novas
+
+| Marco | Experimento | Resultado |
+| --- | --- | --- |
+| 06 | *script* `legado/` cria 3 papéis e 1 banco no Postgres, 1 *bucket* e 1 tabela DynamoDB no `moto`; `import` (com `for_each` nos papéis) | `6 imported`; o `plan` seguinte com `-detailed-exitcode` = 0 |
+| 06 | `-generate-config-out` | papel: 21 atributos, quase todos padrão; banco: 11; tabela DynamoDB: `recovery_period_in_days = 0`, que o `plan` recusou (`expected ... in the range (1 - 35), got 0`) |
+| 06 | `import` com `for_each` e geração de configuração | falha: `The target resource does not use for_each`. O bloco `resource` com `for_each` precisa existir antes |
+| 06 | banco e papéis levados para `module.conciliacao` com `moved` | 4 linhas `has moved to`, e o plano em JSON sem nenhuma ação diferente de `no-op` |
+| 06 | `count` → `for_each` em 3 itens | sem `moved`: `3 to add, 3 to destroy`; com `moved`: plano vazio |
+| 06 | divisão do estado: `removed` (`destroy = false`) na origem e `import` no destino | `2 imported`; a soma dos endereços dos dois estados é igual à lista antiga (6); os dois planos vazios; o *bucket* e a tabela continuam no `moto` |
+| 07 | plano salvo seguido de outro `apply` no mesmo estado | `Error: Saved plan is stale` |
+| 07 | papel com só `SELECT` na tabela de estado do `pg` | `plan` roda (com `PG_SKIP_SCHEMA_CREATION`, `PG_SKIP_TABLE_CREATION` e `PG_SKIP_INDEX_CREATION`). No `apply`, o recurso **foi alterado** no Postgres antes da falha `permission denied for table states`, e ficou um `errored.tfstate` local |
+| 07 | `ALTER ROLE ... CONNECTION LIMIT 999` direto no Postgres | `plan -refresh-only -detailed-exitcode`: `Objects have changed outside of Terraform`, `connection_limit = 30 -> 999`, saída 2 |
+| 07 | `tflint` 0.66.0 com o *preset* `recommended` | `terraform_required_version`, `terraform_typed_variables` e `terraform_unused_declarations` numa *fixture* |
+
+**Ajuste de laboratório.** O SQS foi trocado por uma tabela DynamoDB no *script* legado. O `moto` devolve a
+URL da fila como `http://localhost:5055/...`, e o provedor `aws` 6.72.0 recusou esse formato como ID de
+importação (`could not parse ... as SQS URL`).
+
+**Correção do invariante 3 do 07.** A primeira redação dizia "o papel de `plan` não consegue escrever (teste
+de permissão no *backend* `pg`)". A medição mostrou que a permissão só no estado deixa o recurso mudar. O
+invariante passou a exigir credencial de leitura no estado **e** no provedor, e a conferir que o objeto
+no Postgres não mudou.
+
+### Glossário, conceitos e pontes
+
+- **Glossário: 38 verbetes**, todos com marco resolvido (golden `38/38`). Nenhum repete os de
+  `entrega-continua-e-devops`: estado, *plan* como artefato, *drift*, raio de explosão e política sobre o
+  plano continuam lá.
+- **`conceitos.yaml`:** entrou o `argumento-write-only`, com dono em `terraform-e-iac/03`. A citação fora
+  do dono está em `conectividade-multicloud/06`, num parágrafo que faz ponte para o marco 02, não para o
+  03. Por isso o *linker* liga o termo. O termo está sem itálico ali, porque o *linker* não atravessa a
+  ênfase do Markdown.
+- **Edições da §10 do plano:**
+  - `entrega-continua-e-devops/06`: a seção "Para ir além", com pontes para os marcos 02, 03 e 06, e no
+    invariante 6, "O conserto está em `terraform-e-iac/03`";
+  - `conectividade-multicloud/06`: pontes para os marcos 02 e 03, nos "Segredos fora do código" e nos
+    aprendizados;
+  - `engenharia-de-plataforma/05`: ponte para o marco 04.
+- **`capstones.yaml`:** `fin-interconnect` e `fin-devplatform` passam a depender do `fin-iac`, as linhas
+  "serve" do `PROJETO.md`. O `fin-aws` entra quando a trilha `aws-para-backend` existir.
+- **Pontes do 06 e do 07:**
+  - `arquitetura-de-solucoes/03` e `/07`;
+  - `entrega-continua-e-devops/02`, `/06` e `/09`.
+
+### Testes
+
+- O `wantNoSection` volta a ser vazio: todo marco tem `## Hands-on` de novo.
+- O golden de seções sobe +2 em cada bloco.
+- O golden do glossário foi regenerado.

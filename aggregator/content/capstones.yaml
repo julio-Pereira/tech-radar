@@ -124,7 +124,7 @@
 
 - track: engenharia-de-plataforma
   component: fin-devplatform
-  depends_on: [fin-pipeline, fin-landscape, fin-platform]
+  depends_on: [fin-pipeline, fin-landscape, fin-platform, fin-iac]
   artifacts:
     - { path: "fin-devplatform/", check: exists }
 
@@ -154,6 +154,6 @@
 
 - track: conectividade-multicloud
   component: fin-interconnect
-  depends_on: [ledger-core, fin-landscape, fin-pipeline]
+  depends_on: [ledger-core, fin-landscape, fin-pipeline, fin-iac]
   artifacts:
     - { path: "fin-interconnect/", check: exists }

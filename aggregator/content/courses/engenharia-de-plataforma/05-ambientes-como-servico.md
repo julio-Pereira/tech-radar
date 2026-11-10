@@ -33,7 +33,8 @@ não explica o motivo real da negação.
 
 Os módulos Terraform usados para provisionar um ambiente (`entrega-continua-e-devops/06`) são, eles mesmos, um **produto** da plataforma — versionados,
 testados, com contrato — não um script ad-hoc copiado e colado a cada novo tipo de ambiente
-necessário.
+necessário. O desenho desse contrato, a versão semântica, o `moved` numa versão maior e a atualização
+de provedor sem susto estão em `terraform-e-iac/04`.
 
 ## API de plataforma sobre Kubernetes: *operators*/CRDs e composição (**confira**)
 

@@ -1,0 +1,36 @@
+questions:
+  - question: "O PR foi aprovado com um plano salvo. Antes do *merge*, outro `apply` mudou o mesmo estado. O que acontece quando a esteira aplica o arquivo do plano?"
+    options:
+      - "O `apply` executa o plano salvo e sobrescreve a outra mudança"
+      - "O Terraform recalcula o plano automaticamente e aplica a versão nova, sem pedir aprovação"
+      - "Falha com `Saved plan is stale`, e o plano é refeito para revisão"
+      - "O `apply` aplica só os recursos que o outro `apply` não tocou"
+    answer: 2
+    explanation: "O plano salvo guarda a versão do estado em que foi gerado. Medido: depois de outro `apply` no mesmo estado, aplicar o arquivo salvo falhou com `Error: Saved plan is stale`. É a proteção que faz a esteira aplicar só o que foi revisado: a resposta é refazer o plano e pedir nova aprovação, nunca gerar um plano novo no *merge* sem ninguém ver."
+
+  - question: "O papel de `plan` da esteira tem só leitura no *backend* de estado, mas a credencial do provedor é a mesma do `apply`. Alguém roda um `apply` com esse papel. O que acontece?"
+    options:
+      - "O `apply` falha antes de começar, porque não consegue gravar o estado"
+      - "O recurso muda, e a falha só vem ao gravar o estado"
+      - "O `apply` roda em modo de simulação, sem alterar nada"
+      - "O Terraform detecta a permissão de leitura e converte o `apply` em `plan`"
+    answer: 1
+    explanation: "Medido no *backend* `pg`: o `apply` alterou o papel no Postgres e só depois falhou com `permission denied for table states`, deixando um `errored.tfstate` local. A permissão do estado não impede a mudança, só o registro dela. O papel de `plan` precisa ser de leitura no estado e no provedor; o de `apply`, de escrita nos dois, só no *merge*."
+
+  - question: "O Checkov já reprova *bucket* público. O time quer também uma regra própria no Conftest para o mesmo caso. Qual é o problema?"
+    options:
+      - "Nenhum: duas camadas pegam mais erros"
+      - "O Conftest não consegue ler *buckets* do plano em JSON"
+      - "O Checkov e o Conftest conflitam na esteira, e o segundo a rodar desliga o primeiro"
+      - "Regra duplicada: cada exceção vira manutenção em dois lugares"
+    answer: 3
+    explanation: "Cada ferramenta tem o seu papel: `tflint` para linguagem e convenção, o analisador para configuração insegura conhecida, a política própria para regra do negócio (*tag* obrigatória, `delete` em recurso crítico, mínimo de produção). Uma regra repetida em duas ferramentas dobra o trabalho de cada exceção e cria divergência quando uma é atualizada e a outra não."
+
+  - question: "Em março de 2026, *tags* da `trivy-action` foram reapontadas para código malicioso. Quais esteiras rodaram o código malicioso?"
+    options:
+      - "As que fixavam a *action* por *tag*, como `@v0.28.0`"
+      - "Só as que usavam a *tag* `@latest`"
+      - "As que fixavam a *action* pelo SHA completo do *commit*"
+      - "Nenhuma: o GitHub bloqueou as *tags* reapontadas"
+    answer: 0
+    explanation: "Uma *tag* é um ponteiro que o dono do repositório pode mover. As *tags* da `trivy-action` foram reapontadas, e quem fixava por *tag*, mesmo uma versão específica, rodou o código que roubava os segredos do *runner* (CVE-2026-33634). O SHA completo do *commit* não muda. A regra de `entrega-continua-e-devops/02` vale para a esteira de IaC: *action* por SHA, ferramenta por versão exata."

@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que o bloco `import` é preferível ao comando `terraform import` para trazer um recurso existente?"
+    options:
+      - "O bloco `import` é mais rápido, porque não lê o objeto real durante o `plan` nem o `apply`"
+      - "O bloco passa pelo `plan` e pela revisão do PR antes do `apply`"
+      - "O comando antigo foi removido na 1.14"
+      - "O bloco `import` dispensa o bloco `resource` correspondente"
+    answer: 1
+    explanation: "O comando `terraform import` grava no estado na hora, fora do fluxo de revisão. O bloco `import` (1.5) é código: entra no PR, aparece no `plan` como `will be imported`, e só o `apply` executa. Ele ainda precisa de um bloco `resource` (escrito ou gerado), aceita `for_each` desde a 1.7 e pode ficar dentro de módulos desde a 1.16. O comando antigo continua existindo."
+
+  - question: "O `plan -generate-config-out` gerou a configuração da tabela DynamoDB importada. Qual é o tratamento certo?"
+    options:
+      - "Revisar como rascunho: tirar os padrões e corrigir o que não valida"
+      - "Copiar o arquivo para o `main.tf` como está, porque ele descreve exatamente o objeto real"
+      - "Apagar o arquivo: a importação não precisa de bloco `resource`"
+      - "Rodar `terraform fmt` no arquivo e considerá-lo pronto"
+    answer: 0
+    explanation: "A geração ainda é experimental na 1.17 e produz rascunho. Medido: o papel do Postgres veio com 21 atributos, quase todos valores padrão; a tabela DynamoDB veio com `recovery_period_in_days = 0`, e o `plan` recusou (`expected ... in the range (1 - 35), got 0`). O `fmt` arruma espaços, não conteúdo. A configuração final descreve o recurso como ele deve ser, com o mínimo de atributos."
+
+  - question: "Qual é o critério de pronto de uma importação?"
+    options:
+      - "O `apply` mostrar `N imported`, sem erro"
+      - "O `terraform state list` listar todos os recursos importados"
+      - "O `plan` seguinte sair vazio, sem nenhuma ação"
+      - "A configuração gerada passar no `terraform validate`"
+    answer: 2
+    explanation: "Importar põe o objeto no estado; o plano vazio prova que a configuração descreve o objeto real. Se o plano propõe uma mudança, o código ainda não é o objeto, e aplicar alteraria a infraestrutura que acabou de ser trazida. Medido no laboratório: 6 recursos importados e o plano seguinte com saída 0. Só depois disso a refatoração começa."
+
+  - question: "Um time troca `count` por `for_each` em três filas já criadas. O que garante que nenhuma fila será destruída?"
+    options:
+      - "Rodar `terraform state mv` para cada fila, sem revisão"
+      - "Aplicar com `-target` uma fila por vez, conferindo o plano de cada uma antes do `apply`"
+      - "Usar `create_before_destroy` nas filas"
+      - "Um `moved` de cada índice para a chave"
+    answer: 3
+    explanation: "Com `count`, os endereços são `fila[0]`, `fila[1]`, `fila[2]`; com `for_each`, `fila[\"pix-entrada\"]` e assim por diante. Sem nada, o Terraform vê três endereços sumindo e três aparecendo: medido, `3 to add, 3 to destroy`. Com um `moved` por item, o plano saiu vazio. O `state mv` faz o mesmo sem plano e sem revisão; fica para emergência."
+
+  - question: "Um recurso passou a ser gerenciado por outro time, num outro estado. O que fazer no estado atual para que o objeto não seja destruído?"
+    options:
+      - "Apagar o bloco `resource` e rodar `apply`"
+      - "Um bloco `removed` com `lifecycle { destroy = false }`"
+      - "Marcar o recurso com `prevent_destroy` e apagar o bloco"
+      - "Mover o recurso com `moved` para o endereço do outro estado"
+    answer: 1
+    explanation: "O `removed` (1.7) declara que o recurso deixou de ser gerenciado aqui; com `destroy = false`, o objeto sai do estado e continua existindo. Medido: `will no longer be managed by Terraform, but will not be destroyed`, e o objeto seguiu no `moto`. Apagar o bloco faz o plano destruir, e o `prevent_destroy` some junto com o bloco. O `moved` não atravessa estados."
+
+  - question: "Como dividir um estado em dois sem destruir nada?"
+    options:
+      - "Com `moved` apontando para o endereço no estado novo"
+      - "Copiando o arquivo de estado e apagando metade dos recursos de cada cópia com um editor"
+      - "Com `removed` (`destroy = false`) no estado de origem e `import` no estado de destino"
+      - "Com `terraform init -migrate-state`, que separa os recursos por diretório"
+    answer: 2
+    explanation: "O `moved` só funciona dentro de um estado. O caminho da documentação oficial (Refactor state) é `removed` no estado de origem e `import` no de destino, os dois revisados por plano. Medido: os endereços dos dois estados somaram os 6 do estado antigo, e os dois planos saíram vazios. Editar o arquivo à mão não passa por revisão. O `-migrate-state` copia o estado inteiro para outro *backend*."
