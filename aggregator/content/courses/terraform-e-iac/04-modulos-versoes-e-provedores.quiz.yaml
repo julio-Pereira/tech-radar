@@ -15,7 +15,7 @@ questions:
       - "O `init -upgrade` falha, porque o endereço do recurso mudou"
       - "O Terraform detecta o mesmo nome no Postgres e renomeia o endereço sozinho, sem ação"
     answer: 0
-    explanation: "O endereço interno faz parte do contrato, mesmo invisível. Medido: com a v2.0.0-rc1, sem `moved`, o plano mostrou `postgresql_role.app will be destroyed` e `postgresql_role.aplicacao will be created`. Com a v2.0.0, com `moved`, mostrou `has moved` e plano vazio. Por isso mudar endereço interno é versão maior, com `moved`."
+    explanation: "O endereço interno faz parte do contrato, mesmo invisível. Medido: com a v2.0.0-rc1, sem `moved`, o plano mostrou `postgresql_role.app will be destroyed` e `postgresql_role.aplicacao will be created`. Com a v2.0.0, com `moved`, mostrou `has moved` e nenhuma ação (`0 to add, 0 to change, 0 to destroy`). Por isso mudar endereço interno é versão maior, com `moved`."
 
   - question: "Por que um módulo filho não deve ter um bloco `provider` com credencial e região?"
     options:

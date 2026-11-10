@@ -36,7 +36,7 @@ Postgres 17 em Docker e `moto` 5.2.5 em modo servidor. Nada usa conta em nuvem.
 
 | Experimento | Marco | Resultado |
 | --- | --- | --- |
-| dois `apply` simultâneos no *backend* `pg` | 02 | A conclui; B falha com `Error acquiring the state lock` / `Already locked for workspace creation: default`; o `plan` seguinte sai vazio (`-detailed-exitcode` = 0) |
+| dois `apply` simultâneos no *backend* `pg` | 02 | A conclui; B falha com `Error acquiring the state lock` / `Already locked for workspace creation: default` (mensagem da primeira execução; com o estado já criado, é `Workspace is already locked: default`, ver §5); o `plan` seguinte sai vazio (`-detailed-exitcode` = 0) |
 | `PutObject` com `If-None-Match: *` sobre objeto existente no `moto` | 02 | `PreconditionFailed`: o `moto` respeita a escrita condicional que o bloqueio nativo exige |
 | dois `apply` simultâneos no *backend* `s3` com `use_lockfile = true` | 02 | B falha com `Error acquiring the state lock` (erro no `PutObject` do `.tflock`); o *bucket* versionado guardou 2 versões do estado |
 | *backend* `s3` com `dynamodb_table` | 02 | `Warning: Deprecated Parameter`, com a sugestão de usar `use_lockfile` |
@@ -275,3 +275,66 @@ no Postgres não mudou.
 - O `wantNoSection` volta a ser vazio: todo marco tem `## Hands-on` de novo.
 - O golden de seções sobe +2 em cada bloco.
 - O golden do glossário foi regenerado.
+
+## 5. Fase 4 — auditoria e revisão independente
+
+### Números da trilha
+
+Conferidos pelo `TestTerraformEIacAuditoria` (`aggregator/internal/course/terraformeiac_auditoria_test.go`),
+que roda em todo *build*:
+
+- 7 marcos, Σ 425 min, `estimatedHours: 14` e `level: advanced`;
+- `reviewEvery: 6m` e `reviewedAt` em todos os marcos;
+- os cinco blocos de `## Hands-on` em cada marco e o `## Capstone` só no 07;
+- 34 questões, 6 nos marcos 02, 03 e 06 e 4 nos demais, nenhuma com a resposta certa sendo a opção
+  estritamente mais longa (medido: 0 de 34);
+- 38 verbetes no glossário, todos apontando para os marcos 01 a 07;
+- nenhuma ponte `terraform-e-iac/NN` quebrada, em nenhuma trilha.
+
+Os blocos HCL de todos os marcos passam no `terraform fmt -check`. Os resultados de laboratório não cabem
+no teste Go, porque precisam do Terraform, do Postgres e do `moto`. Eles ficam nas §1 a §4 e na revisão
+abaixo.
+
+### Revisão independente dos marcos 02, 03 e 06
+
+Um revisor que não escreveu os marcos reexecutou do zero cada afirmação medida e cada invariante
+destrutivo. Ele trabalhou num diretório próprio, com objetos `rev_` e o mesmo Terraform 1.17.1, e
+conferiu as versões nos *changelogs* oficiais. Quase tudo se reproduziu. Ele também conferiu os
+gabaritos dos três quizzes: estão todos certos. Os 12 achados e o que mudou:
+
+| # | Achado | Correção |
+| --- | --- | --- |
+| 1 | **Erro factual.** A caixa do OpenTofu no 06 dizia que só o OpenTofu (1.10) move entre recursos de tipos diferentes. O *changelog* do Terraform 1.8 mostra que ele também move, quando o provedor de destino declara a conversão (exemplo canônico: `null_resource` → `terraform_data`) | caixa do 06 e `PROJETO.md` corrigidos; nova linha na tabela "recurso → versão" (1.8 / 1.10) |
+| 2 | "Plano vazio" com `moved` pendente: o plano mostra `0 to add, 0 to change, 0 to destroy`, mas `-detailed-exitcode` sai **2** até o `apply` | 06 (tabela e parágrafo novo), quiz do 06, glossário, e o mesmo no 04: o invariante 3 passou a exigir só `no-op` no JSON, o resumo e os aprendizados dizem "nenhuma ação", e o critério do capstone também |
+| 3 | O vazamento no `TF_LOG` vem do `-var`, não da falta de efêmero: a mesma variável `sensitive` por `TF_VAR_senha` deu 0 | conferido aqui também (0 ocorrências por `TF_VAR_`); texto, quiz e aprendizado do 03 |
+| 4 | O `apply` interrompido pode deixar o objeto novo **fora** do estado: na revisão, o `apply` seguinte falhou com `BucketAlreadyExists` | o 02 descreve os dois desfechos, e o conserto do segundo é importar o objeto órfão (marco 06) |
+| 5 | Depois do `-migrate-state`, o `terraform.tfstate` local fica com 0 bytes e o estado inteiro vai para `terraform.tfstate.backup` | o 02 manda apagar os dois arquivos |
+| 6 | `Already locked for workspace creation` só aparece na primeira execução; em regime, é `Workspace is already locked: default`. No `s3`, a mensagem traz `412 PreconditionFailed` | 02 e §1 desta auditoria |
+| 7 | O papel de leitura do `pg` precisa das `PG_SKIP_*`, ou o `init` falha com `permission denied for schema public` | o 02 traz o aviso e a ponte para o 07 |
+| 8 | "Só `name` e `template`" omitia o valor: com `template1`, o plano pediu substituição. Papéis com LOGIN precisam de `login = true` | 06 |
+| 9 | O invariante 5 do 06 reprovaria `default = null` numa variável | o padrão passou a valer só dentro de bloco `resource`, com uma *fixture* de controle |
+| 10 | "3 filas": a medição foi com 3 `terraform_data`, porque o SQS saiu do laboratório | 06 e quiz dizem "3 itens" |
+| 11 | O exemplo do `terraform query` omitia `account_id=,` | 06 |
+| 12 | Versões da rotação desencontradas (texto 2 → 3, invariante "versão 2") | o texto usa 1 → 2 |
+
+**Não verificado pelo revisor, com o motivo:**
+
+- o `moved` entre tipos na prática, porque o provedor `null` não está no *mirror*;
+- o comportamento do OpenTofu, porque não há binário `tofu` no laboratório (só os *changelogs*);
+- as linhas de Azure e GCS da tabela do 02, porque não há emulador;
+- as datas externas, porque os sites não resolvem neste ambiente.
+
+**Nuance anotada, sem mudança no texto.** O revisor lembrou que, no Terraform, o bloqueio de criação do
+`pg` é comum a todos os esquemas do mesmo banco. O OpenTofu 1.10 trocou isso por um bloqueio mais
+granular. Com poucos estados, isso não pesa contra "um esquema por estado". Fica como ponto de revisão
+se o `fin-iac` crescer.
+
+## Critérios de aceite (§12 do plano)
+
+- [x] 7 marcos com os cinco blocos de `## Hands-on` e invariantes testáveis.
+- [x] Invariantes de bloqueio, importação e `removed` provados contra recursos reais locais (Postgres e
+      `moto`), não só *mock*, e reproduzidos por um revisor independente.
+- [x] Tabela "recurso → versão" no `PROJETO.md`, conferida nos *changelogs*; nenhuma versão de memória.
+- [x] Edições da §10 aplicadas e pontes resolvendo.
+- [x] `GLOSSARIO.md` com 38 verbetes, sem duplicar os de `entrega-continua-e-devops`; `reviewEvery: 6m`.
+- [x] `go test ./...` e os testes do front verdes.

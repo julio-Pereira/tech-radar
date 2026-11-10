@@ -70,7 +70,7 @@ resource "postgresql_role" "app" {
 ```
 
 No laboratório, o cofre é o Secrets Manager do `moto`. A rotação é trocar o valor no cofre e subir
-`password_wo_version`: medido, o `apply` mostrou `~ password_wo_version = "2" -> "3"`, a senha antiga
+`password_wo_version`: medido, o `apply` mostrou `~ password_wo_version = "1" -> "2"`, a senha antiga
 passou a ser recusada, a nova foi aceita, e o estado continuou sem nenhuma das duas. O ciclo de vida da
 rotação (duas versões válidas, o relógio do vazamento) é o de `seguranca-aplicacao/10`.
 
@@ -105,8 +105,9 @@ código é vazamento esperando a hora.
 - **O plano salvo.** Na esteira, o `plan -out` vira artefato para o `apply` usar (marco 07). Com
   `sensitive`, ele contém o segredo. Trate o artefato como o estado: acesso restrito e retenção curta.
 - **O `TF_LOG`.** Medido aqui: com `TF_LOG=TRACE`, a senha passada por `-var senha=...` apareceu 2 vezes
-  no log, dentro dos argumentos da linha de comando. Com a senha lida do cofre pelo efêmero, 0. O
-  segredo passado por `-var` também fica no histórico do *shell* e na lista de processos. Na esteira,
+  no log, dentro dos argumentos da linha de comando. A mesma variável `sensitive` passada por
+  `TF_VAR_senha`, e a senha lida do cofre pelo efêmero, deram 0: o vazamento é dos argumentos da linha
+  de comando. O segredo passado por `-var` também fica no histórico do *shell* e na lista de processos. Na esteira,
   log de *debug* do Terraform só em execução isolada, nunca guardado como artefato público.
 
 > **E no OpenTofu?** Valores efêmeros, recursos efêmeros e argumentos *write-only* chegaram juntos na
@@ -169,4 +170,5 @@ documente onde ela apareceu. Repita com o efêmero. Escreva a regra da esteira p
 - A rotação do *write-only* é pelo argumento de versão.
 - Melhor ainda é a senha gerada pelo serviço, ou nenhuma senha.
 - Credencial do provedor por OIDC ou SSO, nunca no código.
-- Saídas, plano salvo e `TF_LOG` também vazam. O `-var` com segredo apareceu no log de *trace*.
+- Saídas, plano salvo e `TF_LOG` também vazam. O `-var` com segredo apareceu no log de *trace*; por
+  `TF_VAR_`, não.

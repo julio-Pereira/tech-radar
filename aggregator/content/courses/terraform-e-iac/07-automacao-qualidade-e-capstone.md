@@ -174,7 +174,7 @@ especificada no `PROJETO.md` desta trilha. Aqui ela fica pronta.
 - [ ] Segredo: a varredura do estado e do plano salvo não acha a senha, e a *fixture* com `sensitive`
       reprova na mesma varredura
 - [ ] Contrato: a suíte do módulo passa nas duas versões do provedor, e a atualização da v1 para a v2
-      tem plano vazio
+      não tem nenhuma ação além de `has moved to`
 - [ ] Ambientes: os três `main.tf` têm o mesmo *hash*, e produção abaixo do mínimo é reprovada
 - [ ] *Brownfield*: plano vazio depois da importação, nenhum `delete` na refatoração, e a soma dos
       endereços dos estados divididos é igual à do original

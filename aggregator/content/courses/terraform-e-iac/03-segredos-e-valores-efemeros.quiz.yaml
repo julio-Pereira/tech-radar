@@ -42,7 +42,7 @@ questions:
       - "O Terraform recusa o `-var` quando o `TF_LOG` está ligado"
       - "Ela só aparece se o provedor também estiver em modo *debug*, com o `TF_LOG_PROVIDER` ligado"
     answer: 0
-    explanation: "Medido: com `TF_LOG=TRACE`, a senha passada por `-var` apareceu 2 vezes no log, nos argumentos da linha de comando, antes de qualquer mascaramento. Ela também fica no histórico do *shell* e na lista de processos. Com a senha lida do cofre por um recurso efêmero, o log teve 0 ocorrências. Log de *debug* do Terraform é artefato sensível."
+    explanation: "Medido: com `TF_LOG=TRACE`, a senha passada por `-var` apareceu 2 vezes no log, nos argumentos da linha de comando, antes de qualquer mascaramento. Ela também fica no histórico do *shell* e na lista de processos. A mesma senha por `TF_VAR_senha`, ou lida do cofre por um recurso efêmero, deu 0 ocorrências: o vazamento é dos argumentos da linha de comando. Log de *debug* do Terraform é artefato sensível."
 
   - question: "Como a esteira deve obter a credencial que o provedor `aws` usa para criar os recursos?"
     options:
