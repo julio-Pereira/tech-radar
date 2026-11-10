@@ -83,6 +83,7 @@ OpenTofu), em 10 nov 2026.
 | `mock_provider` nos testes | 1.7 (jan 2024) | 1.8 | 01, 04 |
 | bloco `removed` | 1.7 | 1.7 | 06 |
 | `for_each` em `import` | 1.7 | 1.7 | 06 |
+| `moved` entre recursos de tipos diferentes (se o provedor declara a conversão) | 1.8 | 1.10 | 06 |
 | criptografia de estado no cliente | não existe | 1.7 | 02 |
 | `for_each` em configuração de provedor | não existe | 1.9 | 05 |
 | recursos, variáveis e saídas efêmeros | 1.10 (nov 2024) | 1.11 | 03 |
@@ -99,7 +100,8 @@ Duas diferenças do OpenTofu que entram no texto:
 
 - **Marco 02.** Na 1.10 do OpenTofu, o *backend* `pg` mudou a implementação do bloqueio. Versões
   diferentes no mesmo banco podem gravar ao mesmo tempo e perder dados.
-- **Marco 06.** A partir da 1.10, o `moved` do OpenTofu move objetos entre recursos de tipos diferentes.
+- **Marco 06.** O `moved` entre recursos de tipos diferentes existe nos dois, quando o provedor de
+  destino declara a conversão: no Terraform desde a 1.8, no OpenTofu desde a 1.10.
 
 **Versão mínima da trilha:** Terraform **1.14**, a primeira com efêmeros, *write-only*, `import`
 declarativo, bloqueio nativo do S3 e consultas de listagem. Os exemplos rodam na **1.17.1**. O OpenTofu

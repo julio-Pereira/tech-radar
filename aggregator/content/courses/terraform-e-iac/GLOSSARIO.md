@@ -208,7 +208,7 @@ sobre o plano) são verbetes do glossário de `entrega-continua-e-devops` e não
 
 ### Bloco `moved`
 **Em uma frase:** a declaração de que um objeto mudou de endereço sem mudar de identidade, dentro do mesmo estado.
-**No fin-iac:** leva o banco e os papéis de conciliação para `module.conciliacao`, com plano vazio.
+**No fin-iac:** leva o banco e os papéis de conciliação para `module.conciliacao`, sem nenhuma ação no plano (no JSON, só `no-op`).
 **Erro comum:** removê-lo do módulo antes de todos os chamadores passarem pela versão que o trouxe.
 **Onde na prática:** marco 06.
 

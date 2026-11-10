@@ -1,7 +1,7 @@
 ---
 id: modulos-versoes-e-provedores
 title: "Módulos, versões e provedores"
-summary: "Um módulo é uma API pública: precisa de contrato, versão e um jeito de atualizar sem susto. Validação de entrada com mensagem clara, terraform test como teste de contrato contra duas versões do provedor, a v2.0.0 que renomeia um recurso interno (medido: sem moved, destroy + create; com moved, plano vazio), o lock file com hashes por plataforma e a atualização de versão maior ambiente por ambiente."
+summary: "Um módulo é uma API pública: precisa de contrato, versão e um jeito de atualizar sem susto. Validação de entrada com mensagem clara, terraform test como teste de contrato contra duas versões do provedor, a v2.0.0 que renomeia um recurso interno (medido: sem moved, destroy + create; com moved, nenhuma ação), o lock file com hashes por plataforma e a atualização de versão maior ambiente por ambiente."
 estimatedMinutes: 60
 reviewedAt: 2026-11-10
 reviewEvery: 6m
@@ -139,7 +139,7 @@ testes passavam. Três times de produto atualizaram na mesma semana. No primeiro
 `1 to destroy` dentro do módulo, e alguém notou. No segundo, o *pipeline* aplicava automaticamente em
 homologação, e o papel recriado perdeu os *grants* de leitura de outro serviço. A correção virou a
 v2.0.0 com `moved`, e a regra do time: toda versão do módulo roda um teste que aplica a versão anterior,
-atualiza e exige plano vazio.
+atualiza e exige um plano sem nenhuma ação além de `has moved to`.
 
 ## Hands-on
 
@@ -159,8 +159,9 @@ com teste de contrato e uma v2.0.0 que renomeia um recurso interno.
 2. **O contrato vale nas versões prometidas.** A matriz da esteira roda a suíte com as duas últimas
    versões menores do provedor (1.26.0 e 1.27.0), cada uma fixada por um *override*.
 3. **A v2.0.0 atualiza sem ação.** Um teste aplica a v1.0.0, troca a *tag* para v2.0.0, roda
-   `init -upgrade` e exige `plan -detailed-exitcode` = 0. A *tag* `v2.0.0-rc1`, sem o `moved`, falha
-   no mesmo teste.
+   `init -upgrade` e exige que o plano em JSON só tenha `no-op` (o `has moved to` ainda pendente faz o
+   `-detailed-exitcode` sair 2; depois do `apply`, ele sai 0). A *tag* `v2.0.0-rc1`, sem o `moved`,
+   falha no mesmo teste com `delete` e `create`.
 4. **O lock está no Git e cobre as plataformas.** O teste confere que o `.terraform.lock.hcl` da raiz
    está rastreado e tem um *hash* `h1:` por plataforma declarada.
 5. **Nenhum `provider` dentro do módulo.** Uma verificação estática falha se encontrar um bloco
@@ -182,7 +183,7 @@ cada etapa.
 - Variáveis, saídas e endereços internos formam o contrato do módulo.
 - Entrada com tipo e validação; saída mínima; nenhum `provider` no módulo; composição de módulos
   pequenos.
-- Mudar endereço interno é versão maior, com `moved`. Medido: sem ele, destrói e cria; com ele, plano
-  vazio.
+- Mudar endereço interno é versão maior, com `moved`. Medido: sem ele, destrói e cria; com ele,
+  nenhuma ação.
 - O módulo declara faixa de versões; a raiz fixa a versão e versiona o lock, com *hash* por plataforma.
 - Atualização de provedor maior: guia, `init -upgrade` num ramo, plano vazio ambiente por ambiente.

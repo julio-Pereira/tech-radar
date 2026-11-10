@@ -33,7 +33,7 @@ questions:
       - "Usar `create_before_destroy` nas filas"
       - "Um `moved` de cada índice para a chave"
     answer: 3
-    explanation: "Com `count`, os endereços são `fila[0]`, `fila[1]`, `fila[2]`; com `for_each`, `fila[\"pix-entrada\"]` e assim por diante. Sem nada, o Terraform vê três endereços sumindo e três aparecendo: medido, `3 to add, 3 to destroy`. Com um `moved` por item, o plano saiu vazio. O `state mv` faz o mesmo sem plano e sem revisão; fica para emergência."
+    explanation: "Com `count`, os endereços são `fila[0]`, `fila[1]`, `fila[2]`; com `for_each`, `fila[\"pix-entrada\"]` e assim por diante. Sem nada, o Terraform vê três endereços sumindo e três aparecendo: medido com 3 itens, `3 to add, 3 to destroy`. Com um `moved` por item, nenhuma ação: `0 to add, 0 to change, 0 to destroy` (o `-detailed-exitcode` só vira 0 depois do `apply` que grava os endereços novos). O `state mv` faz o mesmo sem plano e sem revisão; fica para emergência."
 
   - question: "Um recurso passou a ser gerenciado por outro time, num outro estado. O que fazer no estado atual para que o objeto não seja destruído?"
     options:

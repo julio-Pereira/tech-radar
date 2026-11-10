@@ -38,12 +38,13 @@ Medido com dois `apply` disparados com 2 segundos de diferença:
 
 ```text
 Error: Error acquiring the state lock
-Error message: Already locked for workspace creation: default
+Error message: Workspace is already locked: default
 ```
 
-Esse foi o *backend* `pg`. No `s3` com `use_lockfile`, o erro foi o mesmo, causado pelo `PutObject`
-condicional do arquivo `.tflock`. Nos dois casos, o primeiro `apply` terminou, e o `plan` seguinte saiu
-vazio.
+Esse foi o *backend* `pg`, com o estado já criado. Na primeira execução, quando o estado ainda não
+existe, a mensagem é `Already locked for workspace creation: default`. No `s3` com `use_lockfile`, o
+título é o mesmo, e a mensagem mostra a causa: o `PutObject` condicional do arquivo `.tflock` voltou com
+`412 PreconditionFailed`. Nos dois casos, o primeiro `apply` terminou, e o `plan` seguinte saiu vazio.
 
 ### O bloqueio nativo do S3
 
@@ -72,9 +73,12 @@ usá-lo, confirme que o processo dono do bloqueio morreu de verdade (o *job* da 
 máquina desligada). Destravar um bloqueio vivo é exatamente o que o bloqueio existia para impedir. Nunca
 o use para "andar mais rápido" quando a esteira está ocupada.
 
-Um `apply` interrompido também pode deixar a infraestrutura pela metade. No teste, uma substituição
-morta no meio deixou o plano seguinte pedindo `1 to add`: o objeto velho já tinha saído, e o novo não
-existia. O estado não corrompeu, mas o ambiente ficou num estado intermediário até o próximo `apply`.
+Um `apply` interrompido também pode deixar a infraestrutura pela metade. Uma substituição morta no
+meio deixou o plano seguinte pedindo `1 to add`: o objeto velho já tinha saído do estado. O que vem
+depois depende do instante da morte. Num teste, o objeto novo ainda não existia, e o próximo `apply`
+completou a troca. Na revisão independente, o processo morreu durante a criação: o *bucket* novo já
+existia fora do estado, e o `apply` seguinte falhou com `BucketAlreadyExists`. Nesse caso, o conserto é
+importar o objeto órfão (marco 06), não aplicar de novo.
 
 ## Criptografia, versionamento e quem lê
 
@@ -94,7 +98,10 @@ versionamento, a recuperação seria reimportar tudo (marco 06).
 esteira que aplica (escrita), a esteira que planeja (leitura) e todo o resto (nada). A aplicação nunca
 lê o estado. O ciclo de vida de cada credencial desses papéis segue `seguranca-aplicacao/10`. No
 *backend* `pg`, isso é um esquema por estado e `GRANT` só para os papéis da esteira. Um
-papel sem *grant* recebeu `permission denied for schema rede_pix`.
+papel sem *grant* recebeu `permission denied for schema rede_pix`. O papel de leitura precisa de
+`PG_SKIP_SCHEMA_CREATION`, `PG_SKIP_TABLE_CREATION` e `PG_SKIP_INDEX_CREATION`: sem elas, o `init`
+tenta criar o esquema e falha com `permission denied for schema public`. O marco 07 mostra por que a
+leitura também precisa valer na credencial do provedor.
 
 ## Estados por fronteira e o acoplamento entre eles
 
@@ -113,8 +120,9 @@ de outro ambiente: produção não depende do que homologação gravou.
 
 Mudar o bloco `backend` e rodar `terraform init -migrate-state` copia o estado para o destino. A prova
 de que nada se perdeu é a lista de endereços: medido aqui, `terraform state list` antes e depois da
-migração de `local` para `pg` deu as mesmas 3 linhas. Depois da migração, o arquivo local
-`terraform.tfstate` precisa sair do disco e nunca entrar no Git.
+migração de `local` para `pg` deu as mesmas 3 linhas. Depois da migração, o `terraform.tfstate` local
+fica com 0 bytes, e o conteúdo inteiro, com os segredos, fica em `terraform.tfstate.backup`. Os dois
+arquivos precisam sair do disco e nunca entrar no Git.
 
 > **E no OpenTofu?** Duas diferenças entram aqui. A **criptografia de estado e de plano no cliente**,
 > desde a 1.7: o arquivo é cifrado antes de sair da máquina, e o *backend* guarda só texto cifrado. O

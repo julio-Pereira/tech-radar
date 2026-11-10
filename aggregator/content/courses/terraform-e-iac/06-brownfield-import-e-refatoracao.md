@@ -43,7 +43,7 @@ Desde a 1.14, as **consultas de listagem** fazem parte do Terraform. Um bloco `l
 `.tfquery.hcl` pede ao provedor todos os objetos de um tipo, e o `terraform query` os mostra:
 
 ```text
-list.aws_s3_bucket.todos   bucket=conciliacao-arquivos,region=us-east-1   conciliacao-arquivos
+list.aws_s3_bucket.todos   account_id=,bucket=conciliacao-arquivos,region=us-east-1   conciliacao-arquivos
 ```
 
 Com `-generate-config-out`, ele já escreve os blocos `import` e `resource`. A cobertura é por provedor: o
@@ -72,7 +72,9 @@ medições mostram o porquê:
 
 - **Ruído.** Para um papel do Postgres, o arquivo gerado tinha 21 atributos, quase todos valores padrão
   (`connection_limit = -1`, `valid_until = "infinity"`, `password = null`). Para o banco, 11. A
-  configuração final precisa só de `name` e de `template`.
+  configuração final do banco precisa de `name` e de `template = "template0"`, o valor que o provedor
+  leu na importação: com `template1`, o plano pediu `forces replacement`. Nos papéis, `name` e o que
+  difere do padrão, como `login = true` num papel que entra no banco.
 - **Inválido.** Para a tabela DynamoDB, o gerado tinha
   `point_in_time_recovery { recovery_period_in_days = 0 }`, e o próprio `plan` recusou:
   `expected point_in_time_recovery.0.recovery_period_in_days to be in the range (1 - 35), got 0`.
@@ -92,11 +94,13 @@ três casos clássicos, e os três foram medidos:
 | Refatoração | Sem `moved` | Com `moved` |
 | --- | --- | --- |
 | levar o banco e os papéis para `module.conciliacao` | destrói e cria | `has moved to module.conciliacao...`, nenhuma ação |
-| trocar `count` por `for_each` em 3 filas | `3 to add, 3 to destroy` | `0 to add, 0 to change, 0 to destroy` |
-| renomear um recurso interno de módulo (marco 04) | destrói e cria | `has moved to`, plano vazio |
+| trocar `count` por `for_each` em 3 itens (`terraform_data` com os nomes das filas) | `3 to add, 3 to destroy` | `0 to add, 0 to change, 0 to destroy` |
+| renomear um recurso interno de módulo (marco 04) | destrói e cria | `has moved to`, nenhuma ação |
 
-O critério de pronto da refatoração não é "o plano parece pequeno": é o plano em JSON sem nenhuma ação
-`delete`. No `fin-iac`, a mesma política do marco 01 roda sobre todo plano de refatoração.
+"Nenhuma ação" não é o mesmo que plano vazio no sentido do `-detailed-exitcode`. Um plano só com
+`has moved to` sai com código **2**, e só sai 0 depois do `apply` que grava os endereços novos. O
+critério de pronto da refatoração não é "o plano parece pequeno": é o plano em JSON sem nenhuma ação
+`delete` (cada recurso movido aparece como `no-op`). No `fin-iac`, a mesma política do marco 01 roda sobre todo plano de refatoração.
 
 O **`removed`** (1.7) diz que um recurso deixou de ser gerenciado por este estado. Com
 `lifecycle { destroy = false }`, o objeto sai do estado e **continua existindo**: medido, o plano dizia
@@ -119,9 +123,10 @@ O `terraform state mv` e o `state rm` fazem o mesmo mexendo direto no estado, se
 Eles ficam para emergência, sempre depois de um *backup* do estado (o versionamento do marco 02).
 
 > **E no OpenTofu?** `import` com `for_each` e `removed` existem desde a 1.7, e o `moved` veio do
-> *fork*. Desde a 1.10, o `moved` do OpenTofu também move um objeto entre recursos de **tipos**
-> diferentes, com migração automática dos dados no estado (por exemplo, quando um provedor divide um
-> recurso em dois). O Terraform não faz isso. As consultas de listagem não existem no OpenTofu.
+> *fork*. O `moved` entre recursos de **tipos** diferentes, com migração dos dados no estado (por
+> exemplo, quando um provedor divide um recurso em dois), existe nos dois, sempre que o provedor de
+> destino declara a conversão: no Terraform desde a 1.8, no OpenTofu desde a 1.10. As consultas de
+> listagem não existem no OpenTofu.
 
 ## Exemplo numa fintech
 
@@ -152,8 +157,10 @@ recursos de nuvem num estado próprio.
 4. **`removed` não destrói.** Depois do `apply` com `removed`, o endereço sumiu do estado, e uma consulta
    direta ao Postgres e ao `moto` confirma que o objeto continua lá.
 5. **Configuração gerada não passa sem revisão.** Um teste falha se um `.tf` do repositório tiver o
-   cabeçalho `# __generated__ by Terraform` ou um valor padrão da lista de ruído (`connection_limit = -1`,
-   `valid_until = "infinity"`, `= null`). Uma *fixture* com o rascunho cru prova que o teste reprova.
+   cabeçalho `# __generated__ by Terraform` ou, dentro de um bloco `resource`, um valor padrão da lista
+   de ruído (`connection_limit = -1`, `valid_until = "infinity"`, um atributo `= null`). Fora de
+   `resource`, `default = null` numa variável continua válido. Uma *fixture* com o rascunho cru prova que
+   o teste reprova, e uma variável com `default = null` prova que ele não reprova código legítimo.
 
 **Complemento.** Faça a mesma divisão de estado com `terraform state mv` entre dois arquivos locais e
 compare com o caminho `removed` + `import`: o que o revisor do PR consegue ver em cada um, e o que
