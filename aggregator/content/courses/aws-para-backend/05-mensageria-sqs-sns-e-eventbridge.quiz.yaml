@@ -1,0 +1,54 @@
+questions:
+  - question: "O consumidor de uma fila padrão leva 40 s para processar algumas mensagens, e o *visibility timeout* é de 30 s. O que acontece?"
+    options:
+      - "O SQS espera o consumidor terminar, porque a mensagem está marcada como em processamento"
+      - "A mensagem vai direto para a DLQ"
+      - "Ela volta a ficar visível e outro consumidor a processa"
+      - "O SQS cancela o processamento do primeiro consumidor"
+    answer: 2
+    explanation: "O SQS não sabe que o consumidor ainda trabalha: vencido o prazo, a mensagem volta para a fila. Outro consumidor a recebe, e o efeito acontece duas vezes, se não houver idempotência. A defesa é estender a visibilidade com `ChangeMessageVisibility` enquanto o trabalho dura (medido: estendida de 1 s para 5 s, a mensagem não reapareceu) e um *inbox* pela chave de negócio. A DLQ só entra depois de `maxReceiveCount` recebimentos."
+
+  - question: "Numa fila FIFO, os lançamentos usam `MessageGroupId` = conta do cliente. A mensagem `a1` da conta A está em voo. O que um segundo consumidor recebe?"
+    options:
+      - "A próxima mensagem da conta A, para não perder vazão enquanto `a1` é processada"
+      - "Mensagens de outras contas; a conta A fica bloqueada"
+      - "Nada da fila inteira, até `a1` terminar"
+      - "A mensagem `a1` de novo, porque FIFO entrega duas vezes"
+    answer: 1
+    explanation: "Na FIFO, a ordem vale dentro do grupo, e o grupo fica bloqueado enquanto uma mensagem dele está em voo. Medido nos dois emuladores: `a1`, depois `b1`, depois nada. Contas diferentes andam em paralelo. Um grupo só para a fila inteira transformaria a fila num consumidor único; um grupo por mensagem perderia a ordem."
+
+  - question: "O produtor reenvia uma mensagem FIFO com o mesmo `MessageDeduplicationId` 10 minutos depois do primeiro envio. O que acontece?"
+    options:
+      - "Ela entra de novo: a janela é de 5 minutos"
+      - "O SQS descarta, porque o ID de deduplicação fica guardado enquanto a fila existir"
+      - "O SQS devolve erro de duplicidade ao produtor"
+      - "A mensagem entra, mas com outro `MessageGroupId`"
+    answer: 0
+    explanation: "A deduplicação da FIFO vale numa janela de 5 minutos. Depois dela, o mesmo ID é aceito como mensagem nova. Por isso a deduplicação da fila não substitui a idempotência do consumidor: reenvio tardio, *redrive* da DLQ e a mesma operação vinda de outra origem passam por ela. Dentro da janela, o SQS não devolve erro: aceita a chamada e não cria uma segunda cópia."
+
+  - question: "O evento \"Pix liquidado\" precisa chegar ao ledger, à notificação e ao antifraude, cada um no próprio ritmo. Qual desenho atende?"
+    options:
+      - "Um tópico SNS com os três serviços assinando por HTTP direto"
+      - "Uma fila SQS consumida pelos três serviços"
+      - "Uma regra do EventBridge para cada serviço, entregando direto no *endpoint* HTTP dele"
+      - "SNS com uma fila SQS por consumidor"
+    answer: 3
+    explanation: "Com SNS → SQS, cada consumidor tem a própria fila: ritmo, *retry* e DLQ independentes. Uma fila compartilhada entrega cada mensagem a um só consumidor. A assinatura HTTP direta, ou a regra do EventBridge sem fila no meio, perde o evento quando o consumidor está fora ou lento. O filtro por atributo, em cada assinatura, entrega a cada fila só o que ela usa."
+
+  - question: "O time precisa reprocessar os eventos de pagamento dos últimos 7 dias num serviço novo, sem afetar os consumidores atuais. O que pesa a favor de Kafka (MSK)?"
+    options:
+      - "Kafka entrega mensagens maiores que o SQS"
+      - "Kafka é a única opção da AWS com ordem garantida por chave entre consumidores"
+      - "Cada consumidor tem a própria posição no histórico"
+      - "Kafka dispensa consumidor idempotente"
+    answer: 2
+    explanation: "SQS e SNS não guardam histórico para ser relido: a mensagem consumida e apagada se vai. No Kafka, o *log* fica retido, e cada grupo de consumidores tem a própria posição, que pode voltar no tempo. A FIFO também ordena (por grupo), e Kafka entrega pelo menos uma vez, então a idempotência continua necessária (`kafka/10`)."
+
+  - question: "Depois de corrigir um *bug*, o time faz o *redrive* da DLQ para a fila de origem. O consumidor usa `ApproximateReceiveCount > 1` para detectar \"já processei\". O que dá errado?"
+    options:
+      - "Nada: o contador continua de onde parou"
+      - "O contador volta a 1 depois do *redrive*"
+      - "O *redrive* apaga as mensagens que já estavam na fila de origem antes dele"
+      - "O *redrive* só é permitido para filas FIFO"
+    answer: 1
+    explanation: "Medido no ElasticMQ: antes do *redrive*, a mensagem estava na DLQ; depois, de volta na fila, com `ApproximateReceiveCount` = 1. O contador mede entregas daquela passagem, não processamentos de negócio. A idempotência precisa ser pela chave de negócio, num *inbox* (`arquitetura-eventos/08`). Medido também: o `moto` 5.2.5 respondeu 500 ao `StartMessageMoveTask`, por isso o laboratório deste marco usa o ElasticMQ."

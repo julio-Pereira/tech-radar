@@ -183,3 +183,55 @@ O marco 01 registra que a SCP não limita a conta de gerenciamento.
 - `seguranca-aplicacao/08`, `/10` e `/11`;
 - `kubernetes/10` e `/11`;
 - `conectividade-multicloud/02` e `/08`.
+
+## 3. Fase 2 — Bloco B (marcos 04 a 06)
+
+Os três marcos têm:
+
+- os cinco blocos de `## Hands-on`;
+- a tabela "No Azure → na AWS";
+- a caixa "o que o emulador não reproduz" nos dois marcos com emulador (05 e 06);
+- `reviewEvery: 6m`;
+- 16 questões (4 + 6 + 6), com a resposta certa distribuída e nunca a opção mais longa.
+
+### Medições
+
+| Marco | Experimento | Resultado |
+| --- | --- | --- |
+| 04 | regras sobre a *task definition* e o *target group* (Terraform 1.17.1, provedor `aws` 6.72.0, sem conta) | o plano bom passou nas 6. A *fixture* ruim reprovou em 4: papel de execução usado como *task role*, sistema de arquivos gravável, imagem `:latest` e `stopTimeout` 30 contra o *drain* de 30 s do `spring-boot/12`. O `container_definitions` vem como *string* JSON dentro do JSON do plano e precisa de `json.unmarshal` |
+| 05 | *visibility timeout* de 1 s e `maxReceiveCount` 3, no `moto` e no ElasticMQ | contagens de recebimento 1, 2 e 3, e depois a mensagem na DLQ, nos dois |
+| 05 | `ChangeMessageVisibility` de 1 s para 5 s | a mensagem não reapareceu, nos dois |
+| 05 | *redrive* (`StartMessageMoveTask`) | o `moto` 5.2.5 respondeu **500**. No ElasticMQ, a fila foi de 0 para 1 e a DLQ de 1 para 0, e o **`ApproximateReceiveCount` voltou a 1**. Por isso o Tutorial do 05 usa o ElasticMQ, e a idempotência é pela chave de negócio |
+| 05 | FIFO, SNS com filtro e EventBridge | os da Fase 0 (§1), citados no texto |
+| 06 | 200 "instâncias" abrindo conexão ao mesmo tempo num Postgres 17 com `max_connections` 100 | conexão direta: **100 recusadas** (`FATAL: sorry, too many clients already`), pico de 100. Com um limite de 20: 0 recusadas, pico de 20 |
+
+O contêiner do Postgres perdeu o mapeamento de porta quando o Docker do ambiente reiniciou, e a porta
+55432 ficou presa por um processo antigo. O laboratório passou para a 55433, e as medições acima foram
+feitas nela.
+
+### Números conferidos (10 nov 2026)
+
+Conferidos nos trechos das páginas oficiais que a busca devolveu:
+
+- **Padrões de *deploy*:** *deregistration delay* do ALB de 300 s (faixa de 0 a 3.600); `stopTimeout` do
+  ECS de 30 s, com máximo de 120 s no Fargate.
+- **Invocação assíncrona do Lambda:** mais duas tentativas (1 min, depois 2 min), `MaximumRetryAttempts`
+  de 0 a 2 e `MaximumEventAgeInSeconds` de 60 a 21.600. Estrangulamentos e erros de sistema são refeitos
+  por até 6 h.
+- ***Event source mapping* de SQS:** concorrência máxima de 2 a 1.000 por fonte; a concorrência reservada
+  deve ser ≥ a soma; escala até 1.250 instâncias; cota padrão da conta de 1.000; *visibility timeout* de
+  pelo menos 6 vezes o *timeout* da função.
+- **Preços de Lambda e Fargate:** a busca só trouxe valores arredondados de um exemplo da documentação de
+  Savings Plans, então **o marco 06 não cita preço**. Ele traz a fórmula e manda usar a calculadora
+  oficial com o preço do dia, conforme a convenção da trilha (§3 do plano).
+
+### Pontes
+
+- `kubernetes/06`, `/07` e `/14`;
+- `spring-boot/12`;
+- `entrega-continua-e-devops/05`;
+- `kafka/10`;
+- `arquitetura-eventos/08` e `/09`;
+- `kotlin-backend/07`;
+- `concorrencia-e-recursos/07`;
+- `arquitetura-de-solucoes/05`.
