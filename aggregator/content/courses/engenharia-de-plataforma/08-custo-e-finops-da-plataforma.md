@@ -3,6 +3,8 @@ id: custo-da-plataforma
 title: "Custo e FinOps da plataforma"
 summary: "Se o custo não tem dono, ninguém o reduz — e se a plataforma não mostra o custo de cada decisão, ela empurra a conta para quem não escolheu."
 estimatedMinutes: 55
+reviewedAt: 2026-11-11
+reviewEvery: 6m
 references:
   - title: "FinOps Foundation — framework"
     url: https://www.finops.org/framework/
@@ -68,6 +70,22 @@ disciplina de detecção de anomalia usada em qualquer métrica de produção, a
 Honestidade sobre o que se mede e o que não: o **custo** da equipe de plataforma em si (salários,
 ferramentas) é geralmente fácil de medir; o **retorno** (tempo economizado, risco evitado) é mais
 difícil de quantificar com precisão — este marco não finge que essa dificuldade não existe.
+
+## As práticas nos provedores
+
+As práticas deste marco são as mesmas em qualquer nuvem. Muda o nome do mecanismo. Conferido em 11 nov
+2026:
+
+| Prática | Azure | GCP |
+| --- | --- | --- |
+| Alocação por dono | *tags*, com regras de alocação de custo no Cost Management | *labels* nos recursos e nos projetos |
+| Orçamento e alerta | orçamentos do Cost Management | orçamentos e alertas do Cloud Billing |
+| Dado de custo para análise | exportação do Cost Management | exportação do Cloud Billing para o BigQuery |
+| Recomendação de ajuste | Azure Advisor (custo) | Recommender |
+
+Na AWS, as mesmas práticas, com a *tag* de alocação que precisa ser ativada no faturamento, os três custos
+escondidos (NAT, tráfego entre AZs e *log*) e o custo por mil transações, estão em
+`aws-para-backend/11`.
 
 ## FinOps em uma página (**confira** a estrutura vigente)
 

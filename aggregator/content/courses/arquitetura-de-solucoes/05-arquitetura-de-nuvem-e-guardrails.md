@@ -3,6 +3,8 @@ id: arquitetura-de-nuvem
 title: "Arquitetura de nuvem e guardrails"
 summary: "Nuvem sem guardrails é só um datacenter com cartão de crédito: a arquitetura está nas fronteiras de conta, identidade, rede e política, não nos serviços."
 estimatedMinutes: 65
+reviewedAt: 2026-11-11
+reviewEvery: 6m
 references:
   - title: "Well-Architected — princípios (visão geral, neutra de fornecedor)"
     url: https://learn.microsoft.com/azure/well-architected/
@@ -67,6 +69,44 @@ foi avaliada com número.
 Quando a razão existe e as nuvens precisam se falar por rede privada — inclusive com um
 fornecedor hospedado em outra nuvem —, endereçamento, BGP e interconexão estão em
 `conectividade-multicloud/01`.
+
+## O mesmo conceito, três nomes
+
+O catálogo ensina os conceitos de forma neutra: fila, *log* de eventos, banco relacional, segredos,
+identidade de *workload*. Na entrevista, a pergunta costuma vir com o nome de um provedor ("como você faria
+isso na AWS?"). **O conceito transfere; o nome do serviço se aprende em uma semana.** A tabela é um índice,
+não um ensino. Os nomes foram conferidos na documentação de cada provedor em 11 nov 2026, e mudam: o Cloud
+Functions virou Cloud Run functions em ago 2024. A coluna AWS aponta para o marco da trilha
+`aws-para-backend` que ensina o serviço.
+
+| Conceito | AWS | Azure | GCP |
+| --- | --- | --- | --- |
+| Contêiner gerenciado | ECS com Fargate (`aws-para-backend/04`) | Container Apps | Cloud Run |
+| Kubernetes gerenciado | EKS (`aws-para-backend/04`) | AKS | GKE |
+| Função (*serverless*) | Lambda (`aws-para-backend/06`) | Azure Functions | Cloud Run functions |
+| Fila | SQS (`aws-para-backend/05`) | Service Bus (filas) | Pub/Sub, ou Cloud Tasks |
+| *Log* de eventos | MSK, ou Kinesis (`aws-para-backend/05`) | Event Hubs | Managed Service for Apache Kafka |
+| *Pub/sub* e roteamento | SNS e EventBridge (`aws-para-backend/05`) | Service Bus (tópicos), Event Grid | Pub/Sub, Eventarc |
+| Banco relacional | RDS e Aurora (`aws-para-backend/07`) | Azure Database for PostgreSQL (servidor flexível) | Cloud SQL, AlloyDB |
+| Documento e chave-valor | DynamoDB (`aws-para-backend/07`) | Cosmos DB | Firestore, Bigtable |
+| *Object storage* | S3 (`aws-para-backend/08`) | Blob Storage | Cloud Storage |
+| Segredos | Secrets Manager (`aws-para-backend/08`) | Key Vault (segredos) | Secret Manager |
+| Chaves (KMS) | KMS (`aws-para-backend/08`) | Key Vault (chaves), Managed HSM | Cloud KMS |
+| Identidade de *workload* | papéis IAM, Pod Identity e IRSA (`aws-para-backend/02`) | identidades gerenciadas, Entra Workload ID | Workload Identity Federation for GKE |
+| Observabilidade nativa | CloudWatch, X-Ray e ADOT (`aws-para-backend/09`) | Azure Monitor, Application Insights | Cloud Logging, Monitoring e Trace |
+| Rede privada | VPC, PrivateLink e Transit Gateway (`aws-para-backend/03`) | VNet, Private Link, *peering* | VPC, Private Service Connect, *peering* |
+| *API gateway* | API Gateway | API Management | API Gateway, Apigee |
+| Custo e etiquetas | *tags*, Budgets e Cost Explorer (`aws-para-backend/11`) | Cost Management, orçamentos e *tags* | Cloud Billing: *labels*, orçamentos e exportação para o BigQuery |
+
+Uma linha da tabela não é equivalência perfeita. Os detalhes que mudam o desenho estão nas tabelas "No
+Azure → na AWS" de cada marco da `aws-para-backend`:
+
+- a ordem por chave do Service Bus (sessões) contra a do SQS FIFO;
+- os cinco níveis de consistência do Cosmos DB contra os dois do DynamoDB;
+- a retenção de *log* que, na AWS, por padrão é para sempre.
+
+O desenho *serverless*, com idempotência, *cold start* e concorrência contra o banco, está em
+`aws-para-backend/06`.
 
 ## Estratégia de saída: inventário, substituto, exportação
 
