@@ -24,8 +24,9 @@ duas fases:
 
 - **`init`:** carrega o código, roda o que está fora do *handler* (abrir cliente do SDK, ler
   configuração). Acontece uma vez por ambiente.
-- **`invoke`:** roda o *handler* para um evento. O mesmo ambiente atende muitos eventos em sequência,
-  **um de cada vez**.
+- **`invoke`:** roda o *handler* para um evento. No Lambda padrão, o mesmo ambiente atende muitos eventos
+  em sequência, **um de cada vez**. O Lambda Managed Instances é a exceção: atende várias invocações ao
+  mesmo tempo no mesmo ambiente, e o código precisa ser *thread-safe*.
 
 Um ambiente novo, criado para atender uma demanda, paga o `init` antes do primeiro evento. É o ***cold
 start***. Ajudam:
@@ -43,7 +44,8 @@ Os limites conferidos em 10 nov 2026:
 - de 128 MB a **10.240 MB** de memória, com a CPU proporcional;
 - **6 MB** de carga na invocação síncrona e **1 MB** na assíncrona.
 
-O Lambda Managed Instances vai até 90 min nas invocações assíncronas, e a síncrona continua em 15.
+O Lambda Managed Instances vai até 90 min (5.400 s) nas invocações assíncronas e por *event source
+mapping*, desde set 2026, e a síncrona continua em 15.
 
 ## Três jeitos de ser chamado, três semânticas de *retry*
 
@@ -65,7 +67,8 @@ SQS, a documentação recomenda um *visibility timeout* de pelo menos **6 vezes*
 ## Concorrência contra o banco
 
 Cada ambiente atende um evento por vez, então mil eventos ao mesmo tempo viram até mil ambientes. A cota
-padrão da conta é **1.000** execuções concorrentes. Um *event source mapping* de SQS pode escalar até
+padrão da conta é **1.000** execuções concorrentes por região (contas novas começam com menos, e a
+AWS aumenta com o uso). Um *event source mapping* de SQS pode escalar até
 1.250 instâncias, a menos que se defina a **concorrência máxima** dele, de 2 a 1.000. Cada ambiente com a
 própria conexão ao Postgres é o caminho mais curto para derrubar o banco.
 
@@ -119,7 +122,7 @@ intermitente, contêiner para carga contínua", com a exceção registrada em AD
 
 | No Azure | Na AWS | O que muda de verdade |
 | --- | --- | --- |
-| Functions (Consumption) | Lambda | um evento por ambiente, sempre; não há o modelo de várias execuções no mesmo processo |
+| Functions (Consumption) | Lambda | no Lambda padrão, um evento por ambiente; só o Managed Instances tem várias execuções no mesmo ambiente, e aí o código precisa ser *thread-safe* |
 | Functions Premium (instâncias pré-aquecidas) | *provisioned concurrency* ou SnapStart | o SnapStart restaura um *snapshot*; a *provisioned concurrency* paga ambientes parados |
 | Durable Functions | Step Functions | o estado vive no serviço, com a máquina de estados declarada fora do código |
 | Event Grid / Service Bus *trigger* | *event source mapping* ou invocação assíncrona | a semântica de *retry* depende do tipo de invocação |

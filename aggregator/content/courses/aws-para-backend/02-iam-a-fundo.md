@@ -38,10 +38,11 @@ Toda requisição tem quatro partes:
 | de identidade | no papel ou no usuário | concede ações ao principal |
 | de recurso | no recurso (*bucket*, fila, chave KMS) | concede acesso ao recurso, e nomeia o principal |
 | *permissions boundary* | no papel | limita o máximo que a política de identidade pode conceder |
-| SCP | na OU ou na conta (marco 01) | limita o máximo da conta inteira |
+| SCP | na OU ou na conta (marco 01) | limita o máximo dos principais da conta inteira |
+| RCP (*resource control policy*) | na OU ou na conta | limita o máximo dos recursos da conta, inclusive para quem vem de fora |
 | *session policy* | na sessão do `AssumeRole` | limita a sessão |
 
-Só as duas primeiras **concedem**. As outras três **cortam**: se existem, a ação precisa estar permitida
+Só as duas primeiras **concedem**. As outras quatro **cortam**: se existem, a ação precisa estar permitida
 nelas também.
 
 ## A lógica de avaliação
@@ -49,7 +50,7 @@ nelas também.
 A documentação oficial (conferida em 10 nov 2026) descreve uma sequência:
 
 1. **Negação explícita vence.** Um `Deny` aplicável em qualquer política encerra a avaliação com negação.
-2. **Os cortes precisam permitir.** Com SCP, *permissions boundary* ou *session policy* presentes, todas
+2. **Os cortes precisam permitir.** Com RCP, SCP, *permissions boundary* ou *session policy* presentes, todas
    precisam ter um `Allow` para a ação.
 3. **Alguém precisa conceder.** Na mesma conta, basta uma política de identidade **ou** uma de recurso
    permitir.
@@ -166,7 +167,7 @@ O **IRSA** continua suportado e é o caminho onde o Pod Identity não chega: Far
 | --- | --- | --- |
 | Entra ID + RBAC do Azure | IAM (políticas JSON) | o Azure atribui papéis a escopos; na AWS a política descreve ação e recurso, e a política de recurso é comum |
 | *managed identity* | papel IAM (*instance profile*, *task role*, Pod Identity) | a mesma ideia: identidade sem segredo, com credencial temporária |
-| *deny assignment* / Azure Policy | `Deny` explícito, SCP, *permissions boundary* | na AWS, o corte por SCP vale para a conta toda, inclusive o raiz |
+| *deny assignment* / Azure Policy | `Deny` explícito, SCP, *permissions boundary* | na AWS, o corte por SCP vale para a conta toda, inclusive o *root* das contas-membro; a conta de gerenciamento não é afetada por SCP (marco 01) |
 | PIM para acesso elevado | Identity Center com conjuntos de permissão e sessões curtas | o elevado vem por papel assumido, nunca por usuário com chave |
 
 > **O que o emulador não reproduz.** O `moto` não aplica IAM como a AWS: por padrão, ele aceita qualquer
@@ -217,7 +218,7 @@ resultado do IAM Policy Simulator com o do avaliador para os mesmos casos. Destr
 ## Principais aprendizados
 
 - O IAM é o perímetro. Menor privilégio se prova com teste, sobre o plano.
-- Só identidade e recurso concedem. SCP, *boundary* e *session policy* só cortam.
+- Só identidade e recurso concedem. RCP, SCP, *boundary* e *session policy* só cortam.
 - `Deny` explícito vence. Na mesma conta, um `Allow` basta; entre contas, os dois lados.
 - Papel com credencial temporária, nunca chave de longo prazo. Pessoas pelo Identity Center.
 - Confiança com `aws:SourceArn`, `aws:SourceAccount` ou `ExternalId` contra o *confused deputy*.

@@ -1,7 +1,7 @@
 ---
 id: mensageria-sqs-sns-e-eventbridge
 title: "Mensageria: SQS, SNS e EventBridge"
-summary: "Fila, tópico e barramento resolvem problemas diferentes; misturar os três é a fonte de quase toda mensagem duplicada ou perdida na AWS. SQS padrão × FIFO (ordem por MessageGroupId, deduplicação de 5 min), visibility timeout e a extensão dele, DLQ e redrive (medido: o contador de recebimentos volta a 1), mensagem de até 1 MiB desde ago 2025, SNS com filtro, EventBridge, quando Kafka — e onde o emulador mente."
+summary: "Fila, tópico e barramento resolvem problemas diferentes; misturar os três é a fonte de quase toda mensagem duplicada ou perdida na AWS. SQS padrão × FIFO (ordem por MessageGroupId, deduplicação de 5 min), visibility timeout e a extensão dele, DLQ e redrive (medido no ElasticMQ: o contador de recebimentos volta a 1), mensagem de até 1 MiB desde ago 2025, SNS com filtro, EventBridge, quando Kafka — e onde o emulador mente."
 estimatedMinutes: 60
 reviewedAt: 2026-11-10
 reviewEvery: 6m
@@ -40,7 +40,8 @@ A **fila FIFO** entrega em ordem **por `MessageGroupId`** e deduplica. Os númer
 
 - **deduplicação por janela de 5 minutos**, por `MessageDeduplicationId` ou pelo *hash* do corpo;
 - **300 mensagens/s** sem lote e **3.000** com lote, no modo normal;
-- até **70.000/s** sem lote no modo de alta vazão, com `DeduplicationScope=messageGroup` e
+- até **70.000/s** sem lote no modo de alta vazão, em N. Virginia, Oregon e Irlanda (menos nas outras
+  regiões: **4.500/s** em São Paulo), com `DeduplicationScope=messageGroup` e
   `FifoThroughputLimit=perMessageGroupId`;
 - até **120.000 mensagens em voo**.
 
@@ -66,12 +67,16 @@ para a **DLQ**. Medido, com `maxReceiveCount` 3: os recebimentos contaram 1, 2 e
 estava na DLQ. O ***redrive*** (`StartMessageMoveTask`) devolve as mensagens da DLQ para a fila de origem,
 depois que a causa da falha foi corrigida.
 
-Uma medição que muda o desenho: depois do *redrive*, **o `ApproximateReceiveCount` voltou a 1**. Um
-consumidor que usa o contador de recebimentos para decidir "já processei isso?" erra. A idempotência
+Uma medição que muda o desenho: no ElasticMQ, depois do *redrive*, **o `ApproximateReceiveCount` voltou a
+1**. Na AWS, o comportamento do contador no *redrive* não está documentado, e a referência da API o descreve
+como recebimentos em todas as filas. Os dois juntos mostram que o contador não é contrato de negócio: um
+consumidor que o usa para decidir "já processei isso?" depende de um detalhe que muda entre
+implementações. A idempotência
 precisa ser pela **chave de negócio**, num *inbox* (`arquitetura-eventos/08`).
 
 **Mensagem grande.** O limite do SQS é **1 MiB** desde ago 2025 (era 256 KiB). O SNS chegou a 1 MiB em set
-2026. Para mais que isso, a carga vai para o S3, e a mensagem leva só a referência, o padrão do *Extended
+2026, mas o padrão do tópico continua 256 KiB: o 1 MiB é ligado no `MaximumMessageSize` do tópico, e acima de
+256 KiB ele só entrega a assinantes SQS, Lambda e Firehose, com até 100 assinaturas. Para mais que isso, a carga vai para o S3, e a mensagem leva só a referência, o padrão do *Extended
 Client*. Confira o atributo `MaximumMessageSize` de filas antigas, criadas com o valor anterior.
 
 ## SNS e EventBridge
@@ -142,7 +147,8 @@ visibilidade expirar e leia o `ApproximateReceiveCount`.
    mensagens, cada lançamento aparece uma vez no ledger. O *inbox* pela chave de negócio barra a segunda
    entrega.
 2. **DLQ e *redrive* sem duplicar.** A mensagem que falha `maxReceiveCount` vezes vai para a DLQ. Depois da
-   correção, o *redrive* a reprocessa uma vez, mesmo com o contador de recebimentos de volta em 1.
+   correção, o *redrive* a reprocessa uma vez, mesmo com o contador de recebimentos de volta em 1 (como no
+   ElasticMQ).
 3. **Ordem por conta no FIFO.** Com 10 grupos (contas) e consumidores concorrentes, os lançamentos de cada
    conta são aplicados na ordem de envio.
 4. **Carga grande pelo S3.** Uma carga acima do limite configurado vai para o S3 emulado, e a mensagem leva
@@ -166,6 +172,7 @@ o mesmo `MessageDeduplicationId` antes e depois de 5 minutos e confira a janela 
 - SQS padrão: pelo menos uma vez, sem ordem. FIFO: ordem por grupo, deduplicação de 5 min, grupo bloqueado
   com mensagem em voo.
 - O *visibility timeout* é o *retry*; o processamento lento o estende.
-- DLQ com `maxReceiveCount`; o *redrive* zera o contador. A idempotência é pela chave de negócio.
+- DLQ com `maxReceiveCount`; no ElasticMQ, o *redrive* zerou o contador. A idempotência é pela chave de
+  negócio.
 - Mensagem de até 1 MiB (desde ago 2025); acima disso, referência ao S3.
 - *Replay* e posição por consumidor pedem Kafka. Os emuladores divergem: conte mensagens, não IDs.

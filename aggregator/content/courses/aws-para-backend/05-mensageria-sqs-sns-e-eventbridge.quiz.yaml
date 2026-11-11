@@ -46,9 +46,9 @@ questions:
 
   - question: "Depois de corrigir um *bug*, o time faz o *redrive* da DLQ para a fila de origem. O consumidor usa `ApproximateReceiveCount > 1` para detectar \"já processei\". O que dá errado?"
     options:
-      - "Nada: o contador continua de onde parou"
-      - "O contador volta a 1 depois do *redrive*"
-      - "O *redrive* apaga as mensagens que já estavam na fila de origem antes dele"
-      - "O *redrive* só é permitido para filas FIFO"
+      - "Nada: o contador continua de onde parou e detecta a repetição"
+      - "O contador não é contrato: no ElasticMQ voltou a 1, e na AWS não é documentado"
+      - "O *redrive* apaga, sem aviso, as mensagens que já estavam na fila de origem antes de ele começar"
+      - "O *redrive* só é permitido para filas FIFO, e a fila de origem é padrão"
     answer: 1
-    explanation: "Medido no ElasticMQ: antes do *redrive*, a mensagem estava na DLQ; depois, de volta na fila, com `ApproximateReceiveCount` = 1. O contador mede entregas daquela passagem, não processamentos de negócio. A idempotência precisa ser pela chave de negócio, num *inbox* (`arquitetura-eventos/08`). Medido também: o `moto` 5.2.5 respondeu 500 ao `StartMessageMoveTask`, por isso o laboratório deste marco usa o ElasticMQ."
+    explanation: "Medido no ElasticMQ: antes do *redrive*, a mensagem estava na DLQ; depois, de volta na fila, com `ApproximateReceiveCount` = 1. Na AWS, o comportamento no *redrive* não está documentado. O contador mede entregas, não processamentos de negócio, e muda entre implementações. A idempotência precisa ser pela chave de negócio, num *inbox* (`arquitetura-eventos/08`). Medido também: o `moto` 5.2.5 respondeu 500 ao `StartMessageMoveTask`, por isso o laboratório deste marco usa o ElasticMQ."

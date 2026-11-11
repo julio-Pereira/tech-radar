@@ -201,7 +201,7 @@ idempotência) são verbetes das trilhas donas e não se repetem aqui.
 ### *Redrive*
 **Em uma frase:** a devolução das mensagens de uma DLQ para a fila de origem (`StartMessageMoveTask`), depois que a causa da falha foi corrigida.
 **No fin-aws:** o *redrive* da liquidação roda depois da correção, com o consumidor idempotente pela chave de negócio.
-**Erro comum:** usar o contador de recebimentos para decidir "já processei", sem saber que o *redrive* o devolve a 1.
+**Erro comum:** usar o contador de recebimentos para decidir "já processei", sem saber que ele não é contrato: no ElasticMQ, o *redrive* o devolve a 1.
 **Onde na prática:** marco 05.
 
 ### EventBridge
