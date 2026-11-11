@@ -98,7 +98,8 @@ de inspeção, a escolha é o Transit Gateway.
 
 **DNS e endereços.** O **Route 53 Resolver** resolve nomes privados entre VPCs e com a rede local. Os
 CIDRs da AWS não podem sobrepor os das outras nuvens e dos parceiros (`conectividade-multicloud/02`). A
-segmentação e o anúncio mínimo de rotas seguem `conectividade-multicloud/08`.
+segmentação e o anúncio mínimo de rotas seguem `conectividade-multicloud/08`. O Direct Connect, a porta privada
+da AWS para o parceiro e para as outras nuvens, está em `conectividade-multicloud/04`.
 
 **Auditoria.** Os ***VPC flow logs*** registram quem falou com quem, em cada interface. Eles são a
 evidência de que a saída só aconteceu pelo lugar certo. A segmentação dentro do *cluster* fica em

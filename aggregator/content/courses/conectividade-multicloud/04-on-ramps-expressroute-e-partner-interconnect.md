@@ -3,6 +3,8 @@ id: on-ramps-de-nuvem
 title: "On-ramps: ExpressRoute e Partner Interconnect"
 summary: "Cada nuvem tem a sua porta privada, com vocabulário, ordem de provisionamento e limites próprios; errar a ordem trava o projeto por dias."
 estimatedMinutes: 65
+reviewedAt: 2026-11-11
+reviewEvery: 6m
 references:
   - title: "Azure ExpressRoute — fluxos de provisionamento e estados do circuito"
     url: https://learn.microsoft.com/azure/expressroute/expressroute-workflows
@@ -14,6 +16,12 @@ references:
     url: https://docs.cloud.google.com/network-connectivity/docs/interconnect/how-to/partner/provisioning-overview
   - title: "Google Cloud — ativar conexões do Partner Interconnect"
     url: https://docs.cloud.google.com/network-connectivity/docs/interconnect/how-to/partner/activating-connections
+  - title: "AWS Direct Connect — virtual interfaces e hosted virtual interfaces"
+    url: https://docs.aws.amazon.com/directconnect/latest/UserGuide/WorkingWithVirtualInterfaces.html
+  - title: "Equinix Fabric Cloud Router — conectar à AWS"
+    url: https://docs.equinix.com/fabric-cloud-router/connections/fcr-connect-awsqc/
+  - title: "AWS Interconnect — multicloud, disponibilidade geral (abr 2026)"
+    url: https://aws.amazon.com/about-aws/whats-new/2026/04/aws-announces-ga-AWS-interconnect-multicloud/
 ---
 
 ## Duas portas, dois vocabulários
@@ -88,6 +96,44 @@ A disponibilidade de 99,9% pede attachments nos dois edge availability domains d
 99,99% envolve mais de uma região (**conferir** a topologia exata, que a documentação consultada
 não detalhou).
 
+## E se a terceira nuvem for a AWS: Direct Connect
+
+O cenário desta trilha é Azure ↔ GCP, mas o Fabric Cloud Router também chega à AWS. A porta privada da AWS é
+o **Direct Connect**, conferido em 11 nov 2026, e ele tem três peças:
+
+- a **conexão**, que pode ser **dedicada** (uma porta física sua num ponto de presença da AWS) ou
+  **hospedada** (uma fatia da porta de um parceiro, como a Equinix, com a banda que ele oferece). Pelo FCR,
+  ela é hospedada: você informa à Equinix o número da conta AWS, e a conexão aparece no console do Direct
+  Connect, onde precisa ser **aceita**. A Equinix não recebe credencial da AWS. A banda não muda depois:
+  para outra banda, cria-se uma conexão nova e migra-se o tráfego;
+- a ***virtual interface*** (VIF), que é a sessão BGP sobre a conexão. A **privada** leva a VPCs, a de
+  **trânsito** leva a um Transit Gateway, e a **pública** leva aos *endpoints* públicos da AWS;
+- o **Direct Connect Gateway**, o recurso global que liga a VIF às VPCs ou ao Transit Gateway de várias
+  regiões. O lado da AWS na sessão BGP usa o **ASN do gateway**, que é privado, escolhido só na criação
+  e imutável. Sem escolha, ele é **64512**, o mesmo padrão do Transit Gateway; com os dois iguais, a
+  associação falha. Escolha os ASNs no `topologia.yaml`, não aceite o padrão.
+
+O SLA de 99,99% do Direct Connect pede o modelo de **resiliência máxima**: conexões separadas, em
+equipamentos separados, em mais de um local. É o mesmo raciocínio das duas conexões do ExpressRoute e
+dos dois domínios de borda do Google.
+
+| | Azure ExpressRoute | Google Partner Interconnect | AWS Direct Connect (hospedada) |
+| --- | --- | --- | --- |
+| Recurso central | circuito | VLAN attachment + Cloud Router | conexão + VIF + Direct Connect Gateway |
+| Quem emite a chave | o Azure (service key) | o Google (pairing key) | ninguém: o parceiro usa o número da conta, e você aceita |
+| ASN do lado da nuvem | 12076, fixo | 16550, fixo | o do Direct Connect Gateway, privado e escolhido por você |
+| Redundância | duas conexões no circuito | dois domínios de borda | conexões em equipamentos e locais separados |
+
+**Um link gerenciado entre nuvens.** Desde abr 2026, o **AWS Interconnect – multicloud** liga uma VPC da
+AWS a outra nuvem por um link gerenciado pelos dois provedores, sem FCR e sem *colocation* no meio. Ele
+está em GA com o Google Cloud (abr 2026) e com a OCI (jul 2026), e em *preview* com o Azure (ago 2026),
+num conjunto pequeno de pares de regiões, sem São Paulo. Ele não substitui o FCR deste cenário, em que a
+outra ponta é um fornecedor em outra organização. É a resposta quando as duas pontas são suas, nas
+regiões atendidas. Confira o estado antes de decidir: a lista de regiões e de nuvens muda a cada
+trimestre.
+
+O lado AWS do `fin-platform` (VPC, Transit Gateway e a saída controlada) é o de `aws-para-backend/03`.
+
 ## Quem é dono de cada passo
 
 No cenário desta trilha, a VPC é do fornecedor, em outra organização do Google Cloud. Então:
@@ -143,6 +189,9 @@ dominios:
       - { nome: dominio-1, rede: 169.254.10.0/29 }
 ```
 
+**Opcional: a terceira borda.** Acrescente `aws-edge`, com o ASN privado do Direct Connect Gateway
+escolhido por você (não o 64512 padrão) e dois links, e um Transit Gateway com outro ASN.
+
 Em `estados/`, escreva em Go o ciclo de vida do circuito, do attachment e das conexões do Fabric,
 com as transições permitidas e quem pode dispará-las.
 
@@ -158,6 +207,9 @@ o modelo responder: "dado o estado de hoje, qual é o próximo passo e de quem �
    falha com mensagem clara.
 4. ASNs e sub-redes do laboratório batem com o `topologia.yaml` (teste gerado a partir do arquivo,
    sem lista copiada à mão).
+5. **(Opcional, com a borda AWS.)** O gerador rejeita a `aws-edge` com o ASN do Direct Connect Gateway igual
+   ao do Transit Gateway, igual ao do lado do cliente ou fora das faixas privadas. As mesmas regras de
+   sobreposição de CIDR e de anúncio mínimo das outras bordas valem para ela.
 
 **Complemento.** Liste, no seu caso real, cada chave e cada aprovação do caminho: quem emite, quem
 recebe, por onde é enviada e quando vence.
@@ -186,3 +238,5 @@ o tráfego de fato puder passar pelos dois.
   e retrabalho.
 - Redundância é parte do produto: duas conexões no circuito, dois domínios de borda no Google.
 - Com o fornecedor em outra organização, a ordem inteira precisa de um dono do seu lado.
+- Na AWS, a conexão hospedada é aceita no console, e o ASN do Direct Connect Gateway é seu e imutável.
+  O AWS Interconnect – multicloud (GA com o Google em abr 2026) liga duas nuvens suas sem FCR.

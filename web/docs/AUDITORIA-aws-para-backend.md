@@ -425,3 +425,40 @@ do marco confere e ficou como está.
 **Lição de processo.** Três dos seis achados do grupo B são lançamentos de 2025 e 2026: a multiconcorrência e
 os 90 min do Managed Instances, o Resolved IP Validation e a rotação de material importado. Eles mudaram o
 comportamento depois que o texto foi conferido na Fase 0. É o argumento do `reviewEvery: 6m` desta trilha.
+
+## 7. Adendo à `conectividade-multicloud` (§13 do plano)
+
+Sem marco novo. Em `conectividade-multicloud/04`:
+
+- **Seção "E se a terceira nuvem for a AWS: Direct Connect".** Cobre a conexão dedicada × hospedada, a VIF
+  (privada, de trânsito, pública) e o Direct Connect Gateway. Traz o ASN padrão 64512, que conflita com o
+  Transit Gateway, e o SLA de 99,99% no modelo de resiliência máxima.
+- **Tabela comparativa dos três *on-ramps*:** recurso central, quem emite a chave, ASN do lado da nuvem e
+  redundância.
+- **AWS Interconnect – multicloud.** Um parágrafo sobre o link gerenciado entre nuvens, com a ressalva de
+  que ele não substitui o FCR quando a outra ponta é um fornecedor.
+- **Hands-on.** A borda `aws-edge` opcional no `topologia.yaml` e o invariante 5 (opcional): ASN do gateway
+  diferente do Transit Gateway e do cliente, nas faixas privadas, com as mesmas regras de CIDR e de anúncio
+  mínimo.
+- **Frontmatter e pontes.** O marco ganhou `reviewedAt: 2026-11-11`, `reviewEvery: 6m` e três referências.
+  A ponte de ida e volta com `aws-para-backend/03` está feita.
+
+**Conferido em 11 nov 2026:**
+
+- **Direct Connect:**
+  - a conexão hospedada precisa ser aceita antes de receber uma VIF;
+  - o ASN do lado da AWS é o do Direct Connect Gateway: definido só na criação, 64512 por padrão, nas faixas
+    privadas de 16 e 32 bits;
+  - com o Transit Gateway também em 64512, a associação falha;
+  - o SLA de 99,99% vale para o modelo de resiliência máxima, com mais de um local.
+- **Equinix FCR → AWS:** a conexão usa o número da conta AWS, é aceita no console do Direct Connect, e a
+  banda não pode ser alterada depois.
+- **AWS Interconnect – multicloud** (anúncios "What's New"):
+  - *preview* em nov 2025;
+  - GA com o Google Cloud em abr 2026;
+  - OCI em GA em jul 2026;
+  - Azure em *preview* em ago 2026.
+
+  A página de documentação do serviço ainda dizia "*preview*" para o Google, e os anúncios prevaleceram.
+
+O `estimatedMinutes` do marco ficou em 65. A seção nova é leitura de referência, e a borda AWS é opcional.
