@@ -86,8 +86,10 @@ conferidos na documentação:
 
 - no modelo centralizado, a variável `HOME_NET` precisa incluir os CIDRs de todas as VPCs atendidas, ou a
   inspeção de domínio só vale para a VPC do *firewall*;
-- o SNI pode ser forjado. Por isso a AWS recomenda combinar o *firewall* com o Route 53 Resolver DNS
-  Firewall.
+- o SNI pode ser forjado: o cliente manda um domínio permitido no SNI e conecta num IP de outro. A defesa
+  é o **Route 53 Resolved IP Validation** do Network Firewall (out 2026), que confere se o IP de destino
+  foi mesmo resolvido para aquele domínio, com o bloqueio de DNS alternativo (a porta 53 para fora e
+  DoH/DoT).
 
 **Transit Gateway × *peering*.** O *VPC peering* liga duas VPCs, sem transitividade. Ele é barato e simples
 para poucos pares. O **Transit Gateway** é um roteador central, com tabelas de rota e segmentação, e é o

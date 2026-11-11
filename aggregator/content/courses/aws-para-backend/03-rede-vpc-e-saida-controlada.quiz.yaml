@@ -51,4 +51,4 @@ questions:
       - "Só a saída é cobrada, US$ 0,09 por GB"
       - "US$ 0,01 por GB em cada direção"
     answer: 3
-    explanation: "Transferência entre AZs na mesma região custa US$ 0,01/GB em cada direção (para EC2, RDS, ElastiCache, interfaces de rede e *peering*); dentro da mesma AZ é grátis. Num serviço tagarela, isso pesa, e é um argumento para manter cliente e cache na mesma AZ quando o desenho permite. O NAT cobra à parte, e a saída para a internet tem outra tarifa."
+    explanation: "Transferência entre AZs na mesma região custa US$ 0,01/GB em cada direção (para EC2, RDS, interfaces de rede e *peering*; no ElastiCache baseado em nós, só o lado da aplicação paga); dentro da mesma AZ é grátis. Num serviço tagarela, isso pesa, e é um argumento para manter cliente e cache na mesma AZ quando o desenho permite. O NAT cobra à parte, e a saída para a internet tem outra tarifa."

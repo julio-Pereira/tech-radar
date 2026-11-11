@@ -96,8 +96,9 @@ chave com dono tem:
 - **rotação ligada.**
 
 A **rotação automática**, conferida em 10 nov 2026, roda a cada **365 dias** por padrão. O período é
-configurável de **90 a 2.560 dias** desde abr 2024, e existe a rotação **sob demanda**. Ela vale para chaves
-simétricas com material gerado pelo KMS. A rotação troca o material novo para cifrar e mantém os
+configurável de **90 a 2.560 dias** desde abr 2024, e existe a rotação **sob demanda**. A automática vale para chaves
+simétricas com material gerado pelo KMS; a sob demanda também aceita material importado desde jun 2025,
+com até 25 rotações por chave. A rotação troca o material novo para cifrar e mantém os
 antigos para decifrar o que já existe, então nada precisa ser recifrado. Cada rotação acrescenta US$ 1 por
 mês à chave, até a segunda; as seguintes não somam.
 
@@ -112,7 +113,7 @@ nem o administrador desfaz**. O **Object Lock** do S3, com versionamento, tem do
 - **governança:** quem tem `s3:BypassGovernanceRetention`, e manda o cabeçalho de *bypass*, pode apagar ou
   encurtar a retenção. Serve para testar e para proteger de erro;
 - ***compliance*:** **nenhum usuário**, nem o *root* da conta, apaga a versão ou encurta a retenção até ela
-  vencer. O modo não muda depois.
+  vencer. O modo não muda depois. A retenção pode ser **estendida**, só não encurtada.
 
 A **retenção legal** (*legal hold*) é separada: trava a versão sem prazo, até alguém tirar. Antes de
 ligar o modo *compliance* num *bucket* de produção, teste em governança. Um prazo errado no *compliance*
@@ -125,7 +126,7 @@ não tem volta, e o armazenamento é cobrado até o fim dele. A política de ret
 | --- | --- | --- |
 | Para quê | segredo com rotação: senha de banco, credencial de parceiro | configuração, e segredo simples (`SecureString`, cifrado com KMS) |
 | Rotação | nativa, com função de rotação; integrada ao RDS | não tem; é sua |
-| Preço (conferido em 10 nov 2026) | US$ 0,40 por segredo por mês + US$ 0,05 por 10.000 chamadas | padrão sem custo; avançado US$ 0,05 por parâmetro por mês |
+| Preço (conferido em 10 nov 2026) | US$ 0,40 por segredo por mês + US$ 0,05 por 10.000 chamadas | padrão sem custo; avançado US$ 0,05 por parâmetro por mês + US$ 0,05 por 10.000 interações de API |
 | Entre contas | política de recurso no segredo | parâmetro avançado compartilhável |
 
 A aplicação **não lê segredo de variável de ambiente fixada no *deploy***, a não ser que a plataforma a

@@ -364,3 +364,64 @@ Além dos marcos 02, 03, 05, 06 e 08, conferir:
 - `kafka/12`;
 - `ledger-e-contabilidade/08`;
 - `engenharia-de-plataforma/08`.
+
+## 6. Fase 5 — auditoria e revisão independente
+
+### Critérios do plano
+
+| Critério | Resultado |
+| --- | --- |
+| Σ `estimatedMinutes` = 655 e `estimatedHours` = 22 | 655 min; 655 × 2 / 60 = 21,8 → 22 |
+| 54 questões | 54 (6 nos marcos críticos 02, 03, 05, 06 e 08; 4 nos demais) |
+| ≥ 30 verbetes | 50, com 50/50 resolvidos para um marco |
+| 11 marcos com os cinco blocos de Hands-on, tabela Azure → AWS, exemplo e aprendizados | todos |
+| caixa "o que o emulador não reproduz" onde há emulador | 02, 05, 06, 07, 08, 09, 10, 11; os marcos 01, 03 e 04 não usam emulador |
+| Complemento com orçamento antes e *destroy* no fim | os 11 |
+| `reviewEvery: 6m` | os 11 |
+| nenhuma invariante depende de conta; CI sem `AWS_*` real | os *workflows* não usam variável `AWS_*` nem segredo; os laboratórios usam `test`/`test`, emuladores e `mock_provider` |
+| pontes resolvem; `go test ./...` e testes do front verdes | verdes |
+
+Sobre "todo módulo Terraform passa em `validate` e `test`": o repositório não contém o código do `fin-aws`,
+que é construído por quem faz a trilha. Os módulos dos laboratórios (marcos 01 a 11) foram planejados com o
+Terraform 1.17.1 e o provedor `aws` 6.72.0, e o do marco 10 passou em `terraform test` com
+`mock_provider` (§5).
+
+### Revisão independente (marcos 02, 03, 05, 06 e 08)
+
+Um revisor separado conferiu cada limite, preço, prazo e comportamento contra a documentação oficial da
+AWS, por busca restrita a `docs.aws.amazon.com` e `aws.amazon.com`. O WebFetch desses domínios estava
+bloqueado na rede da sessão, então ele trabalhou com os trechos que a busca devolveu.
+
+A maior parte confere: os limites do Lambda, do FIFO, do SQS e do KMS, os preços do NAT, do Secrets
+Manager e do Parameter Store, a URL pré-assinada, o Object Lock e as datas do S3. Também conferem dois
+pontos que estavam pendentes na §4: a espera de 7 a 30 dias para apagar uma chave e o SSE-S3 padrão desde
+5 jan 2023. O tráfego entre AZs a US$ 0,01/GB por sentido, pendente na §5, confere nas páginas de preço da
+VPC e do EFS.
+
+Achados e o que foi feito:
+
+| # | Marco | Achado | Correção |
+| --- | --- | --- | --- |
+| A1 | 02 | "o corte por SCP vale para a conta toda, inclusive o raiz" omitia que a conta de gerenciamento não é afetada | o texto agora diz *root* das contas-membro, e a conta de gerenciamento fora |
+| A2 | 02 | a lógica de avaliação não citava a RCP (*resource control policy*), que também corta | RCP na tabela de tipos, no passo 2 e no aprendizado. O avaliador didático em Go continua sem RCP; é um recorte do *tutorial*, não da lógica |
+| A3 | 06 | "um evento por ambiente, sempre" ignorava a multiconcorrência do Lambda Managed Instances | ressalva no modelo de execução e na tabela Azure → AWS |
+| B1 | 05 | 70.000/s na FIFO de alta vazão vale só em N. Virginia, Oregon e Irlanda | o texto agora traz as regiões e os 4.500/s de São Paulo |
+| B2 | 03 | a defesa contra SNI forjado citava o DNS Firewall, que não confere a conexão | Route 53 Resolved IP Validation do Network Firewall (out 2026) e bloqueio de DNS alternativo |
+| B3 | 05 | o SNS a 1 MiB omitia o padrão de 256 KiB e as restrições de assinantes | ressalva acrescentada |
+| B4 | 05 | "o *redrive* zera o contador" foi medido só no ElasticMQ; na AWS não está documentado | texto, aprendizado, invariante, quiz e glossário atribuem a medição ao ElasticMQ; a conclusão (o contador não serve para idempotência) fica mais forte, não mais fraca |
+| B5 | 06 | os 90 min do Managed Instances valem também para *event source mapping* | acrescentado, com 5.400 s e set 2026 |
+| B6 | 08 | a rotação sob demanda aceita material importado desde jun 2025 | separadas a automática e a sob demanda |
+| C2 | 03 | quiz: no ElastiCache baseado em nós, só o lado da aplicação paga entre AZs | explicação ajustada |
+| C3 | 08 | o parâmetro avançado paga também por interação de API | acrescentado |
+| C4 | 06 | a cota de 1.000 começa menor em contas novas | acrescentado |
+| C5 | 08 | o Object Lock *compliance* permite estender a retenção | acrescentado |
+| C1 | 03 | a documentação mostra também um NAT Gateway regional | **não** aplicado: não conferi o modelo de cobrança, e o preço do texto continua certo. Fica para a próxima revisão (`reviewEvery: 6m`) |
+
+O revisor não achou fonte para a interação entre *permissions boundary* e política de recurso que nomeia a
+sessão (marco 02). Conferi depois em `access_policies_boundaries.html`: a política de recurso que nomeia o
+ARN do papel é limitada pela negação implícita do *boundary*, e a que nomeia a sessão de papel não. O texto
+do marco confere e ficou como está.
+
+**Lição de processo.** Três dos seis achados do grupo B são lançamentos de 2025 e 2026: a multiconcorrência e
+os 90 min do Managed Instances, o Resolved IP Validation e a rotação de material importado. Eles mudaram o
+comportamento depois que o texto foi conferido na Fase 0. É o argumento do `reviewEvery: 6m` desta trilha.
