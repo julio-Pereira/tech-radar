@@ -135,7 +135,7 @@ esteira.
 ### Bloco 2: adiado
 
 A tabela "conceito → serviço" e as pontes para `aws-para-backend` ficam para depois daquela trilha,
-como o próprio plano prevê.
+como o próprio plano prevê. Feito em 11 nov 2026 (§5).
 
 ## 2. Fase 1 — Bloco 1 (observabilidade)
 
@@ -237,10 +237,39 @@ ficam no grupo de linguagem porque são específicos de Go. O grupo tem 11 etapa
 - Playwright: os 18 testes de `jornada.spec.js` e `paths.spec.js` passaram, depois de a suíte completa
   ter falhado só na lista de grupos, que era o ajuste esperado.
 
+## 5. Fase 2 — Bloco 2 (índice de nuvem), depois da `aws-para-backend`
+
+**`arquitetura-de-solucoes/05`.** Nova seção "O mesmo conceito, três nomes", com uma tabela de 16 linhas
+(conceito → AWS, Azure, GCP). Cada célula AWS, menos a de *API gateway*, tem ponte para o marco da
+`aws-para-backend` que ensina o serviço; o API Gateway só aparece na trilha como chamador síncrono (marco
+06). A seção traz também a frase de *serverless* (2.2) e as ressalvas que a tabela não mostra. O marco
+ganhou `reviewedAt: 2026-11-11` e `reviewEvery: 6m` (2.4).
+
+**`engenharia-de-plataforma/08`.** O marco não tinha a tabela "prática → mecanismo" que o plano supunha. Ela
+foi criada com Azure e GCP (alocação por dono, orçamento, dado de custo, recomendação), e a linha AWS virou
+ponte para `aws-para-backend/11` (2.3). O marco também ganhou `reviewEvery: 6m`.
+
+**Conferência dos nomes (11 nov 2026),** na documentação de cada provedor:
+
+- **GCP:**
+  - o Cloud Functions passou a se chamar **Cloud Run functions** em 21 ago 2024;
+  - o **Managed Service for Apache Kafka** está em GA desde 12 nov 2024;
+  - Workload Identity Federation for GKE, Private Service Connect, Secret Manager, Cloud KMS, a exportação
+    do Cloud Billing para o BigQuery e Cloud Logging, Monitoring e Trace conferem com as páginas atuais.
+- **Azure:** identidades gerenciadas e Entra Workload ID (AKS), Container Apps, Azure Database for
+  PostgreSQL (servidor flexível) e Azure Monitor com Application Insights (OpenTelemetry) conferem com o
+  Microsoft Learn.
+- **AWS:** cada nome vem do marco correspondente da `aws-para-backend`, conferido na trilha.
+
+Nomes estáveis, citados sem nova busca: Service Bus, Event Hubs, Event Grid, Cosmos DB, Blob Storage, Key
+Vault, Managed HSM, API Management, Cost Management e Azure Advisor; GKE, Cloud Run, Pub/Sub, Cloud Tasks,
+Eventarc, Cloud SQL, AlloyDB, Firestore, Bigtable, Cloud Storage, API Gateway, Apigee e Recommender. Eles
+ficam para a revisão semestral (`reviewEvery: 6m`).
+
 ## Critérios de aceite
 
-- [x] Tabela do Bloco 1 com cada célula conferida e a fonte de cada linha (§1). A tabela do Bloco 2
-      fica para depois da `aws-para-backend`.
+- [x] Tabela do Bloco 1 com cada célula conferida e a fonte de cada linha (§1). A tabela do Bloco 2,
+      feita depois da `aws-para-backend`, com os nomes conferidos e as pontes (§5).
 - [x] Complemento novo do Bloco 1 com invariante testável, rodando sem conta em nuvem (§1, §2).
 - [x] Desafios `lld` passando no `check-lld.sh` (§3).
 - [x] Jornada com o grupo de linguagem, todos os `ref` resolvendo e os `why` fiéis ao título real (§4).
