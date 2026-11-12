@@ -1,0 +1,54 @@
+questions:
+  - question: "O NSG da sub-rede do banco não tem nenhuma regra própria. Uma VM numa VNet com peering consegue abrir conexão com o banco?"
+    options:
+      - "Não: sem regra própria, o NSG nega toda entrada"
+      - "Sim: a regra padrão `AllowVnetInBound` usa o service tag `VirtualNetwork`, que inclui as VNets com peering"
+      - "Só se o peering for transitivo pelo hub, com a rota padrão de cada sub-rede apontando para o Firewall do hub e o NSG liberando a porta"
+      - "Só se a VM estiver no mesmo ASG do banco"
+    answer: 1
+    explanation: "As regras padrão não se apagam: `AllowVnetInBound` (65000), `AllowAzureLoadBalancerInBound` (65001) e `DenyAllInBound` (65500). O service tag `VirtualNetwork` inclui as VNets com peering e as redes locais conectadas. Para restringir, escreve-se regra própria (100 a 4096), de preferência por ASG."
+
+  - question: "Os dados do ledger precisam chegar ao Cosmos DB só por rede privada, inclusive a partir das redes locais da empresa. Service endpoint ou Private Endpoint?"
+    options:
+      - "Service endpoint, porque ele tira o IP público do serviço"
+      - "Service endpoint, porque ele funciona a partir de qualquer rede ligada à VNet, inclusive as redes locais"
+      - "Private Endpoint, com o acesso público desligado e a zona DNS privada"
+      - "Nenhum dos dois: basta um NSG que bloqueie a internet na sub-rede da aplicação"
+    answer: 2
+    explanation: "O Private Endpoint é uma interface com IP privado para uma instância do serviço, alcançável por peering, VPN e ExpressRoute. O service endpoint não tira o IP público, vale só para a sub-rede e não chega a partir das redes locais. Com o Private Endpoint, ainda é preciso desligar o acesso público e resolver o nome pela zona `privatelink`."
+
+  - question: "A zona `privatelink.documents.azure.com` está vinculada só à VNet do hub. O pod do `ledger-core` roda num spoke com peering para o hub. Para qual IP o nome do Cosmos resolve no pod?"
+    options:
+      - "Para o IP privado, porque o peering leva os vínculos de DNS do hub para o spoke"
+      - "Para o IP do Firewall do hub"
+      - "Para nenhum: a resolução falha com NXDOMAIN, porque a zona privada não está vinculada ao spoke"
+      - "Para o IP público, porque o vínculo da zona é por VNet e o peering não o compartilha"
+    answer: 3
+    explanation: "O nome público tem um CNAME para o nome em `privatelink`, e só uma VNet vinculada à zona privada resolve esse nome para o IP privado. O peering não compartilha o vínculo. Sem ele, vale a resposta pública, e o tráfego sai pela internet, sem erro. O resolvedor didático do marco reproduziu exatamente isso."
+
+  - question: "Um sistema nas redes locais da empresa precisa ler o Key Vault pelo Private Endpoint. O que falta no DNS?"
+    options:
+      - "O DNS local encaminhar `privatelink.vaultcore.azure.net` para o inbound endpoint do DNS Private Resolver"
+      - "Nada: o ExpressRoute leva junto as zonas privadas do Azure para as redes locais"
+      - "Vincular a zona privada à rede local da empresa, do mesmo jeito que se vincula uma VNet, pelo circuito do ExpressRoute"
+      - "Trocar o nome do vault pelo IP privado no código da aplicação"
+    answer: 0
+    explanation: "Quem está nas redes locais não enxerga a zona privada. O inbound endpoint do DNS Private Resolver recebe as consultas das redes locais e resolve pela zona; o outbound endpoint, com os forwarding rulesets, faz o caminho inverso. Fixar o IP no código quebra o TLS e a troca de IP."
+
+  - question: "O `fin-azure` quer que toda saída para a internet passe por um ponto só, com filtro por domínio. Qual desenho?"
+    options:
+      - "Deixar o default outbound access das VNets, que já sai por um IP da Microsoft"
+      - "UDR com `0.0.0.0/0` apontando para o Azure Firewall do hub, em toda sub-rede de aplicação"
+      - "Um NSG de saída que permita só a porta 443 para o service tag `Internet`, aplicado em cada sub-rede de aplicação"
+      - "Um service endpoint para cada destino externo de que a aplicação depende"
+    answer: 1
+    explanation: "A saída única é uma rota padrão (UDR) para o Firewall, que filtra por domínio e registra. Conferido em 12 nov 2026: nas versões de API posteriores a 31 mar 2026, as sub-redes de VNets novas nascem privadas, sem saída implícita. Um NSG filtra porta, não domínio, e não centraliza. O NAT Gateway serve quando só se precisa de IP estável, por ADR."
+
+  - question: "O spoke A e o spoke B têm, cada um, peering com o hub. O serviço do spoke A consegue falar direto com o spoke B?"
+    options:
+      - "Sim: o peering é transitivo pelo hub, sem nenhuma configuração a mais"
+      - "Sim, desde que os dois spokes estejam na mesma assinatura, no mesmo resource group e na mesma região do hub"
+      - "Não pelo peering: a passagem é pelo Firewall do hub, com UDR, ou por um peering direto"
+      - "Não: dois spokes nunca se comunicam no Azure"
+    answer: 2
+    explanation: "O peering não é transitivo. No hub-spoke, a conversa entre spokes passa pelo Firewall do hub, com UDR, o que também a inspeciona e registra. O Virtual WAN gerencia isso para muitas regiões. O mesmo vale para o DNS: o vínculo de zona do hub não chega aos spokes."

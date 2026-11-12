@@ -1,0 +1,36 @@
+questions:
+  - question: "A iniciativa de guardrails está atribuída no management group `fin`. A assinatura do Pix está no management group `producao`, filho de `fin`. A iniciativa vale para os recursos dessa assinatura?"
+    options:
+      - "Não: a iniciativa precisa ser atribuída também na assinatura do Pix"
+      - "Sim: política e permissão atribuídas num management group herdam para tudo abaixo dele"
+      - "Só para os recursos criados depois da atribuição, e nunca para os que já existiam antes"
+      - "Só se o resource group tiver a mesma tag do management group"
+    answer: 1
+    explanation: "Tenant, management group, assinatura, resource group e recurso formam uma hierarquia de escopo, e a atribuição num nó vale para tudo abaixo dele. Por isso a regra sobre o código precisa resolver a árvore: no laboratório, a primeira versão comparava só o management group direto e reprovou o código bom. Recursos que já existiam aparecem como não conformes e podem ser remediados com `modify` ou `deployIfNotExists`."
+
+  - question: "O time quer um sandbox onde ninguém consiga, por engano, alcançar a produção. Por que uma assinatura separada não basta, e qual é a fronteira mais forte?"
+    options:
+      - "Basta: a assinatura isola identidade, cobrança e cota como a conta da AWS isola"
+      - "Não basta, porque o resource group é que isola a identidade dentro da assinatura"
+      - "Não basta, porque as assinaturas compartilham o tenant; a fronteira forte é um tenant separado"
+      - "Não basta, porque toda assinatura herda automaticamente o papel Owner de todos os administradores do tenant inteiro"
+    answer: 2
+    explanation: "Duas assinaturas no mesmo tenant compartilham o diretório: o mesmo usuário, grupo ou aplicação pode ter papel nas duas. A assinatura isola cobrança, cota e o alcance padrão das permissões, mas não a identidade. O framework da Microsoft para instituições financeiras reguladas recomenda sandboxes como tenants totalmente isolados. O resource group é só ciclo de vida."
+
+  - question: "Uma regra nova de Azure Policy vai exigir `public network access` desligado em todo storage. O time não sabe quantos recursos de hoje violam a regra. Qual efeito usar primeiro?"
+    options:
+      - "`audit`, para medir o impacto antes de virar `deny`"
+      - "`deny` direto, para recusar qualquer storage público já existente no ato da atribuição"
+      - "`deployIfNotExists`, que cria um Private Endpoint para cada storage"
+      - "`disabled`, até o time terminar de migrar tudo"
+    answer: 0
+    explanation: "`audit` deixa passar e registra como não conforme: é como se mede o impacto de uma regra nova. `deny` recusa criações e alterações, não apaga o que existe, e virar `deny` sem medir quebra deploys. `deployIfNotExists` cria um recurso relacionado que falta (como o diagnostic setting); não é o caso. `disabled` não mede nada."
+
+  - question: "O backup do banco do ledger, no Brazil South, foi configurado com redundância geográfica do par de regiões. O que isso significa para a residência do dado?"
+    options:
+      - "Nada: o par do Brazil South é o Brazil Southeast, dentro do país"
+      - "Que a cópia vai para o South Central US, nos Estados Unidos, fora do país"
+      - "Que a cópia fica em outra zona da mesma região"
+      - "Que a Microsoft escolhe a região de destino a cada backup, conforme a capacidade disponível no dia"
+    answer: 1
+    explanation: "Conferido em 12 nov 2026: o par do Brazil South é o South Central US, e a relação não é recíproca. O Brazil Southeast tem acesso restrito, para cenários como DR no país, e é pareado com o Brazil South. A redundância geográfica do par leva o dado para fora do Brasil, o que pesa para uma fintech regulada pelo BACEN e pela LGPD."

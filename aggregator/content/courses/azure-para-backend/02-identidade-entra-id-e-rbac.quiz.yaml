@@ -1,0 +1,54 @@
+questions:
+  - question: "Um operador tem `Contributor` no resource group, cujo `NotActions` inclui `Microsoft.Authorization/*/Write`. Ele também tem `User Access Administrator` no mesmo resource group. Ele consegue criar uma role assignment ali?"
+    options:
+      - "Não: o `NotActions` do Contributor nega a ação para o principal inteiro"
+      - "Não, porque o RBAC usa só o papel com menos permissões quando há dois papéis no mesmo escopo"
+      - "Só se uma deny assignment permitir explicitamente a ação"
+      - "Sim: `NotActions` só tira ações daquele papel, e a soma com o outro papel concede"
+    answer: 3
+    explanation: "O RBAC soma as atribuições: basta uma conceder. `NotActions` não é negação, só subtrai do próprio papel. A negação explícita é a deny assignment, avaliada antes. No laboratório, a mutação que tratou `NotActions` como negação global foi pega exatamente por este caso."
+
+  - question: "O `Owner` da assinatura não tem nenhum papel de dados. Ainda assim, ele abre os blobs da conta de storage pelo portal. Como?"
+    options:
+      - "O `Owner` herda os papéis de dados de todos os recursos da assinatura"
+      - "O `Owner` tem `listkeys` e lê os dados com a chave da conta, por fora do RBAC de dados"
+      - "O portal usa a identidade do próprio Azure, que tem acesso de leitura a todos os dados da assinatura"
+      - "A conta de storage concede leitura pública a quem tem papel de controle"
+    answer: 1
+    explanation: "Os papéis de controle (Owner, Contributor, Storage Account Contributor) não dão acesso a dados pelo Entra ID, mas incluem `Microsoft.Storage/storageAccounts/listkeys/action`. Com a chave, a autorização Shared Key lê tudo. O portal tenta isso sozinho. Por isso o marco 08 desliga a shared key."
+
+  - question: "Qual é a ordem em que o Azure decide se uma ação é permitida?"
+    options:
+      - "Deny assignments primeiro; depois as atribuições do principal, somadas; depois as condições"
+      - "Atribuições primeiro, da mais específica para a mais larga, e a primeira que casar decide tudo"
+      - "Azure Policy primeiro, depois as atribuições, depois as deny assignments"
+      - "As condições primeiro, porque elas podem negar o que o papel concede"
+    answer: 0
+    explanation: "Pela documentação: o Resource Manager busca as atribuições e as deny assignments que se aplicam; uma deny assignment bloqueia; senão, as atribuições do principal e dos seus grupos são somadas; por fim, as condições filtram o que o papel concedeu. Condições não negam explicitamente."
+
+  - question: "O `pix-gateway` roda em três réplicas no Container Apps, e o papel na fila precisa existir antes do primeiro deploy. Que identidade usar?"
+    options:
+      - "Uma system-assigned, criada junto com o app, para que ela morra quando o app for removido"
+      - "O service principal do pipeline, que já tem acesso a todos os recursos do ambiente de produção"
+      - "Uma user-assigned própria do serviço, criada antes, com a atribuição feita antes do app"
+      - "Uma user-assigned compartilhada por todos os serviços do resource group"
+    answer: 2
+    explanation: "A user-assigned é um recurso independente: o Terraform cria a identidade, a atribuição e só depois o app, e as réplicas usam a mesma identidade. A system-assigned nasce com o recurso, então a atribuição só existe depois. Compartilhar uma identidade entre serviços soma as permissões de todos em cada um."
+
+  - question: "A esteira do GitHub Actions precisa aplicar o Terraform no Azure. Qual credencial?"
+    options:
+      - "Um segredo de service principal guardado nos secrets do repositório, rotacionado a cada 90 dias"
+      - "Federação de workload: o token OIDC do GitHub é trocado por um token do Entra ID, sem segredo"
+      - "A chave da conta de storage do estado, que dá acesso a tudo"
+      - "O usuário pessoal do tech lead, com MFA"
+    answer: 1
+    explanation: "Com a credencial federada, a identidade confia no emissor OIDC do GitHub, para o repositório e o branch certos, e não há segredo para vazar, vencer ou rotacionar. O segredo de service principal é dívida. A regra sobre o código do marco reprova `azuread_application_password`."
+
+  - question: "Qual a diferença entre um papel do Entra ID, como Global Administrator, e um papel do Azure, como Owner?"
+    options:
+      - "Nenhuma: os dois são o mesmo RBAC com nomes diferentes"
+      - "O papel do Entra vale só para os recursos de uma assinatura, e o do Azure vale para o tenant inteiro"
+      - "O papel do Azure é sempre mais forte que qualquer papel do Entra, inclusive o Global Administrator, porque o RBAC do Azure é avaliado antes do diretório"
+      - "O do Entra age sobre o diretório; o do Azure, sobre os recursos. O Global Administrator pode se elevar a User Access Administrator na raiz"
+    answer: 3
+    explanation: "Os papéis do Entra (Global Administrator, Application Administrator) gerenciam usuários, aplicações e consentimentos; os do Azure RBAC gerenciam recursos nos escopos da árvore. Eles se cruzam num ponto: o Global Administrator pode elevar o próprio acesso a User Access Administrator na raiz. É o caminho de emergência que precisa de alarme, e o acesso privilegiado de pessoas vai pelo PIM."
