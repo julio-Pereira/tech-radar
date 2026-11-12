@@ -259,3 +259,61 @@ conferidos no *schema* do `azurerm` 5.13.0 (`terraform providers schema -json`),
 - `arquitetura-eventos/08` e `/09`;
 - `concorrencia-e-recursos/07`;
 - `aws-para-backend/04`, `/05` e `/06`.
+
+## 4. Fase 3 — Bloco C (marcos 07 e 08)
+
+Os dois marcos têm:
+
+- os cinco blocos de `## Hands-on`;
+- a tabela "Na AWS → no Azure", com ponte para o marco gêmeo;
+- a caixa "armadilha" e a caixa do emulador;
+- `reviewEvery: 6m`;
+- 10 questões (4 + 6). A resposta certa nunca é a opção estritamente mais longa: conferido por *script*, depois de
+  rebalancear 8 das 10.
+
+Os *goldens* de seções sobem para 265/312/304/295/310. Os atributos das regras foram conferidos no *schema* do
+`azurerm` 5.13.0.
+
+### Medições
+
+| Marco | Experimento | Resultado |
+| --- | --- | --- |
+| 07 | *script* sobre um dia sintético de 500 mil escritas (30% em 200 contas PJ) | **data:** 1 valor, **100%** numa partição; **conta:** a mais quente com **0,165%**; **identificador fim a ponta:** nenhuma acima de 0,001%. A primeira versão do *script*, com `random.choices` sobre 2 milhões de pesos a cada sorteio, passou de 5 minutos e foi interrompida |
+| 07 | escrita condicional, ETag e *batch* no emulador do Cosmos | os resultados da Fase 0 (§1), citados no texto |
+| 07 | Conftest sobre o Postgres Flexible Server e o Cosmos | o código bom passou nas 7 regras; a *fixture* ruim foi reprovada em **6 achados** (sem HA, com senha e com *backup* geográfico no Postgres; chave de conta, *backup* periódico e sem *lock* no Cosmos) |
+| 08 | envelope: chave de dados AES-GCM com AAD, embrulhada com uma chave RSA do Lowkey Vault 7.4.0, objeto no Azurite | o objeto gravado **não contém o CPF**; o AAD certo abriu; o AAD de outro arquivo, o de outro serviço e a falta de AAD deram **`InvalidTag`** |
+| 08 | operações da chave no Lowkey Vault | criada sem operações, a chave recusou o *wrap* (`does not have ENCRYPT operation`); com `wrapKey` e `unwrapKey`, o *unwrap* pediu `decrypt`, uma particularidade do Lowkey registrada na caixa do emulador |
+| 08 | Conftest sobre o storage, a imutabilidade, o Key Vault e as atribuições no vault | o código bom passou nas 6 regras; a *fixture* ruim foi reprovada em **7 achados** |
+
+### Números conferidos (12 nov 2026)
+
+- **Postgres Flexible Server:**
+  - HA *zone-redundant* com *failover* de 60 a 120 s e SLA de 99,99%; *same-zone* com SLA de 99,95%;
+  - PgBouncer embutido na porta 6432, fora do tier Burstable, e reiniciado no *failover*;
+  - PITR de 7 a 35 dias;
+  - o *backup* geográfico vai para o par, só se liga na criação e tem RPO de geo-restore de até cerca de uma hora.
+- **Cosmos DB:**
+  - 20 GB por partição lógica e 10.000 RU/s por partição;
+  - *transactional batch* de 100 operações e 2 MB, na mesma chave;
+  - *backup* contínuo de 7, 30 ou 35 dias;
+  - última escrita que vence como padrão do *multi-region writes*;
+  - chaves hierárquicas com até três níveis.
+- **Storage:**
+  - *shared key* com padrão nulo, que equivale a ligada;
+  - SAS de delegação de usuário de no máximo 7 dias;
+  - TLS 1.2 recomendado;
+  - só a imutabilidade travada atende a SEC 17a-4(f), estendida até cinco vezes no contêiner.
+- **Key Vault:**
+  - *soft delete* de 7 a 90 dias (90 por padrão), sem mudar depois;
+  - *purge protection* opcional, desligada e irreversível;
+  - Standard FIPS 140-2 nível 1; Premium e Managed HSM FIPS 140-3 nível 3.
+- **CMK revogada:** Storage responde 403; Cosmos entra em revogação e leva até uma hora para sair; Postgres fica
+  inacessível em até 60 minutos, e leva até 60 para voltar.
+- **Redis:** o Azure Cache for Redis se aposenta (Enterprise em mar 2027; Basic, Standard e Premium em set 2028),
+  e o sucessor é o Azure Managed Redis.
+
+### Pontes
+
+- `dados-distribuidos/07`, `/09`, `/13`, `/16` e `/18`;
+- `seguranca-aplicacao/09` e `/10`;
+- `aws-para-backend/07` e `/08`.
