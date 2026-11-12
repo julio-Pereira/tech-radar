@@ -2,7 +2,7 @@ questions:
   - question: "O regulador pediu a lista de identidades que leram a chave de cifra do ledger nos últimos seis meses. O Key Vault tem RBAC e purge protection, mas nenhum diagnostic setting. O que dá para responder?"
     options:
       - "Tudo, pelo Activity Log da assinatura, que registra cada leitura de chave do cofre e guarda o registro por 90 dias"
-      - "Tudo, pelas métricas de plataforma do Key Vault, que são automáticas e guardam cada operação com a identidade de quem chamou por 93 dias"
+      - "Tudo, pelas métricas de plataforma do Key Vault, que são automáticas e guardam cada operação, com a identidade de quem a chamou, por 93 dias"
       - "Nada sobre as leituras: o log de auditoria do recurso não é coletado sem diagnostic setting, e o Activity Log registra quem mudou o cofre"
       - "Só as leituras feitas pelo portal ou pela CLI, que vão automaticamente para o log de auditoria do tenant no Entra ID, com a identidade"
     answer: 2
