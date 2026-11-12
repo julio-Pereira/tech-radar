@@ -123,6 +123,8 @@ testemunha) e **não aceita transações** nem TTL. Para o saldo do ledger, que 
 | Cosmos DB | DynamoDB (aproximação) | o Cosmos tem cinco níveis de consistência e várias APIs; o DynamoDB tem leitura eventual ou forte por chamada e só o modelo dele. O custo é por unidade de requisição, com outra conta (`dados-distribuidos/16`) |
 | Azure Cache for Redis | ElastiCache ou MemoryDB | o MemoryDB é durável, o ElastiCache é cache |
 
+O marco gêmeo no Azure é `azure-para-backend/07`.
+
 > **O que o emulador não reproduz.** O DynamoDB Local não reproduz particionamento, partição quente, limites
 > de vazão, estrangulamento nem *global tables*. Ele prova a semântica de escrita condicional e de
 > transação. O Postgres no Docker, reiniciado, simula a queda de conexões, não o DNS nem o tempo de um

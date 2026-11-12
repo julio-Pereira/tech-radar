@@ -96,6 +96,8 @@ O *health check* do *target group* aponta para a *readiness*, como no Kubernetes
 | Azure Functions | Lambda | conceito igual; limites, cobrança e *triggers* diferentes (marco 06) |
 | ACR | ECR | a varredura e a política de ciclo de vida das imagens são do próprio ECR |
 
+O marco gêmeo no Azure é `azure-para-backend/04`.
+
 ## Exemplo numa fintech
 
 O `pix-gateway` foi para o ECS no Fargate com a *task definition* gerada por um *template* antigo, em que o

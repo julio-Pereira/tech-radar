@@ -117,6 +117,8 @@ A resposta de sênior numa entrevista não começa por "*spot* e *Savings Plans*
 | Spot VMs | *Spot* | os dois avisam antes de tomar a capacidade; na AWS, o aviso é de dois minutos |
 | Azure Advisor (custo) | Compute Optimizer + Trusted Advisor | os dois recomendam *rightsizing* a partir do uso medido |
 
+O marco gêmeo no Azure é `azure-para-backend/11`.
+
 > **O que o laboratório não reproduz.** O modelo de custo usa preços de uma data e de uma região, e um
 > perfil de tráfego que é hipótese. Ele não reproduz os níveis de desconto, o nível gratuito, o *Savings
 > Plan* nem a fatura real. Ele prova uma coisa: **uma mudança no plano muda o custo modelado, e o teste

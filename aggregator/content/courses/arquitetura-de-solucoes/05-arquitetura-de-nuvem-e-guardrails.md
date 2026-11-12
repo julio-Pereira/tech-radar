@@ -77,29 +77,29 @@ identidade de *workload*. Na entrevista, a pergunta costuma vir com o nome de um
 isso na AWS?"). **O conceito transfere; o nome do serviço se aprende em uma semana.** A tabela é um índice,
 não um ensino. Os nomes foram conferidos na documentação de cada provedor em 11 nov 2026, e mudam: o Cloud
 Functions virou Cloud Run functions em ago 2024. A coluna AWS aponta para o marco da trilha
-`aws-para-backend` que ensina o serviço.
+`aws-para-backend` que ensina o serviço, e a coluna Azure, para o da `azure-para-backend`.
 
 | Conceito | AWS | Azure | GCP |
 | --- | --- | --- | --- |
-| Contêiner gerenciado | ECS com Fargate (`aws-para-backend/04`) | Container Apps | Cloud Run |
-| Kubernetes gerenciado | EKS (`aws-para-backend/04`) | AKS | GKE |
-| Função (*serverless*) | Lambda (`aws-para-backend/06`) | Azure Functions | Cloud Run functions |
-| Fila | SQS (`aws-para-backend/05`) | Service Bus (filas) | Pub/Sub, ou Cloud Tasks |
-| *Log* de eventos | MSK, ou Kinesis (`aws-para-backend/05`) | Event Hubs | Managed Service for Apache Kafka |
-| *Pub/sub* e roteamento | SNS e EventBridge (`aws-para-backend/05`) | Service Bus (tópicos), Event Grid | Pub/Sub, Eventarc |
-| Banco relacional | RDS e Aurora (`aws-para-backend/07`) | Azure Database for PostgreSQL (servidor flexível) | Cloud SQL, AlloyDB |
-| Documento e chave-valor | DynamoDB (`aws-para-backend/07`) | Cosmos DB | Firestore, Bigtable |
-| *Object storage* | S3 (`aws-para-backend/08`) | Blob Storage | Cloud Storage |
-| Segredos | Secrets Manager (`aws-para-backend/08`) | Key Vault (segredos) | Secret Manager |
-| Chaves (KMS) | KMS (`aws-para-backend/08`) | Key Vault (chaves), Managed HSM | Cloud KMS |
-| Identidade de *workload* | papéis IAM, Pod Identity e IRSA (`aws-para-backend/02`) | identidades gerenciadas, Entra Workload ID | Workload Identity Federation for GKE |
-| Observabilidade nativa | CloudWatch, X-Ray e ADOT (`aws-para-backend/09`) | Azure Monitor, Application Insights | Cloud Logging, Monitoring e Trace |
-| Rede privada | VPC, PrivateLink e Transit Gateway (`aws-para-backend/03`) | VNet, Private Link, *peering* | VPC, Private Service Connect, *peering* |
+| Contêiner gerenciado | ECS com Fargate (`aws-para-backend/04`) | Container Apps (`azure-para-backend/04`) | Cloud Run |
+| Kubernetes gerenciado | EKS (`aws-para-backend/04`) | AKS (`azure-para-backend/04`) | GKE |
+| Função (*serverless*) | Lambda (`aws-para-backend/06`) | Azure Functions (`azure-para-backend/06`) | Cloud Run functions |
+| Fila | SQS (`aws-para-backend/05`) | Service Bus (filas) (`azure-para-backend/05`) | Pub/Sub, ou Cloud Tasks |
+| *Log* de eventos | MSK, ou Kinesis (`aws-para-backend/05`) | Event Hubs (`azure-para-backend/05`) | Managed Service for Apache Kafka |
+| *Pub/sub* e roteamento | SNS e EventBridge (`aws-para-backend/05`) | Service Bus (tópicos), Event Grid (`azure-para-backend/05`) | Pub/Sub, Eventarc |
+| Banco relacional | RDS e Aurora (`aws-para-backend/07`) | Azure Database for PostgreSQL (servidor flexível) (`azure-para-backend/07`) | Cloud SQL, AlloyDB |
+| Documento e chave-valor | DynamoDB (`aws-para-backend/07`) | Cosmos DB (`azure-para-backend/07`) | Firestore, Bigtable |
+| *Object storage* | S3 (`aws-para-backend/08`) | Blob Storage (`azure-para-backend/08`) | Cloud Storage |
+| Segredos | Secrets Manager (`aws-para-backend/08`) | Key Vault (segredos) (`azure-para-backend/08`) | Secret Manager |
+| Chaves (KMS) | KMS (`aws-para-backend/08`) | Key Vault (chaves), Managed HSM (`azure-para-backend/08`) | Cloud KMS |
+| Identidade de *workload* | papéis IAM, Pod Identity e IRSA (`aws-para-backend/02`) | identidades gerenciadas, Entra Workload ID (`azure-para-backend/02`) | Workload Identity Federation for GKE |
+| Observabilidade nativa | CloudWatch, X-Ray e ADOT (`aws-para-backend/09`) | Azure Monitor, Application Insights (`azure-para-backend/09`) | Cloud Logging, Monitoring e Trace |
+| Rede privada | VPC, PrivateLink e Transit Gateway (`aws-para-backend/03`) | VNet, Private Link, *peering* (`azure-para-backend/03`) | VPC, Private Service Connect, *peering* |
 | *API gateway* | API Gateway | API Management | API Gateway, Apigee |
-| Custo e etiquetas | *tags*, Budgets e Cost Explorer (`aws-para-backend/11`) | Cost Management, orçamentos e *tags* | Cloud Billing: *labels*, orçamentos e exportação para o BigQuery |
+| Custo e etiquetas | *tags*, Budgets e Cost Explorer (`aws-para-backend/11`) | Cost Management, orçamentos e *tags* (`azure-para-backend/11`) | Cloud Billing: *labels*, orçamentos e exportação para o BigQuery |
 
 Uma linha da tabela não é equivalência perfeita. Os detalhes que mudam o desenho estão nas tabelas "No
-Azure → na AWS" de cada marco da `aws-para-backend`:
+Azure → na AWS" de cada marco da `aws-para-backend` e nas tabelas "Na AWS → no Azure" da `azure-para-backend`:
 
 - a ordem por chave do Service Bus (sessões) contra a do SQS FIFO;
 - os cinco níveis de consistência do Cosmos DB contra os dois do DynamoDB;

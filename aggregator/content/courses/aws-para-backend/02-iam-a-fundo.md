@@ -170,6 +170,8 @@ O **IRSA** continua suportado e é o caminho onde o Pod Identity não chega: Far
 | *deny assignment* / Azure Policy | `Deny` explícito, SCP, *permissions boundary* | na AWS, o corte por SCP vale para a conta toda, inclusive o *root* das contas-membro; a conta de gerenciamento não é afetada por SCP (marco 01) |
 | PIM para acesso elevado | Identity Center com conjuntos de permissão e sessões curtas | o elevado vem por papel assumido, nunca por usuário com chave |
 
+O marco gêmeo no Azure é `azure-para-backend/02`.
+
 > **O que o emulador não reproduz.** O `moto` não aplica IAM como a AWS: por padrão, ele aceita qualquer
 > chamada. Por isso, os invariantes deste marco são sobre o **plano** e sobre o avaliador, nunca sobre o
 > comportamento do emulador. A avaliação real se confere no IAM Policy Simulator, com uma conta.

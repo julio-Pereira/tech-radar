@@ -119,6 +119,8 @@ volume. A idade só sobe quando o processamento parou, e ela é o atraso que o c
 | Azure Activity Log | CloudTrail | na AWS, a trilha de organização para uma conta de *log* separada é configuração sua |
 | Azure Monitor OpenTelemetry Distro | ADOT | as duas são distribuições do OTel com os componentes da nuvem |
 
+O marco gêmeo no Azure é `azure-para-backend/09`.
+
 > **O que o laboratório não reproduz.** Não há emulador do CloudWatch que valha: o `moto` aceita a criação
 > de alarmes, mas não avalia métrica nem dispara alarme. Neste marco, a prova é sobre o **plano** (os
 > alarmes existem, apontam para a métrica certa e têm destino) e sobre o **Collector local** (o *trace*

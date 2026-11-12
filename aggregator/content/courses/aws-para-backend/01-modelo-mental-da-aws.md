@@ -100,6 +100,8 @@ sistemas de IA. Ela é uma lista de perguntas para revisar um desenho, não uma 
 | Azure Policy | SCP + AWS Config | a SCP só nega e corta; a avaliação de conformidade e a correção ficam no Config |
 | *resource group* | *tags* e *stacks* | não há equivalente direto. Sem *resource group*, o agrupamento por dono e por custo depende de *tags* consistentes, e por isso elas são obrigatórias |
 
+O marco gêmeo no Azure é `azure-para-backend/01`.
+
 Região no Brasil: `sa-east-1` (São Paulo). Escolher região é também uma decisão de residência de dado,
 com a LGPD pesando na conta.
 

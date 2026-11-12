@@ -127,6 +127,8 @@ intermitente, contêiner para carga contínua", com a exceção registrada em AD
 | Durable Functions | Step Functions | o estado vive no serviço, com a máquina de estados declarada fora do código |
 | Event Grid / Service Bus *trigger* | *event source mapping* ou invocação assíncrona | a semântica de *retry* depende do tipo de invocação |
 
+O marco gêmeo no Azure é `azure-para-backend/06`.
+
 > **O que o emulador não reproduz.** *Cold start* real, cotas de concorrência da conta e o
 > estrangulamento. O *harness* local prova idempotência, *partial batch* e o limite de conexões, que são
 > propriedades do seu código e do seu desenho. O `sam local invoke` roda o *handler* num contêiner parecido
