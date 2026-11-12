@@ -1,0 +1,36 @@
+questions:
+  - question: "O ambiente do Container Apps do `pix-gateway` foi criado sem redundância de zona. Como corrigir?"
+    options:
+      - "Ligar `zone_redundancy_enabled` no ambiente existente e esperar a próxima revisão dos apps redistribuir as réplicas"
+      - "Aumentar o `min_replicas` para 3, o que faz o ambiente espalhar as réplicas pelas três zonas da região"
+      - "Recriar o ambiente com redundância de zona, numa VNet com sub-rede de infraestrutura, e migrar os apps"
+      - "Trocar o Postgres para HA zone-redundant, que leva o ambiente junto para as três zonas"
+    answer: 2
+    explanation: "A redundância de zona do ambiente do Container Apps só se escolhe na criação e exige VNet com sub-rede de infraestrutura (nov 2026). Mais réplicas num ambiente sem zona continuam numa zona só. Por isso a regra sobre o código cobra `zone_redundancy_enabled` antes do primeiro `apply`."
+
+  - question: "O time ligou GRS na conta de storage dos comprovantes, com CPF, no Brazil South. Qual é o problema?"
+    options:
+      - "Nenhum: o GRS copia para o Brazil Southeast, o par do Brazil South, e o dado continua dentro da geografia Brasil"
+      - "O GRS copia para o par, o South Central US, nos Estados Unidos: é uma transferência de dado classificado que exige ADR de residência"
+      - "O GRS não existe no Brazil South, só o LRS"
+      - "O GRS só copia os metadados da conta, não o conteúdo dos blobs, e por isso a residência dos comprovantes não muda com ele ligado na conta"
+    answer: 1
+    explanation: "A cópia geográfica vai para a região pareada. O par do Brazil South é o South Central US, fora da geografia Brasil, e o par é assimétrico. O Brazil Southeast é pareado com o Brazil South, mas tem acesso restrito. Para dado classificado, a saída é ZRS com ADR para outra estratégia de DR, ou a cópia com base legal, chave do cliente e decisão escrita."
+
+  - question: "A API do Pix precisa de failover entre regiões em segundos, sem depender do cache de DNS dos clientes. Front Door ou Traffic Manager?"
+    options:
+      - "Traffic Manager com TTL baixo, que devolve a região saudável e força os clientes a reconectarem na hora"
+      - "Os dois em paralelo, para somar as sondas"
+      - "Nenhum dos dois: o par de regiões já faz o failover automático da API quando a região primária cai inteira"
+      - "Front Door, que termina a conexão na borda e tira a origem doente pela sonda, sem esperar o DNS"
+    answer: 3
+    explanation: "O Traffic Manager é balanceamento por DNS: o failover depende do TTL e dos clientes que o ignoram. O Front Door termina a conexão no ponto de presença e tira a origem doente sem esperar DNS. A documentação recomenda um ou outro, com a exceção do Traffic Manager na frente do Front Door como reserva. O par de regiões não faz failover de aplicação."
+
+  - question: "A ADR diz 'warm standby no Brazil Southeast, RTO de 15 minutos'. O que precisa estar escrito nela para o plano ser real?"
+    options:
+      - "O pedido de acesso à região, as cotas pedidas e a conferência de que cada serviço do caminho existe lá"
+      - "Só o RPO, porque o RTO é garantido pela Microsoft no par"
+      - "A ativação do GRS em todas as contas, que leva junto a computação e os bancos para a região secundária"
+      - "Nada além da estratégia: a região pareada recebe a carga sozinha"
+    answer: 0
+    explanation: "O Brazil Southeast é de acesso restrito: sem o pedido, a assinatura não cria recursos lá. Cotas e serviços disponíveis também mudam por região. No laboratório, a ADR com a região restrita sem o pedido registrado foi reprovada. O par não faz failover da aplicação nem garante RTO."

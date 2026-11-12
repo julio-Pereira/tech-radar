@@ -1,0 +1,36 @@
+questions:
+  - question: "A fatura de rede privada triplicou depois de três spokes novos, sem aumento de tráfego. Qual é a causa mais provável?"
+    options:
+      - "O Firewall do hub passou a cobrar uma taxa fixa por spoke ligado, além da hora e do volume de dados processados por ele"
+      - "Cada spoke criou as próprias zonas `privatelink.*` e os próprios Private Endpoints, em vez de usar as zonas do hub"
+      - "O peering entre as VNets dos spokes e do hub passou a ser cobrado em dobro, uma vez em cada sentido, por cada spoke novo"
+      - "O Service Bus Premium cobra por VNet ligada"
+    answer: 1
+    explanation: "Cada Private Endpoint cobra por hora e por GB, e cada zona DNS privada, por zona e por consulta. Zonas repetidas por spoke multiplicam a conta e quebram a resolução (o recurso resolve o IP público, como no marco 03). No laboratório, a mudança levou as zonas de 5 para 15, e o teste reprovou."
+
+  - question: "A carga do `pix-gateway` muda de família de VM duas vezes por ano e pode ir para outra região no DR. Reserva ou savings plan?"
+    options:
+      - "Reserva, que sempre dá mais desconto que o savings plan, em qualquer carga, e acompanha a troca de família e de região"
+      - "Reserva de 3 anos na família atual, cancelada e comprada de novo a cada mudança de família, sem custo de troca nenhum"
+      - "Savings plan for compute, que acompanha a mudança de família e de região; a reserva prende tamanho, família e região"
+      - "Nenhum dos dois: spot para todo o caminho de pagamento"
+    answer: 2
+    explanation: "A reserva prende tamanho, família e região, e com uso cheio dá mais desconto em carga estável. O savings plan é compromisso de gasto por hora, aplicado entre famílias e regiões. Com os dois, a reserva é aplicada primeiro. Desde 1 jul 2026, as reservas de várias séries antigas não são mais vendidas nem renovadas."
+
+  - question: "O processamento de lote vai rodar em spot. O que o aviso de 30 segundos exige do serviço?"
+    options:
+      - "Nada: o Azure migra a VM para outra zona sem perder estado"
+      - "Que o lote rode no plano Premium do Functions, que impede o Azure de remover a instância spot enquanto há execução em curso nela"
+      - "Que o serviço ignore o aviso e confie no retry do cliente e na reentrega da fila, que já cobrem a instância perdida no meio"
+      - "Ouvir o aviso pelos Scheduled Events, parar de pegar trabalho, gravar o progresso e ter cada item idempotente para ser refeito"
+    answer: 3
+    explanation: "O Azure toma a capacidade spot com até 30 segundos de aviso, entregues pelos Scheduled Events, em que é preciso se inscrever. É quatro vezes menos que os dois minutos da AWS. Só serve para trabalho interrompível e idempotente, com checkpoint, e nunca para o caminho síncrono do pagamento."
+
+  - question: "Por que o modelo de custo do `fin-azure` testa quantidades cobráveis e não reais?"
+    options:
+      - "Porque a quantidade vem do código e não muda com o preço do dia; o preço é uma entrada datada da Retail Prices API, multiplicada no fim"
+      - "Porque o Azure não publica os preços fora do portal e da calculadora, e nenhuma API devolve o preço de cada medidor por região"
+      - "Porque os preços do Azure são iguais em todas as regiões do mundo e não mudam ao longo do ano, e por isso não precisam ser testados no modelo"
+      - "Porque o Cost Management só mostra quantidades"
+    answer: 0
+    explanation: "A quantidade (horas de endpoint, zonas, GB ingeridos, GB-mês retidos) sai do código e do perfil de tráfego, e o teste compara a versão nova com a anterior antes do merge. O preço muda por região e por data, e vem da Retail Prices API, pública. Medido: a retenção de 365 dias levou o workspace do `pix` de 0 para 13.360 GB-mês retidos cobrados."

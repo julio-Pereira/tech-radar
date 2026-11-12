@@ -317,3 +317,91 @@ Os *goldens* de seções sobem para 265/312/304/295/310. Os atributos das regras
 - `dados-distribuidos/07`, `/09`, `/13`, `/16` e `/18`;
 - `seguranca-aplicacao/09` e `/10`;
 - `aws-para-backend/07` e `/08`.
+
+## 5. Fase 4 — Bloco D (marcos 09 a 11, capstone, glossário e conceitos)
+
+Os três marcos saíram dos *stubs*, cada um com os cinco blocos de Hands-on e 4 perguntas de quiz. O marco 11
+traz o `## Capstone` do `fin-azure`, com a entrega por marco, os critérios de pronto e a pergunta final.
+
+O `GLOSSARIO.md` passou de 4 para **55 verbetes**, todos com "Onde na prática" resolvendo para um marco.
+O `conceitos.yaml` ganhou 5 conceitos com dono nesta trilha e citados fora dela: *managed identity* (02),
+Private Endpoint (03), Service Bus (05), Key Vault (08) e Application Insights (09). O `Cosmos DB` continua com
+dono em `dados-distribuidos/16`.
+
+O teste de seções voltou a `var wantNoSection []string`: todo marco tem Hands-on. Os *goldens* de blocos foram
+para 268, 315, 307, 298 e 313.
+
+### Mudanças em relação ao plano
+
+- **Preços.** O laboratório não alcançou a Azure Retail Prices API (`prices.azure.com`): o *proxy* recusou a
+  conexão (403, `connect_rejected`). As páginas de preço do Azure, consultadas pela busca, vieram com os
+  valores em branco. Nenhum preço foi citado de memória. O modelo de custo do marco 11 **separa a quantidade
+  cobrável do preço**: as invariantes estão em quantidades (horas de *endpoint*, zonas, GB ingeridos, GB-mês
+  retidos), e o custo em reais sai quando o leitor roda o modelo com um arquivo de preços tirado da API. O
+  marco diz isso no texto.
+- ***Tag* de custo.** O marco 01 fixou a *tag* `cost-center`; o primeiro rascunho do modelo de custo usou
+  `centro-de-custo`, herdado do `fin-aws`. Ficou `cost-center` no texto e no laboratório.
+- ***Game day*.** O marco 10 cita a medição do *harness* de `aws-para-backend/10` (200 de 200, nenhum em dobro),
+  que prova o serviço e não a nuvem, em vez de repeti-la.
+- **Norma de nuvem.** O marco 10 aponta a Resolução CMN nº 4.893/2021 para `conectividade-multicloud/09`, que
+  já a trata com a ressalva de conferir a versão vigente; não há trilha própria de regulação.
+
+### Medições
+
+| Marco | O que foi medido | Resultado |
+| --- | --- | --- |
+| 09 | Conftest (`--parser hcl2`) sobre o módulo de observabilidade, com os SLOs do `fin-watch` como dados | o código bom passou nas 9 regras; a *fixture* ruim foi reprovada em **7 achados**: o SLO `ledger-lancamento-disponibilidade` sem alerta, o Key Vault sem *diagnostic setting*, a fila `liquidacao` sem alerta de DLQ, o Cosmos sem alerta de 429, a tabela `AZKVAuditLogs` com 365 dias, o Activity Log sem exportação e o Application Insights com ingestão por chave |
+| 09 | mutações isoladas | o alerta de DLQ com o `EntityName` da fila errada reprovou a fila descoberta; o Postgres mandando *log* para um *workspace* do time reprovou, junto com o *workspace* sem retenção explícita |
+| 10 | tabela de regras de DR (`regras_dr.py`) | a ADR boa passou; a ruim foi reprovada em **6 achados**: o Brazil Southeast sem pedido de acesso, *pilot light* com RTO de 5 min, cópia para o South Central US sem ADR de residência, RPO 0 em replicação assíncrona, tempo para escalar maior que o RTO e componente sem custo |
+| 10 | Conftest sobre o caminho de pagamento | o código bom passou nas 7 regras; a *fixture* ruim foi reprovada em **6 achados**: ambiente do Container Apps sem zona, 1 réplica, Postgres *same-zone*, Cosmos sem `zone_redundant`, *storage* LRS e uma conta GZRS de dado classificado sem ADR |
+| 11 | modelo de custo sobre o código (`python-hcl2`), 5 *endpoints*, 5 zonas, 75 GB de *log* por dia | **3.650** horas de *endpoint*, 1.000 GB processados, 5 zonas-mês, **2.250 GB** ingeridos (`pix` 1.200, `ledger` 750, `plataforma` 300), nenhum GB-mês retido cobrado |
+| 11 | mutação: zonas `privatelink` em cada *spoke* | de **5 para 15** zonas, cada nome 3 vezes; reprovou |
+| 11 | mutação: *workspace* do `pix` com 365 dias, sem ADR | de 0 para **13.360 GB-mês** retidos cobrados (40 GB/dia × 334 dias além dos 31 incluídos); reprovou |
+| 11 | mutação: *endpoint* sem `cost-center` e *budget* só com alerta real | reprovou nas duas |
+
+Um detalhe de ferramenta virou conteúdo implícito: o `python-hcl2` devolve cada atributo dentro de uma lista
+(`"name": ["privatelink..."]`), e o modelo precisou de um acessor que desembrulha o valor.
+
+### Números conferidos (12 nov 2026)
+
+- **Azure Monitor:**
+  - métricas de plataforma automáticas, guardadas por 93 dias; um gráfico mostra até 30 dias;
+  - *resource logs* não coletados por padrão, só com *diagnostic setting* e só dali em diante;
+  - Log Analytics: Analytics com 30 dias interativos por padrão e até 2 anos; Basic e Auxiliary com 30 dias
+    fixos e consulta cobrada; total de até 12 anos (4.383 dias) em qualquer plano; a ingestão em Analytics
+    inclui 31 dias; `AzureActivity` e `Usage` com 90 dias sem custo;
+  - Application Insights clássico: ingestão encerrada em 15 jun 2025; todo recurso é baseado em *workspace*;
+  - a Distro do OpenTelemetry é o caminho recomendado; o agente Java não exporta OTLP; a ingestão OTLP pelo
+    agente do Azure Monitor e no AKS está em *preview*, e pela Distro e pelo Collector, GA;
+  - Activity Log guardado por 90 dias;
+  - `DeadletteredMessages` e `ActiveMessages` com a dimensão `EntityName`, valores pontuais;
+  - `TotalRequests` com `StatusCode`; de 1% a 5% de 429 com latência aceitável é saudável.
+- **Resiliência:**
+  - par do Brazil South: South Central US, assimétrico; Brazil Southeast pareado com o Brazil South, de acesso
+    restrito;
+  - o par traz atualização sequencial e prioridade de recuperação, não *failover* automático;
+  - Container Apps: redundância de zona só na criação, com VNet (/23 no Consumption, /27 com *workload
+    profiles*), pelo menos duas réplicas, sem custo extra;
+  - Service Bus: zona automática em todos os *tiers*, sem custo, com a propriedade `zoneRedundant` podendo
+    aparecer como `false`;
+  - Front Door tira a origem sem esperar DNS; Traffic Manager depende do TTL; um ou outro, com o Traffic Manager
+    na frente como exceção;
+  - Chaos Studio no modelo de *workspaces*, com o *Compute Zone Down*, que não cobre o AKS inteiro.
+- **Custo:**
+  - Private Endpoint cobrado por hora e por GB processado, nos dois sentidos (os valores não foram obtidos);
+  - *tag inheritance* nos registros de uso, de 8 a 24 horas para valer;
+  - *budget* com até 5 alertas reais e 5 previstos;
+  - reserva aplicada antes do *savings plan*; o *savings plan* não cobre *software*, rede nem armazenamento;
+  - reservas de VM de várias séries antigas sem venda nem renovação desde 1 jul 2026;
+  - *spot* com até 30 segundos de aviso pelos *Scheduled Events*;
+  - Hybrid Benefit desconta só a licença.
+
+### Pontes
+
+- `observabilidade/05`, `/12` e `/16`;
+- `system-design/13` e `/14`;
+- `dados-distribuidos/02` e `/12`;
+- `ledger-e-contabilidade/08`;
+- `engenharia-de-plataforma/08`;
+- `conectividade-multicloud/09`;
+- `aws-para-backend/09`, `/10` e `/11`.
