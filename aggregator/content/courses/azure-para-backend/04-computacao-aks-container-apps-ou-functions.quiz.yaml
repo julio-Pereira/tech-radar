@@ -1,0 +1,36 @@
+questions:
+  - question: "Um time de cinco pessoas vai publicar três serviços HTTP, um deles com escala pela fila do Service Bus. Qual computação?"
+    options:
+      - "AKS Standard, porque Kubernetes é o padrão do mercado e dá mais controle"
+      - "Container Apps, com a regra de escala da fila e o ambiente interno"
+      - "Uma VM por serviço, para isolar a falha de cada um em hardware próprio"
+      - "Functions para os três, porque não há servidor nenhum para operar"
+    answer: 1
+    explanation: "O Container Apps entrega revisões, divisão de tráfego, escala por regras do KEDA (inclusive fila do Service Bus) e ambiente interno, sem que o time opere um cluster. O AKS faz sentido com muitos serviços, operadores, mesh ou controle fino de nó e rede. Functions é para trabalho intermitente; três serviços HTTP contínuos ficam mais baratos e simples como contêiner."
+
+  - question: "O time quer mandar 10% do tráfego para a nova versão do `pix-gateway` no Container Apps, comparar os erros e depois promover. O que é preciso?"
+    options:
+      - "Dois ambientes do Container Apps e um Front Door dividindo o tráfego entre os dois"
+      - "O modo single de revisões, que divide o tráfego automaticamente em 90/10"
+      - "O modo multiple de revisões, com pesos 90 e 10 que somam 100%"
+      - "Um segundo app com outro nome e um DNS ponderado na frente dos dois apps"
+    answer: 2
+    explanation: "No modo multiple, várias revisões ficam ativas e o tráfego se divide por pesos que somam 100%; os labels dão a uma revisão uma URL própria para teste. No modo single, o padrão, a nova revisão só recebe tráfego quando sobe, e o tráfego todo passa para ela. É o canary nativo, sem ferramenta extra."
+
+  - question: "No AKS Standard, o que é responsabilidade da Microsoft e o que continua sendo do time?"
+    options:
+      - "A Microsoft opera o plano de controle; os node pools, a rede, o ingress e o upgrade continuam do time"
+      - "A Microsoft opera tudo no AKS Standard, inclusive os nós, a rede e o ingress, e o time só publica os manifestos das aplicações"
+      - "O time opera o API Server e o etcd; a Microsoft cuida dos nós e da rede do cluster"
+      - "A Microsoft opera só a rede do cluster, e todo o resto do Kubernetes continua sendo do time"
+    answer: 0
+    explanation: "No AKS, o plano de controle (API Server, etcd, scheduler) é gerenciado. Os node pools de sistema e de usuário, o CNI, o ingress e o upgrade são do time. O AKS Automatic, em GA desde set 2025, passa a operar os nós, a escala e os reparos, com o node auto-provisioning baseado no Karpenter."
+
+  - question: "O `pix-status` puxa do ACR a imagem `pix-status:latest` com o usuário administrador do registro. Quais são os dois problemas?"
+    options:
+      - "Nenhum: o usuário administrador é o caminho recomendado para o Container Apps"
+      - "Só a tag `:latest`, porque o administrador do ACR só tem permissão de leitura"
+      - "Só o usuário administrador, porque a tag `:latest` é imutável no ACR depois de publicada pela primeira vez e não pode ser sobrescrita"
+      - "A tag muda de conteúdo, e o administrador tem acesso total ao registro; o certo é digest e identidade com AcrPull"
+    answer: 3
+    explanation: "A tag aponta para outro conteúdo quando alguém republica; o digest (`@sha256:...`) não muda. O usuário administrador do ACR vem desligado por padrão, tem permissão total no registro e deve ficar desligado (há uma política interna que nega ligá-lo). O app puxa com a própria identidade e o papel AcrPull."

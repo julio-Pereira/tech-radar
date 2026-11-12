@@ -1,0 +1,54 @@
+questions:
+  - question: "Uma função nova, disparada por fila, precisa de VNet e não pode ter cold start no horário comercial. Qual plano e configuração?"
+    options:
+      - "Consumption em Linux, que é o mais barato e escala sozinho"
+      - "Flex Consumption, com instâncias always ready no horário comercial"
+      - "Dedicated num plano do App Service novo, criado só para essa função"
+      - "Consumption em Windows, que tem VNet e nunca tem cold start"
+    answer: 1
+    explanation: "O Flex Consumption é o padrão recomendado para apps novos: escala por evento, com VNet e instâncias always ready opcionais (0 por padrão), que se pagam paradas. O Consumption em Linux se aposenta em 30 set 2028 e não recebe recursos novos. Um plano Dedicated novo só para isso paga a máquina ociosa."
+
+  - question: "A função dispara pelo Event Hubs, e um evento malformado lança exceção sempre. O que acontece com a política de retry infinita do runtime?"
+    options:
+      - "O evento vai para a DLQ do Event Hubs depois de 10 tentativas, e o checkpoint avança normalmente para o próximo"
+      - "O runtime descarta o evento depois de 24 horas de tentativas"
+      - "O Event Hubs pula o evento e segue para o próximo"
+      - "O retry segura o checkpoint, e a partição trava atrás do evento que nunca passa"
+    answer: 3
+    explanation: "No Event Hubs, Kafka, Cosmos DB e Timer, quem refaz é o runtime do Functions, pela política de retry. O Event Hubs não tem DLQ: enquanto o evento é refeito, o checkpoint não avança e a partição para. O evento que nunca vai passar precisa ir para um lugar de erro, com retry limitado. A política só age em exceção não tratada."
+
+  - question: "O orquestrador do Durable usa `time.Now()` para calcular a data de corte da liquidação. Qual é o problema?"
+    options:
+      - "Nenhum, desde que o servidor que roda a função esteja com o relógio sincronizado pelo NTP e no mesmo fuso horário do banco"
+      - "O orquestrador é reexecutado do início a cada passo; a data muda entre replays e ele toma outro caminho"
+      - "O `time.Now()` é lento demais para um orquestrador"
+      - "O problema é só de fuso horário, e se resolve usando UTC"
+    answer: 1
+    explanation: "O orquestrador é reexecutado com o histórico a cada passo (replay), e precisa produzir a mesma sequência de chamadas. Relógio, aleatório, GUID e I/O diretos quebram isso. O certo é o relógio do contexto, gravado no histórico (`ctx.getCurrentInstant()` em Java). No laboratório, a versão com `time.Now()` não repetiu a sequência em nenhum dos 20 replays."
+
+  - question: "Onde vai a chamada HTTP ao parceiro de liquidação num processo do Durable?"
+    options:
+      - "Numa atividade, idempotente, chamada pelo orquestrador"
+      - "No orquestrador, para que o resultado fique gravado no histórico"
+      - "No cliente que inicia a orquestração, antes de ela começar"
+      - "Num temporizador do Durable"
+    answer: 0
+    explanation: "O orquestrador não faz I/O: ele chama atividades, e o resultado delas é que fica no histórico. As atividades podem rodar mais de uma vez (falha, retry), então precisam ser idempotentes, pela chave do lote ou da operação."
+
+  - question: "A função de lote tem `maximum_instance_count` 100 e um pool de 4 conexões por instância. O banco reserva 40 conexões para as funções. O que fazer?"
+    options:
+      - "Nada: o Flex Consumption nunca passa de 10 instâncias na prática"
+      - "Aumentar o max_connections do banco para 400 e deixar a escala livre"
+      - "Fazer a escala máxima × o pool por instância caber nas 40, e pôr o PgBouncer no caminho"
+      - "Trocar o pool por uma conexão nova a cada evento, aberta e fechada dentro da função, para nunca segurar conexão ociosa"
+    answer: 2
+    explanation: "Cada instância abre o próprio pool: 100 × 4 = 400 conexões contra 40 disponíveis. O teto no Azure é a escala máxima combinada com o pool por instância, dimensionados pelo número de `concorrencia-e-recursos/07`, e o PgBouncer embutido do Flexible Server segura o pico. Conexão por evento só piora."
+
+  - question: "Como a função se conecta ao Service Bus sem connection string com chave?"
+    options:
+      - "Não há como: o trigger do Service Bus exige SharedAccessKey"
+      - "Com a chave guardada no Key Vault e uma Key Vault reference no app setting, que troca a chave pela identidade da função na hora da conexão"
+      - "Com o Service Bus no modo público, que não pede autenticação"
+      - "Com `ServiceBusConnection__fullyQualifiedNamespace` e a identidade da função, autenticando pelo Entra ID"
+    answer: 3
+    explanation: "Os bindings aceitam conexão por identidade: o setting com o sufixo `__fullyQualifiedNamespace` aponta o namespace, e a managed identity da função recebe o papel de dados (Data Receiver ou Data Sender). A Key Vault reference esconde a chave, mas a chave continua existindo e dando acesso total. O storage da própria função também aceita identidade."

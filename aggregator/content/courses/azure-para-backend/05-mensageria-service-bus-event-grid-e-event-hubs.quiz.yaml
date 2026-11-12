@@ -1,0 +1,54 @@
+questions:
+  - question: "O consumidor do Service Bus leva até 8 minutos para processar um arquivo. A fila está com o lock máximo. O que acontece, e como resolver?"
+    options:
+      - "Nada: o lock dura até o consumidor completar a mensagem, por mais longo que seja o processamento, enquanto a conexão AMQP estiver aberta"
+      - "O lock máximo é de 5 minutos; a mensagem volta e é processada de novo. O consumidor renova o lock enquanto trabalha"
+      - "A mensagem vai direto para a DLQ"
+      - "O Service Bus estende o lock sozinho quando vê o consumidor ocupado"
+    answer: 1
+    explanation: "O lock padrão é de 1 minuto e o máximo, de 5. Se a mensagem não for completada no prazo, ela volta para a fila e outro consumidor a recebe: o efeito acontece duas vezes. A renovação do lock (manual ou automática, nos SDKs) segura a mensagem durante o processamento longo. A DLQ só entra no MaxDeliveryCount."
+
+  - question: "A fila tem a detecção de duplicidade ligada, com janela de 10 minutos. Ainda assim, um lançamento apareceu duas vezes no ledger. Como?"
+    options:
+      - "A detecção falhou, porque ela só funciona de verdade no tier Premium, e esta fila foi criada no Standard com a janela padrão"
+      - "A mensagem foi enviada duas vezes com MessageIds diferentes, um para cada tentativa do produtor"
+      - "A detecção olha o envio; o lock expirou durante o processamento, a mensagem voltou e foi processada de novo"
+      - "A janela de 10 minutos é curta demais; com 7 dias, isso não aconteceria"
+    answer: 2
+    explanation: "A detecção de duplicidade descarta um segundo envio com o mesmo MessageId dentro da janela, e a documentação é explícita: ela não impede o receptor de processar a mesma mensagem duas vezes. No laboratório, com o lock expirando em 30% das mensagens, foram 26 lançamentos para 20 mensagens sem inbox, e 20 com. Uma janela maior não muda nada disso."
+
+  - question: "Os lançamentos de cada conta precisam ser aplicados em ordem, mas contas diferentes podem andar em paralelo. Como no Service Bus?"
+    options:
+      - "Sessões, com o SessionId igual à conta: cada sessão sai em ordem e fica presa a um receptor por vez"
+      - "Uma fila por conta, criada sob demanda pelo próprio consumidor quando a conta faz o primeiro lançamento do dia, e apagada no fim"
+      - "Um único consumidor para a fila inteira"
+      - "Detecção de duplicidade com o MessageId igual à conta"
+    answer: 0
+    explanation: "Com sessão, as mensagens do mesmo SessionId saem em ordem, e a sessão fica presa a um receptor; sessões diferentes vão para receptores diferentes. No laboratório, 10 contas com 4 receptores concorrentes: nenhuma conta fora de ordem. Um consumidor único dá ordem, mas sem paralelismo nenhum."
+
+  - question: "Um assinante do Event Grid fica fora do ar por 30 horas. O que acontece com os eventos daquele período, na configuração padrão?"
+    options:
+      - "Ficam guardados no tópico até o assinante voltar, sem limite de tempo"
+      - "Vão para o dead-letter da assinatura, que vem configurado por padrão numa conta de storage da Microsoft"
+      - "O Event Grid refaz para sempre, com intervalo de 12 horas"
+      - "O retry dura até 24 h ou 30 tentativas, e sem dead-letter configurado o evento se perde"
+    answer: 3
+    explanation: "O retry padrão do Event Grid vai até 24 horas ou 30 tentativas, o que vencer primeiro, com intervalos fixos. O dead-letter vem desligado: sem uma conta de storage de destino, o evento que esgota as tentativas se perde. Para o que não pode se perder, o caminho é uma fila do Service Bus como destino, ou o dead-letter configurado."
+
+  - question: "O antifraude precisa reler as transações das últimas 48 horas depois de corrigir um modelo. Qual serviço?"
+    options:
+      - "Event Hubs, um log particionado com posição por consumer group, dentro da retenção"
+      - "Fila do Service Bus, reenviando a DLQ"
+      - "Event Grid, com o retry configurado para 48 horas"
+      - "Tópico do Service Bus, com uma assinatura nova criada agora, que recebe o histórico das últimas 48 horas"
+    answer: 0
+    explanation: "Só o Event Hubs guarda o fluxo para ser relido: cada consumer group tem a própria posição, e o consumidor pode voltar no tempo dentro da retenção. Fila e tópico do Service Bus apagam a mensagem quando ela é completada; o Event Grid entrega e esquece. Uma assinatura nova de tópico só recebe o que chegar depois dela."
+
+  - question: "O time quer apontar um cliente Kafka para o Event Hubs no tier Basic, com compressão snappy. O que acontece?"
+    options:
+      - "Funciona: o Event Hubs aceita qualquer cliente e qualquer compressão do Kafka em todos os tiers, inclusive no Basic e no Standard"
+      - "Funciona, mas sem garantia de ordem nas partições"
+      - "Não funciona: o Kafka não está no Basic, e a compressão aceita é só gzip, no Premium e no Dedicated"
+      - "Funciona só para produtor, e o consumidor precisa usar o SDK nativo do Event Hubs"
+    answer: 2
+    explanation: "Conferido em 12 nov 2026: o endpoint Kafka existe no Standard, no Premium e no Dedicated, não no Basic. A compressão aceita é só gzip, e só no Premium e no Dedicated; as transações estão em preview, e as páginas divergem. O que muda em relação a um Kafka de verdade está em `kafka/10`."
