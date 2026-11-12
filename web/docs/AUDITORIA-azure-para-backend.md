@@ -183,3 +183,79 @@ Os *goldens* de seções sobem para 260/307/299/290/305, e os três marcos saem 
 - `entrega-continua-e-devops/02`;
 - `conectividade-multicloud/02`, `/04` e `/08`;
 - `aws-para-backend/01`, `/02` e `/03`, os marcos gêmeos.
+
+## 3. Fase 2 — Bloco B (marcos 04 a 06)
+
+Os três marcos têm:
+
+- os cinco blocos de `## Hands-on`;
+- a tabela "Na AWS → no Azure", com ponte para o marco gêmeo;
+- a caixa "armadilha";
+- a caixa "o que o emulador/laboratório não reproduz" nos marcos com emulador ou *harness* (05 e 06);
+- `reviewEvery: 6m`;
+- 16 questões (4 + 6 + 6). A resposta certa está distribuída e nunca é a opção estritamente mais longa:
+  conferido por *script*, depois de rebalancear 11 das 16.
+
+Os *goldens* de seções sobem para 263/310/302/293/308.
+
+Os nomes dos atributos usados pelas regras (`termination_grace_period_seconds`, `registry.identity`,
+`internal_load_balancer_enabled`, `admin_enabled`, `maximum_instance_count`, `storage_authentication_type`) foram
+conferidos no *schema* do `azurerm` 5.13.0 (`terraform providers schema -json`), e não de memória.
+
+### Medições
+
+| Marco | Experimento | Resultado |
+| --- | --- | --- |
+| 04 | Conftest sobre o Container Apps e o ACR | o código bom passou nas 6 regras. A *fixture* ruim foi reprovada nas **6**: ambiente público, identidade compartilhada, encerramento de 30 s igual ao *drain*, imagem puxada com usuário e senha, imagem `:latest`, ACR com administrador |
+| 05 | emulador do Service Bus, *lock* de 5 s, 20 mensagens com 30% processadas em 8 s, 3 consumidores | **sem *inbox*: 26 lançamentos para 20 mensagens; com *inbox*: 20** |
+| 05 | 3 mensagens até a DLQ, uma já aplicada antes da falha; reprocessamento com *inbox* | 3 na DLQ; **3 lançamentos** depois do reprocessamento |
+| 05 | sessões: 10 contas × 5 lançamentos, 4 receptores (`NEXT_AVAILABLE_SESSION`) | 50 mensagens, **nenhuma conta fora de ordem**. A primeira versão do teste passou `session_id=None` e não recebeu nada; a segunda leu 100 mensagens porque as da primeira tinham ficado na fila |
+| 05 | 400 KB direto na fila do emulador; depois por referência no Azurite | `MessageSizeExceededError`; pela referência, o conteúdo conferiu |
+| 06 | *harness* em Go: 100 eventos entregues 1 a 4 vezes, embaralhados e em paralelo, com *inbox* | 204 entregas, **100 efeitos** |
+| 06 | *replay* do orquestrador com o mesmo histórico, 20 vezes | com o relógio do contexto, a mesma sequência; com `time.Now()` e aleatório direto, **0 de 20** repetiram |
+| 06 | 200 "instâncias" contra um limite de conexões | pico de 200 sem limite e de 20 com o limite (simulação; a medição contra um Postgres real é a de `aws-para-backend/06`) |
+| 06 | Conftest sobre a Function App no Flex Consumption | o código bom passou nas 3 regras; a *fixture* ruim foi reprovada nas **3** (400 conexões contra 40, *connection string* com `SharedAccessKey`, storage por *connection string*) |
+
+### Números conferidos (12 nov 2026)
+
+- **Container Apps:**
+  - revisões em modo *single*, o padrão, e *multiple*, com pesos que somam 100% e *labels*;
+  - o ambiente com *workload profiles* pede sub-rede /27 e aceita UDR e NAT; o legado, só Consumption, pede /23
+    e não aceita.
+- **ACR:** o administrador vem desligado, tem permissão total e há uma política interna que nega ligá-lo.
+- **AKS:**
+  - AKS Automatic em GA desde set 2025;
+  - *node auto-provisioning* em GA;
+  - o Application Gateway for Containers exige Azure CNI ou Overlay e a *workload identity*.
+- **Service Bus:**
+  - *lock* padrão de 1 min e máximo de 5 min;
+  - `MaxDeliveryCount` padrão de 10;
+  - duplicidade de 10 min por padrão e 7 dias no máximo;
+  - 256 KB no Standard e 100 MB no Premium, por AMQP;
+  - 100 mensagens por transação.
+- **Event Grid:**
+  - *retry* até 24 h ou 30 tentativas, com calendário fixo;
+  - *dead-letter* desligado por padrão;
+  - 400 e 413 vão direto para o *dead-letter*.
+- **Event Hubs:** Kafka no Standard em diante; compressão só gzip, no Premium e no Dedicated; transações em
+  *preview*.
+- **Functions:**
+  - Flex Consumption com até 1.000 instâncias, de 512 a 4.096 MB (2.048 MB por padrão);
+  - *timeout* padrão de 30 min, sem máximo;
+  - 0 instâncias *always ready* por padrão;
+  - o Consumption em Linux se aposenta em 30 set 2028;
+  - *retry* do *runtime* para Event Hubs, Kafka, Cosmos DB e Timer.
+- **Durable:**
+  - sem relógio, aleatório, GUID nem I/O direto no orquestrador;
+  - `ctx.getCurrentInstant()` em Java;
+  - a página de *preview* do Go lista a falta de Durable para Go.
+
+### Pontes
+
+- `kubernetes/06`, `/07` e `/14`;
+- `spring-boot/12`;
+- `entrega-continua-e-devops/05`;
+- `kafka/10`;
+- `arquitetura-eventos/08` e `/09`;
+- `concorrencia-e-recursos/07`;
+- `aws-para-backend/04`, `/05` e `/06`.
