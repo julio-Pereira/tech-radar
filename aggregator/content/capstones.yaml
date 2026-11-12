@@ -44,6 +44,12 @@
   artifacts:
     - { path: "fin-aws/", check: exists }
 
+- track: azure-para-backend
+  component: fin-azure
+  depends_on: [fin-iac, ledger-core, pix-gateway, pix-stream, fin-watch, fin-contention, fin-interconnect, fin-aws]
+  artifacts:
+    - { path: "fin-azure/", check: exists }
+
 - track: go-fintech
   component: ledger-core
   depends_on: []
@@ -130,7 +136,7 @@
 
 - track: engenharia-de-plataforma
   component: fin-devplatform
-  depends_on: [fin-pipeline, fin-landscape, fin-platform, fin-iac, fin-aws]
+  depends_on: [fin-pipeline, fin-landscape, fin-platform, fin-iac, fin-aws, fin-azure]
   artifacts:
     - { path: "fin-devplatform/", check: exists }
 

@@ -1,0 +1,39 @@
+slug: azure-para-backend
+title: "Azure para Backend em Fintech"
+subtitle: "Identidade, rede, computação, mensageria, dados, chaves, observabilidade, resiliência e custo: as decisões que um backend sênior defende no Azure — provadas sobre o código de infraestrutura e em emuladores, antes de existir uma assinatura."
+category: "Cloud"
+tags: [azure, entra-id, rbac, managed-identity, vnet, private-endpoint, aks, container-apps, functions, service-bus, event-grid, event-hubs, cosmos-db, postgresql, key-vault, azure-monitor, finops, terraform, fintech, entrevista]
+level: advanced
+lang: pt-BR
+# 11 marcos, 655 min (web/docs/AUDITORIA-azure-para-backend.md). A regra é ~2x
+# a soma dos estimatedMinutes: 655 x 2 / 60 = 21,8 -> 22.
+estimatedHours: 22
+glossary: GLOSSARIO.md
+sources:
+  - { title: "Azure Well-Architected Framework", url: https://learn.microsoft.com/azure/well-architected/ }
+  - { title: "Cloud Adoption Framework — Azure landing zones", url: https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/ }
+  - { title: "Azure Architecture Center", url: https://learn.microsoft.com/azure/architecture/ }
+  - { title: "Microsoft for Financial Services — cloud service enablement framework", url: https://learn.microsoft.com/industry/financial-services/service-enablement-framework }
+  - { title: "Azure RBAC documentation", url: https://learn.microsoft.com/azure/role-based-access-control/ }
+  - { title: "Azure Private Endpoint DNS configuration", url: https://learn.microsoft.com/azure/private-link/private-endpoint-dns }
+  - { title: "Azure region pairs and nonpaired regions", url: https://learn.microsoft.com/azure/reliability/regions-paired }
+  - { title: "Azure SDK for Go", url: https://learn.microsoft.com/azure/developer/go/ }
+  - { title: "Azure SDK for Java", url: https://learn.microsoft.com/azure/developer/java/sdk/ }
+  - { title: "Terraform AzureRM Provider", url: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs }
+  - { title: "Study guide for Exam AZ-305", url: https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-305 }
+milestones:
+  # Bloco A — Fundação: governança, identidade e rede
+  - 01-modelo-mental-do-azure.md
+  - 02-identidade-entra-id-e-rbac.md
+  - 03-rede-vnet-private-endpoint-e-dns.md
+  # Bloco B — Onde o código roda e como conversa
+  - 04-computacao-aks-container-apps-ou-functions.md
+  - 05-mensageria-service-bus-event-grid-e-event-hubs.md
+  - 06-functions-e-orquestracao.md
+  # Bloco C — Dados e chaves
+  - 07-dados-gerenciados-postgresql-sql-e-cosmos.md
+  - 08-storage-key-vault-e-chaves.md
+  # Bloco D — Operar
+  - 09-observabilidade-com-azure-monitor.md
+  - 10-resiliencia-zonas-regioes-e-dr.md
+  - 11-finops-e-capstone.md

@@ -422,9 +422,21 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	// Every milestone has a hands-on section again since the aws-para-backend
-	// Fase 4.
-	var wantNoSection []string
+	// The azure-para-backend stubs (Fase 0) leave this list as each block is
+	// written; once the trilha is complete it must be empty again.
+	wantNoSection := []string{
+		"azure-para-backend/computacao-aks-container-apps-ou-functions",
+		"azure-para-backend/dados-gerenciados-postgresql-sql-e-cosmos",
+		"azure-para-backend/finops-e-capstone",
+		"azure-para-backend/functions-e-orquestracao",
+		"azure-para-backend/identidade-entra-id-e-rbac",
+		"azure-para-backend/mensageria-service-bus-event-grid-e-event-hubs",
+		"azure-para-backend/modelo-mental-do-azure",
+		"azure-para-backend/observabilidade-com-azure-monitor",
+		"azure-para-backend/rede-vnet-private-endpoint-e-dns",
+		"azure-para-backend/resiliencia-zonas-regioes-e-dr",
+		"azure-para-backend/storage-key-vault-e-chaves",
+	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}
