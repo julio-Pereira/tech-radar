@@ -289,3 +289,26 @@
   termo: "ADOT (AWS Distro for OpenTelemetry)"
   dono: aws-para-backend/09
   apelidos: ["ADOT", "AWS Distro for OpenTelemetry"]
+
+# ── Azure para backend ─────────────────────────────────────────────────────
+- id: managed-identity
+  termo: "Managed identity"
+  dono: azure-para-backend/02
+  apelidos: ["managed identity", "managed identities"]
+  ignorarCaixa: true
+- id: private-endpoint
+  termo: "Private Endpoint"
+  dono: azure-para-backend/03
+  apelidos: ["Private Endpoint", "Private Endpoints"]
+- id: azure-service-bus
+  termo: "Azure Service Bus"
+  dono: azure-para-backend/05
+  apelidos: ["Service Bus"]
+- id: azure-key-vault
+  termo: "Azure Key Vault"
+  dono: azure-para-backend/08
+  apelidos: ["Key Vault"]
+- id: application-insights
+  termo: "Application Insights"
+  dono: azure-para-backend/09
+  apelidos: ["Application Insights"]
