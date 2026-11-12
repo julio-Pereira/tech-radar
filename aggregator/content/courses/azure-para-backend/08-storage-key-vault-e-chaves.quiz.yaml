@@ -1,0 +1,54 @@
+questions:
+  - question: "A conta de storage da conciliação tem o acesso público desligado e o RBAC de dados bem desenhado. Mesmo assim, um operador com Owner leu os arquivos. Como?"
+    options:
+      - "O Owner tem DataActions de leitura em todos os blobs da assinatura"
+      - "O operador listou as chaves da conta e leu pela shared key, que estava ligada"
+      - "O acesso público desligado não vale para quem está dentro da VNet do hub, que alcança a conta pelo backbone do Azure"
+      - "O RBAC de dados só vale para identidades de aplicação"
+    answer: 1
+    explanation: "O Owner não tem papel de dados, mas tem `listkeys`, e com a chave da conta a autorização Shared Key lê tudo, por fora do RBAC. O valor padrão do campo é nulo, o que equivale a ligada. Desligar a shared key obriga toda requisição, inclusive SAS, a passar pelo Entra ID."
+
+  - question: "O parceiro de contabilidade precisa baixar os arquivos do mês. Qual SAS?"
+    options:
+      - "SAS de conta assinada com a chave da conta, válida por um ano, para o parceiro não precisar renovar o acesso a cada mês"
+      - "SAS de serviço assinada com a chave da conta, só no contêiner, válida por um mês inteiro"
+      - "Nenhuma: o parceiro recebe a chave da conta de storage"
+      - "SAS de delegação de usuário, de horas, gerada por uma identidade que só lê o prefixo dele"
+    answer: 3
+    explanation: "A SAS de delegação de usuário é assinada com uma chave obtida pelo Entra ID, e vale no máximo 7 dias. As SAS assinadas com a chave da conta só se cortam girando a chave, o que derruba quem mais a usa, e deixam de funcionar quando a shared key é desligada. A permissão é a de quem gerou."
+
+  - question: "Os arquivos de conciliação precisam de retenção de 5 anos que atenda à SEC 17a-4. Qual configuração?"
+    options:
+      - "Imutabilidade por tempo no contêiner, com a política travada (locked)"
+      - "Soft delete de 5 anos na conta de storage"
+      - "Imutabilidade destravada, para poder corrigir o prazo depois"
+      - "Versionamento ligado e um resource lock CanNotDelete na conta de storage"
+    answer: 0
+    explanation: "Só a política de retenção travada deixa o blob no estado que atende à SEC 17a-4(f). A destravada pode ser encurtada ou apagada e serve para teste; a travada não pode ser apagada nem encurtada, só estendida. O soft delete e o resource lock protegem do erro, não de quem administra a conta."
+
+  - question: "A CMK das contas de storage está num Key Vault sem purge protection. Qual é o risco?"
+    options:
+      - "Nenhum: o soft delete sozinho impede que a chave seja apagada"
+      - "A chave expira sozinha em 90 dias"
+      - "Quem tem papel no vault apaga a chave e a purga; o dado cifrado com ela fica ilegível"
+      - "O Key Vault sem purge protection não aceita ser usado como CMK por nenhum serviço, e a criptografia volta para a chave da Microsoft"
+    answer: 2
+    explanation: "O soft delete fica ligado, com retenção de 7 a 90 dias, mas sem purge protection a chave apagada pode ser purgada antes do fim da retenção. A purge protection vem desligada, e ligá-la não tem volta. Sem a chave, o storage cifrado com CMK responde 403 para sempre."
+
+  - question: "A identidade do serviço de crédito perde o acesso à CMK do Postgres Flexible Server. O que acontece com o banco?"
+    options:
+      - "Nada até o próximo backup, quando o backup falha"
+      - "O servidor fica inacessível, em geral em até 60 minutos, e pode levar outros 60 para voltar depois da correção"
+      - "O servidor troca sozinho para a chave gerenciada pela Microsoft e continua atendendo, com um alerta no portal para o time"
+      - "Só as escritas param; as leituras continuam funcionando normalmente até a chave voltar"
+    answer: 1
+    explanation: "Sem a chave, o Flexible Server muda para Inacessível e recusa todas as conexões, em geral em até 60 minutos depois de a chave ser desligada, apagada, expirar ou ficar inalcançável; depois da correção, pode levar até 60 minutos para voltar. O Storage responde 403, e o Cosmos entra em estado de revogação."
+
+  - question: "O arquivo de conciliação é cifrado na aplicação com envelope e AAD `servico=conciliacao;arquivo=2026-11-12`. Um serviço de relatórios, com papel na chave mestra, tenta abri-lo com o próprio AAD. O que acontece?"
+    options:
+      - "Abre, porque ele tem papel para desembrulhar a chave de dados"
+      - "Abre, mas só se o arquivo tiver menos de 24 horas"
+      - "Não desembrulha a chave, porque o Key Vault confere o AAD antes de entregar a chave de dados"
+      - "Não abre: o AAD é autenticado, e o AES-GCM falha com o AAD de outro serviço"
+    answer: 3
+    explanation: "O AAD entra na autenticação do AES-GCM: decifrar exige o mesmo AAD. No laboratório, com o Azurite e o Lowkey Vault, o AAD certo abriu, e o AAD de outro arquivo, o de outro serviço e a falta de AAD deram `InvalidTag`. O Key Vault não vê o AAD; a proteção é da cifra, e o papel na chave é a outra camada."

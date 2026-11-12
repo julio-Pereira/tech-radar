@@ -1,0 +1,36 @@
+questions:
+  - question: "O Postgres Flexible Server do ledger tem HA same-zone. O time diz que o banco está protegido contra a queda de uma zona. Está certo?"
+    options:
+      - "Sim: qualquer HA do Flexible Server protege contra a queda da zona"
+      - "Não: o same-zone protege da falha do servidor; contra a zona, é o zone-redundant, com failover de 60 a 120 s"
+      - "Sim, porque a standby same-zone atende leitura e assume a escrita na hora, sem nenhum tempo de failover visível para a aplicação"
+      - "Não, porque o Flexible Server não tem HA; é preciso uma réplica de leitura"
+    answer: 1
+    explanation: "No same-zone, a standby fica na mesma zona, com SLA de 99,95%: protege da falha de servidor, não da falha da zona. O zone-redundant põe a standby em outra zona, com failover de 60 a 120 segundos, sem perda de dado, e SLA de 99,99%. A standby não atende leitura; para isso há as réplicas de leitura, assíncronas."
+
+  - question: "Depois de um failover de HA, a aplicação que usa o PgBouncer embutido (porta 6432) passa a receber erros de conexão. Por quê, e o que resolve?"
+    options:
+      - "O PgBouncer embutido não existe depois do failover e precisa ser recriado à mão pelo time"
+      - "A porta 6432 muda para outro número a cada failover, conforme a zona da nova primária"
+      - "O failover troca o nome de host do servidor para o da standby, e a aplicação precisa ser reconfigurada e reiniciada para apontar para ele"
+      - "O PgBouncer também reinicia no failover, e as conexões caem; o pool precisa verificar e refazer, com retry idempotente"
+    answer: 3
+    explanation: "Pela documentação, depois de um failover de HA o PgBouncer embutido reinicia, e as conexões existentes precisam ser refeitas. O nome de host e a porta continuam os mesmos. O pool do lado da aplicação precisa se recuperar sozinho: em `aws-para-backend/07`, sem verificação de conexão foram 4 falhas; com verificação, 1."
+
+  - question: "O índice de idempotência no Cosmos usa a data como chave de partição. Num dia de pico, o Cosmos devolve 429 com a conta usando uma fração das RU/s contratadas. Por quê?"
+    options:
+      - "Toda escrita do dia cai na mesma partição lógica, limitada a 10.000 RU/s, qualquer que seja o total"
+      - "O modo autoscale tem um teto diário de escritas por conta, que só zera à meia-noite UTC e não aparece nas métricas"
+      - "O 429 vem do TTL, que apaga os itens vencidos no horário de pico"
+      - "O transactional batch consome o dobro das RU de cada escrita"
+    answer: 0
+    explanation: "A chave de partição distribui os itens; uma partição tem até 10.000 RU/s e 20 GB. Com a data como chave, todas as escritas do dia vão para uma partição só: no laboratório, a data concentrou 100% das escritas de um dia sintético, a conta 0,165% e o identificador fim a ponta menos de 0,001%. A correção é uma chave de alta cardinalidade."
+
+  - question: "O banco do ledger está no Brazil South, e o time quer ligar o backup geograficamente redundante. O que muda?"
+    options:
+      - "Nada: o backup geográfico fica sempre no Brasil, no Brazil Southeast"
+      - "O backup passa a ser feito em outra zona da mesma região"
+      - "O backup é replicado para o par, o South Central US: é uma decisão de residência, só na criação"
+      - "O backup geográfico vira failover automático para outra região do Brasil, com RPO zero e sem nenhuma ação do time"
+    answer: 2
+    explanation: "O backup geográfico do Flexible Server é replicado para o par de regiões, e o par do Brazil South é o South Central US. Ele só se liga na criação do servidor, o geo-restore tem RPO de até cerca de uma hora e não é failover automático. Para uma fintech, isso exige ADR de residência ou fica desligado."
