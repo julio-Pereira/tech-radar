@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 257, "desafio": 304, "invariantes": 296, "complemento": 287, "checagem": 302, "gabarito": 5,
+		"tutorial": 260, "desafio": 307, "invariantes": 299, "complemento": 290, "checagem": 305, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -429,11 +429,8 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		"azure-para-backend/dados-gerenciados-postgresql-sql-e-cosmos",
 		"azure-para-backend/finops-e-capstone",
 		"azure-para-backend/functions-e-orquestracao",
-		"azure-para-backend/identidade-entra-id-e-rbac",
 		"azure-para-backend/mensageria-service-bus-event-grid-e-event-hubs",
-		"azure-para-backend/modelo-mental-do-azure",
 		"azure-para-backend/observabilidade-com-azure-monitor",
-		"azure-para-backend/rede-vnet-private-endpoint-e-dns",
 		"azure-para-backend/resiliencia-zonas-regioes-e-dr",
 		"azure-para-backend/storage-key-vault-e-chaves",
 	}

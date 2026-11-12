@@ -127,3 +127,59 @@ Dois erros meus no caminho viraram conteúdo:
 - **Índice de nuvem.** A coluna Azure da tabela de `arquitetura-de-solucoes/05`, feita no Bloco 2 do
   adendo de sinais, passa a apontar para os marcos desta trilha.
 - **Jornada `entrevista-senior`.** Ganha os marcos 02, 03, 05 e 10 como opção "nuvem Azure".
+
+## 2. Fase 1 — Bloco A (marcos 01 a 03)
+
+Os três marcos têm:
+
+- os cinco blocos de `## Hands-on`;
+- a tabela "Na AWS → no Azure", com ponte para o marco gêmeo da `aws-para-backend`;
+- a caixa "armadilha";
+- a caixa "o que o laboratório não reproduz" nos marcos com avaliador ou resolvedor didático (02 e 03);
+- `reviewEvery: 6m`;
+- 16 questões (4 + 6 + 6). A resposta certa está distribuída e nunca é a opção estritamente mais longa:
+  conferido por *script*, depois de rebalancear 7 das 16.
+
+Os *goldens* de seções sobem para 260/307/299/290/305, e os três marcos saem de `wantNoSection`.
+
+### Medições
+
+| Marco | Experimento | Resultado |
+| --- | --- | --- |
+| 01 | Conftest `--parser hcl2` sobre a árvore de governança: assinatura sob *guardrails*, localizações e *tags* | a primeira versão da regra **reprovou o código bom**: a função do pai devolvia o endereço completo (`azurerm_management_group.fin`), e não o nome. Corrigida, o código bom passou nas 3 regras, e a *fixture* ruim foi reprovada em **4 achados** (assinatura num *management group* solto, *resource group* em `eastus`, `data-classification` faltando no `local.tags`, *resource group* sem *tag*) |
+| 02 | avaliador didático de RBAC em Go (`go test`) | os **10 casos da documentação** e a matriz do `pix-gateway` (1 permitido, 3 negados) passaram. Na **mutação** que trata `NotActions` como negação global, o caso "outro papel concede de volta" falhou |
+| 02 | Conftest sobre as atribuições e as identidades | o código bom passou nas 3 regras; a *fixture* ruim, em **4 achados** (escopo de assinatura, `Contributor`, `Data Owner` no *namespace*, `azuread_application_password`) |
+| 03 | resolvedor didático de DNS em Go | zona vinculada ao *hub* e ao AKS: IP privado. Zona só no *hub*, AKS com *peering*: **IP público**. A matriz de VNets consumidoras pegou exatamente a VNet de funções sem vínculo |
+| 03 | Conftest sobre a rede: PaaS público, Private Endpoint, zona e vínculo, NSG, saída única, sobreposição com as bordas, *flow logs* | o código bom passou nas 8 regras; a *fixture* ruim foi reprovada em **8 achados** |
+
+### Números conferidos (12 nov 2026)
+
+- **Governança:**
+  - até seis níveis de *management group* abaixo da raiz e 10.000 por tenant; a orientação do CAF é de três a
+    quatro níveis;
+  - os 11 efeitos do Azure Policy (`addToNetworkGroup`, `append`, `audit`, `auditIfNotExists`, `deny`,
+    `denyAction`, `deployIfNotExists`, `disabled`, `manual`, `modify`, `mutate`), com `modify` e
+    `deployIfNotExists` exigindo *managed identity* na atribuição;
+  - o *framework* da Microsoft para instituições financeiras recomenda *sandboxes* como tenants isolados.
+- **RBAC:**
+  - **5.000** atribuições por assinatura, um limite fixo, e 500 por *management group* (páginas antigas ainda
+    dizem 4.000 ou 2.000);
+  - a ordem de avaliação: *deny assignments*, atribuições somadas, condições;
+  - as *deny assignments* vencem o `Owner`;
+  - os papéis de controle não dão dados pelo Entra ID, mas o `listkeys` dá a chave da conta, e o portal usa
+    esse caminho.
+- **Rede:**
+  - as regras padrão do NSG (65000, 65001, 65500) e as próprias de 100 a 4096;
+  - com NSG na sub-rede e na interface, os dois precisam permitir;
+  - as zonas `privatelink` dos cinco serviços do marco;
+  - o DNS Private Resolver, com *inbound endpoint*, *outbound endpoint* e *forwarding rulesets*.
+
+### Pontes
+
+- `arquitetura-de-solucoes/05`;
+- `system-design/13`;
+- `seguranca-aplicacao/08`, `/10` e `/11`;
+- `kubernetes/10` e `/11`;
+- `entrega-continua-e-devops/02`;
+- `conectividade-multicloud/02`, `/04` e `/08`;
+- `aws-para-backend/01`, `/02` e `/03`, os marcos gêmeos.
