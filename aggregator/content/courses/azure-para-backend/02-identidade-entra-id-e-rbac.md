@@ -81,7 +81,7 @@ Três consequências que caem em entrevista:
   gerenciadas, por exemplo) e as atribuídas pelo usuário. Conferido em 12 nov 2026: as do usuário negam escrita,
   exclusão e ações num escopo, mas **não cobrem leitura nem ações de dados**, não aceitam grupo como principal e
   exigem pelo menos um principal excluído. Elas são raras e servem para proteger, não para desenhar acesso.
-- **Condições não negam.** Uma condição de atribuição (ABAC, hoje para Blob e Queue Storage) só restringe o que
+- **Condições não negam.** Uma condição de atribuição (ABAC, hoje para Blob, inclusive o Data Lake Gen2, e Queue Storage) só restringe o que
   o papel concede.
 
 ## Plano de controle × plano de dados

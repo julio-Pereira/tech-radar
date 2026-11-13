@@ -46,7 +46,7 @@ Conferido em 12 nov 2026, para os serviços do `fin-azure`:
 | AKS | *node pools* em várias zonas | o disco persistente é zonal: o *pod* com volume não muda de zona |
 | Postgres Flexible Server | HA *zone-redundant* (marco 07) | o *same-zone* não protege da zona |
 | Cosmos DB | `zone_redundant` em cada região da conta | é por região, configurado na criação da região |
-| Storage | ZRS, ou GZRS para somar a cópia geográfica | LRS fica numa zona só; GRS copia para o par |
+| Storage | ZRS, ou GZRS para somar a cópia geográfica | LRS fica num *datacenter* só; GRS copia para o par |
 | Service Bus | automático em todos os *tiers*, nas regiões com zona, sem custo | a propriedade `zoneRedundant` pode aparecer como `false` mesmo assim |
 | Key Vault, Event Grid | do próprio serviço | nada a configurar |
 
