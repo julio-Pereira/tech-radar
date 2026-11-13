@@ -301,7 +301,7 @@ Os *goldens* de seções sobem para 265/312/304/295/310. Os atributos das regras
 - **Storage:**
   - *shared key* com padrão nulo, que equivale a ligada;
   - SAS de delegação de usuário de no máximo 7 dias;
-  - TLS 1.2 recomendado;
+  - TLS 1.2 obrigatório desde 3 fev 2026 (corrigido na Fase 6; o texto da Fase 3 dizia "recomendado");
   - só a imutabilidade travada atende a SEC 17a-4(f), estendida até cinco vezes no contêiner.
 - **Key Vault:**
   - *soft delete* de 7 a 90 dias (90 por padrão), sem mudar depois;
@@ -418,3 +418,51 @@ Um detalhe de ferramenta virou conteúdo implícito: o `python-hcl2` devolve cad
 - **Jornada `entrevista-senior`.** Não havia grupo de nuvem: o grupo novo **"Nuvem (escolha a da vaga)"**, no
   mesmo formato do de linguagem (opcional), traz os marcos 02, 03, 05 e 10 das duas trilhas, antes do domínio
   fintech. A jornada passou de 39 para 47 passos, e o `jornada.spec.js` acompanha os dois números (grupos e etapas).
+
+## 7. Fase 6 — auditoria final e revisão independente
+
+### Checagens mecânicas (13 nov 2026)
+
+| Checagem | Resultado |
+| --- | --- |
+| Σ `estimatedMinutes` dos 11 marcos | **655**, igual ao plano |
+| `estimatedHours` do `course.yaml` | **22** |
+| perguntas de quiz | **54** (4 ou 6 por marco); respostas por posição 22% / 30% / 24% / 24% |
+| resposta certa como a única opção mais longa | **0** |
+| verbetes do glossário | **55** (mínimo 30), 55/55 com marco resolvido |
+| marcos com os cinco blocos de Hands-on | **11 de 11**, nenhum *stub* |
+| pontes | todas resolvem (`TestBridgesResolve`), nenhuma entrada nova em `bridges-planned.yaml` |
+| credenciais no CI | nenhuma variável `ARM_*` ou `AZURE_*` em `.github/` |
+
+### Revisão independente (marcos 02, 03, 05, 06 e 08)
+
+Um revisor separado conferiu as afirmações factuais dos cinco marcos e dos quizzes contra o Microsoft Learn, só
+pela busca: o WebFetch de `learn.microsoft.com` não estava liberado na rede. Resultado: **88 afirmações conferem**
+(18 no 02, 15 no 03, 20 no 05, 17 no 06, 18 no 08), os quizzes estão coerentes com o texto, e **2 erros
+factuais**, ambos no marco 08:
+
+| Marco | O texto dizia | A documentação diz | Correção |
+| --- | --- | --- | --- |
+| 08 | "o TLS mínimo recomendado é o 1.2" | desde **3 fev 2026**, o Storage recusa TLS 1.0 e 1.1 em todas as contas (conferido de novo nesta fase) | o 1.2 é o mínimo obrigatório; a regra sobre o código (`min_tls_version`) continua, e o achado "TLS 1.0" da *fixture* virou "declarado no código" |
+| 08 | "LRS (três cópias numa zona)" | o LRS replica três vezes **num único *datacenter*** | corrigido no 08 e na tabela de zonas do 10 |
+
+Imprecisões corrigidas:
+
+- **03:** "sub-redes privadas por padrão desde mar 2026" passou a dizer "nas versões de API posteriores a 31 mar
+  2026" no resumo e nos aprendizados, como o corpo já dizia;
+- **05:** a janela de duplicidade de no máximo 5 minutos do emulador não está na documentação; virou observação
+  do laboratório. O emulador do Event Hubs aceita também o SDK por AMQP; a restrição de produtor e consumidor é
+  do lado Kafka;
+- **06:** "Durable não suporta Go" vem da documentação do Durable, não de uma página de *preview* do Go;
+- **08:** o FIPS 140-3 nível 3 do Key Vault Premium vale para as chaves da plataforma de HSM mais nova; as
+  antigas são FIPS 140-2 nível 2;
+- **02:** o ABAC vale para Blob, inclusive o Data Lake Gen2, e Queue.
+
+Não aplicadas, com o motivo:
+
+- **02, *deny assignment* e grupo:** as referências do CLI e do PowerShell divergem sobre grupo como principal
+  excluído; a frase do marco fala do principal da negação, que as duas recusam;
+- **05, códigos sem *retry* do Event Grid:** o marco cita 400 e 413, que conferem; a lista por tipo de destino
+  (403, 401) é detalhe de referência, não de desenho;
+- **06, "centenas de conectores" do Logic Apps:** o número exato (mais de 1.400) não foi conferido nesta sessão,
+  e "centenas" não está errado.

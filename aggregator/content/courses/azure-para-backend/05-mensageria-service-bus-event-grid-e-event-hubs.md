@@ -100,9 +100,9 @@ O marco gêmeo é `aws-para-backend/05`.
 > chave de negócio.
 
 > **O que o emulador não reproduz.** O emulador oficial do Service Bus não tem entidades particionadas, JMS nem
-> AMQP sobre WebSockets, perde os dados ao reiniciar e aceita **janela de duplicidade de no máximo 5 minutos**
-> (com 10, ele não sobe, e o erro aparece como `Out of memory`). O do Event Hubs só aceita as APIs de produtor e
-> consumidor do Kafka. Nenhum dos dois reproduz cotas, *throttling* nem a diferença entre os *tiers*.
+> AMQP sobre WebSockets e perde os dados ao reiniciar. No laboratório, ele só subiu com **janela de duplicidade
+> de no máximo 5 minutos** (com 10, não subiu, e o erro apareceu como `Out of memory`); a documentação não cita
+> esse limite. O do Event Hubs aceita o SDK por AMQP e, pelo Kafka, só as APIs de produtor e consumidor. Nenhum dos dois reproduz cotas, *throttling* nem a diferença entre os *tiers*.
 
 ## Exemplo numa fintech
 

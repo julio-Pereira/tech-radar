@@ -1,7 +1,7 @@
 ---
 id: rede-vnet-private-endpoint-e-dns
 title: "Rede: VNet, Private Endpoint e DNS"
-summary: "No Azure, o PaaS nasce com endpoint público. O trabalho de rede de uma fintech é desligar o público, ligar o privado e fazer o DNS resolver para o privado — os três, provados. VNet, NSG e ASG, a saída única e as sub-redes privadas por padrão desde mar 2026, service endpoint × Private Endpoint, a zona privatelink e o vínculo que o peering não compartilha, o DNS Private Resolver e os VNet flow logs — com um resolvedor didático em Go que mostra o pod do AKS indo pela internet sem erro nenhum."
+summary: "No Azure, o PaaS nasce com endpoint público. O trabalho de rede de uma fintech é desligar o público, ligar o privado e fazer o DNS resolver para o privado — os três, provados. VNet, NSG e ASG, a saída única e as sub-redes privadas por padrão nas APIs posteriores a mar 2026, service endpoint × Private Endpoint, a zona privatelink e o vínculo que o peering não compartilha, o DNS Private Resolver e os VNet flow logs — com um resolvedor didático em Go que mostra o pod do AKS indo pela internet sem erro nenhum."
 estimatedMinutes: 65
 reviewedAt: 2026-11-12
 reviewEvery: 6m
@@ -188,7 +188,7 @@ tudo no fim.
 
 - O PaaS nasce público: desligar o público, ligar o privado e resolver para o privado, os três provados.
 - NSG com estado, regras próprias de 100 a 4096; ASG para escrever a regra por papel.
-- Sub-redes de VNets novas nascem privadas desde mar 2026. Saída única pelo Firewall ou NAT.
+- Sub-redes de VNets novas nascem privadas nas versões de API posteriores a 31 mar 2026. Saída única pelo Firewall ou NAT.
 - O Private Endpoint depende da zona `privatelink` vinculada a cada VNet consumidora. O *peering* não leva o
   vínculo, e as redes locais precisam do Private Resolver.
 - *Peering* não é transitivo. NSG flow logs aposentam em set 2027; o caminho é VNet flow log.

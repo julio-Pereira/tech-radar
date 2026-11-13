@@ -33,11 +33,13 @@ Conferido em 12 nov 2026:
 - a **SAS de delegação de usuário** é assinada com uma chave obtida pelo Entra ID, e não com a chave da conta. Ela
   vale **no máximo 7 dias**, qualquer que seja a política de expiração configurada. A SAS de conta, assinada com a
   chave, deixa de existir quando a *shared key* é desligada;
-- o TLS mínimo recomendado é o **1.2**, e há uma política interna do Azure Policy que o exige.
+- desde **3 fev 2026**, o Storage recusa TLS 1.0 e 1.1 em contas novas e existentes: o **1.2** é o mínimo
+  obrigatório. Declarar `min_tls_version = "TLS1_2"` no código continua sendo a regra, e há uma política nativa
+  (*built-in*) do Azure Policy que a confere.
 
 A conta com dado classificado tem também o acesso de rede público desligado e um Private Endpoint (marco 03).
 
-**Redundância e residência.** LRS (três cópias numa zona), ZRS (três zonas da região), GRS e GZRS (com cópia no
+**Redundância e residência.** LRS (três cópias num único *datacenter*), ZRS (três zonas da região), GRS e GZRS (com cópia no
 **par de regiões**). Para a conta no Brazil South, o GRS e o GZRS levam a cópia para o South Central US (marco 01).
 Dado classificado fica em ZRS, ou em GRS com ADR de residência.
 
@@ -57,7 +59,7 @@ A política de retenção do dado, com o prazo que a área de *compliance* defin
 | | Key Vault (Standard / Premium) | Managed HSM |
 | --- | --- | --- |
 | O que é | cofre multilocatário de chaves, segredos e certificados | HSM dedicado, de um locatário só, só para chaves |
-| Validação | Standard: FIPS 140-2 nível 1; Premium: FIPS 140-3 nível 3, com chaves em HSM | FIPS 140-3 nível 3 |
+| Validação | Standard: FIPS 140-2 nível 1; Premium: FIPS 140-3 nível 3, com chaves em HSM (as da plataforma de HSM mais nova; as antigas, FIPS 140-2 nível 2) | FIPS 140-3 nível 3 |
 | Quando | segredos, certificados e a maioria das CMKs | exigência regulatória de HSM dedicado, controle total do domínio de segurança |
 
 Conferido em 12 nov 2026:
@@ -163,7 +165,7 @@ forma de cortá-la era girar a chave, o que derrubou outros três serviços que 
    - a imutabilidade destravada;
    - o vault sem *purge protection* e sem RBAC;
    - a aplicação com `Key Vault Administrator`;
-   - o TLS 1.0;
+   - o TLS 1.0 declarado no código (que a plataforma já recusa, mas o código não pode pedir);
    - o GRS sem ADR;
    - a *shared key* ligada.
 4. **Envelope.** Medido com o Azurite e o Lowkey Vault:

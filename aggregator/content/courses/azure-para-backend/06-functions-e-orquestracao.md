@@ -44,8 +44,7 @@ Os números do **Flex Consumption**, conferidos em 12 nov 2026:
 
 **Linguagens.** O Java roda nativo. O **Go** passou a ter suporte nativo (Go 1.24+), **só no Flex Consumption**, e a
 documentação recomenda o nativo, e não o ***custom handler***, para apps novos em Go. As páginas oficiais divergem
-sobre o *status*: uma diz GA, outra *preview*, e a de *preview* lista limites como a falta de Durable Functions para
-Go. O *custom handler* continua sendo o caminho para outras linguagens.
+sobre o *status*: uma diz GA, outra *preview*, e a documentação do Durable diz que ele não suporta Go. O *custom handler* continua sendo o caminho para outras linguagens.
 
 ## *Trigger*, *binding* e *retry*
 
