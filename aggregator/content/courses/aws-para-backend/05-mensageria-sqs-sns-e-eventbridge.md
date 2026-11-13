@@ -113,6 +113,8 @@ Kafka, com o **MSK** como opção gerenciada. A comparação completa está em `
 | Event Grid | EventBridge | os dois roteiam eventos por conteúdo; o EventBridge tem *archive* e *replay* |
 | Event Hubs | Kinesis Data Streams ou MSK | para *replay* e posição por consumidor, MSK é o equivalente direto do Kafka |
 
+O marco gêmeo no Azure é `azure-para-backend/05`.
+
 > **O que o emulador não reproduz.** Cotas de vazão (300, 3.000 e 70.000/s), a janela exata de 5
 > minutos e a latência real. E os emuladores divergem entre si:
 >

@@ -166,6 +166,8 @@ O que vale para o desenho:
 | Armazenamento imutável (WORM) | Object Lock (governança ou *compliance*) | o modo *compliance* trava até o *root* |
 | SAS (*shared access signature*) | URL pré-assinada | a SAS de delegação de usuário, assinada com credencial do Entra ID, é a parente da pré-assinada por papel |
 
+O marco gêmeo no Azure é `azure-para-backend/08`.
+
 > **O que o emulador não reproduz.** O `moto` cifra de verdade e exige o contexto de criptografia, mas não
 > avalia a política de chave nas chamadas. A prova de "o papel X não decifra" é feita sobre o plano, não
 > sobre o emulador. Ele também não reproduz o CloudTrail, a rotação no tempo, a espera de exclusão

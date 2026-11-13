@@ -405,3 +405,16 @@ Um detalhe de ferramenta virou conteúdo implícito: o `python-hcl2` devolve cad
 - `engenharia-de-plataforma/08`;
 - `conectividade-multicloud/09`;
 - `aws-para-backend/09`, `/10` e `/11`.
+
+## 6. Fase 5 — pontes
+
+- **AWS → Azure.** Cada um dos 11 marcos da `aws-para-backend` ganhou, logo abaixo da tabela "No Azure → na
+  AWS", a ponte para o marco gêmeo (`azure-para-backend/NN`). A volta já existia desde as Fases 1 a 4.
+- **`arquitetura-de-solucoes/05`.** A coluna Azure da tabela de serviços por provedor aponta para o marco da
+  `azure-para-backend` que ensina cada serviço (15 linhas; o API Management fica sem marco, como o API
+  Gateway na coluna AWS). O parágrafo seguinte cita também as tabelas "Na AWS → no Azure".
+- **`conectividade-multicloud/04` ↔ `azure-para-backend/03`.** O marco de ExpressRoute ganhou a frase do lado
+  Azure do `fin-platform`, ao lado da do lado AWS; o marco 03 já apontava para ele.
+- **Jornada `entrevista-senior`.** Não havia grupo de nuvem: o grupo novo **"Nuvem (escolha a da vaga)"**, no
+  mesmo formato do de linguagem (opcional), traz os marcos 02, 03, 05 e 10 das duas trilhas, antes do domínio
+  fintech. A jornada passou de 39 para 47 passos, e o `jornada.spec.js` acompanha os dois números (grupos e etapas).

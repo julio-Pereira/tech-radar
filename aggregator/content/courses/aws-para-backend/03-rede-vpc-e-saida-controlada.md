@@ -115,6 +115,8 @@ evidência de que a saída só aconteceu pelo lugar certo. A segmentação dentr
 | Azure Firewall | AWS Network Firewall | os dois filtram por domínio; no AWS, a inspeção centralizada passa pelo Transit Gateway |
 | vWAN / *hub* | Transit Gateway | o Transit Gateway é só o roteador; o *hub* gerenciado do vWAN não tem par direto |
 
+O marco gêmeo no Azure é `azure-para-backend/03`.
+
 ## Provar a rede sobre o plano
 
 A rede do `fin-aws` é Terraform, e as cinco regras do Desafio rodam sobre o JSON do `plan`, sem conta.

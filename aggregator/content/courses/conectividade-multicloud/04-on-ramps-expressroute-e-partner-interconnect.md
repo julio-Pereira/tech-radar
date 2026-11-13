@@ -133,6 +133,8 @@ regiões atendidas. Confira o estado antes de decidir: a lista de regiões e de 
 trimestre.
 
 O lado AWS do `fin-platform` (VPC, Transit Gateway e a saída controlada) é o de `aws-para-backend/03`.
+O lado Azure (VNet *hub-spoke*, Private Endpoint e o DNS privado que a rede local precisa alcançar) é o de
+`azure-para-backend/03`.
 
 ## Quem é dono de cada passo
 

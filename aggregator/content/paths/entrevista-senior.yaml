@@ -103,6 +103,38 @@ steps:
     group: "Linguagem (escolha a da vaga)"
     optional: true
     why: "Concorrência estruturada e cancelamento são o diferencial de Kotlin que a banca usa para medir profundidade."
+  - ref: aws-para-backend/02
+    group: "Nuvem (escolha a da vaga)"
+    optional: true
+    why: "Escolha só a nuvem da vaga: AWS ou Azure. Na AWS, a avaliação de política do IAM, com negação explícita, SCP e limite de permissão, é a pergunta de identidade mais cobrada."
+  - ref: aws-para-backend/03
+    group: "Nuvem (escolha a da vaga)"
+    optional: true
+    why: "Rede fechada com saída única e endpoints: a resposta a \"como o serviço fala com o banco sem passar pela internet?\""
+  - ref: aws-para-backend/05
+    group: "Nuvem (escolha a da vaga)"
+    optional: true
+    why: "SQS, SNS e EventBridge com idempotência medida: a reviravolta da mensagem entregue duas vezes."
+  - ref: aws-para-backend/10
+    group: "Nuvem (escolha a da vaga)"
+    optional: true
+    why: "Multi-AZ como padrão e multi-região como decisão, com RPO, RTO e custo: a reviravolta clássica de DR."
+  - ref: azure-para-backend/02
+    group: "Nuvem (escolha a da vaga)"
+    optional: true
+    why: "No Azure, RBAC por escopo, managed identity e o NotActions que não nega: as pegadinhas de identidade da banca."
+  - ref: azure-para-backend/03
+    group: "Nuvem (escolha a da vaga)"
+    optional: true
+    why: "Private Endpoint e a zona privatelink: o DNS que resolve o IP público sem erro é a pergunta de rede do Azure."
+  - ref: azure-para-backend/05
+    group: "Nuvem (escolha a da vaga)"
+    optional: true
+    why: "Service Bus, Event Grid e Event Hubs: quando cada um, e por que a detecção de duplicidade não substitui o inbox."
+  - ref: azure-para-backend/10
+    group: "Nuvem (escolha a da vaga)"
+    optional: true
+    why: "Zona, região e o par do Brazil South fora do país: DR no Azure é também decisão de residência."
   - ref: pagamentos-e-liquidacao/02
     group: "Domínio fintech como diferencial"
     why: "Conhecer o Pix por dentro transforma uma resposta genérica numa resposta de quem já operou pagamentos."

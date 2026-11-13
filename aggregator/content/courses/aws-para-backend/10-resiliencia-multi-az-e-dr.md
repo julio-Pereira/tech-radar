@@ -126,6 +126,8 @@ carga e medir. O post-mortem de uma página é o de `system-design/13`.
 | Traffic Manager / Front Door | Route 53 com *health checks* (ou Global Accelerator) | o RTO inclui o TTL do registro DNS |
 | Chaos Studio | Fault Injection Service | os dois têm cenários de queda de zona prontos |
 
+O marco gêmeo no Azure é `azure-para-backend/10`.
+
 > **O que o laboratório não reproduz.** Um *game day* com processos locais não reproduz a rede de uma AZ, o
 > plano de controle sobrecarregado, o TTL do DNS nem as cotas da região secundária. Ele prova que o
 > **seu** serviço sobrevive à perda de metade das instâncias sem duplicar pagamento. O comportamento da
