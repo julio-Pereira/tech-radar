@@ -50,6 +50,14 @@
   artifacts:
     - { path: "fin-azure/", check: exists }
 
+- track: ia-na-engenharia
+  component: fin-assist
+  depends_on: [fin-pipeline, ledger-core, pix-gateway]
+  artifacts:
+    - { path: "fin-assist/", check: exists }
+    # comportamental: o portão bloqueia a exfiltração do roteiro com conteúdo injetado
+    - { path: "fin-assist/", check: "make portao" }
+
 - track: go-fintech
   component: ledger-core
   depends_on: []
@@ -136,7 +144,7 @@
 
 - track: engenharia-de-plataforma
   component: fin-devplatform
-  depends_on: [fin-pipeline, fin-landscape, fin-platform, fin-iac, fin-aws, fin-azure]
+  depends_on: [fin-pipeline, fin-landscape, fin-platform, fin-iac, fin-aws, fin-azure, fin-assist]
   artifacts:
     - { path: "fin-devplatform/", check: exists }
 

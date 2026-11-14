@@ -1,0 +1,31 @@
+slug: ia-na-engenharia
+title: "Engenharia de Software Apoiada por IA"
+subtitle: "Especificação verificável, agentes de código no fluxo do time, MCP com permissão mínima, segurança que não depende do modelo e medição honesta de produtividade — provado com um agente roteirizado, sem conta paga."
+category: "DevOps"
+tags: [ia, agentes-de-codigo, sdd, spec-kit, mcp, prompt-injection, produtividade, dora, revisao-de-codigo, fintech, entrevista]
+level: advanced
+lang: pt-BR
+# 7 marcos, 430 min (web/docs/AUDITORIA-ia-na-engenharia.md). A regra é ~2x a
+# soma dos estimatedMinutes: 430 x 2 / 60 = 14,3 -> 14.
+estimatedHours: 14
+glossary: GLOSSARIO.md
+sources:
+  - { title: "GitHub Spec Kit — documentation", url: https://github.github.io/spec-kit/ }
+  - { title: "GitHub Spec Kit — repository and releases", url: https://github.com/github/spec-kit }
+  - { title: "Model Context Protocol — specification (2026-07-28)", url: https://modelcontextprotocol.io/specification/2026-07-28 }
+  - { title: "Model Context Protocol — blog (release notes)", url: https://blog.modelcontextprotocol.io/ }
+  - { title: "MCP Go SDK", url: https://github.com/modelcontextprotocol/go-sdk }
+  - { title: "AGENTS.md", url: https://agents.md/ }
+  - { title: "OWASP Top 10 for LLM Applications", url: https://genai.owasp.org/ }
+  - { title: "DORA — research", url: https://dora.dev/ }
+milestones:
+  # Bloco A — Especificar
+  - 01-onde-a-ia-ajuda-e-onde-atrapalha.md
+  - 02-especificacao-para-agentes.md
+  - 03-ferramentas-de-sdd.md
+  # Bloco B — Agente no fluxo e ferramentas internas
+  - 04-agentes-de-codigo-no-time.md
+  - 05-mcp-ferramentas-internas.md
+  # Bloco C — Proteger e medir
+  - 06-seguranca-com-agentes.md
+  - 07-medir-efeito-e-capstone.md
