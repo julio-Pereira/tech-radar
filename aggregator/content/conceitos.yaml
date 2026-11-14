@@ -312,3 +312,10 @@
   termo: "Application Insights"
   dono: azure-para-backend/09
   apelidos: ["Application Insights"]
+
+# ── Experimentação (dono: ml-em-producao; o "guardrail" de lá não vira conceito:
+#    o apelido ligaria os guardrails de governança de nuvem, outro sentido) ──
+- id: srm
+  termo: "SRM (proporção de amostra quebrada)"
+  dono: ml-em-producao/08
+  apelidos: ["SRM", "proporção de amostra quebrada"]

@@ -8,14 +8,14 @@ questions:
     answer: 0
     explanation: "Deploy coloca o código rodando no ambiente; release o torna visível ao cliente — a feature flag (retomada do marco 03) é o mecanismo que separa os dois, permitindo deploy frequente sem forçar lançamento simultâneo. Os dois termos não são sinônimos, a distinção não é sobre qual ambiente, e o mecanismo central citado é a feature flag, não o registro de artefatos."
 
-  - question: "Por que a decisão de promover ou reverter um canary precisa de janela e tolerância, não só um dos dois, segundo este marco?"
+  - question: "O time quer saber se a nova tela de confirmação do Pix aumenta a conclusão dos pagamentos. Por que um canary de 5% não responde isso, segundo este marco?"
     options:
-      - "Sem janela, decide-se sobre dado insuficiente; sem tolerância, ruído normal é tratado como regressão"
-      - "Janela e tolerância, segundo este marco, medem exatamente a mesma coisa, tornando um dos dois sempre redundante"
-      - "A janela serve só para fins de auditoria posterior, sem nenhuma influência real na decisão de promover ou reverter"
-      - "Apenas a tolerância é necessária; a janela de observação é citada neste marco como um detalhe dispensável na prática"
-    answer: 0
-    explanation: "A janela garante que há dados suficientes antes de decidir; a tolerância distingue ruído normal de regressão real — sem a janela, decide-se com pressa sobre pouca informação; sem a tolerância, qualquer flutuação dispara reação como se fosse problema real. As duas medem coisas diferentes (não são redundantes), a janela influencia diretamente a decisão (não é só auditoria), e a tolerância sozinha não acrescenta nada sem tempo suficiente de observação."
+      - "Porque o canary só pode ser feito em ambiente de homologação, e a conclusão de pagamento só existe em produção"
+      - "Porque o canary mede só latência, e a conclusão de pagamento depende de um banco de dados separado do serviço"
+      - "Porque o canary divide requisições e pergunta se a versão é segura; o A/B fixa clientes e pergunta se é melhor"
+      - "Porque 5% do tráfego é sempre pouco para qualquer análise estatística, com qualquer volume de clientes ativos"
+    answer: 2
+    explanation: "Canary e A/B usam a mesma mecânica para perguntas diferentes. O canary divide requisições, por minutos ou horas, e decide pela saúde operacional (erro, latência). O A/B atribui cada cliente a uma variante fixa, por um hash de unidade, experimento e sal, durante dias, e decide pela métrica de negócio, com métricas de guarda operacionais. O canary roda em produção, não mede só latência, e o problema não é o tamanho da fatia: é a unidade de divisão e a pergunta."
 
   - question: "Por que migração de banco complica rollback, e o que expand/contract resolve nesse cenário, segundo este marco?"
     options:
