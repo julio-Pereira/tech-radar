@@ -44,7 +44,7 @@ nuvem, *runner* próprio, ferramenta paga. Confirmar versões e licenças na Fas
 | 04 | Suíte de *gates*: mutação, corrida, ordem aleatória, regressão de desempenho | Mutante plantado derruba a suíte; regressão injetada reprova o *gate*, ruído não |
 | 05 | Promoção por *digest* + versão calculada + ambiente efêmero | *Digest* em produção = *digest* testado; a promoção não reconstrói; ambiente efêmero some no *teardown* |
 | 06 | `infra/` com módulos Terraform locais + testes + política sobre o plano | `fmt`/`validate` ok; segunda aplicação sem mudanças; *drift* detectado e corrigido; política nega o plano violador |
-| 07 | `release/` com decisor de canary e janela de congelamento | Série boa promove; regressão injetada faz rollback em ≤ N passos; ruído não gera rollback (taxa limitada, sementes fixas) |
+| 07 | `release/` com decisor de canary e janela de congelamento, + atribuição e análise de experimento | Série boa promove; regressão injetada faz rollback em ≤ N passos; ruído não gera rollback (taxa limitada, sementes fixas); atribuição fixa; SRM detecta atribuição quebrada; guarda encerra o experimento |
 | 08 | `db/` com linter de migração e matriz de compatibilidade | DDL perigoso reprovado; versão N-1 do app passa contra o schema N; do zero = incremental |
 | 09 | `evidencia/` com log encadeado e fluxo *break-glass* | Autor ≠ aprovador; todo deploy tem registro de 6 campos; adulteração detectada; *break-glass* sem revisão no prazo reprova o relatório |
 | 10 | Modelo de pipeline conforme + SLO da esteira + custo de CI + revisão do *workflow* do `tech-radar` | Serviço gerado passa em **todos** os *gates* sem edição; SLO calculado de histórico; taxa de acerto de cache reportada |
@@ -63,6 +63,8 @@ nuvem, *runner* próprio, ferramenta paga. Confirmar versões e licenças na Fas
       passa na política sobre o plano; o estado não é versionado
 - [ ] A decisão de promover/reverter é uma função das séries de métricas/SLO, com teste de ruído e
       de regressão
+- [ ] Todo experimento tem hipótese, métrica principal, métricas de guarda e duração registradas
+      antes do início
 - [ ] Toda migração passa no linter e é compatível com a versão anterior do app
 - [ ] Todo deploy em produção gera evidência com autor, aprovador (diferente do autor), checagens,
       *digest*, hora e classe de mudança; o log encadeado detecta adulteração
@@ -90,6 +92,6 @@ Provoque cada cenário e escreva um post-mortem de uma página — inclusive qua
 
 ## Regra do tempo declarado
 
-`estimatedHours` ≈ 2 × Σ `estimatedMinutes`: 630 min de leitura viram ~21h porque o hands-on é
+`estimatedHours` ≈ 2 × Σ `estimatedMinutes`: 640 min de leitura viram ~21h porque o hands-on é
 escrever o *gate*, **plantar a falha de propósito** (mutante, deriva, regressão, auto-aprovação) e
 ver o controle agir.

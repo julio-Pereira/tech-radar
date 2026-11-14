@@ -181,6 +181,24 @@ associado e o marco onde o conceito aparece na prática. Consulte durante a tril
 **Erro comum:** liberar o canário sem janela e tolerância declaradas, decidindo por impressão subjetiva.
 **Onde na prática:** marco 07.
 
+### Teste A/B
+**Em uma frase:** a divisão de clientes, de forma aleatória e fixa, entre variantes de uma funcionalidade, para decidir pela métrica de negócio se uma é melhor; a guarda operacional encerra o experimento.
+**No fin-platform:** o novo fluxo de confirmação do Pix, medido pela conclusão do pagamento, com taxa de erro e latência p95 como guardas.
+**Erro comum:** chamar de A/B um *canary* que divide requisições por minutos e decide pela saúde da versão.
+**Onde na prática:** marco 07.
+
+### Unidade de aleatorização
+**Em uma frase:** o que é sorteado para uma variante num experimento (cliente, conta, requisição); num A/B, é a unidade cuja experiência se mede, e ela fica fixa durante todo o período.
+**No fin-platform:** o cliente, por um *hash* de (cliente, experimento, sal), igual em todas as instâncias.
+**Erro comum:** sortear por requisição num A/B, e a mesma pessoa ver as duas variantes.
+**Onde na prática:** marco 07.
+
+### Efeito mínimo detectável
+**Em uma frase:** a menor diferença que o experimento precisa conseguir detectar para valer a decisão; com ele, a variância e o nível de confiança, define o tamanho de amostra e a duração antes do início.
+**No fin-platform:** 2 pontos na conclusão do Pix, o menor ganho que justifica manter a tela nova.
+**Erro comum:** começar sem ele e parar quando o resultado "parecer significativo".
+**Onde na prática:** marco 07.
+
 ### Rollback × roll-forward
 **Em uma frase:** voltar à versão anterior, versus corrigir com uma versão nova em vez de voltar.
 **No fin-platform:** rollback complicado por uma migração de schema que já rodou entre as duas versões.

@@ -5,6 +5,8 @@ category: "DevOps"
 tags: [ci-cd, devops, github-actions, terraform, dora, trunk-based, iac, gitops, rollback, controle-de-mudanca, platform-engineering, fintech]
 level: advanced
 lang: pt-BR
+# 10 marcos, 640 min (o 07 passou a 70 com o adendo de testes A/B). A regra é ~2x
+# a soma dos estimatedMinutes: 640 x 2 / 60 = 21,3 -> 21.
 estimatedHours: 21
 glossary: GLOSSARIO.md
 sources:
