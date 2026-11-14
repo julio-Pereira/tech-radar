@@ -422,9 +422,17 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	// Every milestone has a hands-on section; a stub that leaves it out shows
-	// up here until its block is written.
-	var wantNoSection []string
+	// The ia-na-engenharia stubs (Fase 0) leave this list as each block is
+	// written; once the trilha is complete it must be empty again.
+	wantNoSection := []string{
+		"ia-na-engenharia/agentes-de-codigo-no-time",
+		"ia-na-engenharia/especificacao-para-agentes",
+		"ia-na-engenharia/ferramentas-de-sdd",
+		"ia-na-engenharia/mcp-ferramentas-internas",
+		"ia-na-engenharia/medir-efeito-e-capstone",
+		"ia-na-engenharia/onde-a-ia-ajuda-e-onde-atrapalha",
+		"ia-na-engenharia/seguranca-com-agentes",
+	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}
