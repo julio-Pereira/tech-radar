@@ -1,0 +1,36 @@
+questions:
+  - question: "Qual é a diferença que importa entre um assistente e um agente de código, para quem decide como o time os usa?"
+    options:
+      - "O agente usa um modelo maior e mais recente, e por isso erra menos que o assistente em qualquer tarefa do repositório"
+      - "O agente age em laço (planeja, edita vários arquivos, roda comandos, observa) e anda mais sem ninguém olhar"
+      - "O assistente só funciona dentro do editor, e o agente só funciona na esteira de CI"
+      - "O assistente guarda o que aprendeu do repositório entre sessões, e o agente não guarda"
+    answer: 1
+    explanation: "A diferença não é a qualidade do modelo, é o quanto o resultado anda sem revisão: o assistente sugere uma coisa de cada vez; o agente planeja, age, observa e repete. Nenhum dos dois lembra do repositório entre sessões; o que precisa persistir vai no arquivo de instruções, na especificação e nos testes."
+
+  - question: "O time quer delegar ao agente uma correção de uma linha no cálculo do saldo e uma migração de 800 arquivos de uma API depreciada. Pelo critério deste marco, qual é a boa candidata?"
+    options:
+      - "A correção de uma linha, porque é pequena, o agente termina em segundos e não há risco de o escopo crescer"
+      - "Nenhuma das duas, porque o agente não deve tocar em código que já está em produção no ledger"
+      - "A migração, porque o compilador e os testes verificam barato; a linha do saldo é cara de verificar"
+      - "As duas igualmente, porque o tamanho da mudança não diz nada sobre o risco que ela traz"
+    answer: 2
+    explanation: "O que decide é o custo de verificar, não o de escrever. A migração mecânica é cansativa de escrever e barata de verificar (compila, os testes passam). A linha no saldo é fácil de escrever e cara de verificar: está no caminho do dinheiro, e só um teste de invariante e a revisão humana provam que ela está certa."
+
+  - question: "O agente recebeu 'o TestArredondaMeioCentavo está vermelho, conserte' e devolveu um patch verde que só altera o arquivo de teste. O que provavelmente aconteceu?"
+    options:
+      - "O agente achou um erro no teste, e o patch corrige o teste para refletir a regra do banco"
+      - "O agente trocou a asserção para o valor que o código produz, e o teste passou a confirmar o erro"
+      - "O teste era instável, e o agente o tornou determinístico sem mudar o valor que ele verifica no Money"
+      - "O agente refatorou o teste para ficar mais legível, sem tocar no código de produção do Money"
+    answer: 1
+    explanation: "Diante de um teste vermelho, o agente pode mudar o teste em vez do código. O patch só no teste, numa tarefa de 'conserte', é o sinal. Por isso a matriz põe os testes de money/ e ledger/ na classe crítica, e teste e produção juntos exigem a revisão reforçada. A pergunta 'o teste ou o código?' vem respondida antes da tarefa."
+
+  - question: "Uma pesquisa interna diz que 85% do time se sente mais produtivo com o agente. O que isso permite afirmar?"
+    options:
+      - "Que a entrega melhorou, porque a percepção de quem usa o agente todo dia é o melhor indicador de produtividade"
+      - "Que o tempo de entrega caiu cerca de 85%, já que a percepção acompanha a medida real de perto"
+      - "Que o agente deve virar obrigatório, já que a maioria do time aprova e a minoria pode se adaptar"
+      - "Só a satisfação; o efeito na entrega se mede no tempo, na taxa de falha e no retrabalho, com estabilidade"
+    answer: 3
+    explanation: "Ganho percebido não é ganho medido. O DORA de 2025 associa a adoção de IA a mais throughput e a mais instabilidade; sem medir a estabilidade e o retrabalho junto, a percepção esconde o custo. O marco 07 mede o efeito no time; número de produtividade sem fonte não entra em ADR."

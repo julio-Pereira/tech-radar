@@ -96,3 +96,42 @@ nem rede além do PyPI.
 | `design-de-codigo` e `arquitetura-de-software` (ADR) | `design-de-codigo` não está publicada; a ADR fica em `arquitetura-de-software/07` |
 | `entrega-continua-e-devops/01`, `/02`, `/03`, `/04`, `/09` | conferem |
 | `system-design/05` e `ml-em-producao/08` | conferem |
+
+## 2. Fase 1 — Bloco A (marcos 01 a 03)
+
+Os três marcos saíram dos *stubs*, cada um com os cinco blocos de Hands-on e 4 perguntas de quiz (12 no
+total, nenhuma com a resposta certa como a única opção mais longa). O laboratório é Go, com
+`gopkg.in/yaml.v3` como única dependência externa.
+
+### Medições
+
+| Marco | O que foi medido | Resultado |
+| --- | --- | --- |
+| 01 | matriz de delegação (`delegacao.yaml`, 3 classes) e o classificador | as 4 invariantes passaram; a mutação que liga o *merge* automático no caminho do dinheiro foi reprovada |
+| 01 | tabela de casos do classificador | a primeira versão esperava o teste de `ledger-core/extrato/` na classe "teste"; o classificador o pôs na classe da regra. A tabela estava errada: o teste de uma regra herda a criticidade dela. Arquivo fora de toda classe é recusado |
+| 01 | teste e produção no mesmo PR | `ledger/saldo.go` + `ledger/saldo_test.go` recusado sem a etiqueta `revisao-reforcada` e aceito com ela; só o teste segue |
+| 02 | `speclint` sobre a especificação do limite por período (4 requisitos, 7 critérios, 3 tarefas) e o decisor com relógio injetado | sem achados; bordas da janela (20h00, 6h00, virada do dia, `America/Sao_Paulo` × UTC) em teste de tabela |
+| 02 | nove mutações aplicadas a cópias | **todas reprovadas** com o achado certo: critério sem teste, teste sem critério, critério inexistente, requisito sem critério, identificador repetido, termo vago, ambiguidade aberta na classe crítica, tarefa sem verificação, tarefa sem requisito. O termo vago marcado como aberto, fora da classe crítica, passou |
+| 03 | conversor neutro ↔ Spec Kit (convenção do requisito no título da história) | ida e volta preservou os 11 identificadores; o convertido passou no `speclint`; a história sem `(FR-NNN)` foi recusada; o `[NEEDS CLARIFICATION]` virou ambiguidade aberta e reprovou na classe crítica |
+| 03 | versão do Spec Kit fixada num lugar só | uma instalação fixada e nenhuma solta; a linha "da `main`" é pega. A primeira versão do detector, por ocorrência, acusava `specify-cli --from ...@v1.4.0` como solta; passou a julgar a linha inteira |
+| 03 | dono das especificações | todo arquivo de `specs/` tem entrada no `CODEOWNERS` |
+
+### Conferências desta fase (14 nov 2026)
+
+- **DORA:** a página do relatório de 2025 é `dora.dev/research/2025/dora-report/`. O relatório trata a IA
+  como amplificador: mais *throughput* e mais instabilidade sem testes, versão e *feedback* fortes. O marco
+  01 não cita número; remete ao relatório.
+- **Equivalentes do Spec Kit**, conferidos nos repositórios: **OpenSpec** 2.0.0 e **BMAD Method** v6.12.4,
+  ambos MIT. O **Kiro** entra como produto comercial, com os termos a conferir. O formato de requisitos que
+  fontes secundárias atribuem a ele não foi citado, por falta de fonte primária.
+- **Formato do Spec Kit:** o cenário de aceite pertence à história de usuário, e não ao `FR-NNN`; a
+  rastreabilidade só existe com convenção. Virou o centro do Desafio do 03.
+- **Estudo de caso:** o repositório é público, mas os `PLANO-*.md` **não estão versionados**, porque chegam
+  colados na conversa. O marco 02 usa o PR #159 e esta auditoria como exemplo, e a ausência dos planos como
+  exemplo real de deriva de especificação.
+
+### Achado fora do escopo
+
+`entrega-continua-e-devops/01` fala em "quatro métricas DORA" (com "conferir edição vigente"). A edição de
+2025 tem **cinco**: a quinta é a taxa de retrabalho, o tema do marco 07 desta trilha. A correção entra na
+Fase 3, junto com as edições da §10 do plano.

@@ -1,0 +1,36 @@
+questions:
+  - question: "A especificação do limite noturno diz 'use um HashMap de soma por janela, chaveado pelo início da janela'. Qual é o problema?"
+    options:
+      - "Nenhum: quanto mais detalhada a especificação, menos o agente precisa adivinhar sobre a implementação do limite"
+      - "O HashMap não é seguro para concorrência, e a especificação deveria pedir um ConcurrentHashMap"
+      - "É detalhe de implementação: isso é do plano; a especificação diz o quê e por quê, e envelhece mais devagar"
+      - "Especificação não pode citar estrutura de dados, porque o Spec Kit não aceita esse tipo de conteúdo"
+    answer: 2
+    explanation: "A especificação diz o quê e por quê; o plano diz como. Amarrar a especificação a uma estrutura de dados a faz envelhecer na velocidade do código e prende o agente a uma implementação que talvez seja errada, sem dizer o que importava: a janela, o fuso, a borda da meia-noite, o Pix agendado."
+
+  - question: "Qual destes é um critério de aceite verificável, pela convenção deste catálogo?"
+    options:
+      - "O limite noturno deve funcionar corretamente e de forma rápida em todos os casos"
+      - "A soma das 23h59 continua valendo às 00h01 do dia seguinte: a janela é uma só"
+      - "O sistema deve respeitar o limite noturno conforme a regulação vigente do Banco Central"
+      - "O limite deve ser aplicado quando necessário, sem impactar a experiência do cliente"
+    answer: 1
+    explanation: "Um critério verificável tem valor, borda e resultado que um teste confere: vira um teste de tabela com relógio injetado. 'Corretamente', 'rápida', 'quando necessário' são termos vagos que o speclint reprova; 'conforme a regulação' manda o agente adivinhar a regra."
+
+  - question: "O produto ainda não decidiu se o limite é por conta ou por CPF. O que fazer na especificação?"
+    options:
+      - "Escolher 'por conta', que é o mais simples de implementar no pix-gateway, e registrar a escolha depois do merge"
+      - "Deixar o assunto de fora e esperar que o agente siga o padrão que o código já usa hoje"
+      - "Escrever 'por conta ou por CPF, conforme necessário' para que o agente decida o melhor caminho"
+      - "Marcar como ambiguidade aberta, com dono e prazo; na classe crítica, a especificação não é aceita assim"
+    answer: 3
+    explanation: "A dúvida entra explícita, como ambiguidade aberta, com quem decide e quando. O agente lê e não decide; a revisão vê que falta a decisão. No caminho do dinheiro, o speclint reprova a especificação com ambiguidade aberta. Deixar de fora ou escrever 'conforme necessário' é pedir que o agente adivinhe."
+
+  - question: "Três meses depois, o código do limite mudou duas vezes e a especificação continua igual. Qual é a resposta honesta?"
+    options:
+      - "Escolher por escrito a fonte da verdade: ou a mudança começa pela especificação, ou ela vira histórico com data"
+      - "Pedir ao agente que reescreva a especificação a partir do código atual sempre que houver mudança"
+      - "Manter a especificação 'viva', revisada quando alguém do time lembrar, como a maioria dos times faz hoje em dia"
+      - "Apagar a especificação, já que ela deixou de ser útil depois da primeira entrega do limite"
+    answer: 0
+    explanation: "É a deriva de especificação. Ou a especificação é a fonte da verdade (a mudança começa por ela, e o verificador reprova o código que muda sem ela), ou o código é (e a especificação vira histórico, datado). Gerar a especificação a partir do código dá ao erro o selo de especificado; a especificação 'viva' que ninguém atualiza é como o SDD morre."
