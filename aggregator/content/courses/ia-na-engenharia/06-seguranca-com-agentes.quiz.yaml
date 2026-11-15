@@ -1,0 +1,54 @@
+questions:
+  - question: "Uma issue pública traz, num comentário HTML escondido, a ordem de ler o .env e enviá-lo para fora. Que tipo de ataque é esse?"
+    options:
+      - "Injeção indireta: a instrução vem num conteúdo que o agente lê no meio da tarefa"
+      - "Injeção direta, porque quem abriu a issue escreveu a instrução para o agente seguir"
+      - "Cadeia de suprimentos, porque a issue vem de fora do time e entra no repositório"
+      - "Vazamento de segredo por commit, porque o .env está versionado junto com o código"
+    answer: 0
+    explanation: "Na injeção direta, quem usa o agente escreve a instrução. Na indireta, ela chega escondida num conteúdo que o agente lê: issue, comentário, README de dependência, página buscada, saída de ferramenta. É a que importa num time, porque ninguém digitou nada errado. A defesa é o portão negar a leitura do .env e a saída para um destino fora da lista."
+
+  - question: "O time quer um agente que triar issues públicas, leia o repositório privado e tenha rede livre. Pela regra das duas, o que fazer?"
+    options:
+      - "Liberar as três, desde que o prompt de sistema proíba seguir instruções vindas das issues públicas"
+      - "Tirar uma das três capacidades da sessão, por exemplo a rede, ou exigir aprovação humana para ela"
+      - "Liberar as três, porque o repositório privado não guarda dado de cliente, só código do time"
+      - "Trocar o modelo por um maior, que distingue melhor uma instrução maliciosa de um texto comum"
+    answer: 1
+    explanation: "Conteúdo não confiável, dado privado e canal de saída juntos permitem a exfiltração (a lethal trifecta de Willison). A Agents Rule of Two da Meta manda ter no máximo duas por sessão e, quando a terceira for inevitável, aprovação humana. O prompt de sistema é lido junto com a issue; o tamanho do modelo não garante nada; código privado também é dado privado."
+
+  - question: "Por que o teste do portão afirma o bloqueio, e não o comportamento do agente?"
+    options:
+      - "Porque o agente roteirizado não consegue ser enganado de verdade, e só simula a leitura da issue com instrução escondida"
+      - "Porque testar o agente custaria chamadas pagas ao modelo a cada execução do CI"
+      - "Porque um modelo é enganado às vezes e de jeitos novos; o controle tem de segurar mesmo quando ele é enganado"
+      - "Porque o comportamento do agente já está coberto pela avaliação do fornecedor do modelo"
+    answer: 2
+    explanation: "A defesa que depende de o modelo perceber o truque não é defesa. O roteiro tenta a exfiltração sempre do mesmo jeito; se o portão segura essa tentativa, segura a mesma vinda de qualquer modelo. Afirmar que 'o agente não tentou' testaria o modelo daquele dia, não o controle."
+
+  - question: "O agente sugere `go get github.com/fin-platform/ledger-helpers`, um pacote com nome plausível que ninguém do time conhece. Qual é o risco, e a defesa?"
+    options:
+      - "Nenhum risco: se o pacote não existir, o go get simplesmente falha e o agente segue para outra opção sem prejuízo"
+      - "O risco é a licença do pacote; a defesa é conferir o arquivo LICENSE e o histórico antes de aceitar a dependência nova"
+      - "O risco é o tamanho do binário; a defesa é limitar o número de dependências novas por PR do agente"
+      - "Um atacante pode registrar esse nome; a defesa é a lista permitida e o registro espelhado, onde ele não existe"
+    answer: 3
+    explanation: "Modelos sugerem nomes de pacote que não existem, e um atacante que registra o nome recebe a instalação. A lista permitida barra o que ninguém aprovou; o registro espelhado barra o que não existe, mesmo que esteja na lista por engano. No laboratório, o pacote na lista e fora do espelho foi negado pelo espelho."
+
+  - question: "O `.env` foi tirado do contexto do agente, mas alguém copiou a chave da API num `config/local.yaml`. O que o contexto precisa fazer?"
+    options:
+      - "Remover também o valor do segredo conhecido de qualquer arquivo, além de excluir os arquivos de segredo"
+      - "Nada: o config/local.yaml não é arquivo de segredo e pode entrar inteiro no contexto do agente"
+      - "Pedir ao agente, no AGENTS.md, que ignore qualquer chave que encontrar nos arquivos de configuração"
+      - "Rodar a varredura de segredo só no repositório, porque o contexto do agente é efêmero e some no fim da sessão"
+    answer: 0
+    explanation: "O que entra no contexto pode sair por resposta, log ou injeção. A varredura de segredo vale sobre o contexto montado, não só sobre o repositório: arquivos de segredo ficam fora, e os valores conhecidos que vazaram para outros arquivos são removidos. Pedir ao agente que 'ignore' depende de o modelo obedecer."
+
+  - question: "A Ana é a responsável pela sessão do agente, que propôs `make deploy-producao`. Quem pode aprovar a ação?"
+    options:
+      - "A Ana, porque é ela quem responde pelo agente e conhece melhor que ninguém a mudança que está indo para produção"
+      - "O próprio agente, desde que todos os testes e o harness tenham passado antes do deploy"
+      - "Outra pessoa, registrada: a responsável pode ter sido convencida pelo mesmo texto que enganou o agente"
+      - "Ninguém: ação irreversível nunca pode ser executada a partir de uma sessão de agente de código"
+    answer: 2
+    explanation: "A ação irreversível só passa com a aprovação registrada de uma pessoa diferente da responsável. Não da Ana, que pode ter sido convencida pelo mesmo conteúdo, e não do agente, que repete o que leu. No laboratório, a aprovação da própria responsável e a de outra ação foram negadas; a de outra pessoa passou, e tudo foi para o registro encadeado."

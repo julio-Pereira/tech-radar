@@ -107,7 +107,9 @@ oficial (`github.com/modelcontextprotocol/go-sdk`, v1.8.0), exponha a ferramenta
 para um agente de IA. O adaptador recebe só uma interface de leitura (`Saldo`), então não tem como
 escrever; declare a ferramenta com `ReadOnlyHint: true`. Invariante: um teste com os transportes em
 memória do SDK (`mcp.NewInMemoryTransports`) lista as ferramentas, chama todas, confere que todas se
-declaram somente leitura e que nenhuma escrita chegou ao ledger.
+declaram somente leitura e que nenhuma escrita chegou ao ledger. O desenho do servidor MCP como API
+interna (audiência do *token*, saída sem dado pessoal, auditoria, a revisão 2026-07-28 sem estado) é
+de `ia-na-engenharia/05`.
 
 **Checagem**
 

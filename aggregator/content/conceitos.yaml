@@ -319,3 +319,10 @@
   termo: "SRM (proporção de amostra quebrada)"
   dono: ml-em-producao/08
   apelidos: ["SRM", "proporção de amostra quebrada"]
+
+# ── IA na engenharia ───────────────────────────────────────────────────────
+- id: mcp
+  termo: "MCP (Model Context Protocol)"
+  dono: ia-na-engenharia/05
+  apelidos: ["MCP", "Model Context Protocol"]
+  resumo: "O protocolo aberto que padroniza como um agente descobre e chama ferramentas, lê recursos e usa prompts que um servidor expõe; a revisão vigente, 2026-07-28, é sem estado."

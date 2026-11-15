@@ -36,13 +36,18 @@ para produção, qualquer problema tem muito mais candidatos a causa. O limite d
 progresso (WIP) é o mecanismo que força lotes pequenos: menos itens abertos simultaneamente significa
 que cada um termina mais rápido, em vez de todos avançarem devagar em paralelo.
 
-## As quatro métricas DORA (conferir nomes e edição vigente)
+## As métricas DORA: quatro clássicas e a quinta
 
-A pesquisa DORA identifica quatro métricas associadas a alto desempenho de entrega: **frequência de
-implantação**, **tempo de entrega de mudança** (*lead time*, do commit à produção), **taxa de falha
-de mudança**, e **tempo de recuperação** (de um incidente). A composição exata e a inclusão de
-métricas adicionais mudam entre edições da pesquisa — **confira** a edição vigente antes de citar um
-nome ou um valor específico como referência absoluta.
+A pesquisa DORA identifica quatro métricas clássicas associadas a alto desempenho de entrega:
+**frequência de implantação**, **tempo de entrega de mudança** (*lead time*, do commit à produção),
+**taxa de falha de mudança**, e **tempo de recuperação** (de um *deploy* que falhou). Desde o
+relatório de 2024, há uma **quinta**: a **taxa de retrabalho de *deploy***, a fração de *deploys* não
+planejados, feitos por causa de um incidente em produção (conferido em 15 nov 2026, no
+[guia de métricas do DORA](https://dora.dev/guides/dora-metrics/)). As cinco se dividem em
+*throughput* (as três primeiras) e instabilidade (a falha e o retrabalho). Este marco implementa as
+quatro clássicas; o retrabalho e o efeito de agentes de código sobre ele estão em
+`ia-na-engenharia/07`. Os nomes e os valores de referência mudam entre edições: confira a vigente antes
+de citar um número.
 
 ## Velocidade e estabilidade vão juntas — não são opostos
 

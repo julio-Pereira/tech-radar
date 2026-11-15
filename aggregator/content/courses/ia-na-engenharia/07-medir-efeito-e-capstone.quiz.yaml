@@ -1,0 +1,36 @@
+questions:
+  - question: "O piloto relata que o time aceitou 40% das sugestões do agente. O que isso mostra?"
+    options:
+      - "Que a entrega melhorou cerca de 40%, já que cada sugestão aceita é trabalho que ninguém precisou fazer"
+      - "Só que o time usou a ferramenta; o efeito aparece no lead time, na falha e no retrabalho, medidos juntos"
+      - "Que o agente acerta 40% das vezes, e por isso deve ser usado só nas tarefas de menor risco e menor tamanho do time"
+      - "Que a revisão ficou 40% mais rápida, porque o revisor já recebe o código pronto do agente"
+    answer: 1
+    explanation: "Sugestões aceitas, linhas geradas e horas declaradas sobem sempre: são métricas de vaidade. Se viram meta, Goodhart: o time otimiza o número, não a entrega. O efeito se mede no tempo de entrega, na taxa de falha e no retrabalho, contra um grupo de comparação."
+
+  - question: "Qual a diferença entre o retrabalho de deploy do DORA e o retrabalho de código, e por que o piloto mede os dois?"
+    options:
+      - "São a mesma coisa com nomes diferentes; o piloto mede os dois só para comparar com relatórios antigos"
+      - "O de deploy conta as linhas revertidas no mês, e o de código conta os deploys que falharam e precisaram de hotfix urgente"
+      - "O retrabalho de deploy só existe para times que não usam agentes, e o de código só para os que usam"
+      - "O de deploy conta deploys não planejados por incidente; o de código, linhas refeitas em dias. O segundo sobe antes"
+    answer: 3
+    explanation: "A quinta métrica do DORA (desde 2024) é a fração de deploys não planejados, feitos por causa de um incidente em produção. O retrabalho de código são as linhas que um PR adicionou e outro reescreveu ou reverteu em poucos dias. O código plausível e errado costuma voltar como retrabalho de código antes de virar incidente."
+
+  - question: "O time de pagamentos adotou o agente em setembro, e o lead time de outubro foi menor que o de agosto. Por que isso não basta?"
+    options:
+      - "Antes e depois no mesmo time mistura o agente com tudo o que mudou no período; falta um grupo de comparação"
+      - "Porque o lead time não é uma das métricas do DORA, e o piloto precisa usar só as métricas da pesquisa"
+      - "Porque um mês é sempre pouco tempo; a regra é medir pelo menos um ano antes de concluir qualquer coisa"
+      - "Porque setembro e outubro têm números diferentes de dias úteis, e o lead time precisa ser corrigido por isso"
+    answer: 0
+    explanation: "A comparação no tempo mistura o agente com o projeto, a época, a pessoa nova. O piloto precisa de um grupo que não adotou, no mesmo período, e de comparar a variação de cada grupo, porque times diferentes têm lead times que não se comparam direto. O lead time é uma das cinco métricas do DORA."
+
+  - question: "Depois do agente, o time abre o dobro de PRs, e o tempo de revisão subiu de 4 para 11 horas. O que isso indica?"
+    options:
+      - "Que a revisão ficou mais cuidadosa, o que é bom e não precisa de nenhuma ação do time"
+      - "Que o agente deve passar a aprovar os próprios PRs, para tirar a revisão do caminho crítico"
+      - "Que o gargalo mudou para a revisão; o ganho de escrita está sendo pago por quem revisa, e o PR precisa encolher"
+      - "Que o time precisa contratar mais revisores, e o número de PRs por pessoa deve ser mantido do jeito que está hoje"
+    answer: 2
+    explanation: "Quando o agente escreve mais depressa, o gargalo vai para a revisão: mais PRs, maiores, com os modos de falha do marco 04 para procurar. A resposta é o PR pequeno e o escopo declarado; o tempo de revisão é a medida que mostra se ela funcionou. Autoaprovação do agente fere a segregação de autor e aprovador."
