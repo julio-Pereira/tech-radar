@@ -46,3 +46,34 @@ Engenharia de Software Sênior, Go/AWS: "Blue-Green Deployment, Canary Release e
 
 Um teste do laboratório nasceu tautológico (comparava a atribuição consigo mesma) e foi reescrito para
 contrastar a atribuição ingênua com a correta entre dois experimentos.
+
+## Fase 2 — Bloco 3: pontes (15 nov 2026)
+
+| Marco | Ponte | Volta em `entrega-continua-e-devops/07` |
+| --- | --- | --- |
+| `kubernetes/13` | parágrafo depois do *blue-green*: canary responde "é seguro?", o A/B responde "é melhor?"; o `Experiment` do Argo Rollouts, por link, sem exercício | já existia (caixa "Na ferramenta" e Reencontro) |
+| `system-design/14` | parágrafo na seção de *feature flags*: o que a *flag* de experimento pede além da de *release* | já existia (Reencontro) |
+| `ml-em-producao/08` | Reencontro: a mesma atribuição e o mesmo SRM, com a funcionalidade como objeto | já existia (seção nova) |
+| `aws-para-backend/04` | "As três estratégias na AWS" e a linha nova da tabela Azure → AWS | acrescentada no Reencontro |
+| `ia-na-engenharia/07` | já existia desde a Fase 3 da trilha ("O desenho do piloto") | acrescentada no Reencontro |
+
+### Conferências desta fase
+
+Os nomes de serviço foram conferidos em fontes oficiais, e não publicados de memória. O acesso direto às
+páginas de documentação estava bloqueado no ambiente, então a conferência foi pela busca restrita aos domínios
+oficiais (`docs.aws.amazon.com`, `aws.amazon.com`, `learn.microsoft.com`), com as URLs nas referências do marco.
+
+- **Argo Rollouts v1.10.2** (clone local, `docs/features/experiment.md`): o `Experiment` sobe ReplicaSets
+  efêmeras com análise junto, e divide o tráfego **por peso**. A documentação o cita para testes A/B/C.
+- **ECS:** *blue/green* nativo desde jul 2025; linear e canary nativos desde out 2025 (`strategy` com
+  `BLUE_GREEN`, `LINEAR` ou `CANARY`); ALB, NLB, Service Connect e VPC Lattice; *rollback* por alarme do
+  CloudWatch. O CodeDeploy continua disponível.
+- **AppConfig:** *flags* com variantes por regra sobre o contexto (anúncio de jul 2024), avaliadas no
+  AppConfig Agent; experimentação gerenciada lançada em jun 2026 (o histórico da documentação registra 22 jun,
+  e o anúncio, 1º jul).
+- **CloudWatch Evidently:** suporte encerrado em out 2025. A documentação dá 16 out 2025, e o anúncio
+  original, 17 out; o marco diz só "out 2025".
+- **Azure:** o Container Apps divide o tráfego entre revisões por peso; as *feature flags* do App
+  Configuration têm variantes e o cenário de experimento, que aparecia como *preview* na data da conferência.
+  O marco registra o *preview* com a data. A busca não achou anúncio de descontinuação da integração com o
+  Split, e o marco não cita o Split pelo nome.

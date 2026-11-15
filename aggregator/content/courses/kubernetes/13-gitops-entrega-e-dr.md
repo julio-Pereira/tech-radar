@@ -8,6 +8,8 @@ references:
     url: https://argo-cd.readthedocs.io/en/stable/
   - title: "Argo Rollouts — Progressive Delivery"
     url: https://argo-rollouts.readthedocs.io/en/stable/
+  - title: "Argo Rollouts — Experiment CRD"
+    url: https://argo-rollouts.readthedocs.io/en/stable/features/experiment/
   - title: "Velero — Backup and Migrate Kubernetes Resources"
     url: https://velero.io/docs/
   - title: "OpenGitOps — Principles"
@@ -88,6 +90,13 @@ exemplo, quando a versão nova exige uma migração de banco incompatível.
 ```diagrama
 k8s-blue-green
 ```
+
+Canary e *blue-green* respondem **"a versão nova é segura?"**. A pergunta **"a variante é
+melhor?"** é de outro instrumento, o teste A/B, que fixa cada **cliente** numa variante por dias, em vez
+de deslocar **requisições** por minutos: está em `entrega-continua-e-devops/07`, seção "Canary não é teste A/B". O Argo Rollouts tem um recurso `Experiment`,
+que sobe versões em paralelo por um tempo e roda análises sobre elas; a documentação o cita para testes
+A/B/C, mas o tráfego que ele recebe é dividido por **peso**, e a fixação por cliente continua sendo da
+*flag* (documentação da v1.10.2, conferida em 15 nov 2026).
 
 E a restrição que nenhuma estratégia resolve: **rollback de código não desfaz migração de
 banco** (marco 06). Toda migração precisa ser compatível com a versão anterior —
