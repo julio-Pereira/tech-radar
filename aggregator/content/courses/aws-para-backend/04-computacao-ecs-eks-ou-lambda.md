@@ -3,7 +3,7 @@ id: computacao-ecs-eks-ou-lambda
 title: "Computação: ECS, EKS ou Lambda"
 summary: "A escolha de computação é uma escolha de quem opera o quê; o critério é time, carga e controle, não moda. EC2, ECS com Fargate, EKS e Lambda numa tabela de decisão; task role × papel de execução; Graviton; imagem por digest; e o deploy sem queda casando o drain de 30 s do spring-boot/12 com o stopTimeout do ECS (padrão 30 s, até 120 s no Fargate) e o deregistration delay do ALB (padrão 300 s)."
 estimatedMinutes: 60
-reviewedAt: 2026-11-10
+reviewedAt: 2026-11-15
 reviewEvery: 6m
 competencies: [arquitetura, plataforma]
 references:
@@ -15,6 +15,12 @@ references:
     url: https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html
   - title: "AWS Graviton"
     url: https://aws.amazon.com/ec2/graviton/
+  - title: "Amazon ECS — Canary deployments"
+    url: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/canary-deployment.html
+  - title: "AWS AppConfig — Multi-variant feature flag concepts"
+    url: https://docs.aws.amazon.com/appconfig/latest/userguide/appconfig-creating-multi-variant-feature-flags-concepts.html
+  - title: "AWS AppConfig launches managed experimentation tools for A/B testing"
+    url: https://aws.amazon.com/about-aws/whats-new/2026/6/aws-appconfig-experimentation/
 ---
 
 ## A escolha é de quem opera o quê
@@ -87,6 +93,21 @@ e a produção. O *digest* é o artefato que passou na esteira e foi promovido
 
 O *health check* do *target group* aponta para a *readiness*, como no Kubernetes (`kubernetes/06`).
 
+**As três estratégias na AWS.** Um mapa, com os nomes conferidos na documentação oficial em 15 nov 2026:
+
+- ***blue/green*, linear e canary** são estratégias nativas do serviço do ECS (`BLUE_GREEN`, `LINEAR` ou
+  `CANARY`), desde jul 2025 a primeira e out 2025 as outras duas. O ECS desloca o tráfego da revisão antiga
+  para a nova pelo ALB, NLB, Service Connect ou VPC Lattice, com tempo de observação entre os passos e
+  *rollback* automático quando um alarme do CloudWatch dispara. O CodeDeploy continua disponível para quem já
+  o usa;
+- ***flags* e experimentos** ficam no **AWS AppConfig**: *flags* com variantes escolhidas por regra sobre o
+  contexto da requisição (jul 2024), avaliadas no AppConfig Agent, e a experimentação gerenciada (jun 2026). O
+  CloudWatch Evidently, que fazia esse papel, teve o suporte encerrado em out 2025; material que o cite está
+  desatualizado.
+
+O canary do ECS responde "a versão nova é segura?", e o experimento sobre a *flag*, "a variante é
+melhor?". Por que um não substitui o outro está em `entrega-continua-e-devops/07`, seção "Canary não é teste A/B".
+
 ## No Azure → na AWS
 
 | No Azure | Na AWS | O que muda de verdade |
@@ -95,6 +116,7 @@ O *health check* do *target group* aponta para a *readiness*, como no Kubernetes
 | Container Apps | ECS no Fargate (aproximação) | o Container Apps traz escala por evento e Dapr embutidos; no ECS, escala e *service discovery* são configurados à parte |
 | Azure Functions | Lambda | conceito igual; limites, cobrança e *triggers* diferentes (marco 06) |
 | ACR | ECR | a varredura e a política de ciclo de vida das imagens são do próprio ECR |
+| Container Apps (divisão de tráfego entre revisões); App Configuration (*feature flags* com variantes) | ECS (*blue/green*, linear e canary nativos); AppConfig (*flags* com variantes e experimentação) | a divisão de tráfego serve ao canary; o teste A/B, que fixa o cliente, vem da *flag* nas duas nuvens. A experimentação do App Configuration aparecia como *preview* em 15 nov 2026 |
 
 O marco gêmeo no Azure é `azure-para-backend/04`.
 

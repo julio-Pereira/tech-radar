@@ -39,6 +39,12 @@ comportamento definido para quando o sistema que as resolve está indisponível 
 comportamento mais conservador (a funcionalidade nova desligada), nunca "a aplicação trava
 esperando resposta".
 
+A *flag* de experimento pede mais que a de *release*: a unidade de aleatorização é o cliente, o *hash*
+leva um sal por experimento (para dois experimentos não sortearem os mesmos grupos), as métricas de guarda
+e a duração são definidas antes, e a proporção de amostra quebrada (SRM) invalida a leitura. Isso, e por
+que o canary não substitui o teste A/B, está em `entrega-continua-e-devops/07`, seção "Canary não é teste A/B"; a estatística do experimento, em
+`ml-em-producao/08`.
+
 ## Entrega progressiva e *strangler fig*
 
 Entrega progressiva (ligada a *canary* — `kubernetes/06` e `/13`) expõe gradualmente uma mudança a

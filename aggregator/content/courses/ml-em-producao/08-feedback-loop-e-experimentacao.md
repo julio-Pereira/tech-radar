@@ -107,9 +107,11 @@ experimento antes da janela de maturação se fechar.
 5. O que a probabilidade da ação registrada permite calcular depois, sem rodar um novo experimento?
 6. Por que um cap de frequência de contato é necessário mesmo num experimento bem desenhado estatisticamente?
 
-> **Reencontro — `system-design/14`; `observabilidade/08`; `engenharia-de-dados/11`.**
+> **Reencontro — `system-design/14`; `entrega-continua-e-devops/07`; `observabilidade/08`; `engenharia-de-dados/11`.**
 > Atribuição determinística e exploração reusam o mecanismo de *feature flags* e *dark launch* de
-> `system-design/14` — a mesma função pura decidindo quem vê o quê. As métricas de negócio do experimento
+> `system-design/14` — a mesma função pura decidindo quem vê o quê. A atribuição e o SRM voltam em
+> `entrega-continua-e-devops/07`: lá o objeto do experimento é a funcionalidade, e não o modelo, e o teste A/B
+> é separado do canary, que divide requisições para responder outra pergunta. As métricas de negócio do experimento
 > (receita incremental, taxa de dano) seguem o mesmo vocabulário de `observabilidade/08`. E o tratamento de
 > dado atrasado como correção auditável, não descarte silencioso, é a mesma disciplina de streaming de
 > `engenharia-de-dados/11`.

@@ -206,12 +206,15 @@ os dois? Qual seria a métrica de guarda?
    por convenção?
 
 > **Reencontro — `kubernetes/06`; `kubernetes/13`; `observabilidade/12`; `system-design/14`;
-> `spring-boot/08`.** As estratégias *rolling* e *canary* de `kubernetes/06` ganham aqui a decisão
+> `spring-boot/08`; `aws-para-backend/04`; `ia-na-engenharia/07`.** As estratégias *rolling* e *canary* de `kubernetes/06` ganham aqui a decisão
 > automatizada que as orienta. O GitOps de `kubernetes/13` é o mecanismo típico de execução do
 > rollback decidido. O orçamento de erro de `observabilidade/12` funciona como freio direto sobre a
 > tolerância do *canary*. As *feature flags* de `system-design/14` são o mecanismo que separa deploy
 > de *release*. E a resiliência (circuito, retry) de `spring-boot/08` é o que impede que um canary
-> degradado, enquanto ainda não foi revertido, afete desproporcionalmente o resto do sistema.
+> degradado, enquanto ainda não foi revertido, afete desproporcionalmente o resto do sistema. Na AWS,
+> `aws-para-backend/04` mapeia as três estratégias nos serviços gerenciados: o canary no ECS e a *flag* com
+> experimento no AppConfig. E o piloto de agentes de código de `ia-na-engenharia/07` usa a mesma disciplina
+> do teste A/B (grupo de comparação, duração definida antes, nada de espiar), com o time como unidade.
 
 ## Principais aprendizados
 
