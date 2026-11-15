@@ -1,0 +1,54 @@
+questions:
+  - question: "O que deve, e o que não deve, ir no arquivo de instruções do repositório (AGENTS.md)?"
+    options:
+      - "Os comandos reais de build e teste, as convenções e os limites; nunca segredo nem comando que não funciona"
+      - "A documentação completa da arquitetura, para que o agente tenha todo o contexto antes de cada tarefa"
+      - "As credenciais de leitura do ambiente de homologação, para que o agente consiga rodar os testes de integração"
+      - "Só o nome do time e o canal de suporte, porque o agente descobre os comandos lendo o código"
+    answer: 0
+    explanation: "O arquivo é o que o agente sabe do repositório, já que ele não lembra de nada entre sessões. Comandos exatos, convenções que o código não mostra e limites. Segredo nunca: o arquivo entra no contexto de qualquer sessão. Texto longo dilui o essencial, e comando errado é pior que nenhum, porque o agente confia nele; por isso um teste roda cada comando."
+
+  - question: "O PR do agente mantém o número de asserções do teste, mas troca `if a || b` por `if a && b`. O que detecta isso?"
+    options:
+      - "A contagem de asserções por teste, que compara a quantidade de verificações antes e depois do patch"
+      - "O linter de estilo do repositório, que reprova operadores lógicos trocados dentro das condições de teste"
+      - "A pontuação de mutação do módulo: o teste deixa de matar mutantes que antes matava, e ela cai"
+      - "Nenhuma checagem automática, porque o teste continua compilando e passando no CI"
+    answer: 2
+    explanation: "A contagem continua igual: a asserção está lá, só não verifica mais o que verificava. A mutação vê a diferença, porque um mutante do decisor que antes reprovava o teste agora passa. No laboratório, essa troca não mexeu na contagem e derrubou a mutação de 6/9 para 5/9. As duas defesas juntas fecham o caminho."
+
+  - question: "A tarefa T-001 declara o escopo `limite/`. O patch do agente também ajusta `speclint/speclint.go` 'para ficar mais consistente'. O que fazer?"
+    options:
+      - "Aceitar, porque o agente está sendo proativo e a melhoria é pequena e no mesmo repositório da tarefa"
+      - "Recusar o PR: arquivo fora do escopo é o modo de falha do escopo que cresce, e vira outra tarefa"
+      - "Aceitar só se os testes do speclint também passarem, já que o patch não quebrou nada visível"
+      - "Mover a mudança para outro commit do mesmo PR, separando as duas alterações por mensagem de commit"
+    answer: 1
+    explanation: "O escopo declarado é o que a revisão e o harness esperam. O patch fora dele é o escopo que cresce, um dos modos de falha do marco 01: mistura risco, aumenta o PR e passa por uma revisão que não o esperava. Se a mudança vale, vira outra tarefa, com o próprio escopo."
+
+  - question: "A Ana disparou o agente que escreveu o PR do limite noturno. Quem pode aprovar o PR?"
+    options:
+      - "A Ana, porque ela conhece a tarefa melhor do que ninguém no time e revisou o patch linha a linha"
+      - "O próprio agente, depois de rodar todos os testes e o harness com sucesso na esteira de CI"
+      - "Qualquer pessoa do time, inclusive a Ana, desde que a aprovação fique registrada no próprio PR do agente"
+      - "Outra pessoa: o agente é autor, a Ana é a responsável, e autor e responsável não aprovam o próprio PR"
+    answer: 3
+    explanation: "A segregação de entrega-continua-e-devops/09 vale igual: o agente é autor, a pessoa que o disparou responde por ele, e uma terceira pessoa aprova. O harness recusa a evidência em que o aprovador é a pessoa responsável, e a evidência sem pessoa responsável."
+
+  - question: "Por que testes rápidos são o melhor freio para um agente de código?"
+    options:
+      - "Porque o agente roda em laço (planeja, age, verifica) e só usa o que cabe a cada passo; o teste lento fica de fora"
+      - "Porque testes rápidos custam menos na fatura do modelo, já que o agente paga por cada segundo de execução de comando"
+      - "Porque o agente só consegue executar comandos que terminam em menos de um segundo dentro do ambiente isolado dele"
+      - "Porque testes lentos não podem ser executados em ambiente isolado, por falta de acesso à rede"
+    answer: 0
+    explanation: "A qualidade do 'verificar' decide a qualidade do resultado. Um teste de 4 segundos entra no laço e corrige o agente a cada edição; um de 40 minutos não entra, e o agente segue sem ele. A pirâmide de testes e os gates de entrega-continua-e-devops/04 valem com mais força."
+
+  - question: "Em qual situação é hora de parar o agente e escrever à mão?"
+    options:
+      - "Sempre que o primeiro patch falhar em algum teste, porque o agente não aprende com o próprio erro"
+      - "Sempre que a tarefa estiver no caminho do dinheiro, porque o agente nunca pode tocar nessa parte crítica do código do ledger"
+      - "Quando ele está na terceira versão do patch, cada uma quebrando outra coisa, ou começa a decidir o que não está escrito"
+      - "Nunca: a tarefa só termina quando o agente converge sozinho, mesmo que leve muitas rodadas a mais que o previsto"
+    answer: 2
+    explanation: "O laço com teste corrige o primeiro erro; parar no primeiro patch é desperdiçar o laço. O caminho do dinheiro aceita agente com teste de invariante e revisão humana. O sinal de parar é a terceira tentativa que quebra outra coisa, a decisão que não está escrita, o diff que passa do tamanho, ou a revisão custando mais que escrever."

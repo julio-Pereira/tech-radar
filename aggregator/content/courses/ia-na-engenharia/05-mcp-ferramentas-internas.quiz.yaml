@@ -1,0 +1,54 @@
+questions:
+  - question: "O servidor MCP interno aceita qualquer token válido emitido pelo provedor de identidade do banco. Qual é o problema?"
+    options:
+      - "Nenhum: se o token foi emitido pelo provedor do banco, a pessoa já foi autenticada e pode usar todas as ferramentas"
+      - "Um token de outra audiência, vazado de qualquer serviço, abre as ferramentas; o token tem de ser para este servidor"
+      - "O problema é só de desempenho, porque validar tokens de vários emissores deixa cada chamada de ferramenta mais lenta"
+      - "O MCP não aceita tokens do provedor do banco, só os emitidos pelo próprio cliente do agente na sessão"
+    answer: 1
+    explanation: "Pela especificação, o token é ligado à audiência do servidor (RFC 8707). Aceitar qualquer token válido faz de qualquer token vazado, de qualquer serviço, uma chave para as ferramentas internas. No laboratório, o token de outra audiência foi recusado antes de qualquer leitura no repositório."
+
+  - question: "A ferramenta `estornar_pix` está anotada com `readOnlyHint: false` e o servidor exige que o agente confirme antes. O que falta?"
+    options:
+      - "Nada: a anotação avisa o cliente, e a confirmação do agente garante que o usuário quis o estorno"
+      - "Trocar a anotação para `destructiveHint: true`, que obriga o cliente a pedir a confirmação ao usuário"
+      - "Aumentar o limite de tamanho da resposta, para que o agente veja todos os dados antes de confirmar"
+      - "A confirmação humana fora do agente: o 'sim' do modelo pode ter vindo de um texto que ele leu"
+    answer: 3
+    explanation: "Anotação é dica para o cliente, não controle. A confirmação que o agente dá pode ter sido induzida por um conteúdo injetado (marco 06). Uma ação de escrita irreversível precisa de confirmação de uma pessoa num canal que o agente não controla."
+
+  - question: "Por que a descrição de uma ferramenta MCP é parte do contrato?"
+    options:
+      - "Porque o modelo escolhe qual ferramenta chamar, e com quais argumentos, pela descrição"
+      - "Porque a especificação exige que a descrição tenha a versão e a data de publicação da ferramenta"
+      - "Porque o servidor recusa as chamadas cujos argumentos não estão citados textualmente na descrição"
+      - "Porque a descrição é o único lugar onde o servidor declara o esquema de entrada da ferramenta"
+    answer: 0
+    explanation: "O cliente é um modelo, e ele decide pela descrição. 'Lê um lançamento pelo identificador; nunca devolve CPF, conta ou chave Pix' diz o que a ferramenta faz e o que ela promete não fazer. Mudar o sentido da descrição é uma mudança incompatível da API, mesmo sem mudar o esquema."
+
+  - question: "A ferramenta `consultar_lancamento` devolve o histórico do lançamento, e o histórico traz o CPF da contraparte. Qual é a correção?"
+    options:
+      - "Mudar a descrição da ferramenta para avisar o modelo de que a resposta pode conter CPF e chave Pix da contraparte"
+      - "Pedir no AGENTS.md que o agente não copie o CPF que aparecer na resposta da ferramenta"
+      - "Projetar só os campos prometidos e remover, numa segunda camada, os padrões de CPF, conta e chave Pix"
+      - "Restringir a ferramenta aos usuários com perfil de administrador, que já podem ver o CPF no sistema do ledger"
+    answer: 2
+    explanation: "A primeira defesa é a projeção: a ferramenta devolve só o que promete. A segunda é a limpeza de qualquer texto que saia, porque dado pessoal escapa em campos livres como o histórico. As duas se testam com fixtures que têm os dados de propósito. Pedir ao agente que 'não copie' depende do modelo se comportar."
+
+  - question: "O que o registro de auditoria de um servidor MCP precisa ter para responder 'o agente leu o quê, a pedido de quem?'"
+    options:
+      - "Só o número de chamadas por hora e por identidade, para controlar o custo e o volume de uso do servidor MCP"
+      - "A identidade do token, a ferramenta, os argumentos e o resumo do resultado, inclusive quando a chamada falha"
+      - "A resposta completa de cada chamada, com todos os dados retornados ao agente, para reconstruir a investigação depois"
+      - "O texto da conversa do usuário com o agente que levou à chamada, guardado junto com o registro da chamada"
+    answer: 1
+    explanation: "Quem, qual ferramenta, com quais argumentos e o que aconteceu, também na falha. Guardar a resposta completa copia para o registro o dado que a ferramenta se esforçou para não expor. A conversa do usuário fica no cliente; o servidor registra o que ele mesmo vê."
+
+  - question: "O time quer um servidor MCP para expor `git log` ao agente. Por que talvez não valha a pena?"
+    options:
+      - "Porque o MCP não permite expor comandos de linha de comando como ferramentas registradas no servidor"
+      - "Porque o git não roda em ambiente isolado, e o servidor MCP precisaria de acesso de escrita ao repositório inteiro do time"
+      - "Porque a especificação 2026-07-28 descontinuou as ferramentas que leem o sistema de arquivos local da máquina do agente"
+      - "Porque uma CLI com --help o agente já usa, com autorização e versão próprias; o servidor é mais uma API a proteger"
+    answer: 3
+    explanation: "Quando a CLI resolve, o agente já sabe usá-la, e ela já tem autorização, auditoria e versão. Embrulhar o comando num servidor acrescenta uma API para autenticar, limitar e manter, sem ganho. O MCP vale quando a capacidade não existe como comando seguro, como a consulta ao ledger com projeção e limpeza."

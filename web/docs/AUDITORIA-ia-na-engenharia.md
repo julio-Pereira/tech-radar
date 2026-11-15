@@ -135,3 +135,43 @@ total, nenhuma com a resposta certa como a única opção mais longa). O laborat
 `entrega-continua-e-devops/01` fala em "quatro métricas DORA" (com "conferir edição vigente"). A edição de
 2025 tem **cinco**: a quinta é a taxa de retrabalho, o tema do marco 07 desta trilha. A correção entra na
 Fase 3, junto com as edições da §10 do plano.
+
+## 3. Fase 2 — Bloco B (marcos 04 e 05)
+
+Os dois marcos críticos saíram dos *stubs*, com os cinco blocos de Hands-on e o quiz estendido (6 perguntas
+cada). As 24 perguntas da trilha até aqui: nenhuma com a resposta certa como a única opção mais longa.
+
+### Medições
+
+| Marco | O que foi medido | Resultado |
+| --- | --- | --- |
+| 04 | os comandos do `AGENTS.md`, executados por um teste | os três terminam com sucesso |
+| 04 | *harness*: patch bom | aceito; mutação do decisor 6/9 antes e depois |
+| 04 | asserção removida (com o código) | contagem caiu (3 → 2 em `TestDecidir`, 2 → 1 em `TestJanela`); mutação 6/9 → 3/6 |
+| 04 | asserção enfraquecida sem mudar a contagem (`\|\|` → `&&`, `&& false`) | a contagem não viu; só a mutação pegou: **6/9 → 5/9** |
+| 04 | fora do escopo, PR grande, autoaprovação | recusados: `speclint/speclint.go` fora de `limite/`; 311 linhas contra 120; aprovador = responsável; PR sem pessoa responsável |
+| 05 | *token* sem audiência certa (ausente, outra audiência, vencido, assinatura falsa) | os quatro recusados, zero leituras no repositório |
+| 05 | ferramentas só de leitura | as duas com `readOnlyHint`, chamadas todas: zero escritas |
+| 05 | saída sem dado pessoal | a *fixture* com CPF, chave Pix e conta no histórico saiu limpa |
+| 05 | auditoria | 3 chamadas, 3 registros completos; a falha registrada como erro |
+| 05 | entrada fora do esquema | cinco casos (injeção, caminho, campo extra, campo faltando, serviço fora da lista) rejeitados, zero leituras |
+| 05 | resposta grande | 14.030 bytes chegaram como 2.048 com o aviso de truncamento |
+| 05 | mutações | sem a limpeza, sem a checagem de audiência e sem o padrão do esquema: cada uma reprovou a sua invariante |
+
+### Achados que viraram conteúdo
+
+- **O SDK MCP em Go v1.8.0 e a revisão 2026-07-28.** O cliente pede a 2026-07-28 por padrão, mas o *handler*
+  HTTP do servidor só a negocia com `StreamableHTTPOptions{Stateless: true}`; sem a opção, a sessão do teste
+  caiu para a **2025-11-25**, com o *handshake* `initialize`, sem erro. Entrou no marco 05 e como sétima
+  invariante.
+- **O vencimento do *token*.** O *middleware* `auth.RequireBearerToken` confere o vencimento contra o relógio
+  real, além do verificador; o primeiro teste, com relógio fixo, recusou o *token* válido.
+- **A recursão do *harness*.** A primeira versão rodava `go test ./...` dentro da cópia do módulo, e isso rodava
+  o próprio *harness*, em recursão, até encher o disco. Passou a rodar só os pacotes da tarefa.
+- **A mutação de partida é 6/9.** Três mutantes do decisor sobrevivem à suíte original; o *harness* compara
+  antes e depois, sem exigir 100%.
+
+### Laboratório
+
+O servidor MCP é um módulo Go próprio (`fin-assist/mcp`, Go 1.25 pelo SDK); o resto do `fin-assist` segue em
+Go 1.24. O teste sobe o servidor com `httptest` e fala com ele pelo cliente do SDK, sem rede externa.
