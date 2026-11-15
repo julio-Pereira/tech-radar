@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 271, "desafio": 318, "invariantes": 310, "complemento": 301, "checagem": 316, "gabarito": 5,
+		"tutorial": 273, "desafio": 320, "invariantes": 312, "complemento": 303, "checagem": 318, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -425,8 +425,6 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	// The ia-na-engenharia stubs (Fase 0) leave this list as each block is
 	// written; once the trilha is complete it must be empty again.
 	wantNoSection := []string{
-		"ia-na-engenharia/agentes-de-codigo-no-time",
-		"ia-na-engenharia/mcp-ferramentas-internas",
 		"ia-na-engenharia/medir-efeito-e-capstone",
 		"ia-na-engenharia/seguranca-com-agentes",
 	}
