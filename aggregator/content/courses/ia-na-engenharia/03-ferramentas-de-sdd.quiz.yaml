@@ -1,0 +1,36 @@
+questions:
+  - question: "O time rodou o Spec Kit e tem especificação, plano e tarefas gerados para o limite noturno. O que isso garante?"
+    options:
+      - "Que o critério de aceite está certo, porque o comando analyze confere a especificação contra a regra"
+      - "Só a forma e o trilho; o critério certo, o dono do documento e a revisão continuam sendo do time"
+      - "Que nenhuma ambiguidade passou, porque o comando clarify fecha todas as dúvidas antes do plano"
+      - "Que a especificação vai continuar valendo depois do merge, porque o converge a mantém atualizada"
+    answer: 1
+    explanation: "A ferramenta dá trilho, modelos e comandos. Uma especificação gerada pode ser tão vaga quanto uma escrita à mão, só mais bem formatada. O clarify pergunta, mas quem responde e quem é dono é o time; o converge itera a implementação, não mantém a especificação."
+
+  - question: "Por que fixar a versão do Spec Kit por tag na esteira, e não instalar da main?"
+    options:
+      - "Porque a main exige uma chave de API que só a versão estável dispensa na instalação"
+      - "Porque a licença MIT só vale para as versões publicadas com tag, e não para a main"
+      - "Porque a CLI já mudou de forma incompatível (--ai virou --integration), e a main muda sem aviso"
+      - "Porque instalar da main baixa as integrações de todos os agentes suportados, o que deixa a esteira mais lenta"
+    answer: 2
+    explanation: "Entre a 0.x e a 1.x, a opção --ai virou --integration, e --no-git e --skills foram descontinuadas. A documentação recomenda a instalação fixada numa tag. Instalar da main é instalar uma versão que muda numa segunda-feira e para a esteira; o teste do marco reprova a linha sem versão."
+
+  - question: "Ao converter a especificação do Spec Kit para o formato neutro, o que se perde se não houver convenção?"
+    options:
+      - "Os identificadores FR-NNN, que o Spec Kit renumera a cada execução do comando specify"
+      - "As marcas NEEDS CLARIFICATION, que o Spec Kit apaga automaticamente depois do plano"
+      - "A prioridade das histórias de usuário, que o formato neutro do fin-assist não tem campo para representar"
+      - "A ligação requisito → critério: no Spec Kit, o cenário de aceite pertence à história, não ao FR"
+    answer: 3
+    explanation: "O modelo do Spec Kit põe os cenários Given/When/Then nas histórias de usuário, e os FR-NNN numa lista à parte. Nada liga o FR ao cenário que o prova. A convenção do fin-assist põe o requisito no título da história; sem ela, o conversor recusa em vez de adivinhar."
+
+  - question: "Em que situação uma ferramenta de SDD atrapalha mais do que ajuda?"
+    options:
+      - "Numa correção de uma linha, em que as etapas ensinam o time a pular o processo inteiro"
+      - "Numa funcionalidade nova de tamanho médio, com produto e engenharia discutindo a mesma regra"
+      - "Num time que precisa de um padrão de documento revisável por qualquer pessoa do grupo"
+      - "Num repositório existente, em que a adoção começa por uma funcionalidade nova, não pelo legado"
+    answer: 0
+    explanation: "Nove etapas para uma linha é cerimônia, e cerimônia ensina a pular. A ferramenta ajuda no trabalho novo de tamanho médio, no padrão comum de documento e na conversa com o produto. No repositório existente, a documentação manda começar por uma funcionalidade nova; atrapalha é tentar especificar o legado inteiro."
