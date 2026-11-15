@@ -135,6 +135,15 @@ steps:
     group: "Nuvem (escolha a da vaga)"
     optional: true
     why: "Zona, região e o par do Brazil South fora do país: DR no Azure é também decisão de residência."
+  - ref: ia-na-engenharia/02
+    group: "Engenharia com IA"
+    why: "Especificação que um agente consegue cumprir: critério de aceite como teste e ambiguidade marcada, a resposta a \"como você trabalha com IA?\" que a banca quer ouvir."
+  - ref: ia-na-engenharia/04
+    group: "Engenharia com IA"
+    why: "Agente de código no fluxo do time: PR pequeno, escopo declarado, autor diferente do aprovador e a asserção enfraquecida que só a mutação pega."
+  - ref: ia-na-engenharia/06
+    group: "Engenharia com IA"
+    why: "Segurança com agentes: injeção indireta, a combinação de dado privado, conteúdo externo e saída, e o controle que funciona com o modelo enganado."
   - ref: pagamentos-e-liquidacao/02
     group: "Domínio fintech como diferencial"
     why: "Conhecer o Pix por dentro transforma uma resposta genérica numa resposta de quem já operou pagamentos."

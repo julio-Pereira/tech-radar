@@ -275,3 +275,9 @@ ficam para a revisão semestral (`reviewEvery: 6m`).
 - [x] Jornada com o grupo de linguagem, todos os `ref` resolvendo e os `why` fiéis ao título real (§4).
 - [x] Bloco 5 não implementado.
 - [x] `go test ./...` e testes do front verdes.
+
+## Bloco 5 — decisão registrada (14 nov 2026)
+
+O Julio escolheu a opção (a): uma trilha curta própria, antes da trilha de IA generativa em produção. O
+Bloco 5 deste adendo passou a ser a trilha `ia-na-engenharia` (7 marcos, 430 minutos, 14 horas), com o
+próprio plano e a auditoria em `web/docs/AUDITORIA-ia-na-engenharia.md`.

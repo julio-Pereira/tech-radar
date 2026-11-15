@@ -111,8 +111,9 @@ repositórios clonados na *tag* indicada).
 | **SDK MCP em Go** | **v1.8.0** (4 set 2026), Go 1.25 | `modelcontextprotocol/go-sdk`, `README.md` | suporta a 2026-07-28 desde a v1.7.0 |
 | **SDK MCP em Java** | **v2.2.0**, licença MIT | `modelcontextprotocol/java-sdk` | alternativa registrada |
 | **AGENTS.md** | formato aberto, sem versão | `agentsmd/agents.md` | "um README para agentes": comandos de *build* e teste, convenções, instruções de PR |
-| **OWASP Top 10 for LLM Applications** | edição **2025** (LLM01 *Prompt Injection*, LLM06 *Excessive Agency*) | genai.owasp.org | há também o *Top 10 for Agentic Applications for 2026*; a lista inteira se confere na Fase 3 |
-| **DORA** | relatório **2025**, *State of AI-assisted Software Development* | dora.dev | adoção de IA associada a mais *throughput* e a **mais instabilidade**; números só com link, nunca de memória |
+| **OWASP Top 10 for LLM Applications** | edição **2026** (publicada entre ago e set de 2026; *Excessive Agency* em terceiro) | genai.owasp.org | corrigido na Fase 3: a Fase 0 registrou a 2025. Há também o *Top 10 for Agentic Applications for 2026* (dez 2025), que começa por *Agent Goal Hijack*, *Tool Misuse* e *Identity & Privilege Abuse* |
+| **DORA** | relatório **2025**, *State of AI-assisted Software Development*; cinco métricas de entrega desde o relatório de 2024 | dora.dev | adoção de IA associada a mais *throughput* e a **mais instabilidade**; a quinta métrica é a taxa de retrabalho de *deploy*; números só com link, nunca de memória |
+| combinação perigosa | *lethal trifecta* (Simon Willison, 16 jun 2025) e *Agents Rule of Two* (Meta, out 2025) | simonwillison.net, ai.meta.com | as duas fontes primárias, citadas por link no marco 06 |
 
 ## Pré-requisitos
 

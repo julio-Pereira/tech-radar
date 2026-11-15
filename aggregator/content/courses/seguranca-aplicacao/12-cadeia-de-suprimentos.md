@@ -25,7 +25,10 @@ disponível, sem distinguir origem, ele silenciosamente troca o pacote interno l
 público malicioso. **Mantenedor comprometido** é a conta de quem publica um pacote legítimo
 sendo sequestrada, e uma versão maliciosa publicada sob a mesma identidade confiável. E
 **script de pós-instalação** (`postinstall` em npm, e equivalentes) executa código
-arbitrário no momento da instalação, antes de qualquer teste ou revisão rodar.
+arbitrário no momento da instalação, antes de qualquer teste ou revisão rodar. Com agentes de código,
+há uma variante: o modelo sugere um **pacote inexistente** com nome plausível, e quem registra esse
+nome recebe a instalação. A defesa (lista permitida e registro espelhado) é a desta seção, aplicada ao
+agente em `ia-na-engenharia/06`.
 
 ## A árvore real de dependências
 

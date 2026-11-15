@@ -32,7 +32,9 @@ errada, o teste teria pego". **Teste de mutação** introduz um erro deliberado 
 por `-`, inverter uma condição) e verifica se **algum** teste falha — se nenhum falhar, a cobertura
 daquela linha era uma ilusão: ela foi executada, mas nada verificava o resultado. Um módulo com 100%
 de cobertura e 0% de pontuação de mutação está completamente desprotegido, apesar do número que
-parece ótimo no painel.
+parece ótimo no painel. O mesmo *gate* defende contra o agente de código que passa no teste mudando o
+teste: a asserção enfraquecida mantém a contagem e derruba a pontuação de mutação
+(`ia-na-engenharia/04`).
 
 ## Detector de corrida, e ordem aleatória
 

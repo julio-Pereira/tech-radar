@@ -132,9 +132,9 @@ total, nenhuma com a resposta certa como a única opção mais longa). O laborat
 
 ### Achado fora do escopo
 
-`entrega-continua-e-devops/01` fala em "quatro métricas DORA" (com "conferir edição vigente"). A edição de
-2025 tem **cinco**: a quinta é a taxa de retrabalho, o tema do marco 07 desta trilha. A correção entra na
-Fase 3, junto com as edições da §10 do plano.
+`entrega-continua-e-devops/01` fala em "quatro métricas DORA" (com "conferir edição vigente"). O DORA tem
+**cinco** desde o relatório de **2024** (a quinta é a taxa de retrabalho de *deploy*; esta seção dizia "a
+edição de 2025", corrigido na Fase 3). A correção do marco entrou na Fase 3.
 
 ## 3. Fase 2 — Bloco B (marcos 04 e 05)
 
@@ -175,3 +175,64 @@ cada). As 24 perguntas da trilha até aqui: nenhuma com a resposta certa como a 
 
 O servidor MCP é um módulo Go próprio (`fin-assist/mcp`, Go 1.25 pelo SDK); o resto do `fin-assist` segue em
 Go 1.24. O teste sobe o servidor com `httptest` e fala com ele pelo cliente do SDK, sem rede externa.
+
+## 4. Fase 3 — Bloco C (marcos 06 e 07), capstone, glossário, conceitos e edições da §10
+
+Os marcos 06 (quiz estendido, 6) e 07 (4, com `## Capstone`) saíram dos *stubs*. A trilha fecha com **34
+perguntas**, nenhuma com a resposta certa como a única opção mais longa, e o teste de seções volta a
+`var wantNoSection []string`. O `GLOSSARIO.md` passou de 4 para **39 verbetes**, sem repetir os que têm dono
+(*gate*, métricas DORA, evidência, cadeia de suprimentos, segredo, teste de mutação e lei de Goodhart, os
+dois últimos conferidos nos glossários de `go-fintech`, `concorrencia-e-recursos` e
+`entrega-continua-e-devops`).
+
+### Medições
+
+| Marco | O que foi medido | Resultado |
+| --- | --- | --- |
+| 06 | portão com o roteiro injetado | o roteiro tentou ler o `.env` e mandar para o coletor; 2 negações, **nada enviado**; com o conteúdo limpo, nenhuma negação |
+| 06 | segunda camada | com a leitura liberada por engano, o destino fora da lista ainda barra a saída; sessão sem rede não sai nem para destino conhecido |
+| 06 | combinação perigosa | a sessão com as três capacidades é recusada; com qualquer uma tirada, passa |
+| 06 | contexto montado | `.env`, chave, `secrets/` e o valor do segredo copiado em `config/local.yaml` e num `README.md` ficaram fora; o código ficou |
+| 06 | dependências | fora da lista, negada; na lista por engano mas fora do registro espelhado, negada pelo espelho |
+| 06 | irreversível | sem aprovação, com a da própria responsável e com a de outra ação: negado; com a de outra pessoa, permitido |
+| 06 | registro encadeado | as negações entram; a entrada adulterada é apontada pelo índice |
+| 06 | seis mutações | ler segredo, qualquer destino, autoaprovação, sem o validador das três, sem espelho, sem conferir o *hash*: todas pegas |
+| 07 | medição sobre massa conhecida | *lead time* 45 h × 17h30; falha 10% × 30%; retrabalho de *deploy* 20% no piloto; retrabalho de código 1/12 × 6/20 |
+| 07 | veredito | velocidade sozinha recusada; mais rápido com mais retrabalho: "sem ganho comprovado"; mais rápido sem piora: "ganho" |
+| 07 | janela do retrabalho | a linha refeita 30 dias depois fica fora da janela de 14 (6/20) e entra na de 31 (7/20) |
+| 07 | grupos desiguais | 4 × 4 não alerta; 12 × 4 alerta; menos de 30 *deploys* gera o alerta de amostra pequena |
+| capstone | `make tudo` (`spec`, `harness`, `portao`, `medicao`, `mcp`) | os 9 pacotes passam, sem chave de API e sem rede externa |
+
+**Um achado das mutações do 06.** Na primeira bateria, a mutação "ler segredo" sobreviveu: a lista de arquivos
+da sessão também negava o `.env`, e nenhum teste isolava a regra de segredo. Um teste com uma sessão de leitura
+ampla passou a exigi-la. E a primeira versão do *script* de mutação escondia as falhas de compilação (um mutante
+deixava uma variável sem uso); passou a mostrar todo `FAIL`.
+
+### Conferências desta fase (15 nov 2026)
+
+- **OWASP:** a edição vigente do *Top 10 for LLM Applications* é a **2026** (publicada entre ago e set de 2026),
+  e não a 2025, que a Fase 0 registrou. Corrigido no `PROJETO.md`. O *Top 10 for Agentic Applications for 2026*
+  (dez 2025) começa por *Agent Goal Hijack*, *Tool Misuse* e *Identity & Privilege Abuse*; a lista inteira não
+  foi lida, e o marco cita só essas três.
+- **Combinação perigosa:** atribuída às fontes primárias, com as URLs conferidas: o texto de Simon Willison (16
+  jun 2025) e o *Agents Rule of Two* da Meta (out 2025), em que a terceira capacidade é "mudar estado ou se
+  comunicar para fora", e que se diz complemento, não substituto, do menor privilégio.
+- **DORA:** cinco métricas desde o relatório de **2024**; a quinta, a taxa de retrabalho de *deploy*, conta
+  *deploys* não planejados por incidente em produção. É diferente do retrabalho de código do plano (linhas
+  refeitas em poucos dias); o marco 07 mede e explica os dois.
+
+### Edições em outras trilhas (§10 do plano)
+
+- `go-fintech/15`: o Complemento de MCP ganhou a ponte para `ia-na-engenharia/05`;
+- `entrega-continua-e-devops/04`: a mutação como defesa contra a asserção enfraquecida, com ponte para
+  `ia-na-engenharia/04`;
+- `entrega-continua-e-devops/01`: as **cinco** métricas do DORA, com a quinta desde 2024 e a ponte para
+  `ia-na-engenharia/07`; o Hands-on segue com as quatro clássicas;
+- `seguranca-aplicacao/12`: o pacote inexistente sugerido pelo modelo, com ponte para `ia-na-engenharia/06`;
+- jornada `entrevista-senior`: grupo **"Engenharia com IA"** com `/02`, `/04` e `/06`; a jornada passou de 47
+  para 50 etapas;
+- banco de desafios: `adotar-ia-no-time` (comportamental, rubrica de 5 itens e a reviravolta do dado sensível),
+  com pré-requisito `ia-na-engenharia/07`; o banco passou de 15 para 16;
+- `conceitos.yaml`: **MCP**, com dono em `ia-na-engenharia/05` (citado em `go-fintech/14` e `/15`);
+- o Bloco 5 do adendo de sinais aponta para esta trilha na auditoria do adendo (o plano do adendo não é
+  versionado no repositório).

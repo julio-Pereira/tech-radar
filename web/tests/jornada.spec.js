@@ -30,13 +30,13 @@ test('the path starts at the interview milestone and ends with the desafio bank'
   const groups = await page.locator('.path-group-title').allTextContents();
   expect(groups).toEqual([
     'Ponto de entrada', 'Revisar fundamentos de HLD', 'Framework de estudo de caso', 'Código e LLD',
-    'Linguagem (escolha a da vaga)', 'Nuvem (escolha a da vaga)', 'Domínio fintech como diferencial', 'Liderança e comportamental', 'Prática contínua', 'Radar de prontidão',
+    'Linguagem (escolha a da vaga)', 'Nuvem (escolha a da vaga)', 'Engenharia com IA', 'Domínio fintech como diferencial', 'Liderança e comportamental', 'Prática contínua', 'Radar de prontidão',
   ]);
 
   const bank = page.locator('.path-step-desafios');
   await expect(bank.locator('.path-step-link')).toHaveAttribute('href', '#/desafios');
-  await expect(bank.locator('.path-step-title')).toHaveText('Banco de desafios — 15 desafios');
-  await expect(bank.locator('.path-step-meta')).toHaveText('0 de 15 praticados · 0 liberados');
+  await expect(bank.locator('.path-step-title')).toHaveText('Banco de desafios — 16 desafios');
+  await expect(bank.locator('.path-step-meta')).toHaveText('0 de 16 praticados · 0 liberados');
 });
 
 test('the bank step counts desafios unlocked by completed pre-requisites and practiced ones', async ({ page }) => {
@@ -49,7 +49,7 @@ test('the bank step counts desafios unlocked by completed pre-requisites and pra
   });
   await setRodadas(page, { 'storage-eventos-pix': [{ seed: 1, at: '2026-11-01T10:00:00Z', verificadoPct: 50, autoPct: 0 }] });
   await page.reload();
-  await expect(page.locator('.path-step-desafios .path-step-meta')).toHaveText('1 de 15 praticados · 1 liberado');
+  await expect(page.locator('.path-step-desafios .path-step-meta')).toHaveText('1 de 16 praticados · 1 liberado');
   await expect(page.locator('.path-step-desafios')).not.toHaveClass(/done/);
 });
 
@@ -111,7 +111,7 @@ test('the radar svg is decorative; the list carries the numbers; axe passes', as
 
 test('the paths index lists the interview path', async ({ page }) => {
   await page.goto('/#/paths');
-  await expect(page.locator('a.course-card[href="#/paths/entrevista-senior"] .course-card-meta')).toContainText('47 etapas');
+  await expect(page.locator('a.course-card[href="#/paths/entrevista-senior"] .course-card-meta')).toContainText('50 etapas');
 });
 
 test('phone width: no horizontal page scroll on the path with the radar', async ({ page }) => {
