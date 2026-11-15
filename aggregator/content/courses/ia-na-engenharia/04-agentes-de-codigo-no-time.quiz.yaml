@@ -15,7 +15,7 @@ questions:
       - "A pontuação de mutação do módulo: o teste deixa de matar mutantes que antes matava, e ela cai"
       - "Nenhuma checagem automática, porque o teste continua compilando e passando no CI"
     answer: 2
-    explanation: "A contagem continua igual: a asserção está lá, só não verifica mais o que verificava. A mutação vê a diferença, porque um mutante do decisor que antes reprovava o teste agora passa. No laboratório, essa troca não mexeu na contagem e derrubou a mutação de 6/9 para 5/9. As duas defesas juntas fecham o caminho."
+    explanation: "A contagem continua igual: a asserção está lá, só não verifica mais o que verificava. A mutação vê a diferença, porque um mutante do decisor que antes reprovava o teste agora passa. No laboratório, essa troca não mexeu na contagem e derrubou a mutação de 6/8 para 5/8. As duas defesas juntas fecham os caminhos conhecidos; a revisão humana da classe crítica continua para o resto."
 
   - question: "A tarefa T-001 declara o escopo `limite/`. O patch do agente também ajusta `speclint/speclint.go` 'para ficar mais consistente'. O que fazer?"
     options:

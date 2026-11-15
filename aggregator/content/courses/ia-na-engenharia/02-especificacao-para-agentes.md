@@ -138,7 +138,7 @@ O primeiro PR do limite noturno chegou com os testes verdes e uma decisão que n
 agente usou o fuso do servidor. Em produção, rodando em UTC, a janela das 20h às 6h de São Paulo virou a das
 17h às 3h. A especificação dizia "à noite". A correção:
 
-- a especificação ganhou o fuso como critério (`CA-003-1`), com o caso "22h em São Paulo é 01h UTC" no teste
+- a especificação ganhou o fuso como critério (`CA-003-1`), com o caso "07h UTC é 04h em São Paulo" no teste
   de tabela;
 - a borda da meia-noite e o Pix agendado viraram critérios; o agendado foi uma decisão do produto,
   registrada;
@@ -166,7 +166,11 @@ e o Pix agendado, e implementar o decisor (`limite/`) com relógio injetado até
 4. **Classe crítica sem ambiguidade aberta.** A especificação de classe `caminho-do-dinheiro` não é aceita com
    ambiguidade aberta.
 5. **Tarefa verificável.** Toda tarefa referencia um requisito que existe e declara o comando de verificação.
-6. **As bordas da janela são testes de tabela.** Início (20h00), fim (6h00), virada do dia e fuso
+6. **As bordas da janela são testes de tabela.** Início (20h00), fim (6h00), virada do dia e fuso, com
+   casos que estejam **dentro num fuso e fora no outro** (07h UTC é 04h em São Paulo; 21h UTC é 18h). A revisão
+   adversarial mostrou que os primeiros casos de fuso ("22h em São Paulo é 01h UTC", "12h UTC é 09h em São
+   Paulo") ficavam do mesmo lado da janela nos dois fusos, e o decisor que ignorava o fuso passava. Os novos
+   reprovam esse decisor. Os casos: início (20h00), fim (6h00), virada do dia e fuso
    (`America/Sao_Paulo` contra UTC), com relógio injetado.
 
 Medido: a especificação do limite (4 requisitos, 7 critérios, 3 tarefas) passou no `speclint` sem

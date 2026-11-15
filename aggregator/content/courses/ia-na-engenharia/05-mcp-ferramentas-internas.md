@@ -52,7 +52,8 @@ mudanças que importam para quem opera um servidor:
   passado como argumento;
 - ***roots*, *sampling* e *logging* foram descontinuados**, com janela mínima de 12 meses;
 - na autorização, o **registro dinâmico de cliente** (RFC 7591) foi descontinuado em favor do *Client ID
-  Metadata Document*, e o cliente **deve** validar o `iss` da resposta (RFC 9207).
+  Metadata Document*. O servidor de autorização **deveria** incluir o `iss` na resposta (RFC 9207), e o
+  cliente **deve** validá-lo quando presente.
 
 Para o servidor, "sem estado" é boa notícia: cada requisição se autoriza sozinha, escala horizontalmente
 sem afinidade e não carrega sessão para sequestrar.
@@ -84,11 +85,15 @@ Uma ferramenta MCP boa é **estreita**: faz uma coisa, com entrada mínima.
   uma interface de leitura, sem método de escrita para chamar.
 - **Idempotente**, para que a repetição do agente não mude nada.
 - **A descrição é contrato.** O modelo escolhe a ferramenta pela descrição. "Lê um lançamento pelo
-  identificador; nunca devolve CPF, conta ou chave Pix" diz o que ela faz e o que ela promete não fazer.
+  identificador. Devolve o identificador e o valor; nunca o histórico, CPF, conta ou chave Pix" diz o que ela
+  faz e o que ela promete não fazer, e a ferramenta não pode devolver nada além disso.
 - **Entrada validada antes de tocar o dado**: o esquema com padrão (`^L-\d{1,8}$`), lista fechada de valores,
   nenhum campo extra. Entrada fora do esquema volta como erro sem chegar ao repositório.
 - **Saída limitada e sem dado pessoal.** A ferramenta projeta só os campos que promete, e uma segunda
-  camada remove os padrões de CPF, conta e chave Pix que escaparem. A resposta tem tamanho máximo, e o corte
+  camada remove os padrões que escaparem (chave Pix aleatória, CPF, CNPJ, conta, e-mail e telefone, nos formatos
+  comuns), **inclusive na mensagem de erro**: o erro do repositório pode carregar o dado que a projeção tirou, e
+  o cliente recebe uma mensagem genérica, com o detalhe limpo na auditoria. A limpeza por padrão não reconhece
+  um nome próprio nem um formato novo; por isso a projeção é a primeira defesa. A resposta tem tamanho máximo, e o corte
   vem com aviso explícito, para o agente refinar em vez de concluir com metade do dado.
 - **Escrita, só com confirmação humana fora do agente.** Uma ferramenta que estorna, bloqueia ou muda
   limite não confia no "o usuário pediu" do modelo: a confirmação acontece num canal que o agente não
@@ -128,8 +133,8 @@ primeira semana, um analista colou a resposta da ferramenta num ticket: ela traz
 lançamento, e o histórico trazia o CPF e a chave Pix da contraparte, porque era assim que o ledger guardava
 a descrição. A correção:
 
-- a ferramenta passou a projetar só valor, data e o identificador, e uma segunda camada passou a remover
-  padrões de CPF, conta e chave Pix de qualquer texto que saia;
+- a ferramenta passou a projetar só o identificador e o valor, e uma segunda camada passou a remover os
+  padrões de dado pessoal de qualquer texto que saia, inclusive dos erros;
 - a varredura dessas saídas entrou no teste, sobre *fixtures* com os dados de propósito;
 - o registro de auditoria passou a mostrar quem pediu cada consulta.
 
@@ -155,12 +160,22 @@ dados sintéticos do `ledger-core`: `consultar_lancamento` e `ultimo_deploy`. El
    argumentos e resultado; a falha registrada como erro.
 5. **Entrada fora do esquema, rejeitada antes do dado.** Injeção no identificador, caminho de arquivo, campo
    extra, campo faltando e serviço fora da lista: os cinco rejeitados, zero leituras.
-6. **Resposta grande, truncada com aviso.** Medido: um *changelog* de 14.030 bytes chegou com 2.048 e o aviso
-   `[truncado: 2048 de 14030 bytes; refine a consulta]`.
+6. **Resposta grande, truncada com aviso.** Medido: um *changelog* de 14.030 bytes chegou com 2.048 bytes de
+   dado mais o aviso `[truncado: 2048 de 14030 bytes; refine a consulta]`, sem cortar um caractere ao meio.
 
 E a sétima, que veio do achado: **a versão negociada é a 2026-07-28**. Sem `Stateless: true`, foi a 2025-11-25.
 
-Três mutações provaram os testes. Medido:
+**A revisão adversarial.** Um revisor separado tentou burlar o servidor. Pegos de saída: CPF sem pontuação,
+e-mail em maiúsculas, `aud` com outra grafia, identificador com dígitos de outra escrita. Burlas que viraram
+regra, cada uma com o seu teste:
+
+- o **erro do repositório** levava CPF e e-mail ao cliente e à auditoria;
+- a **chave Pix aleatória** (UUID), o CPF com espaço ou ponto, o telefone com DDD entre parênteses, a conta de 6 a
+  7 dígitos e o CNPJ passavam pela limpeza;
+- o *token* **sem sujeito** conectava, e a auditoria gravava uma identidade vazia;
+- o `aud` em **lista**, que a RFC 7519 permite, era recusado mesmo contendo este servidor.
+
+Três mutações provaram os testes originais, e duas, os novos. Medido:
 
 - tirar a limpeza de dado pessoal reprovou a invariante 3;
 - ignorar a audiência do *token* reprovou a 1;
