@@ -210,7 +210,7 @@ deixava uma variável sem uso); passou a mostrar todo `FAIL`.
 
 ### Conferências desta fase (15 nov 2026)
 
-- **OWASP:** a edição vigente do *Top 10 for LLM Applications* é a **2026** (publicada entre ago e set de 2026),
+- **OWASP:** a edição vigente do *Top 10 for LLM Applications* é a **2026** (publicada em ago 2026),
   e não a 2025, que a Fase 0 registrou. Corrigido no `PROJETO.md`. O *Top 10 for Agentic Applications for 2026*
   (dez 2025) começa por *Agent Goal Hijack*, *Tool Misuse* e *Identity & Privilege Abuse*; a lista inteira não
   foi lida, e o marco cita só essas três.
@@ -236,3 +236,72 @@ deixava uma variável sem uso); passou a mostrar todo `FAIL`.
 - `conceitos.yaml`: **MCP**, com dono em `ia-na-engenharia/05` (citado em `go-fintech/14` e `/15`);
 - o Bloco 5 do adendo de sinais aponta para esta trilha na auditoria do adendo (o plano do adendo não é
   versionado no repositório).
+
+## 5. Fase 4 — auditoria final e revisão independente dos marcos 04, 05 e 06
+
+### Revisão adversarial
+
+Um revisor separado recebeu uma cópia do `fin-assist` com uma tarefa: **burlar** o *harness* de PR (04), o
+servidor MCP (05) e o portão de política (06) com *fixtures* e ações novas, sem mexer nos controles. Cada burla
+achada foi corrigida no laboratório e ganhou um teste de regressão em `revisao_test.go`, no pacote dela. Quando a
+correção não cabia no controle, a burla virou **limite conhecido**: um teste afirma que ela ainda passa, e o marco
+diz qual é a defesa.
+
+| Marco | Burla do revisor | Desfecho |
+|---|---|---|
+| 04 | renomear o teste; `//go:build ignore` no arquivo de teste | pegas de saída: contagem (2 → 0) e mutação (6/8 → 0/8) |
+| 04 | alvo `limite/../speclint/...` e `limite/../../` | corrigida: alvo normalizado e preso à cópia |
+| 04 | 300 instruções numa linha | corrigida: o tamanho conta as instruções separadas por `;` |
+| 04 | produção sem espaços nos operadores, zerando os mutantes (razão `NaN`) | corrigida: a queda do total de mutantes reprova |
+| 04 | asserção num comentário; `t.Skip` no meio do teste | corrigidas: contagem pela AST; `t.Skip` novo conta como queda |
+| 04 | o mutante num comentário, equivalente, contava na pontuação | corrigida: comentários não são mutados (6/9 virou 6/8) |
+| 04 | aprovador `Ana`, `ana ` ou o próprio agente | corrigida: nomes normalizados; o agente não aprova |
+| 04 | teste e produção no mesmo PR sem a etiqueta | corrigida: a regra da matriz do marco 01 passou a ser cobrada |
+| 02 | casos de fuso do mesmo lado da janela nos dois fusos | corrigida: 07h UTC (04h em SP) e 21h UTC (18h em SP) reprovam o decisor que ignora o fuso |
+| 04 | porta dos fundos só na produção, com um valor que nenhum teste usa | **limite conhecido**: a revisão humana da classe crítica é a defesa |
+| 05 | erro do repositório com CPF e e-mail chegando ao cliente | corrigida: erro genérico ao cliente, detalhe limpo na auditoria |
+| 05 | chave Pix aleatória (UUID), CPF com espaço ou ponto, telefone com DDD entre parênteses, conta de 6 a 7 dígitos, CNPJ | corrigidas na limpeza por padrão |
+| 05 | *token* sem sujeito conectava | corrigida: `sub` vazio é recusado |
+| 05 | `aud` em lista (RFC 7519) recusado | corrigida: aceita texto ou lista |
+| 05 | corte da resposta no meio de um caractere UTF-8 | corrigida |
+| 05 | nome próprio em texto livre | **limite conhecido**: a projeção dos campos é a primeira defesa |
+| 06 | `httpd/.env` e `.env#x` tratados como conteúdo externo | corrigidas: externo é URL com esquema ou `issue#N` |
+| 06 | `limite/../.env`, `.ENV`, `producao.env`, `id_rsa`, `secrets.yaml` | corrigidas: caminho normalizado; segredo em qualquer caixa e nos nomes comuns |
+| 06 | `go test ./... && curl`, `; go get`, `-exec`, `-vettool`, `make test && make deploy-producao`, `make testedeploy-producao` | corrigidas: comando por palavra, sem metacaractere nem *flag* perigosa |
+| 06 | segundo pacote do `go get`, `@latest`, sufixo no nome do módulo | corrigidas: todo pacote conferido, com versão fixada |
+| 06 | segredo no caminho de uma URL do *proxy*; usuário ou porta no destino; `http` em claro | corrigidas: destinos por `https` e por caminho |
+| 06 | aprovação do irreversível por `Ana` ou pelo agente | corrigida: nomes normalizados; quem aprova não é o responsável nem o agente |
+| 06 | `Executor` rodando uma sessão com as três capacidades | corrigida: o executor valida a sessão antes da primeira ação |
+| 06 | colisão pelo separador e argumentos fora do *hash* do registro | corrigidas: o *hash* cobre a entrada inteira, em JSON |
+| 06 | cadeia inteira recalculada; cauda truncada | **limite conhecido**: âncora do último *hash* fora do alcance do agente |
+| 06 | segredo codificado em base64 dentro de outro arquivo | **limite conhecido**: a remoção por valor conhecido não o reconhece |
+
+**Medido depois das correções** (15 nov 2026):
+
+- **04:** a pontuação de mutação de partida é 6/8. O *patch* enfraquecido cai para 5/8, e o *patch* que remove
+  asserção e código derruba os mutantes de 8 para 5. Os dois sobreviventes da partida estão em `Contem`, no ramo
+  da janela que não atravessa a meia-noite, e nenhum está no decisor.
+- **05:** as três mutações originais continuam pegas, e as duas novas (devolver ao cliente o erro original e
+  aceitar `sub` vazio) também.
+- **06:** as seis mutações originais continuam pegas, e as duas novas (desligar a checagem de metacaractere e
+  desligar a validação no executor) também. Os 38 casos de burla do revisor são negados, e as ações permitidas
+  da suíte original continuam passando.
+
+O texto dos marcos 02, 04, 05 e 06 e a explicação da pergunta 2 do quiz 04 foram ajustados aos números novos e
+às burlas. A data da OWASP no `PROJETO.md` e no marco 06 ficou em "ago 2026", em vez de "entre ago e set de 2026"
+(§4).
+
+### Checagens mecânicas
+
+| Checagem | Resultado |
+|---|---|
+| Σ `estimatedMinutes` dos 7 marcos | 430 |
+| `estimatedHours` | 14 (430 × 2 / 60 = 14,3) |
+| perguntas | 34 (4, 4, 4, 6, 6, 6, 4) |
+| resposta certa como a única opção mais longa | 0 de 34; posição da certa: 8, 9, 9, 8 |
+| verbetes do glossário | 39 (meta: ≥ 30) |
+| *stubs* | nenhum |
+| pontes e conceitos | resolvem (testes do agregador) |
+| `make tudo` sem chave de API e com `GOPROXY=off` | os 9 pacotes passam |
+| invariantes de segurança | todas afirmam o bloqueio pelo controle, não o bom comportamento do agente |
+| *fixtures* ruins | cada uma tem a boa correspondente |
