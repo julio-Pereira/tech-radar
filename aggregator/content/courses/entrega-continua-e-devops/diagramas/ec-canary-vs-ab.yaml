@@ -1,0 +1,63 @@
+id: ec-canary-vs-ab
+tipo: topologia
+titulo: "Canary desloca requisições por minutos; o teste A/B fixa clientes por semanas"
+descricao: >
+  Os dois dividem tráfego, para perguntas diferentes. Em cima, o canary: o peso decide a
+  fração das requisições que vai à versão nova, qualquer que seja o cliente, e a cada janela
+  o decisor compara taxa de erro e latência com a linha de base. Dentro da tolerância, o peso
+  sobe de 5% para 25% e para 100%; fora dela, o canary aborta e volta a 0%. A pergunta é "a
+  versão nova é segura?", respondida em minutos ou horas. Embaixo, o teste A/B: a flag calcula
+  o hash do cliente, do experimento e do sal, e cada cliente fica na mesma variante até o fim
+  do período, definido antes de começar. Só ao fim a análise compara a métrica principal entre
+  os grupos, com as métricas de guarda operacionais ao lado. A pergunta é "a variante é
+  melhor?", respondida em dias ou semanas.
+nos:
+  - { id: req, rotulo: "requisições", col: 0, row: 0, papel: destaque }
+  - { id: estavel, rotulo: "v1 estável", col: 1, row: 0 }
+  - { id: canario, rotulo: "v2 canário", col: 1, row: 1 }
+  - { id: decisor, rotulo: "decisor", col: 2, row: 0 }
+  - { id: clientes, rotulo: "clientes", col: 0, row: 2, papel: destaque }
+  - { id: flag, rotulo: "flag do cliente", col: 1, row: 2 }
+  - { id: var-a, rotulo: "variante A", col: 2, row: 2 }
+  - { id: var-b, rotulo: "variante B", col: 2, row: 3 }
+  - { id: analise, rotulo: "análise no fim", col: 3, row: 2 }
+arestas:
+  - { de: req, para: estavel, rotulo: "peso v1" }
+  - { de: req, para: canario, rotulo: "peso v2" }
+  - { de: estavel, para: decisor, rotulo: "linha de base", estilo: tracejada }
+  - { de: canario, para: decisor, rotulo: "erro e p95", estilo: tracejada }
+  - { de: clientes, para: flag, rotulo: "id do cliente" }
+  - { de: flag, para: var-a, rotulo: "faixa A" }
+  - { de: flag, para: var-b, rotulo: "faixa B" }
+  - { de: var-a, para: analise, rotulo: "conversão", estilo: tracejada }
+  - { de: var-b, para: analise, rotulo: "conversão", estilo: tracejada }
+animacao:
+  - legenda: "A mesma mecânica, dividir tráfego, para duas perguntas diferentes"
+  - legenda: "Canary: 5% das requisições vão ao v2, de qualquer cliente"
+    estados: { canario: novo }
+    fluxos: [ { de: req, para: estavel, rotulo: "95%" }, { de: req, para: canario, rotulo: "5%" } ]
+  - legenda: "A cada janela, o decisor compara erro e p95 do v2 com a linha de base"
+    estados: { canario: ativo, decisor: ativo }
+    fluxos: [ { de: estavel, para: decisor }, { de: canario, para: decisor }, { de: req, para: estavel, rotulo: "95%" }, { de: req, para: canario, rotulo: "5%" } ]
+  - legenda: "Dentro da tolerância: o peso do v2 sobe para 25%"
+    fluxos: [ { de: req, para: estavel, rotulo: "75%" }, { de: req, para: canario, rotulo: "25%" } ]
+  - legenda: "Promoção: o v2 recebe 100%, em minutos ou horas"
+    estados: { estavel: removido, decisor: inativo }
+    fluxos: [ { de: req, para: canario, rotulo: "100%" } ]
+    anotacao: "a pergunta foi: a versão nova é segura?"
+  - legenda: "Outro desfecho: fora da tolerância, o canary aborta e o v2 volta a 0%"
+    estados: { estavel: ativo, canario: falha, decisor: ativo }
+    fluxos: [ { de: req, para: estavel, rotulo: "100%" } ]
+  - legenda: "Teste A/B: a flag calcula a faixa do cliente, sem estado e igual em toda instância"
+    estados: { canario: inativo, decisor: inativo, flag: ativo }
+    fluxos: [ { de: clientes, para: flag } ]
+  - legenda: "Metade dos clientes em cada variante, e cada cliente fica na mesma até o fim"
+    estados: { var-a: ativo, var-b: novo }
+    fluxos: [ { de: clientes, para: flag }, { de: flag, para: var-a, rotulo: "50%" }, { de: flag, para: var-b, rotulo: "50%" } ]
+  - legenda: "A duração foi definida antes: dias ou semanas, sem parar no primeiro número bom"
+    fluxos: [ { de: flag, para: var-a, rotulo: "50%" }, { de: flag, para: var-b, rotulo: "50%" } ]
+    anotacao: "espiar e parar cedo infla o falso positivo"
+  - legenda: "Ao fim, a análise compara a conversão, com erro e latência como guarda"
+    estados: { analise: ativo }
+    fluxos: [ { de: var-a, para: analise }, { de: var-b, para: analise } ]
+    anotacao: "a pergunta foi: a variante é melhor?"
