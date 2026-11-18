@@ -42,3 +42,13 @@ test('marco: links do markdown e das referências saem com noopener, noreferrer 
   expect(await contarExternos(page)).toBeGreaterThan(1);
   expect(await linksExternosSemProtecao(page)).toEqual([]);
 });
+
+test('rodapé: licença do conteúdo e do código em toda rota', async ({ page }) => {
+  for (const rota of ['/#/', '/#/learn/kubernetes']) {
+    await page.goto(rota);
+    const rodape = page.locator('footer.site-footer');
+    await expect(rodape).toContainText('CC BY-NC-SA 4.0');
+    await expect(rodape).toContainText('MIT');
+    await expect(rodape.locator('a[rel~="license"]')).toHaveAttribute('href', /creativecommons\.org\/licenses\/by-nc-sa\/4\.0/);
+  }
+});

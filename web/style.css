@@ -525,3 +525,18 @@ main:focus-visible {
   outline: 2px solid var(--accent-hover);
   outline-offset: 2px;
 }
+
+/* Rodapé com as licenças (hardening antes da divulgação, Fase 6). */
+.site-footer {
+  max-width: 1280px;
+  margin: 2rem auto 0;
+  padding: 1.25rem 1.5rem 2rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.site-footer a {
+  color: var(--accent-hover);
+}
