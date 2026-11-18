@@ -65,6 +65,15 @@ credencial; cada exceção está explicada no arquivo. Se uma varredura achar um
 **revogar primeiro**, depois limpar o histórico. Reescrever o histórico sem revogar não adianta, porque o
 segredo já foi copiado por quem clonou.
 
+## CSP e Trusted Types
+
+A política vem por `<meta>` no `web/index.html`: tudo só da própria origem (`'self'`), sem `'unsafe-inline'`
+nem `'unsafe-eval'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'none'` e
+`upgrade-insecure-requests`. O **Trusted Types** é exigido: o único HTML que o site escreve é a prosa das
+trilhas e dos desafios, sanitizada no *build* pelo `bluemonday`, e ela passa pela política única
+`tech-radar-build` (`web/js/trusted-html.js`). Qualquer outra escrita de HTML a partir de *string* é recusada
+pelo navegador. O teste `web/tests/csp.spec.js` percorre as rotas e falha com qualquer violação.
+
 ## Limitações aceitas
 
 - **Sem `frame-ancestors` nem `X-Frame-Options`.** O GitHub Pages não permite cabeçalhos próprios, e a

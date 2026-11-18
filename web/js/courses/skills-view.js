@@ -14,7 +14,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export async function renderSkills() {
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando competências…'));
 
   let catalog;
@@ -23,12 +23,12 @@ export async function renderSkills() {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     catalog = await resp.json();
   } catch (err) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildError(`Falha ao carregar competências: ${err.message}`));
     return;
   }
 
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildSkillsView(catalog));
   announceRoute('Competências', true);
 }

@@ -51,7 +51,7 @@ export async function renderRadar() {
 function renderDaily(themes) {
   const container = document.getElementById('daily-cards');
   const section = document.getElementById('daily');
-  container.innerHTML = '';
+  container.replaceChildren();
 
   const today = localDateISO();
   let hasAny = false;
@@ -169,7 +169,7 @@ function renderFilters() {
 
 function renderChips(containerId, labels, activeSet, onClick) {
   const container = document.getElementById(containerId);
-  container.innerHTML = '';
+  container.replaceChildren();
   for (const label of labels) {
     const chip = document.createElement('button');
     chip.type = 'button';
@@ -200,7 +200,7 @@ function renderArticles() {
   summary.textContent = `Exibindo ${filtered.length} de ${feedData.items.length} artigos`;
 
   const container = document.getElementById('articles');
-  container.innerHTML = '';
+  container.replaceChildren();
 
   if (filtered.length === 0) {
     const empty = document.createElement('p');

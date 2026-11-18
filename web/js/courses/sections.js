@@ -6,6 +6,7 @@
 // cached JSON (or a build that hasn't shipped it yet) still renders.
 import { addCopyButtons } from './content-blocks.js';
 import { getHandsonState, saveHandsonState } from '../storage.js';
+import { setBuildHTML } from '../trusted-html.js';
 
 /** @typedef {import('../types.js').Milestone} Milestone */
 
@@ -30,7 +31,7 @@ export function buildMilestoneBody(slug, milestone) {
   article.className = 'milestone-body';
 
   if (!milestone.sections || milestone.sections.length === 0) {
-    article.innerHTML = milestone.html; // pre-sanitized at build time (bluemonday)
+    setBuildHTML(article, milestone.html); // pre-sanitized at build time (bluemonday)
     addCopyButtons(article);
     hydrateDiagrams(article);
     return article;
@@ -48,7 +49,7 @@ export function buildMilestoneBody(slug, milestone) {
     } else {
       const wrap = document.createElement('div');
       wrap.className = 'section-prose';
-      wrap.innerHTML = section.html; // pre-sanitized at build time (bluemonday)
+      setBuildHTML(wrap, section.html); // pre-sanitized at build time (bluemonday)
       article.appendChild(wrap);
     }
   }
@@ -85,7 +86,7 @@ function buildHandsonSection(slug, milestoneId, section) {
   if (section.intro) {
     const intro = document.createElement('div');
     intro.className = 'section-prose';
-    intro.innerHTML = section.intro; // pre-sanitized at build time (bluemonday)
+    setBuildHTML(intro, section.intro); // pre-sanitized at build time (bluemonday)
     wrap.appendChild(intro);
   }
 
@@ -163,7 +164,7 @@ function buildHandsonBlock(slug, milestoneId, block, state) {
 
   const body = document.createElement('div');
   body.className = 'section-prose';
-  body.innerHTML = block.html; // pre-sanitized at build time (bluemonday)
+  setBuildHTML(body, block.html); // pre-sanitized at build time (bluemonday)
   details.appendChild(body);
 
   wrap.appendChild(details);

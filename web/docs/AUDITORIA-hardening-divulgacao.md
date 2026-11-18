@@ -145,3 +145,17 @@ do mantenedor.
 
 No mesmo *build*, o feed da Baeldung respondeu ao CI (12 itens, sem o HTTP 403 de antes), e os itens passaram
 pelo filtro.
+
+## Fase 4 — CSP e Trusted Types (T8)
+
+| Item do plano | Feito |
+| --- | --- |
+| CSP completa por `<meta>` | `default-src`, `script-src`, `style-src`, `img-src` e `connect-src` em `'self'`, mais `object-src 'none'`, `base-uri 'self'`, `form-action 'none'` e `upgrade-insecure-requests`. Não há `'unsafe-inline'`: nenhum estilo ou *script* do site é *inline* (os diagramas usam `createElementNS` sem atributo `style`). O site não carrega imagem de fora, então `img-src` ficou em `'self'`, e não em `https:` |
+| `referrer` | `<meta name="referrer" content="strict-origin-when-cross-origin">` |
+| Trusted Types | `require-trusted-types-for 'script'` com uma política só, `tech-radar-build` (`web/js/trusted-html.js`). Os 6 pontos que escrevem HTML (corpo dos marcos, seções, introdução, blocos do Hands-on, glossário e prosa dos desafios) passam por ela, e todos recebem HTML do *build* já sanitizado pelo `bluemonday`. A política marca a origem e não sanitiza de novo |
+| `innerHTML = ''` → `replaceChildren()` | os 46 casos, em 11 arquivos |
+| Teste de violação | `web/tests/csp.spec.js` percorre 15 rotas e a busca, e junta os eventos `securitypolicyviolation` com os erros de console. Um segundo teste prova que o Trusted Types está em vigor: `insertAdjacentHTML` com *string* é recusado. A mutação que volta um ponto para `innerHTML` cru reprovou o teste já na primeira trilha |
+| Limitações registradas | no `SECURITY.md`: sem `frame-ancestors` (não vale em `<meta>`), sem HSTS próprio e sem `Permissions-Policy`, e a Cloudflare na frente do Pages como caminho, se algum deles virar requisito |
+
+O Playwright inteiro passa com a CSP nova: 297 testes, contando os 2 novos, e 1 pulado. Os testes de
+acessibilidade (`axe-core`) não esbarram no Trusted Types.
