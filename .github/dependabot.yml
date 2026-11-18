@@ -1,0 +1,30 @@
+# Hardening antes da divulgação (web/docs/AUDITORIA-hardening-divulgacao.md, Fase 2): o Dependabot mantém
+# os SHAs das actions e as dependências Go e npm. Cada atualização chega como PR e passa pelo mesmo CI.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: gomod
+    directories:
+      - /aggregator
+      - /tools/fin-check
+    schedule:
+      interval: weekly
+    groups:
+      go:
+        patterns: ["*"]
+
+  # Dev-only test harness (Playwright + axe-core); never shipped to the browser.
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    groups:
+      web-tests:
+        patterns: ["*"]

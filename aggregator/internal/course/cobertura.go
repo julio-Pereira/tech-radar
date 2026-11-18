@@ -32,11 +32,11 @@ type CoberturaTrilha struct {
 	// Gatilho lists, among SemDiagrama, the milestones whose prose shows a
 	// sign of the convention's trigger (≥ 3 components, message order, life
 	// cycle, pipeline), with the reason. A heuristic, never a gate.
-	Gatilho []Gatilho
-	Diagramas   int      // distinct diagrams referenced
-	Animados    int
-	Graficos    int
-	ASCII       int
+	Gatilho   []Gatilho
+	Diagramas int // distinct diagrams referenced
+	Animados  int
+	Graficos  int
+	ASCII     int
 }
 
 // Gatilho is a milestone without a diagram and the signs its prose shows.

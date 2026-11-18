@@ -7,10 +7,8 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# Nothing by default: each job asks for what it needs. Only deploy writes to Pages.
+permissions: {}
 
 concurrency:
   group: pages
@@ -19,14 +17,18 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
-          go-version: '1.22'
+          go-version-file: aggregator/go.mod
           cache-dependency-path: aggregator/go.sum
 
       - name: Download dependencies
@@ -46,17 +48,33 @@ jobs:
         run: go run .
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: web
 
+  # The same checks every PR runs, again on the commit being deployed: a red
+  # test or a lint finding never reaches the site.
+  lint:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/lint.yml
+
+  e2e:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/web-tests.yml
+
   deploy:
-    needs: build
+    needs: [build, lint, e2e]
     runs-on: ubuntu-latest
+    # Required by actions/deploy-pages, and granted to this job only.
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

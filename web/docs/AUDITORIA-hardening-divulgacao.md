@@ -66,3 +66,32 @@ Fase 2.
 | *Secret scanning*, *push protection*, Dependabot, reporte privado | a confirmar pelo mantenedor |
 | Pages com "Enforce HTTPS" e origem "GitHub Actions" | a confirmar pelo mantenedor |
 | E-mail privado na conta | a confirmar pelo mantenedor |
+
+## Fase 2 — pipeline (T1, T4)
+
+| Item do plano | Feito |
+| --- | --- |
+| `uses:` por SHA completo, com a versão em comentário | todas as 7 *actions*, nas versões atuais (`checkout` v7.0.1, `setup-go` v7.1.0, `setup-node` v7.1.0, `setup-java` v6.3.0, `upload-artifact` v7.0.2, `upload-pages-artifact` v5.0.0, `deploy-pages` v5.0.1), com os SHAs lidos das *tags* nos repositórios oficiais |
+| `permissions: {}` no topo; cada *job* com o mínimo | sim; `pages: write` e `id-token: write` só no *job* `deploy`; `issues: write` só no *job* do `content-freshness` |
+| Sem `pull_request_target`, `workflow_run` nem `github.event` em `run:` | nenhum dos três aparece (`grep`) |
+| `persist-credentials: false` | em todo `checkout`: nenhum *job* faz *push* |
+| `deploy` com `needs: [build, lint, e2e]` | sim. O `lint` e o `e2e` viraram *workflows* reutilizáveis: rodam sozinhos em cada PR e são chamados pelo `Build & Deploy` antes do *deploy*, no mesmo *commit* |
+| *Environment* `github-pages` só na `main` | configuração da interface (no `SECURITY.md`) |
+| *Job* `lint` | `gofmt`, `go vet`, `staticcheck`, `govulncheck` (no `aggregator` e no `tools/fin-check`), `actionlint` e `gitleaks` no histórico inteiro, cada ferramenta com versão fixada |
+| Go atual e dependências | Go **1.27** com `toolchain go1.27.4` nos dois módulos; os *workflows* leem a versão do `go.mod`. `go get -u ./...` e `go mod tidy`: `x/net` v0.26.0 → v0.63.0, `gofeed` 1.3.0 → 1.5.0, `goldmark` 1.7.8 → 1.8.7, `x/sync`, `x/text`, `goquery`, `cascadia`. O `bluemonday` 1.0.27 já era a última versão |
+| `dependabot.yml` | `github-actions`, `gomod` (`aggregator` e `tools/fin-check`) e `npm` (`web`, só a bancada de testes), semanal e agrupado |
+
+**Conferências locais.**
+
+- **Saída idêntica:** as 28 trilhas compiladas com as dependências novas saem byte a byte iguais às do
+  `main`. Só muda o `generatedAt` do índice. Os testes de bloco só contam seções e não provariam isso
+  sozinhos.
+- **Ferramentas limpas:** `go test ./...`, `go vet`, `staticcheck`, `gofmt` e `actionlint` passam.
+- **Correções que as ferramentas pediram:** o `staticcheck` apontou duas cópias campo a campo entre tipos
+  idênticos (S1016), que viraram conversões. Com elas, um campo novo num dos tipos quebra a compilação, em
+  vez de ser esquecido. O `gofmt` reformatou dois arquivos.
+- **`govulncheck`:** o banco `vuln.go.dev` está bloqueado neste ambiente, então o resultado vem do *job*
+  `lint` do CI.
+
+**Custo:** o *cron* de 6 em 6 horas passa a rodar também o `lint` e o `e2e` antes de cada *deploy*. É o
+preço de "nada vai ao ar com teste vermelho".
