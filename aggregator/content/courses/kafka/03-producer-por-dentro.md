@@ -152,12 +152,12 @@ mensagens com `linger.ms=0` e depois com `linger.ms=20`, mantendo o resto igual:
 
 ```bash
 # linger.ms=0 (o padrão)
-docker exec pix-stream-kafka-1 kafka-producer-perf-test.sh \
+docker exec pix-stream-kafka-1 /opt/kafka/bin/kafka-producer-perf-test.sh \
   --topic payments.initiated --num-records 100000 --record-size 300 --throughput -1 \
   --producer-props bootstrap.servers=kafka-1:9092 acks=all enable.idempotence=true linger.ms=0
 
 # linger.ms=20
-docker exec pix-stream-kafka-1 kafka-producer-perf-test.sh \
+docker exec pix-stream-kafka-1 /opt/kafka/bin/kafka-producer-perf-test.sh \
   --topic payments.initiated --num-records 100000 --record-size 300 --throughput -1 \
   --producer-props bootstrap.servers=kafka-1:9092 acks=all enable.idempotence=true linger.ms=20
 ```

@@ -133,7 +133,7 @@ persistir cada pagamento, e uma chave de idempotência (`paymentId`) com constra
    ```bash
    for i in $(seq 1 10000); do
      echo "$i:{\"paymentId\":\"$i\",\"accountId\":\"42\",\"amount\":100}"
-   done | docker exec -i pix-stream-kafka kafka-console-producer.sh \
+   done | docker exec -i pix-stream-kafka /opt/kafka/bin/kafka-console-producer.sh \
      --bootstrap-server kafka:9092 --topic payments.initiated \
      --property parse.key=true --property key.separator=:
    ```
@@ -150,7 +150,7 @@ persistir cada pagamento, e uma chave de idempotência (`paymentId`) com constra
    travado num rebalance:
 
    ```bash
-   docker exec pix-stream-kafka kafka-consumer-groups.sh \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-consumer-groups.sh \
      --bootstrap-server kafka:9092 --describe --group ledger-projector
    ```
 

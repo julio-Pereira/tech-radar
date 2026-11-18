@@ -138,7 +138,7 @@ regulador, não boas práticas. O que isso significa concretamente para o `pix-s
    ```bash
    for i in $(seq 1 500); do
      echo "$i:{\"paymentId\":\"$i\"}" | docker exec -i pix-stream-kafka-1 \
-       kafka-console-producer.sh --bootstrap-server kafka-1:9092 \
+       /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka-1:9092 \
        --topic payments.initiated --property parse.key=true --property key.separator=: \
        --command-property acks=all || echo "FALHOU em $i"
      sleep 0.2
@@ -150,7 +150,7 @@ regulador, não boas práticas. O que isso significa concretamente para o `pix-s
    ```bash
    docker restart pix-stream-kafka-2
    # espere o ISR voltar a ter 3 membros antes de seguir para o próximo
-   docker exec pix-stream-kafka-1 kafka-topics.sh --bootstrap-server kafka-1:9092 \
+   docker exec pix-stream-kafka-1 /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-1:9092 \
      --describe --topic payments.initiated
    docker restart pix-stream-kafka-3
    ```
@@ -168,7 +168,7 @@ regulador, não boas práticas. O que isso significa concretamente para o `pix-s
 1. Meça o throughput real de uma partição no seu ambiente:
 
    ```bash
-   docker exec pix-stream-kafka-1 kafka-producer-perf-test.sh \
+   docker exec pix-stream-kafka-1 /opt/kafka/bin/kafka-producer-perf-test.sh \
      --topic payments.initiated --num-records 200000 --record-size 300 \
      --throughput -1 --producer-props bootstrap.servers=kafka-1:9092 acks=all
    ```
@@ -185,7 +185,7 @@ regulador, não boas práticas. O que isso significa concretamente para o `pix-s
      {"topic":"payments.initiated","partition":2,"replicas":[4,3,1]}
    ]}
    EOF
-   docker exec pix-stream-kafka-1 kafka-reassign-partitions.sh \
+   docker exec pix-stream-kafka-1 /opt/kafka/bin/kafka-reassign-partitions.sh \
      --bootstrap-server kafka-1:9092 --reassignment-json-file reassignment.json --execute
    ```
 

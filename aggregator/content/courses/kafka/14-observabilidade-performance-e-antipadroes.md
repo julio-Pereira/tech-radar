@@ -31,7 +31,7 @@ O Kafka expõe centenas de métricas JMX. Estas decidem incidentes:
   cluster. Sem um exporter Prometheus, dá para ler direto via JMX:
 
   ```bash
-  docker exec pix-stream-kafka kafka-run-class.sh kafka.tools.JmxTool \
+  docker exec pix-stream-kafka /opt/kafka/bin/kafka-run-class.sh kafka.tools.JmxTool \
     --object-name kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions \
     --jmx-url service:jmx:rmi:///jndi/rmi://localhost:9999/jmxrmi --one-time true
   ```
@@ -145,7 +145,7 @@ O painel de plantão do `pix-stream`, na ordem de leitura:
 20 minutos. O ponto de partida de qualquer um dos quatro ramos é o mesmo comando:
 
 ```bash
-docker exec pix-stream-kafka kafka-consumer-groups.sh \
+docker exec pix-stream-kafka /opt/kafka/bin/kafka-consumer-groups.sh \
   --bootstrap-server kafka:9092 --describe --group ledger-projector
 ```
 

@@ -183,7 +183,7 @@ broker sem parar a escrita. Entregue um documento de meia página com:
    chutado — meça com `kafka-producer-perf-test.sh`, por exemplo:
 
    ```bash
-   docker exec pix-stream-kafka-1 kafka-producer-perf-test.sh \
+   docker exec pix-stream-kafka-1 /opt/kafka/bin/kafka-producer-perf-test.sh \
      --topic payments.initiated --num-records 200000 --record-size 300 \
      --throughput -1 \
      --producer-props bootstrap.servers=kafka-1:9092 acks=all
@@ -200,29 +200,29 @@ broker sem parar a escrita. Entregue um documento de meia página com:
 
 ```bash
 # 1. crie o tópico com RF=3 e min.insync.replicas=2
-docker exec pix-stream-kafka-1 kafka-topics.sh --bootstrap-server kafka-1:9092 \
+docker exec pix-stream-kafka-1 /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-1:9092 \
   --create --topic payments.initiated --partitions 3 \
   --replication-factor 3 --config min.insync.replicas=2
 
 # 2. produza com acks=all
 echo '{"paymentId":"1","accountId":"42","amount":15075}' | \
-  docker exec -i pix-stream-kafka-1 kafka-console-producer.sh \
+  docker exec -i pix-stream-kafka-1 /opt/kafka/bin/kafka-console-producer.sh \
   --bootstrap-server kafka-1:9092 --topic payments.initiated \
   --command-property acks=all
 
 # 3. derrube um broker e prove que a produção continua
 docker stop pix-stream-kafka-2
-docker exec pix-stream-kafka-1 kafka-topics.sh --bootstrap-server kafka-1:9092 \
+docker exec pix-stream-kafka-1 /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-1:9092 \
   --describe --topic payments.initiated   # ISR encolheu, mas o líder segue no ar
 echo '{"paymentId":"2","accountId":"42","amount":9900}' | \
-  docker exec -i pix-stream-kafka-1 kafka-console-producer.sh \
+  docker exec -i pix-stream-kafka-1 /opt/kafka/bin/kafka-console-producer.sh \
   --bootstrap-server kafka-1:9092 --topic payments.initiated \
   --command-property acks=all             # continua funcionando
 
 # 4. derrube o segundo e prove que ela para com erro
 docker stop pix-stream-kafka-3
 echo '{"paymentId":"3","accountId":"42","amount":100}' | \
-  docker exec -i pix-stream-kafka-1 kafka-console-producer.sh \
+  docker exec -i pix-stream-kafka-1 /opt/kafka/bin/kafka-console-producer.sh \
   --bootstrap-server kafka-1:9092 --topic payments.initiated \
   --command-property acks=all \
   --command-property delivery.timeout.ms=8000   # trava e falha com TimeoutException

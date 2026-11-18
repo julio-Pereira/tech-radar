@@ -158,7 +158,7 @@ espera pelo retardatário.
    `-repartition` se você tiver usado `groupBy`):
 
    ```bash
-   docker exec pix-stream-kafka kafka-topics.sh --bootstrap-server kafka:9092 --list \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list \
      | grep -E '(changelog|repartition)'
    ```
 

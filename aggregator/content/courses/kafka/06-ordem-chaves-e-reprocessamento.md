@@ -180,7 +180,7 @@ com a mesma chave).
 Observe o lag **por partição** durante o consumo:
 
 ```bash
-docker exec pix-stream-kafka kafka-consumer-groups.sh \
+docker exec pix-stream-kafka /opt/kafka/bin/kafka-consumer-groups.sh \
   --bootstrap-server kafka:9092 --describe --group ledger-projector
 ```
 

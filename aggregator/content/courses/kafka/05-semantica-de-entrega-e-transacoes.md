@@ -142,11 +142,11 @@ offset **dentro** da transação. Depois:
    outro com `read_committed`:
 
    ```bash
-   docker exec pix-stream-kafka kafka-console-consumer.sh \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-console-consumer.sh \
      --bootstrap-server kafka:9092 --topic payments.authorized \
      --isolation-level read_uncommitted --from-beginning
 
-   docker exec pix-stream-kafka kafka-console-consumer.sh \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-console-consumer.sh \
      --bootstrap-server kafka:9092 --topic payments.authorized \
      --isolation-level read_committed --from-beginning
    ```
@@ -159,7 +159,7 @@ offset **dentro** da transação. Depois:
    (o LSO):
 
    ```bash
-   docker exec pix-stream-kafka kafka-consumer-groups.sh \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-consumer-groups.sh \
      --bootstrap-server kafka:9092 --describe --group <seu-grupo-read-committed>
    ```
 
