@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture do hardening (Fase 3): um feed com um item bom e os ataques que o build tem de barrar.
+     A fonte declara allowed_hosts: [radar.exemplo.com.br]. -->
+<rss version="2.0">
+  <channel>
+    <title>Fonte de teste</title>
+    <link>https://radar.exemplo.com.br/</link>
+    <description>fixture</description>
+    <item>
+      <title>Artigo legítimo &amp; útil</title>
+      <link>https://radar.exemplo.com.br/artigo-bom</link>
+      <guid>bom-1</guid>
+      <pubDate>Mon, 16 Nov 2026 10:00:00 +0000</pubDate>
+      <description>&lt;p&gt;Resumo com &lt;b&gt;negrito&lt;/b&gt; e &lt;script&gt;alert(1)&lt;/script&gt; no meio.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>&lt;script&gt;alert('titulo')&lt;/script&gt;Clique aqui</title>
+      <link>javascript:alert(document.cookie)</link>
+      <guid>js-1</guid>
+      <pubDate>Mon, 16 Nov 2026 11:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Link data</title>
+      <link>data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==</link>
+      <guid>data-1</guid>
+      <pubDate>Mon, 16 Nov 2026 11:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Link sem TLS</title>
+      <link>http://radar.exemplo.com.br/sem-tls</link>
+      <guid>http-1</guid>
+      <pubDate>Mon, 16 Nov 2026 11:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Link relativo</title>
+      <link>/caminho/relativo</link>
+      <guid>rel-1</guid>
+      <pubDate>Mon, 16 Nov 2026 11:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Phishing com o feed comprometido</title>
+      <link>https://radar-exemplo.login-seguro.example/entrar</link>
+      <guid>phish-1</guid>
+      <pubDate>Mon, 16 Nov 2026 11:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Usuário no link</title>
+      <link>https://radar.exemplo.com.br@login-seguro.example/entrar</link>
+      <guid>user-1</guid>
+      <pubDate>Mon, 16 Nov 2026 11:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Subdomínio de um host permitido</title>
+      <link>https://evil.radar.exemplo.com.br/x</link>
+      <guid>sub-1</guid>
+      <pubDate>Mon, 16 Nov 2026 11:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Protocolo relativo</title>
+      <link>//login-seguro.example/entrar</link>
+      <guid>proto-1</guid>
+      <pubDate>Mon, 16 Nov 2026 11:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Item sem data, que antes ia para o topo</title>
+      <link>https://radar.exemplo.com.br/sem-data</link>
+      <guid>nodate-1</guid>
+    </item>
+    <item>
+      <title>Item datado no futuro, para ficar fixo no topo</title>
+      <link>https://radar.exemplo.com.br/futuro</link>
+      <guid>future-1</guid>
+      <pubDate>Fri, 01 Jan 2100 00:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Entidades quebradas &amp;amp &#x; &#99999999; &lt;img src=x onerror=alert(1)&gt;</title>
+      <link>https://radar.exemplo.com.br/entidades</link>
+      <guid>ent-1</guid>
+      <pubDate>Sun, 15 Nov 2026 10:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>

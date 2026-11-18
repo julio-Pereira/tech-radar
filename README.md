@@ -26,7 +26,9 @@ GitHub Actions (cron 6h)
 | engineering-at-meta | Engineering at Meta | Engineering |
 | netflix-tech | Netflix Tech Blog | Engineering |
 
-> Some sources (e.g. Baeldung) block GitHub Actions IPs with `HTTP 403`. The aggregator caches each successful fetch in `aggregator/cache/{id}.json` and falls back to it when a live fetch fails. Refresh by running locally and committing the updated cache.
+> Some sources (e.g. Baeldung) block GitHub Actions IPs with `HTTP 403`. The aggregator caches each successful fetch in `aggregator/cache/{id}.json`, with the date it was saved, and falls back to it when a live fetch fails — but only if the cache is at most **14 days** old. Past that, the source is left out of the build (with a `WARN`) instead of showing weeks-old items under a fresh "Atualizado" date. Refresh by running locally and committing the updated cache.
+
+> **What the build refuses from a feed.** Every item must link over `https` to a host on the source's `allowed_hosts` (default: the feed's own host), with no user info or port, and have a date that is not in the future. Anything else is dropped and logged. If more than half of a source's items are dropped in one build, the feed looks compromised: the build keeps that source's previous cache and does not overwrite it. Title, summary and author become plain text.
 
 ## Curated Baeldung series
 

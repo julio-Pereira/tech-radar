@@ -9,6 +9,8 @@ sources:
     name: Baeldung
     category: Java/Spring
     url: https://www.baeldung.com/feed/
+    # The feed's links go through the FeedBlitz redirector, not www.baeldung.com.
+    allowed_hosts: [feeds.feedblitz.com, www.baeldung.com]
 
   - id: martin-fowler
     name: Martin Fowler
@@ -24,6 +26,7 @@ sources:
     name: InfoQ
     category: Architecture
     url: https://feed.infoq.com/
+    allowed_hosts: [www.infoq.com]
 
   - id: thoughtworks
     name: ThoughtWorks
@@ -34,6 +37,7 @@ sources:
     name: DZone Java
     category: Java/Spring
     url: https://feeds.dzone.com/java
+    allowed_hosts: [dzone.com]
 
   - id: netflix-tech
     name: Netflix Tech Blog

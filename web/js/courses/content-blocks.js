@@ -58,7 +58,7 @@ function buildRefList(refs) {
     const a = document.createElement('a');
     a.href = ref.url;
     a.target = '_blank';
-    a.rel = 'noopener noreferrer';
+    a.rel = 'noopener noreferrer nofollow';
     a.textContent = ref.title;
     li.appendChild(a);
     list.appendChild(li);

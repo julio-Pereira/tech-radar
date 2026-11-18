@@ -7,6 +7,10 @@ type Source struct {
 	Name     string `yaml:"name"     json:"name"`
 	Category string `yaml:"category" json:"category"`
 	URL      string `yaml:"url"      json:"-"`
+	// AllowedHosts lists the hosts this source's items may link to. Empty means
+	// only the host of URL. A feed whose items suddenly point elsewhere (a new
+	// owner, a compromised account) has those items dropped at build time.
+	AllowedHosts []string `yaml:"allowed_hosts" json:"-"`
 }
 
 // Kind values for FeedItem.

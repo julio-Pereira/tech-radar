@@ -93,6 +93,9 @@ func toFeedItem(src model.Source, entry *gofeed.Item) model.FeedItem {
 	}
 }
 
+// resolvePublished returns the zero time for an undated item. It used to
+// return time.Now(), which put every undated item at the top of the radar on
+// every build; normalize.Filter now drops undated items instead.
 func resolvePublished(entry *gofeed.Item) time.Time {
 	if entry.PublishedParsed != nil {
 		return *entry.PublishedParsed
@@ -100,7 +103,7 @@ func resolvePublished(entry *gofeed.Item) time.Time {
 	if entry.UpdatedParsed != nil {
 		return *entry.UpdatedParsed
 	}
-	return time.Now()
+	return time.Time{}
 }
 
 func resolveLink(entry *gofeed.Item) string {
@@ -127,7 +130,7 @@ func resolveSummary(entry *gofeed.Item) string {
 	if text == "" {
 		text = entry.Content
 	}
-	// Strip HTML tags — sanitization happens in normalize package
+	// Still HTML here: normalize turns it into plain text.
 	return text
 }
 

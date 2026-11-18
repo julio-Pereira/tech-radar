@@ -3,6 +3,7 @@ package normalize
 import (
 	"crypto/sha1"
 	"fmt"
+	"html"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -51,13 +52,21 @@ func canonicalID(item model.FeedItem) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
+// sanitizeAll turns the feed's title, summary and author into plain text: the
+// strict policy drops every tag, and the entities it leaves are decoded so the
+// front end shows "R&D", not "R&amp;D". The result is text, never HTML: the
+// front end only ever puts it in textContent.
 func sanitizeAll(items []model.FeedItem) []model.FeedItem {
 	for i := range items {
-		items[i].Summary = truncate(sanitizer.Sanitize(items[i].Summary), maxSummaryRunes)
-		items[i].Title = sanitizer.Sanitize(items[i].Title)
-		items[i].Author = sanitizer.Sanitize(items[i].Author)
+		items[i].Summary = truncate(plainText(items[i].Summary), maxSummaryRunes)
+		items[i].Title = plainText(items[i].Title)
+		items[i].Author = plainText(items[i].Author)
 	}
 	return items
+}
+
+func plainText(s string) string {
+	return strings.TrimSpace(html.UnescapeString(sanitizer.Sanitize(s)))
 }
 
 func truncate(s string, maxRunes int) string {

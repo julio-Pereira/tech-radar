@@ -102,7 +102,7 @@ function buildDailyCard(item, theme) {
   const title = document.createElement('a');
   title.href = item.url;
   title.target = '_blank';
-  title.rel = 'noopener noreferrer';
+  title.rel = 'noopener noreferrer nofollow';
   title.className = 'daily-card-title';
   title.textContent = item.title; // textContent — safe
 
@@ -265,7 +265,7 @@ function buildCard(item) {
   const titleLink = document.createElement('a');
   titleLink.href = item.url;
   titleLink.target = '_blank';
-  titleLink.rel = 'noopener noreferrer';
+  titleLink.rel = 'noopener noreferrer nofollow';
   titleLink.textContent = item.title;
 
   const h2 = document.createElement('h2');

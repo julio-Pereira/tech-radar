@@ -79,41 +79,21 @@ func run() error {
 
 	results := fetchAll(ctx, client, cfg)
 
-	var allItems []model.FeedItem
-	activeSources := make([]model.Source, 0, len(cfg.Sources))
-	failCount := 0
-
-	for _, r := range results {
-		if r.Err != nil {
-			log.Printf("WARN source %s failed: %v — trying cache", r.Source.ID, r.Err)
-			cached, cerr := loadCache(cacheDir, r.Source.ID)
-			if cerr != nil {
-				log.Printf("WARN no cache for %s: %v", r.Source.ID, cerr)
-				failCount++
-				continue
-			}
-			log.Printf("INFO using %d cached items for %s", len(cached), r.Source.ID)
-			allItems = append(allItems, cached...)
-			activeSources = append(activeSources, r.Source)
-			continue
-		}
-		if err := saveCache(cacheDir, r.Source.ID, r.Items); err != nil {
-			log.Printf("WARN could not save cache for %s: %v", r.Source.ID, err)
-		}
-		allItems = append(allItems, r.Items...)
-		activeSources = append(activeSources, r.Source)
-	}
+	allItems, activeSources, failCount := collect(results, cacheDir, time.Now())
 
 	if failCount == len(cfg.Sources) {
-		return fmt.Errorf("all %d sources failed with no cache fallback", failCount)
+		return fmt.Errorf("all %d sources failed with no usable cache", failCount)
 	}
 
 	// Inject curated evergreen series (not present in any RSS feed).
 	if series, serr := loadSeries(seriesPath); serr != nil {
 		log.Printf("WARN could not load series from %s: %v", seriesPath, serr)
 	} else {
-		log.Printf("INFO injecting %d curated series from %s", len(series), seriesPath)
-		allItems = append(allItems, series...)
+		kept, dropped := normalize.FilterSeries(series)
+		logDiscards("series", dropped)
+		log.Printf("INFO injecting %d curated series from %s", len(kept), seriesPath)
+		allItems = append(allItems, kept...)
+		activeSources = withSeriesSources(activeSources, cfg.Sources, kept)
 	}
 
 	maxPerSource := cfg.Settings.MaxItemsPerSource
@@ -162,26 +142,6 @@ func fetchAll(ctx context.Context, client *http.Client, cfg *model.Config) []fet
 
 	_ = g.Wait()
 	return results
-}
-
-func saveCache(dir, sourceID string, items []model.FeedItem) error {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return err
-	}
-	data, err := json.MarshalIndent(items, "", "  ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(filepath.Join(dir, sourceID+".json"), data, 0o644)
-}
-
-func loadCache(dir, sourceID string) ([]model.FeedItem, error) {
-	data, err := os.ReadFile(filepath.Join(dir, sourceID+".json"))
-	if err != nil {
-		return nil, err
-	}
-	var items []model.FeedItem
-	return items, json.Unmarshal(data, &items)
 }
 
 func loadSeries(path string) ([]model.FeedItem, error) {
