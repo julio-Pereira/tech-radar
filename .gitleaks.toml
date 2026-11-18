@@ -1,0 +1,15 @@
+# Configuração do gitleaks: as regras padrão, mais dois falsos positivos conferidos à mão em 18 nov 2026
+# (web/docs/AUDITORIA-hardening-divulgacao.md, Fase 1). Nenhum é credencial: são textos didáticos das
+# trilhas. A exceção casa o padrão da linha, e não um número de linha, para sobreviver às edições.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Textos didáticos das trilhas que parecem credencial"
+regexTarget = "line"
+regexes = [
+  # curl -u "pix-gateway:$(cat client-secret.txt)": o segredo é lido de um arquivo local do leitor.
+  '''-u "pix-gateway:\$\(cat client-secret\.txt\)"''',
+  # tabela de respostas de autorização: o "valor" casado é o texto "<sub do token>".
+  '''principal=<sub do token>''',
+]
