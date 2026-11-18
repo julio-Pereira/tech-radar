@@ -167,12 +167,12 @@ o critério não é "implemente", é "prove que o dado ficou ilegível".
 
 ```bash
 # o consumidor do ledger só pode ler payments.authorized e usar o grupo ledger-projector
-docker exec pix-stream-kafka kafka-acls.sh --bootstrap-server kafka:9092 \
+docker exec pix-stream-kafka /opt/kafka/bin/kafka-acls.sh --bootstrap-server kafka:9092 \
   --add --allow-principal User:ledger-consumer \
   --operation Read --topic payments.authorized --group ledger-projector
 
 # credencial SASL/SCRAM correspondente
-docker exec pix-stream-kafka kafka-configs.sh --bootstrap-server kafka:9092 \
+docker exec pix-stream-kafka /opt/kafka/bin/kafka-configs.sh --bootstrap-server kafka:9092 \
   --alter --entity-type users --entity-name ledger-consumer \
   --add-config 'SCRAM-SHA-256=[password=troque-isto]'
 ```
@@ -181,7 +181,7 @@ Escreva um script que afirma, para cada serviço, **pelo menos três operações
 não consegue realizar** — por exemplo, escrever no tópico do outro:
 
 ```bash
-docker exec pix-stream-kafka kafka-console-producer.sh --bootstrap-server kafka:9092 \
+docker exec pix-stream-kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 \
   --topic payments.dlq --producer-property security.protocol=SASL_PLAINTEXT \
   --producer-property sasl.mechanism=SCRAM-SHA-256 \
   --producer-property 'sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="ledger-consumer" password="troque-isto";'

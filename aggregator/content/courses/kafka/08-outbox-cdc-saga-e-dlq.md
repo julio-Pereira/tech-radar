@@ -215,7 +215,7 @@ contabilidade double-entry (trilha `go-fintech`), lançamento não se apaga.
 
 ```bash
 for t in retry.5s retry.1m retry.10m payments.dlq; do
-  docker exec pix-stream-kafka kafka-topics.sh --bootstrap-server kafka:9092 \
+  docker exec pix-stream-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 \
     --create --topic "$t" --partitions 3 --replication-factor 1
 done
 ```

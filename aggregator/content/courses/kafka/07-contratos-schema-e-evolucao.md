@@ -148,7 +148,7 @@ producer e consumidor com o serializador Avro e publique. Depois:
    bytes do schema ID:
 
    ```bash
-   docker exec pix-stream-kafka kafka-console-consumer.sh \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-console-consumer.sh \
      --bootstrap-server kafka:9092 --topic payments.initiated \
      --from-beginning --max-messages 1 --formatter kafka.tools.DefaultMessageFormatter \
      --property print.value=true --property value.serializer.encoding=hex

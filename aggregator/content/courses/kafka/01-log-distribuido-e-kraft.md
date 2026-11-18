@@ -132,26 +132,39 @@ primeiro boot. Suba com `docker compose up -d` e prove que o controller está de
 é a evidência que fecha este marco:
 
 ```bash
-docker exec pix-stream-kafka kafka-metadata-quorum.sh \
+docker exec pix-stream-kafka /opt/kafka/bin/kafka-metadata-quorum.sh \
   --bootstrap-server kafka:9092 describe --status
 # LeaderId: 1 e o nó 1 como voter confirmam o controller no ar
 ```
+
+> **Por que `/opt/kafka/bin/`?** A imagem `apache/kafka` não põe os scripts no `PATH`
+> do container — chamar só `kafka-topics.sh` falha com `executable file not found in
+> $PATH`. Use o caminho completo, como nos comandos desta trilha, ou abra um shell
+> (`docker exec -it pix-stream-kafka bash`) e rode `export PATH=$PATH:/opt/kafka/bin`.
+>
+> **`Bind for 0.0.0.0:9094 failed: port is already allocated`?** Sobrou um cluster
+> anterior (por exemplo, os três brokers `pix-stream-kafka-1..3` do marco 02) segurando a
+> porta. `docker compose down --remove-orphans -v` limpa os containers órfãos e os
+> volumes antigos — sem o `-v`, metadados KRaft de outro cluster podem impedir o boot.
+>
+> Dentro do container, use `kafka:9092` como bootstrap: o listener `PLAINTEXT` escuta no
+> hostname `kafka`, não em `localhost`. Do host, o endereço é `localhost:9094`.
 
 Depois:
 
 1. Crie o tópico e leia o `--describe`: anote quem é líder de cada partição.
 
    ```bash
-   docker exec pix-stream-kafka kafka-topics.sh --bootstrap-server kafka:9092 \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 \
      --create --topic payments.initiated --partitions 3
-   docker exec pix-stream-kafka kafka-topics.sh --bootstrap-server kafka:9092 \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 \
      --describe --topic payments.initiated
    ```
 
 2. Produza três mensagens pelo `kafka-console-producer.sh`:
 
    ```bash
-   docker exec -it pix-stream-kafka kafka-console-producer.sh \
+   docker exec -it pix-stream-kafka /opt/kafka/bin/kafka-console-producer.sh \
      --bootstrap-server kafka:9092 --topic payments.initiated
    # digite uma mensagem por linha, Ctrl+D para sair
    ```
@@ -160,7 +173,7 @@ Depois:
    o ponto do marco inteiro.
 
    ```bash
-   docker exec pix-stream-kafka kafka-console-consumer.sh \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-console-consumer.sh \
      --bootstrap-server kafka:9092 --topic payments.initiated --from-beginning
    ```
 
@@ -168,7 +181,7 @@ Depois:
    Explique por escrito, em duas linhas, por que o comportamento mudou.
 
    ```bash
-   docker exec pix-stream-kafka kafka-console-consumer.sh \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-console-consumer.sh \
      --bootstrap-server kafka:9092 --topic payments.initiated --group teste --from-beginning
    ```
 

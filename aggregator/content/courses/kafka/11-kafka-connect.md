@@ -192,7 +192,7 @@ script que alguém roda.
 
    ```bash
    curl -X PUT http://localhost:8083/connectors/pagamentos-analytics-sink/pause
-   docker exec pix-stream-kafka kafka-consumer-groups.sh --bootstrap-server kafka:9092 \
+   docker exec pix-stream-kafka /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server kafka:9092 \
      --group connect-pagamentos-analytics-sink --topic payments.authorized \
      --reset-offsets --to-earliest --execute
    curl -X PUT http://localhost:8083/connectors/pagamentos-analytics-sink/resume
