@@ -133,3 +133,15 @@ As séries curadas da Baeldung (`series.yaml`) continuam. A fonte de uma série 
 **Rodapé "atualizado em".** O radar já mostra "Atualizado há X", com a data do *build*. A mentira que o
 plano descreve (a data do *build* sobre itens velhos) vinha do cache. É ela que a regra dos 14 dias
 resolve.
+
+### Depois do merge (18 nov 2026)
+
+O primeiro *build* da `main` com a Fase 3 mostrou o alarme de anomalia funcionando num caso real. O feed da
+Nubank continua em `building.nubank.com`, mas os 10 itens passaram a apontar para `building.nu.com`. O cache de
+outubro ainda tinha os links no host antigo, então a troca de domínio é recente. Como os 10 itens caíram, a
+fonte ficou de fora do *build*. A mudança é da própria Nubank, porque é o feed oficial, por HTTPS, que aponta
+para o domínio novo. Por isso `building.nu.com` entrou no `allowed_hosts` dela, com o merge como confirmação
+do mantenedor.
+
+No mesmo *build*, o feed da Baeldung respondeu ao CI (12 itens, sem o HTTP 403 de antes), e os itens passaram
+pelo filtro.

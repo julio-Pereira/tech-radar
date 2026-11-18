@@ -53,6 +53,8 @@ sources:
     name: Building Nubank
     category: Engineering
     url: https://building.nubank.com/feed/
+    # Since Nov 2026 the feed's items link to building.nu.com (seen in the build of 18 nov 2026).
+    allowed_hosts: [building.nubank.com, building.nu.com]
 
   - id: go-blog
     name: The Go Blog
