@@ -23,7 +23,7 @@ import { loadDesafiosSafe } from './desafios-agenda-view.js';
 
 export async function renderPathsIndex() {
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando caminhos…'));
 
   let catalog;
@@ -32,12 +32,12 @@ export async function renderPathsIndex() {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     catalog = await resp.json();
   } catch (err) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildError(`Falha ao carregar os caminhos: ${err.message}`));
     return;
   }
 
-  view.innerHTML = '';
+  view.replaceChildren();
 
   const heading = document.createElement('div');
   heading.className = 'learn-heading';
@@ -72,7 +72,7 @@ export async function renderPathsIndex() {
  */
 export async function renderPath(slug, isFirstNavigation) {
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando caminho…'));
 
   let catalog;
@@ -81,21 +81,21 @@ export async function renderPath(slug, isFirstNavigation) {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     catalog = await resp.json();
   } catch (err) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildError(`Falha ao carregar o caminho: ${err.message}`));
     return;
   }
 
   const path = (catalog.paths || []).find((p) => p.slug === slug);
   if (!path) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildPathNotFound());
     announceRoute('Caminho não encontrado', isFirstNavigation);
     return;
   }
 
   const ctx = await loadCtx([path]);
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildPathView(path, ctx));
   announceRoute(path.title, isFirstNavigation);
 }

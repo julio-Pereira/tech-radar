@@ -39,7 +39,7 @@ export function initSearch() {
 
   const close = () => {
     panel.hidden = true;
-    panel.innerHTML = '';
+    panel.replaceChildren();
   };
 
   const runSearch = async () => {
@@ -80,7 +80,7 @@ export function initSearch() {
 }
 
 function renderResults(panel, docs) {
-  panel.innerHTML = '';
+  panel.replaceChildren();
   if (docs.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'search-empty';

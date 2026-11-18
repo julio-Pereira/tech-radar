@@ -45,7 +45,7 @@ export function buildDesafiosAgenda(desafios) {
   section.appendChild(body);
 
   function render() {
-    body.innerHTML = '';
+    body.replaceChildren();
     const state = getDesafiosState();
     const today = new Date();
     const feitos = feitosNaSemana(state.rodadas, today);

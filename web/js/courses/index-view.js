@@ -8,7 +8,7 @@ import { loadDesafiosSafe, buildDesafioDaSemanaBanner } from './desafios-agenda-
 
 export async function renderCoursesIndex() {
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando trilhas…'));
 
   let index;
@@ -17,12 +17,12 @@ export async function renderCoursesIndex() {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     index = await resp.json();
   } catch (err) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildError(`Falha ao carregar as trilhas: ${err.message}`));
     return;
   }
 
-  view.innerHTML = '';
+  view.replaceChildren();
 
   const heading = document.createElement('div');
   heading.className = 'learn-heading';

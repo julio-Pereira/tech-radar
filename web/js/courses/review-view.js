@@ -21,7 +21,7 @@ import {
 
 export async function renderReview() {
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando revisão…'));
 
   let quizBank, glossary, trackTitles = {};
@@ -38,12 +38,12 @@ export async function renderReview() {
       for (const c of index.courses || []) trackTitles[c.slug] = c.title;
     }
   } catch (err) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildError(`Falha ao carregar a revisão: ${err.message}`));
     return;
   }
 
-  view.innerHTML = '';
+  view.replaceChildren();
   const { deck, stats } = buildEligibleDeck(quizBank, glossary, getProgress, getQuizHistory, trackTitles);
   if (stats.excludedGlossaryNoMarco > 0) {
     // Content debt (a glossary entry with no "marco NN"), not the reader's: never shown in the UI.
@@ -146,7 +146,7 @@ function buildReviewView(deck, stats) {
   }
 
   function renderNext() {
-    cardSlot.innerHTML = '';
+    cardSlot.replaceChildren();
     const remaining = reviewState.dailyLimit - reviewState.todayCount;
     status.textContent = `${reviewState.todayCount} de ${reviewState.dailyLimit} revisados hoje`;
 

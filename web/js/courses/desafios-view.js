@@ -16,6 +16,7 @@ import {
 import {
   getProgress, getDesafioDraft, saveDesafioDraft, recordDesafioRodada,
 } from '../storage.js';
+import { setBuildHTML } from '../trusted-html.js';
 
 const TIPO_LABEL = {
   'system-design': 'System design', lld: 'LLD', estimativa: 'Estimativa',
@@ -48,17 +49,17 @@ function el(tag, className, text) {
 export async function renderDesafios() {
   stopTimer();
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando desafios…'));
   let desafios;
   try {
     desafios = await loadCatalog();
   } catch (err) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildError(`Falha ao carregar os desafios: ${err.message}`));
     return;
   }
-  view.innerHTML = '';
+  view.replaceChildren();
 
   const root = el('div', 'course-view desafios-view');
   const heading = el('div', 'learn-heading');
@@ -83,7 +84,7 @@ export async function renderDesafios() {
   root.appendChild(grid);
 
   function renderGrid() {
-    grid.innerHTML = '';
+    grid.replaceChildren();
     const shown = desafios.filter((d) =>
       (!tipoSel.select.value || d.tipo === tipoSel.select.value) &&
       (!nivelSel.select.value || d.nivel === nivelSel.select.value) &&
@@ -147,18 +148,18 @@ function buildCard(d) {
 export async function renderDesafio(id, mode, seed) {
   stopTimer();
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando desafio…'));
   let desafios;
   try {
     desafios = await loadCatalog();
   } catch (err) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildError(`Falha ao carregar o desafio: ${err.message}`));
     return;
   }
   const d = desafios.find((x) => x.id === id);
-  view.innerHTML = '';
+  view.replaceChildren();
   if (!d) {
     view.appendChild(buildError('Desafio não encontrado.'));
     announceRoute('Desafio não encontrado', true);
@@ -211,7 +212,7 @@ function section(title, className) {
 
 function htmlBlock(html, values) {
   const div = el('div', 'desafio-prose');
-  div.innerHTML = fillHTML(html, values); // pre-sanitized at build time (bluemonday); values escaped
+  setBuildHTML(div, fillHTML(html, values)); // pre-sanitized at build time (bluemonday); values escaped
   return div;
 }
 
@@ -289,7 +290,7 @@ function buildEstudo(d, seed, values) {
   const result = el('div', 'desafio-result');
   result.setAttribute('aria-live', 'polite');
   check.addEventListener('click', () => {
-    result.innerHTML = '';
+    result.replaceChildren();
     result.appendChild(buildCorrection(d, values, answers, null, null));
   });
   root.append(check, result);
@@ -476,7 +477,7 @@ function buildCorrection(d, values, answers, asked, onScore) {
 
   const update = () => {
     const sc = score(res, boxes.filter((b) => b.checked).length, boxes.length);
-    summary.innerHTML = '';
+    summary.replaceChildren();
     summary.append(
       el('p', 'desafio-score-verificado', `Verificado: ${sc.verificado.acertos} de ${sc.verificado.total} (${sc.verificado.pct}%)`),
       el('p', 'desafio-score-auto', `Autoavaliado: ${sc.autoavaliado.marcados} de ${sc.autoavaliado.total} (${sc.autoavaliado.pct}%)`),
@@ -605,7 +606,7 @@ function buildSimulado(d, seed, values) {
     showTwist();
     if (twistBtn) twistBtn.classList.add('hidden');
     finish.disabled = true;
-    result.innerHTML = '';
+    result.replaceChildren();
     result.appendChild(buildCorrection(d, values, answers, asked,
       (sc) => recordDesafioRodada(d.id, seed, sc.verificado.pct, sc.autoavaliado.pct, sc.verificado.partes)));
     const gab = section('Gabarito comentado', 'desafio-gabarito');

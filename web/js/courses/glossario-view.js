@@ -17,19 +17,19 @@ async function fetchGlossary() {
 
 export async function renderGlossarioIndex() {
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando glossário…'));
 
   let entries;
   try {
     entries = await fetchGlossary();
   } catch (err) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildError(`Falha ao carregar o glossário: ${err.message}`));
     return;
   }
 
-  view.innerHTML = '';
+  view.replaceChildren();
 
   const heading = document.createElement('div');
   heading.className = 'learn-heading';
@@ -98,27 +98,27 @@ export async function renderGlossarioIndex() {
  */
 export async function renderGlossarioTerm(anchor, isFirstNavigation) {
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando verbete…'));
 
   let entries;
   try {
     entries = await fetchGlossary();
   } catch (err) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildError(`Falha ao carregar o verbete: ${err.message}`));
     return;
   }
 
   const definitions = entries.filter((e) => e.anchor === anchor);
   if (definitions.length === 0) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildTermNotFound());
     announceRoute('Verbete não encontrado', isFirstNavigation);
     return;
   }
 
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildTermView(definitions));
   announceRoute(definitions[0].term, isFirstNavigation);
 }

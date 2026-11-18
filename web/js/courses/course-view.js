@@ -28,7 +28,7 @@ export async function renderCourse(slug, isFirstNavigation, marcoId, conceitoId)
   // before anything below asks whether a detour is open.
   if (conceitoId) arriveAt(window.location.hash);
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando trilha…'));
 
   let course;
@@ -37,13 +37,13 @@ export async function renderCourse(slug, isFirstNavigation, marcoId, conceitoId)
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     course = await resp.json();
   } catch {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildCourseNotFound());
     announceRoute('Trilha não encontrada', isFirstNavigation);
     return;
   }
 
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildCourseView(course, marcoId, conceitoId));
   announceRoute(course.title, isFirstNavigation);
 }

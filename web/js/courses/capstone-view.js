@@ -13,7 +13,7 @@ const ROW_H = 110;
 
 export async function renderCapstoneMap() {
   const view = document.getElementById('view-learn');
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildLoading('Carregando mapa do fin-platform…'));
 
   let catalog;
@@ -22,12 +22,12 @@ export async function renderCapstoneMap() {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     catalog = await resp.json();
   } catch (err) {
-    view.innerHTML = '';
+    view.replaceChildren();
     view.appendChild(buildError(`Falha ao carregar o mapa: ${err.message}`));
     return;
   }
 
-  view.innerHTML = '';
+  view.replaceChildren();
   view.appendChild(buildCapstoneView(catalog.components || []));
   announceRoute('fin-platform', true);
 }

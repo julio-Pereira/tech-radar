@@ -2,6 +2,7 @@
 // Milestone body add-ons that aren't the quiz: glossary, references/sources,
 // and the copy-code button overlay.
 
+import { setBuildHTML } from '../trusted-html.js';
 /** @typedef {import('../types.js').Ref} Ref */
 
 /** Glossary appendix — collapsed by default via native <details>. */
@@ -16,7 +17,7 @@ export function buildGlossaryBlock(html) {
 
   const body = document.createElement('div');
   body.className = 'milestone-body';
-  body.innerHTML = html; // pre-sanitized at build time (bluemonday)
+  setBuildHTML(body, html); // pre-sanitized at build time (bluemonday)
   addCopyButtons(body);
   details.appendChild(body);
 

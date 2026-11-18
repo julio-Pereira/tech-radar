@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Hardening antes da divulgação, Fase 4 (SECURITY.md, "Limitações aceitas"): o GitHub Pages não
+       permite cabeçalhos, então a CSP vem por <meta>, que não aceita frame-ancestors. Todo HTML que o site
+       escreve passa pela política de Trusted Types "tech-radar-build" (js/trusted-html.js). -->
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; style-src 'self'; script-src 'self';" />
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; require-trusted-types-for 'script'; trusted-types tech-radar-build; upgrade-insecure-requests" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>Tech Radar</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
