@@ -29,6 +29,9 @@ steps:
   - ref: system-design/13
     group: "Revisar fundamentos de HLD"
     why: "Disponibilidade, multi-região e células respondem à reviravolta clássica de RPO e RTO."
+  - ref: entrega-continua-e-devops/07
+    group: "Revisar fundamentos de HLD"
+    why: "Canary pergunta se a versão é segura, e o teste A/B, se a variante é melhor: é o critério do desafio de escolher a estratégia de release."
   - ref: system-design/09
     group: "Framework de estudo de caso"
     why: "O caso Pix aplica o framework de ponta a ponta; o desafio pix-10k-tps é a prática dele."

@@ -77,3 +77,25 @@ oficiais (`docs.aws.amazon.com`, `aws.amazon.com`, `learn.microsoft.com`), com a
   Configuration têm variantes e o cenário de experimento, que aparecia como *preview* na data da conferência.
   O marco registra o *preview* com a data. A busca não achou anúncio de descontinuação da integração com o
   Split, e o marco não cita o Split pelo nome.
+
+## Fase 3 — Bloco 4: diagrama e desafio (15 nov 2026)
+
+- **Diagrama `ec-canary-vs-ab`** (tipo `topologia`, 9 nós, 10 passos de animação), na seção "Canary não é
+  teste A/B" do marco 07, logo depois da tabela. Em cima, o *canary* desloca **requisições** (5% → 25% →
+  100%, com o desfecho de abortar). Embaixo, o teste A/B fixa **clientes** em duas variantes até o fim do
+  período. O plano o chamava de `release-canary-vs-ab`; o id segue o prefixo `ec-` dos outros diagramas da
+  trilha. A primeira versão passava da largura máxima (1231 px para 1100), e os rótulos foram encurtados.
+  Os diagramas de `kubernetes/13` continuam linkados, sem redesenho.
+- **Desafio `escolher-estrategia-de-release`** (`system-design`, sênior, 40 min). As três mudanças do plano
+  são a migração do esquema do ledger, a troca do provedor de antifraude e a tela nova de confirmação do
+  Pix. O desafio tem:
+  - 7 esclarecimentos, 5 deles chave;
+  - 4 decisões, e em nenhuma a correta é a opção mais longa;
+  - a reviravolta do SRM (52,8% numa variante configurada em 50/50);
+  - 2 estimativas: a amostra por variante (16 · p(1 − p) / δ²) e a duração, com mínimo de uma semana
+    inteira. A constante foi conferida: 2 · (1,96 + 0,84)² = 15,7.
+
+  Pré-requisitos: `entrega-continua-e-devops/07` e `kubernetes/13`.
+- **Jornada `entrevista-senior`:** o marco 07 entra em "Revisar fundamentos de HLD", com o `why` apontando
+  para o desafio. A jornada passa de 50 para 51 etapas, e o banco de desafios, de 16 para 17
+  (`jornada.spec.js` e `desafios.spec.js` atualizados).

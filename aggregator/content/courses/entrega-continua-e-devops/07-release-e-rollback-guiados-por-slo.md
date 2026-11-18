@@ -47,6 +47,10 @@ frase-guia: **a estratégia de *deploy* protege a operação; o experimento info
 | Decisão | continuar ou parar | trocar ou voltar | promover ou reverter, automática | análise estatística ao fim do período |
 | Mecanismo típico | substituição gradual de réplicas | dois ambientes e a troca do roteamento | peso de tráfego e a análise deste marco | *feature flag* com atribuição determinística |
 
+```diagrama
+ec-canary-vs-ab
+```
+
 **A unidade de aleatorização.** O *canary* divide **requisições**: a mesma pessoa pode cair na versão nova
 numa chamada e na antiga na seguinte, e isso não importa, porque a pergunta é sobre a versão. O A/B divide
 **clientes** (ou contas): a mesma pessoa não pode ver as duas variantes, senão a medida mistura as duas
