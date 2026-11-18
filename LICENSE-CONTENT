@@ -1,0 +1,32 @@
+Conteúdo do Tech Radar — Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0 Internacional
+(CC BY-NC-SA 4.0)
+
+Copyright (c) 2026 Julio Pereira
+
+O conteúdo deste repositório está licenciado sob a CC BY-NC-SA 4.0. O texto legal completo está em
+https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.pt (versão em português) e em
+https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode (versão em inglês, que prevalece).
+
+O que é "conteúdo", para esta licença:
+
+- as trilhas, os marcos, os tutoriais, os quizzes, os glossários, os diagramas, os desafios e as
+  jornadas em aggregator/content/ (arquivos .md, .yaml e .json);
+- a documentação em web/docs/.
+
+O que NÃO é conteúdo, e segue a licença MIT do arquivo LICENSE:
+
+- todo código-fonte, inclusive o que está dentro de aggregator/content/ (os esqueletos, testes e
+  soluções de referência dos desafios e dos laboratórios: arquivos .go, .java, go.mod, pom.xml e afins);
+- o site em web/ (HTML, CSS e JavaScript) e as ferramentas em aggregator/ e tools/.
+
+Em resumo, você pode copiar e adaptar o conteúdo desde que:
+
+- dê o crédito, com link para https://julio-pereira.github.io/tech-radar/ e para esta licença, e indique
+  se fez alterações;
+- não use para fins comerciais;
+- distribua o que fizer a partir dele sob a mesma licença.
+
+O resumo acima não substitui o texto legal.
+
+Os artigos que o radar lista (títulos, resumos e links em web/data/feed.json) pertencem aos seus autores
+e veículos. O Tech Radar só os referencia por link, e esta licença não se aplica a eles.

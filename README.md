@@ -436,3 +436,11 @@ Environment variables (override `sources.yaml` defaults):
 | `CACHE_DIR` | `cache` | Per-source fetch cache directory |
 | `COURSES_CONTENT_DIR` | `content/courses` | Source folder for authored tracks |
 | `COURSES_OUTPUT_DIR` | `../web/data/courses` | Output dir for compiled track JSON |
+
+## Licenses
+
+- **Code** (the aggregator, the tools, the site in `web/`, and every source file inside `aggregator/content/`, such as the desafios' skeletons, tests and reference solutions): [MIT](LICENSE).
+- **Content** (the trilhas, marcos, tutorials, quizzes, glossaries, diagrams, desafios and paths in `aggregator/content/`, and the docs in `web/docs/`): [CC BY-NC-SA 4.0](LICENSE-CONTENT). You may copy and adapt it with credit, for non-commercial use, under the same license.
+- **Third-party articles:** the radar only links to them. Their titles and summaries in `web/data/feed.json` belong to their authors and outlets, and neither license above applies to them.
+
+Security reports and the repository's controls: [SECURITY.md](SECURITY.md).

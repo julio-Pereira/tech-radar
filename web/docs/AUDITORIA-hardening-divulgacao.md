@@ -159,3 +159,24 @@ pelo filtro.
 
 O Playwright inteiro passa com a CSP nova: 297 testes, contando os 2 novos, e 1 pulado. Os testes de
 acessibilidade (`axe-core`) não esbarram no Trusted Types.
+
+## Fase 5 — domínio (T3)
+
+O site fica em `julio-pereira.github.io/tech-radar`, sem domínio próprio, e por isso não há DNS para proteger.
+A decisão e o procedimento, caso um domínio próprio entre (verificar na conta e remover o DNS no mesmo dia em
+que o Pages for desligado), estão no `SECURITY.md` desde a Fase 1.
+
+## Fase 6 — licença e atribuição (T7)
+
+**Decisão do mantenedor (18 nov 2026):** MIT para o código e CC BY-NC-SA 4.0 para o conteúdo.
+
+| Item do plano | Feito |
+| --- | --- |
+| `LICENSE` | MIT |
+| `LICENSE-CONTENT` | CC BY-NC-SA 4.0, com o que é conteúdo (as trilhas e os demais `.md`, `.yaml` e `.json` de `aggregator/content/`, e `web/docs/`) e o que fica sob a MIT (todo código-fonte, inclusive os esqueletos e as soluções dos desafios). O arquivo traz um resumo e aponta para o texto legal. Os artigos do feed não estão cobertos, porque pertencem aos seus autores |
+| Rodapé com a licença e link canônico | o rodapé fica em toda rota, com `rel="license"` no link da CC, e o `<link rel="canonical">` aponta para `https://julio-pereira.github.io/tech-radar/`. Os dois links externos do rodapé passam pelo teste de `rel` da Fase 3. Um teste novo confere o rodapé em duas rotas |
+| README | a seção "Licenses" separa código, conteúdo e artigos de terceiros, que são só referenciados por link |
+
+O Playwright inteiro passa: 297 testes, mais o do rodapé. Conferi a captura do rodapé em 390 px de largura.
+
+**Fase 7 (analytics):** não se aplica. O site não tem analytics, e o plano só a pede se algum for adicionado.
