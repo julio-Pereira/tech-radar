@@ -95,3 +95,41 @@ Fase 2.
 
 **Custo:** o *cron* de 6 em 6 horas passa a rodar também o `lint` e o `e2e` antes de cada *deploy*. É o
 preço de "nada vai ao ar com teste vermelho".
+
+## Fase 3 — conteúdo de terceiros (T2, T6)
+
+| Item do plano | Feito |
+| --- | --- |
+| URL do item validada no *build* | `normalize.Filter`: só `https`, com host DNS válido (nada de IP, nome sem ponto ou caractere fora de `a-z0-9-`), sem usuário e sem porta. Teste de tabela com `javascript:`, `data:`, `http:`, `ftp:`, relativo, protocolo-relativo, usuário, porta, IP, `localhost` e host com letra cirílica |
+| *Allowlist* de host por fonte | `allowed_hosts` no `sources.yaml`, com padrão no host do próprio feed e comparação exata, sem curinga de subdomínio. Três fontes declaram a lista, medida nos links reais: Baeldung (`feeds.feedblitz.com`, o redirecionador do feed), InfoQ (`www.infoq.com`) e DZone (`dzone.com`). Item fora da lista: descartado e logado |
+| Alarme de anomalia | mais da metade dos itens de uma fonte descartada num *build*: a fonte usa o cache anterior e **não** o sobrescreve; sem cache, fica de fora |
+| Sanitização | `StrictPolicy` e depois `html.UnescapeString` (F1): o feed vira texto puro, e o front só usa `textContent`. A política de HTML das trilhas ganhou um teste que recusa `iframe`, `style`, `on*`, `form`, `input`, `object`, `embed`, `srcset`, `base`, `meta`, `script` e os esquemas `javascript:` e `data:` |
+| `rel="noopener noreferrer nofollow"` e `target="_blank"` | no radar (`radar.js`), nas referências dos marcos (`content-blocks.js`) e nos links do markdown das trilhas (política do `bluemonday`). O teste `links-externos.spec.js` varre o DOM renderizado do radar e de um marco; ele pegou a mutação que tira o `nofollow` da política |
+| Cache vivo (P3) | o cache passa a guardar a data (`savedAt`), e a fonte que falha só usa um cache de até 14 dias. Os itens do cache passam pelo filtro de novo, porque podem ser de antes de uma regra |
+| Testes de `fetch` e `normalize` (P4) | os dois pacotes saem de zero testes. Há a *fixture* `feed-malicioso.xml`, com 12 itens, e o teste do `run()` inteiro: a fonte maliciosa fica de fora, não grava cache, e nenhum item dela chega ao `feed.json` |
+
+**Dois achados a mais.**
+
+- **Item sem data:** o `fetch` dava a hora do *build* para um item sem data, e esse item ia para o topo do
+  radar a cada *build*. Agora ele fica com data zero e é descartado.
+- **Data no futuro:** um item datado mais de um dia à frente ficaria preso no topo. Também é descartado.
+
+**O que muda no site: a Baeldung.** No CI, todas as fontes respondem, menos a Baeldung (HTTP 403 para os IPs
+do GitHub Actions, conferido no log do *build* de 18 nov). Ela aparecia graças ao cache versionado, de 10 out
+2026, no formato antigo, sem data, sob o "Atualizado há X" do *build*. **Decisão do mantenedor (18 nov):** a
+Baeldung fica no `sources.yaml` e sai do radar enquanto o cache dela tiver mais de 14 dias. Para que ela volte:
+
+```sh
+cd aggregator && go run .        # numa máquina em que o feed da Baeldung responde
+git add cache/baeldung.json && git commit -m "Atualiza o cache da Baeldung"
+```
+
+A cada 14 dias, a atualização precisa ser repetida. O ambiente desta sessão não consegue fazer isso, porque
+o *proxy* bloqueia o feed.
+
+As séries curadas da Baeldung (`series.yaml`) continuam. A fonte de uma série fica na lista de fontes do
+`feed.json`, mesmo quando sai do *build*, para que o filtro por fonte continue achando as séries.
+
+**Rodapé "atualizado em".** O radar já mostra "Atualizado há X", com a data do *build*. A mentira que o
+plano descreve (a data do *build* sobre itens velhos) vinha do cache. É ela que a regra dos 14 dias
+resolve.

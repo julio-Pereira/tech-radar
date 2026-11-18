@@ -32,6 +32,10 @@ func newBodyPolicy() *bluemonday.Policy {
 	p.AllowAttrs("target").OnElements("a")
 	p.AllowAttrs("rel").OnElements("a")
 	p.RequireNoFollowOnLinks(false)
+	// External links open in a new tab with rel="nofollow noreferrer noopener"
+	// (hardening before publication, Fase 3); links inside the site keep no rel.
+	p.RequireNoFollowOnFullyQualifiedLinks(true)
+	p.RequireNoReferrerOnFullyQualifiedLinks(true)
 	p.AddTargetBlankToFullyQualifiedLinks(true)
 	// GFM tables.
 	p.AllowElements("table", "thead", "tbody", "tr", "th", "td")
