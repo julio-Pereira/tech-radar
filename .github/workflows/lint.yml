@@ -1,0 +1,70 @@
+name: Lint
+
+# Hardening antes da divulgação (web/docs/AUDITORIA-hardening-divulgacao.md, Fase 2): formatação,
+# análise estática, vulnerabilidades alcançáveis nas dependências Go, os próprios workflows e segredos
+# no histórico. Roda em todo PR e é chamado pelo Build & Deploy antes do deploy.
+
+on:
+  pull_request:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      STATICCHECK_VERSION: v0.8.2
+      GOVULNCHECK_VERSION: v1.10.0
+      ACTIONLINT_VERSION: v1.7.12
+      GITLEAKS_VERSION: v8.30.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the secret scan reads the whole history
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: aggregator/go.mod
+          cache-dependency-path: aggregator/go.sum
+
+      - name: Install the tools (pinned versions)
+        run: |
+          go install "honnef.co/go/tools/cmd/staticcheck@${STATICCHECK_VERSION}"
+          go install "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}"
+          go install "github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION}"
+          go install "github.com/zricethezav/gitleaks/v8@${GITLEAKS_VERSION}"
+
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l aggregator tools)
+          if [ -n "$unformatted" ]; then
+            echo "::error::gofmt found unformatted files:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: go vet, staticcheck and govulncheck (aggregator)
+        working-directory: aggregator
+        run: |
+          go vet ./...
+          staticcheck ./...
+          govulncheck ./...
+
+      - name: go vet, staticcheck and govulncheck (fin-check)
+        working-directory: tools/fin-check
+        run: |
+          go vet ./...
+          staticcheck ./...
+          govulncheck ./...
+
+      - name: actionlint
+        run: actionlint
+
+      - name: gitleaks (whole history, all branches fetched)
+        run: gitleaks git --log-opts="--all" --redact --no-banner .

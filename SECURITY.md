@@ -46,9 +46,11 @@ diz o que deve estar ligado; o estado de cada um está na auditoria
 | *Settings → Pages* | origem "GitHub Actions"; "Enforce HTTPS" |
 | *Settings → Environments → github-pages* | *deploy* só a partir da `main` |
 
-**Os *status checks* obrigatórios** são os nomes dos *jobs*, e não dos *workflows*. Hoje, o que roda em todo
-PR é o `e2e` (*workflow* "Web UI tests"). O `lld` roda só quando um desafio muda: se for obrigatório, um PR
-que não mexe em desafio fica esperando um *check* que nunca chega. O `build` roda só depois do *merge*.
+**Os *status checks* obrigatórios** são os nomes dos *jobs*, e não dos *workflows*: `lint` (*workflow*
+"Lint") e `e2e` (*workflow* "Web UI tests"), os dois que rodam em todo PR. O `lld` roda só quando um desafio
+muda: se for obrigatório, um PR que não mexe em desafio fica esperando um *check* que nunca chega. O `build`
+roda só depois do *merge*, e o *deploy* espera o `build`, o `lint` e o `e2e` rodarem de novo no mesmo
+*commit*.
 
 **O `CODEOWNERS` e a revisão obrigatória.** O `.github/CODEOWNERS` faz o GitHub pedir a revisão do mantenedor
 em todo PR. Com um mantenedor só, **não** marque "Require review from Code Owners" nem um número mínimo de

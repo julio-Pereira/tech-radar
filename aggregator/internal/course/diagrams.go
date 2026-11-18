@@ -568,7 +568,7 @@ func (v *diagramaValidator) grid(grupos []diagramaGrupo, nos []diagramaNo, field
 		if g.Col+g.Cols > diagramaGridColunasMax {
 			v.fail("grupo %q passa da coluna %d (máximo %d colunas)", g.ID, g.Col+g.Cols-1, diagramaGridColunasMax)
 		}
-		dg := DiagramaGrupo{ID: g.ID, Rotulo: g.Rotulo, Col: g.Col, Row: g.Row, Cols: g.Cols, Rows: g.Rows}
+		dg := DiagramaGrupo(g)
 		byGroup[g.ID] = dg
 		gs = append(gs, dg)
 	}

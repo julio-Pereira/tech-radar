@@ -167,7 +167,7 @@ func (v *diagramaValidator) animacao(node *yaml.Node, d Diagrama) []DiagramaPass
 						v.fail("%s.fluxos[%d]: só troca o rótulo de uma aresta que tem rótulo", where, j)
 					}
 				}
-				p.Fluxos = append(p.Fluxos, DiagramaFluxo{De: f.De, Para: f.Para, Rotulo: f.Rotulo})
+				p.Fluxos = append(p.Fluxos, DiagramaFluxo(f))
 			}
 			p.Estados, p.Rotulos = copyMap(estados), copyMap(rotulos)
 		case "estados":
