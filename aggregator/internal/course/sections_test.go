@@ -422,9 +422,23 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		t.Errorf("milestones with a hands-on section but no recognized label = %v, want %v", noLabel, wantNoLabel)
 	}
 
-	// Every milestone has a hands-on section again since the ia-na-engenharia
-	// Fase 3; a new one without it is a regression.
-	var wantNoSection []string
+	// The redis-em-producao stubs (Fase 0) leave this list as each block is
+	// written; once the trilha is complete it must be empty again.
+	wantNoSection := []string{
+		"redis-em-producao/atomicidade-multi-watch-lua-e-functions",
+		"redis-em-producao/clientes-em-producao-java-e-go",
+		"redis-em-producao/cluster-slots-hash-tags-e-resharding",
+		"redis-em-producao/contadores-janelas-e-limites",
+		"redis-em-producao/estruturas-i-strings-hashes-listas-e-sets",
+		"redis-em-producao/estruturas-ii-sorted-sets-probabilisticas-e-geo",
+		"redis-em-producao/idempotencia-e-deduplicacao",
+		"redis-em-producao/locks-leases-e-coordenacao",
+		"redis-em-producao/modelo-de-execucao-e-custo-de-comando",
+		"redis-em-producao/persistencia-memoria-e-eviction",
+		"redis-em-producao/replicacao-sentinel-e-failover",
+		"redis-em-producao/seguranca-operacao-gerenciado-e-capstone",
+		"redis-em-producao/streams-pubsub-e-quando-e-kafka",
+	}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}
