@@ -1,0 +1,36 @@
+questions:
+  - question: "Um hash de sessão com 10 campos curtos ocupava menos de 200 bytes. Depois de um deploy, a memória da instância subiu muito, e o campo novo `observacao` às vezes chega a 600 bytes. O que aconteceu?"
+    options:
+      - "O campo novo passou de hash-max-listpack-entries, e o hash dobrou de tamanho para abrir espaço aos 512 campos"
+      - "Um valor acima de 64 bytes converteu o hash inteiro de listpack para tabela, e a conversão não volta"
+      - "O campo de 600 bytes foi gravado como raw fora do hash, e cada sessão passou a ter duas chaves no banco"
+      - "O motor passou a comprimir o hash com LZF, e a compressão ocupa mais memória quando o texto é livre"
+    answer: 1
+    explanation: "O hash fica compacto enquanto tiver até 512 campos e todo valor com até 64 bytes. Um único valor maior converte a coleção inteira para hashtable: no laboratório, de 197 B para 1.225 B no Redis. Apagar o campo não desfaz a conversão (554 B, ainda hashtable). Limite o tamanho dos valores na aplicação."
+
+  - question: "O time quer trocar 1.000 chaves soltas de sessão por um único hash com 1.000 campos para economizar memória. O que entra na conta além dos bytes?"
+    options:
+      - "Que o hash não aceita mais de 512 campos, e o segundo balde de sessões precisa de outra instância"
+      - "Que o HSET num hash grande é O(N), e cada gravação passa a custar mil vezes mais que um SET simples"
+      - "Que o grupo vira big key num nó só do cluster, e o TTL por sessão exige HEXPIRE, de versão recente"
+      - "Que o hash perde a atomicidade por campo, e duas sessões gravadas juntas podem se misturar"
+    answer: 2
+    explanation: "O hash economiza o custo fixo por chave, mas o grupo inteiro mora num slot e num nó, e vira uma big key. O TTL por item só existe com a expiração por campo (Redis 7.4+, Valkey 9.0+). Com 1.000 campos, o hash também passa do limiar de 512 e deixa de ser compacto. O HSET continua O(1) por campo."
+
+  - question: "O serviço usa HSETEX para gravar campos com TTL e vai rodar num Valkey 8 gerenciado. O que acontece?"
+    options:
+      - "Funciona igual, porque o Valkey implementa todos os comandos do Redis até a versão 7.2.4 que ele informa"
+      - "Funciona, mas os campos não expiram, e o TTL é ignorado em silêncio pelo Valkey até a versão 9.0"
+      - "Funciona com RESP3 e falha com RESP2, porque a expiração por campo depende do protocolo novo"
+      - "Falha: o HSETEX só chegou no Valkey 9.0, e isso entra no ADR como restrição"
+    answer: 3
+    explanation: "HEXPIRE e família existem no Redis desde a 7.4 e no Valkey desde a 9.0. HGETEX e HSETEX, no Redis 8.0 e no Valkey 9.0. Num Valkey 8, o comando não existe e falha. O redis_version:7.2.4 que o Valkey informa é compatibilidade de protocolo, não lista de comandos."
+
+  - question: "Quando um HGETALL deixa de ser uma leitura barata?"
+    options:
+      - "Quando o hash cresce: é O(N) nos campos, e um hash grande trava todos os clientes"
+      - "Quando o hash está em listpack, porque a leitura sequencial é mais lenta que a busca numa tabela"
+      - "Quando o hash tem campos com TTL, porque cada campo expirado é removido durante a leitura"
+      - "Quando o cliente usa RESP2, porque a resposta vem como lista e precisa ser convertida em mapa"
+    answer: 0
+    explanation: "HGETALL é O(N) no número de campos, e a execução é serial: o custo de ler um hash grande é latência para todos os clientes, como o KEYS do marco 01. Sobre os cinco campos de uma sessão, é barato. Sobre um balde com mil sessões, leia o campo certo com HGET."
