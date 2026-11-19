@@ -1,0 +1,41 @@
+slug: redis-em-producao
+title: "Redis em Produção para Fintech"
+subtitle: "Modelo de execução, estruturas, atomicidade, persistência, replicação, cluster e clientes: o que o Redis garante, o que ele perde e como provar cada fronteira antes de colocar dinheiro em cima dela."
+category: "Dados/Storage"
+tags: [redis, valkey, estado, lua, streams, sentinel, cluster, lettuce, spring-data-redis, go-redis, idempotencia, rate-limit, fintech]
+level: advanced
+lang: pt-BR
+# 13 marcos, 775 min (web/docs/AUDITORIA-redis-em-producao.md). A regra é ~2x a
+# soma dos estimatedMinutes: 775 x 2 / 60 = 25,8 -> 26.
+estimatedHours: 26
+glossary: GLOSSARIO.md
+sources:
+  - { title: "Redis — Documentation", url: https://redis.io/docs/latest/ }
+  - { title: "Redis — Licenses", url: https://redis.io/legal/licenses/ }
+  - { title: "Redis — source and release notes (8.10)", url: https://github.com/redis/redis }
+  - { title: "Valkey — Documentation", url: https://valkey.io/docs/ }
+  - { title: "Valkey — source and release notes (9.1)", url: https://github.com/valkey-io/valkey }
+  - { title: "Valkey Bundle (Bloom, JSON, Search)", url: https://valkey.io/topics/valkey-bundle/ }
+  - { title: "Martin Kleppmann — How to do distributed locking", url: https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html }
+  - { title: "Spring Data Redis — Reference", url: https://docs.spring.io/spring-data/redis/reference/ }
+  - { title: "Lettuce — Reference Guide", url: https://redis.github.io/lettuce/ }
+  - { title: "go-redis guide (Go)", url: https://redis.io/docs/latest/develop/clients/go/ }
+  - { title: "Jepsen — Orkes Conductor 5.3.2 (Redis como banco e fila, out 2026)", url: https://jepsen.io/analyses/orkes-conductor-5.3.2 }
+milestones:
+  # Bloco A — Modelo mental e estruturas
+  - 01-modelo-de-execucao-e-custo-de-comando.md
+  - 02-estruturas-i-strings-hashes-listas-e-sets.md
+  - 03-estruturas-ii-sorted-sets-probabilisticas-e-geo.md
+  # Bloco B — Padrões de estado
+  - 04-atomicidade-multi-watch-lua-e-functions.md
+  - 05-idempotencia-e-deduplicacao.md
+  - 06-contadores-janelas-e-limites.md
+  - 07-locks-leases-e-coordenacao.md
+  - 08-streams-pubsub-e-quando-e-kafka.md
+  # Bloco C — Durabilidade e escala
+  - 09-persistencia-memoria-e-eviction.md
+  - 10-replicacao-sentinel-e-failover.md
+  - 11-cluster-slots-hash-tags-e-resharding.md
+  # Bloco D — Operar
+  - 12-clientes-em-producao-java-e-go.md
+  - 13-seguranca-operacao-gerenciado-e-capstone.md

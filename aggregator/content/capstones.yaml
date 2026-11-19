@@ -58,6 +58,14 @@
     # comportamental: o portão bloqueia a exfiltração do roteiro com conteúdo injetado
     - { path: "fin-assist/", check: "make portao" }
 
+- track: redis-em-producao
+  component: fin-kv
+  depends_on: [pix-gateway, ledger-core, fin-store, pix-stream]
+  artifacts:
+    - { path: "fin-kv/", check: exists }
+    # comportamental: a suíte de invariantes passa contra o Redis e o Valkey
+    - { path: "fin-kv/", check: "make invariantes" }
+
 - track: go-fintech
   component: ledger-core
   depends_on: []
