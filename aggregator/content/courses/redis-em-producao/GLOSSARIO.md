@@ -122,6 +122,62 @@ tempo de ida e volta uma vez só; não dá atomicidade.
 **Erro comum:** contar com ele no Valkey, em que o módulo `bf` só traz o Bloom.
 **Onde na prática:** marco 03.
 
+## Atomicidade e padrões
+
+### MULTI/EXEC
+**Em uma frase:** enfileira comandos e os executa juntos, sem intercalação de outros clientes; não desfaz nada quando um comando falha na execução.
+**No fin-kv:** o primeiro desenho do débito de limite, abandonado pelo script.
+**Erro comum:** acreditar que um erro no segundo comando desfaz o primeiro: só o erro de enfileiramento aborta o `EXEC`.
+**Onde na prática:** marco 04.
+
+### WATCH
+**Em uma frase:** vigia chaves e faz o `EXEC` não executar nada se alguma mudou desde o `WATCH`; é concorrência otimista, com o servidor como árbitro.
+**No fin-kv:** a alternativa documentada no ADR para um motor sem Lua, com retry limitado e métrica de abortos.
+**Erro comum:** usar sob contenção alta sem limite de tentativas: no laboratório, mais de 30 abortos por débito.
+**Onde na prática:** marco 04.
+
+### Script Lua
+**Em uma frase:** um programa que roda dentro do servidor com o isolamento de um comando só, lendo, decidindo e escrevendo sem ida e volta.
+**No fin-kv:** o débito do limite, a janela por *log* e o limite multidimensional.
+**Erro comum:** escrever antes de validar: um erro depois da primeira escrita não a desfaz.
+**Onde na prática:** marco 04, também no marco 06.
+
+### Function
+**Em uma frase:** uma biblioteca de scripts com nome, carregada com `FUNCTION LOAD` e chamada com `FCALL`, persistida e replicada pelo servidor.
+**No fin-kv:** `finkv.debitar_limite`, carregada no *deploy* com `FUNCTION LOAD REPLACE`.
+**Erro comum:** achar que ela bloqueia menos que um script: o custo de execução é o mesmo.
+**Onde na prática:** marco 04.
+
+### KEYS[]
+**Em uma frase:** o argumento pelo qual o script recebe todas as chaves que toca; o cliente usa essa lista para saber em que nó do *cluster* rodar.
+**No fin-kv:** um teste lê todos os scripts do repositório e falha se algum recebe a chave por outro caminho.
+**Erro comum:** montar a chave dentro do script (`'pix:lim:' .. ARGV[1]`) e quebrar no *cluster*.
+**Onde na prática:** marco 04, também no marco 11.
+
+### BUSY
+**Em uma frase:** a resposta que todos os clientes recebem enquanto um script passa de `busy-reply-threshold` (5.000 ms por padrão).
+**No fin-kv:** o teste derruba o limiar para 100 ms e prova que um segundo cliente recebe `BUSY`.
+**Erro comum:** contar com o `SCRIPT KILL`: o script que já escreveu responde `UNKILLABLE`.
+**Onde na prática:** marco 04.
+
+### Reserva de idempotência
+**Em uma frase:** o `SET chave EM_PROCESSAMENTO NX PX` que dá a uma só requisição o direito de executar; o banco continua sendo a garantia.
+**No fin-kv:** `pix:idem:<chave>`, com prazo curto em processamento e 25 h depois de concluída.
+**Erro comum:** usá-la como único guardião e duplicar o pagamento quando a chave some por TTL, *eviction*, *failover* ou *restart*.
+**Onde na prática:** marco 05.
+
+### GCRA
+**Em uma frase:** um algoritmo de limite de taxa que guarda, por chave, só o instante teórico da próxima chegada permitida.
+**No fin-kv:** não usado; os limites do `fin-kv` usam janela por *log* e janela fixa.
+**Erro comum:** esperar o comando nativo: no Redis 8.10 ele existe no código, mas vem desligado no *build*.
+**Onde na prática:** marco 06.
+
+### Política de falha do limite
+**Em uma frase:** o que cada limite faz quando o Redis não responde (falha fechada, sinal ausente ou limite local), escrita no mapa de estado.
+**No fin-kv:** o limite Pix noturno falha fechado, e a capacidade da API degrada para 10 por segundo por instância.
+**Erro comum:** decidir no código, sem dono, e descobrir na queda que o limite regulatório falhou aberto.
+**Onde na prática:** marco 06.
+
 ## Durabilidade
 
 ### Política de eviction

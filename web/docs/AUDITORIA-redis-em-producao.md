@@ -169,3 +169,52 @@ contra os dois motores.
   de sinais de velocidade.
 - 03: a primeira versão do teste de Bloom (Go e Java) mediu 0% de FP sem medir nada (resposta RESP3
   booleana descartada). O texto do marco registra o erro e a defesa.
+
+## Fase 2 — Bloco B, primeira metade (marcos 04–06)
+
+Ambiente: o da Fase 1, mais `postgres:17-alpine` (17.11) fixado por *digest*
+(`sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb`), pgx v5.13.0, JDBC do Postgres
+42.7.14 e Spring Data Redis 4.1.2, 20 nov 2026. Os scripts Lua moram em `fin-kv/lua/` e servem às duas
+linguagens. Invariantes provados em Go (todos) e em Java (04-1, 04-2, 04-3, 05-1, 05-3, 06-1 e 06-2).
+
+| Marco | Medida | Redis 8.10.3 | Valkey 9.1.4 |
+| --- | --- | --- | --- |
+| 04 | 200 débitos, WATCH+MULTI (go-redis, 50 tentativas): abortos / desistências / tempo | 6.672 / 36 / 313 ms | 6.935 / 75 / 315 ms |
+| 04 | idem, Lua / Function: abortos / tempo | 0 / 7 ms · 0 / 3 ms | 0 / 5 ms · 0 / 3 ms |
+| 04 | WATCH+MULTI no Spring Data Redis (`SessionCallback`): abortos | 4.877 | 4.214 |
+| 04 | erro de execução no 2º comando do MULTI | débito mantido (95.000) | débito mantido (95.000) |
+| 04 | `busy-reply-threshold` 100 ms: 2º cliente / `SCRIPT KILL` sem e com escrita | `BUSY` em 8 ms / mata / `UNKILLABLE` | `BUSY` em 7 ms / mata / `UNKILLABLE` |
+| 05 | 50 reenvios simultâneos: efeitos / respostas idênticas | 1 / 50 | 1 / 50 |
+| 05 | `FLUSHALL` no meio; morte entre *commit* e Redis; Redis fora (20 chamadas) | 1 efeito em cada | 1 efeito em cada |
+| 05 | chave presa em `EM_PROCESSAMENTO` | 409 após 1 s | 409 após 1 s |
+| 06 | `INCR` sem `EXPIRE` (cliente fecha no meio): TTL | −1 (eterna) | −1 (eterna) |
+| 06 | `INCREX ... UBOUND 2 ... ENX`, 3ª chamada | `[2 0]` | não existe |
+| 06 | 100 clientes, 3 s, limite 50/s: pior janela de 1 s (log / ponderado) | 50 / 64 | 50 / 67 |
+| 06 | Redis derrubado: decidir a falha fechada (go-redis padrão / `DialerRetries: 1`) | 402 ms / < 1 ms | 403 ms / < 1 ms |
+| 06 | Redis derrubado: capacidade pelo limite local de 10/s | 10 de 50 | 10 de 50 |
+| 06 | reconciliação com 777 centavos injetados em `c7` | só `c7` | só `c7` |
+
+**Conferido na fonte:** `busy-reply-threshold` (apelido `lua-time-limit`) 5.000 ms nos dois `config.c`;
+Functions desde 7.0; `FUNCTION LOAD` O(1); `WATCH` O(1) por chave; Lua como módulo no Valkey 9.1
+(`00-RELEASENOTES`: "Move Lua scripting engine into a Valkey module", depois "statically linked by default");
+`INCREX` desde 8.8.0 (`increx.json`), com `SATURATE`, `LBOUND`, `UBOUND` e `ENX`; go-redis v9.23
+`DialerRetries` 5 e `DialerRetryTimeout` 100 ms (`options.go`).
+
+**Ajustes ao plano e erros corrigidos no laboratório:**
+
+- 05: a primeira versão do filtro executava o efeito **antes** do `INSERT` da chave. Com o Redis fora, o banco
+  deduplicava a linha, mas o efeito externo (o SPI) teria acontecido em todas as chamadas. O filtro passou à
+  ordem de `spring-boot/06` (a chave antes do efeito, na mesma transação), e o complemento do marco pede ao
+  aluno para reproduzir o erro.
+- 06: o script da janela por *log* devolvia o instante com `tostring`, que em Lua 5.1 vira notação científica.
+  O teste lia zero e acusava a janela. Corrigido com `string.format('%.0f', ...)`.
+- 06: o contador ponderado recebe as duas chaves por `KEYS[]`, calculadas pelo cliente, para respeitar o
+  verificador estático do marco 04.
+- 06: a latência de 400 ms do go-redis para decidir a falha não estava no plano, e entrou no texto. O marco 12
+  volta às opções do cliente.
+- 06: o *token bucket* e o GCRA ficaram no texto, sem invariante próprio. O algoritmo é de `system-design/06`, e
+  os invariantes do plano cobrem janela fixa, *log* e ponderado.
+- Pontes: `performance-resiliencia/07` (inexistente) virou `spring-boot/08`; `pagamentos-e-liquidacao` foi
+  ancorado no marco 02 (identificador fim a fim).
+- 04 e 06: os pacotes de teste não podem rodar em paralelo (`go test -p 1`), porque o teste de `BUSY` do 04
+  bloqueia o servidor durante 1,5 s.
