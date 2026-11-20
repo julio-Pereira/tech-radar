@@ -1,0 +1,54 @@
+questions:
+  - question: "Por que se diz que todo lock no Redis é, na verdade, um lease?"
+    options:
+      - "Porque o Redis só aceita locks em chaves do tipo hash, e todo hash tem prazo de validade"
+      - "Porque ele é adquirido com prazo: sem o PX, um dono morto travaria o recurso para sempre"
+      - "Porque o lock é alugado do servidor, que cobra por milissegundo de posse no modo cluster"
+      - "Porque o Redis renova o prazo sozinho enquanto a conexão do dono continuar aberta"
+    answer: 1
+    explanation: "Um lock sem prazo trava tudo quando o dono morre, então o lock no Redis tem PX: é um direito exclusivo por um tempo. O prazo resolve o dono morto e cria o problema do marco: o dono vivo que perde o lease sem saber, numa pausa maior que o prazo. O servidor não renova nada sozinho."
+
+  - question: "O processo A pausou além do prazo, o processo B adquiriu o lease, e A volta e faz DEL na chave. O que acontece?"
+    options:
+      - "Nada, porque o DEL compara o valor da chave com o token que o cliente de A guardou"
+      - "O DEL falha com WRONGTYPE, porque o lease de B foi criado com outro token"
+      - "O lease de B é apagado, e um terceiro pode adquiri-lo com B ainda trabalhando"
+      - "O servidor recusa o DEL, porque a chave tem TTL e só expira pelo prazo"
+    answer: 2
+    explanation: "O DEL apaga a chave de quem quer que ela seja. No laboratório, nos dois motores, o lease de B desapareceu no DEL de A. A liberação segura compara o token e apaga sem intercalação: script com GET e DEL, ou DELEX ... IFEQ no Redis 8.4+ e DELIFEQ no Valkey 9.0+."
+
+  - question: "O watchdog renova o lease com SET ... IFEQ token PX a cada terço do prazo. O que ele não resolve?"
+    options:
+      - "A renovação concorrente: dois watchdogs do mesmo dono podem estender o lease ao mesmo tempo"
+      - "A expiração quando o dono morre: o watchdog morto continua renovando o lease no servidor"
+      - "A troca de motor: o IFEQ só existe no Redis, e no Valkey a renovação exige script Lua"
+      - "A pausa do processo inteiro: o watchdog congela junto, e o dono volta sem o lease"
+    answer: 3
+    explanation: "Uma pausa de GC ou um docker pause congela o processo todo, watchdog incluído. No laboratório, o dono congelado por SIGSTOP voltou, o watchdog descobriu a perda, e o trabalho seguiu para a escrita mesmo assim. O IFEQ existe nos dois motores (Redis 8.4+, Valkey 8.1+)."
+
+  - question: "O dono do lease foi congelado por 900 ms com um prazo de 300 ms. Ao voltar, a primeira coisa que ele faz é a escrita no banco. O que a impede?"
+    options:
+      - "O fencing token: o recurso guarda o maior token visto e recusa a escrita com token menor"
+      - "O watchdog, que detecta a perda do lease e cancela a escrita antes que ela chegue ao banco"
+      - "Uma checagem do lease logo antes da escrita, que encontra outro dono e aborta a operação"
+      - "O SET NX do segundo dono, que bloqueia as conexões do primeiro até ele liberar o lease"
+    answer: 0
+    explanation: "Checar o lease antes de escrever não fecha o buraco, porque a pausa pode cair entre a checagem e a escrita. Quem recebe a escrita compara o token: no laboratório, o fin-store recusou a escrita do dono congelado (token 1) depois que o segundo dono registrou o token 2."
+
+  - question: "Onde o fencing token tem de ser verificado?"
+    options:
+      - "No Redis, num script que compara o token com o valor da chave do lease antes de cada escrita"
+      - "No recurso protegido que recebe a escrita, porque só ele vê a escrita atrasada chegar"
+      - "No cliente, que guarda o último token emitido e se recusa a escrever com um token velho"
+      - "No balanceador, que descarta requisições de réplicas que perderam o lease do job"
+    answer: 1
+    explanation: "A escrita atrasada não passa pelo Redis: ela vai direto do processo para o banco. Só o recurso que a recebe pode comparar o token com o maior que já viu. Com isso, em 1.000 trabalhadores e 200 dias, nenhum dia teve dois donos; sem fencing, de 51 a 59 tiveram."
+
+  - question: "O job de conciliação grava só no Postgres. Quando o advisory lock do Postgres é melhor que um lease no Redis?"
+    options:
+      - "Sempre, porque o advisory lock expira sozinho quando o processo do dono fica pausado"
+      - "Nunca, porque o advisory lock só funciona dentro de uma transação de leitura"
+      - "Quando o job aceita ficar parado na pausa do dono, já que o lock não expira"
+      - "Quando o job roda em várias regiões, porque o advisory lock é replicado entre elas"
+    answer: 2
+    explanation: "O advisory lock dura enquanto a sessão existir: o dono congelado continua com ele, e ninguém escreve no lugar. Não há duas escritas, mas o job fica parado. O lease no Redis passa o trabalho adiante e exige fencing. Se o recurso é o banco, o lease em tabela e o SKIP LOCKED também entram na conta."
