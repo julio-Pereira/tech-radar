@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 275, "desafio": 322, "invariantes": 314, "complemento": 305, "checagem": 320, "gabarito": 5,
+		"tutorial": 278, "desafio": 325, "invariantes": 317, "complemento": 308, "checagem": 323, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -429,11 +429,8 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 		"redis-em-producao/clientes-em-producao-java-e-go",
 		"redis-em-producao/cluster-slots-hash-tags-e-resharding",
 		"redis-em-producao/contadores-janelas-e-limites",
-		"redis-em-producao/estruturas-i-strings-hashes-listas-e-sets",
-		"redis-em-producao/estruturas-ii-sorted-sets-probabilisticas-e-geo",
 		"redis-em-producao/idempotencia-e-deduplicacao",
 		"redis-em-producao/locks-leases-e-coordenacao",
-		"redis-em-producao/modelo-de-execucao-e-custo-de-comando",
 		"redis-em-producao/persistencia-memoria-e-eviction",
 		"redis-em-producao/replicacao-sentinel-e-failover",
 		"redis-em-producao/seguranca-operacao-gerenciado-e-capstone",

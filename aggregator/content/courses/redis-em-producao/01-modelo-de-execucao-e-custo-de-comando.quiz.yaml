@@ -1,0 +1,36 @@
+questions:
+  - question: "O time ligou `io-threads 4` na instância e espera que um `KEYS user:*` sobre 3 milhões de chaves pare de travar os outros clientes. O que acontece?"
+    options:
+      - "A trava some, porque o KEYS passa a rodar em quatro threads e termina em um quarto do tempo"
+      - "A trava continua: as I/O threads cuidam de socket e parsing, e a execução segue numa thread só"
+      - "A trava some só para os clientes atendidos pelas threads extras, e continua para os da principal"
+      - "A trava piora, porque as I/O threads disputam a CPU com o KEYS enquanto ele varre o banco"
+    answer: 1
+    explanation: "Nos dois motores, as I/O threads leem e escrevem no socket e fazem o parsing do protocolo. A execução dos comandos continua serial, numa thread só. Elas ajudam quem satura a CPU com muitos comandos baratos e não aliviam nenhum comando caro: o KEYS segue bloqueando todos os clientes enquanto roda."
+
+  - question: "Um serviço lê seis chaves independentes por requisição e o RTT até a instância é de 2 ms. Qual mudança corta o tempo de espera de rede, e o que ela não garante?"
+    options:
+      - "Envolver as seis leituras em MULTI/EXEC, que corta o RTT e não garante a ordem das respostas"
+      - "Ligar as I/O threads, que leem as seis chaves em paralelo e não garantem a consistência entre elas"
+      - "Mandar as seis num pipeline, que paga um RTT e não isola os comandos dos de outros clientes"
+      - "Abrir seis conexões e ler em paralelo, que paga um RTT e não garante que todas as chaves existam"
+    answer: 2
+    explanation: "O pipeline manda os seis comandos sem esperar cada resposta e paga o RTT uma vez: no laboratório, 100 GET em pipeline custaram de 3% a 4% dos sequenciais com 2 ms de RTT. Ele não dá atomicidade: os comandos podem se intercalar com os de outros clientes. Isolamento é o MULTI/EXEC, do marco 04."
+
+  - question: "Um job percorre as chaves `ofb:sess:*` com SCAN enquanto o tráfego cria e expira sessões. O que o job pode assumir sobre o resultado?"
+    options:
+      - "Que recebe cada chave exatamente uma vez, desde que use o mesmo COUNT em todas as chamadas"
+      - "Que recebe as chaves que existiam no início da varredura, como numa foto, e nenhuma criada depois"
+      - "Que não recebe repetidas, mas pode perder qualquer chave quando o banco cresce durante a varredura"
+      - "Que as presentes do início ao fim vêm ao menos uma vez, podendo repetir; as criadas no meio, talvez"
+    answer: 3
+    explanation: "Essas são as garantias do SCAN: o que existiu do começo ao fim aparece ao menos uma vez; uma chave pode vir repetida, e a aplicação deduplica; o que foi criado ou apagado durante a varredura pode vir ou não. Não há foto consistente do banco."
+
+  - question: "O mesmo código faz `DEL` de um hash com 1 milhão de campos. No Valkey, ninguém percebe; no Redis, o comando aparece no SLOWLOG com dezenas de milissegundos. Por quê, e o que usar?"
+    options:
+      - "No Valkey, lazyfree-lazy-user-del é yes e o DEL libera em segundo plano; o UNLINK faz isso nos dois"
+      - "O Valkey guarda hashes grandes comprimidos, e liberar a memória custa menos; HDEL campo a campo resolve nos dois"
+      - "O Redis registra no SLOWLOG comandos acima de 1 ms, e o Valkey só acima de 10 ms; o custo é o mesmo"
+      - "No Redis, o DEL replica a remoção campo a campo para as réplicas; EXPIRE com 0 resolve nos dois"
+    answer: 0
+    explanation: "O DEL de uma coleção é O(M) nos elementos. O padrão de lazyfree-lazy-user-del é no no Redis e yes no Valkey, que já libera a memória numa thread de fundo. O UNLINK tira a chave em O(1) e libera depois nos dois motores. O limiar do SLOWLOG é o mesmo, 10.000 µs, nos dois."

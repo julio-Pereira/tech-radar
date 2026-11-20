@@ -128,3 +128,44 @@ As outras 34 pontes numeradas (`trilha/NN`) do plano resolvem para marcos com o 
 O disco tinha 2,3 GB livres. Liberei espaço apagando o cache de *build* do Go e as imagens de emuladores
 das trilhas de nuvem já publicadas, que podem ser baixadas de novo. O Docker local roda as duas imagens de
 referência.
+
+## Fase 1 — Bloco A (marcos 01–03)
+
+Ambiente de todas as medições: contêiner Linux com 4 vCPUs e 15 GB, Docker 29.9.2, `redis:8.10.3` e
+`valkey/valkey:9.1.4` (e `valkey/valkey-bundle:9.1.4` para Bloom) fixados por *digest*, Toxiproxy 2.13.0,
+go-redis v9.23.0, Lettuce 7.9.0, JDK 21, 19 nov 2026. Invariantes provados no laboratório em Go e em Java
+contra os dois motores.
+
+| Marco | Medida | Redis 8.10.3 | Valkey 9.1.4 |
+| --- | --- | --- | --- |
+| 01 | 100 GET, ~2 ms RTT, sequencial × *pipeline* (Go) | 287 × 12 ms | 285 × 8,5 ms |
+| 01 | idem (Lettuce) | 345 × 12 ms | 328 × 8 ms |
+| 01 | `KEYS` sobre 1M chaves / pior caso do 2º cliente | 323 / 224 ms | 179 / 91 ms |
+| 01 | `SCAN COUNT 1000` / pior caso do 2º cliente | 697 ms / 1,4 ms | 528 ms / 1,3 ms |
+| 01 | `DEL` de hash com 1M campos no `SLOWLOG` | sim, 82 ms | não (*lazy free*) |
+| 02 | bytes/sessão A · B · C (200 mil sessões) | 218 · 196 · 184 | 203 · 187 · 203 |
+| 02 | hash 10 campos → +600 B → sem o campo | 197 → 1.225 → 554 B | 216 → 504 → 480 B |
+| 02 | limite de *embstr* (chave `kkNN`) | `raw` já com 44 B | `embstr` até 100 B |
+| 02 | ISPB com zero à esquerda num *set* | `listpack` | `listpack` |
+| 03 | *sorted set*: janelas exatas / memória de 212 membros | 18 de 18 / 34 KB | 18 de 18 / 32 KB |
+| 03 | HLL: pior desvio em 1.000 janelas (limite 3σ 2,44%) | 2,27%, 14,3 KB denso | dentro do limite |
+| 03 | HLL esparso com 212 elementos | 791 B, estimou 211 | 792 B, estimou 211 |
+| 03 | Bloom 1%, 100 mil: FP / memória / FN | 0,49–0,50% / 138 KB / 0 | *bundle*: 1,01–1,06% / 120 KB / 0 |
+| 03 | `BF.MADD` devolveu 0 para item novo | 65 de 100 mil | — |
+
+**Ajustes ao plano:**
+
+- 01 (2): o invariante usa o **pior caso** do segundo cliente, e não o p99. O cliente travado gera uma
+  amostra só (p99 de 3,4 ms durante um `KEYS` com pior caso de 224 ms).
+- 01 (3): parametrizado por `lazyfree-lazy-user-del`; no Valkey, o `DEL` não aparece no `SLOWLOG`.
+- 01: caixa "diferença" para `HOTKEYS` (Redis 8.6+) e `COMMANDLOG` (Valkey 8.1+).
+- 02: 200 mil sessões em vez de 1M (os bytes por sessão estabilizam); a projeção para 2M é aritmética.
+  O ADR escolhe B, e não a menor (C no Redis), com a justificativa no texto.
+- 02: caixa "diferença" do *embstr*: 64 B (linha de cache, chave + valor) no Redis e 128 B no Valkey,
+  conferidos em `object.c`.
+- 03 (1): a contagem exata é calculada pelo teste; o SQL sobre o `fin-store` fica para o capstone.
+- 03: a ponte para `ia-na-engenharia` (Vector Sets) saiu, porque a trilha não trata de vetores. Entraram
+  `seguranca-aplicacao/14` (dono do antifraude) e `dados-distribuidos/14`; `credito-e-risco` não trata
+  de sinais de velocidade.
+- 03: a primeira versão do teste de Bloom (Go e Java) mediu 0% de FP sem medir nada (resposta RESP3
+  booleana descartada). O texto do marco registra o erro e a defesa.

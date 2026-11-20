@@ -1,0 +1,36 @@
+questions:
+  - question: "O antifraude precisa de \"pagadores distintos desta chave Pix na última hora\", exato e deslizante. Como fazer com um sorted set?"
+    options:
+      - "Score = valor do Pix e membro = pagador; ZRANGE BYSCORE devolve os da última hora em O(log N + M)"
+      - "Score = instante (ZADD GT), ZREMRANGEBYSCORE corta o que tem mais de 1 hora e ZCARD conta em O(1)"
+      - "Um sorted set por minuto e ZUNIONSTORE dos 60 últimos a cada consulta, com ZCARD sobre o resultado"
+      - "Score = número de pagamentos do pagador, e ZPOPMIN retira os que não pagaram na última hora"
+    answer: 1
+    explanation: "Com o instante como score, o ZADD GT guarda o último pagamento de cada pagador, o ZREMRANGEBYSCORE (O(log N + M)) corta o que saiu da janela e o ZCARD (O(1)) conta. No laboratório, as 18 janelas bateram com a contagem exata nos dois motores."
+
+  - question: "Em 1.000 janelas, o HyperLogLog errou em média menos de 1%, mas uma janela errou 2,27%. O que isso indica?"
+    options:
+      - "Que o HLL ficou denso nessa janela, e a representação densa erra mais que a esparsa em contagens altas"
+      - "Que houve colisão de hash entre pagadores, e o PFADD descartou elementos que deveriam ser contados"
+      - "Que 0,81% é erro padrão e não máximo; 2,27% está dentro de 3 erros padrão e é comportamento esperado"
+      - "Que o motor usou menos registradores que o padrão de 16.384, e a precisão caiu nessa janela"
+    answer: 2
+    explanation: "Com 16.384 registradores, o erro padrão é 1,04/√16384 ≈ 0,81%. É um desvio estatístico: em mil janelas, algumas passam de 2%. O limite de 3 erros padrão é 2,44%, e o pior medido ficou dentro dele. Por isso o HLL não serve a número que precisa ser defendido."
+
+  - question: "O time quer usar BF.ADD como registro de idempotência: se devolver 1, o pedido é novo e é processado. Qual é o problema?"
+    options:
+      - "O BF.ADD não é atômico, e dois pedidos iguais em paralelo podem ambos receber 1 e ser processados"
+      - "O Bloom filter dá falso negativo quando enche, e um pedido repetido pode parecer novo e ser cobrado duas vezes"
+      - "O BF.ADD é O(N) no tamanho do filtro, e o registro fica lento quando o volume de pedidos cresce"
+      - "O \"talvez já estava\" acontece com item novo, e um pedido legítimo seria descartado"
+    answer: 3
+    explanation: "O Bloom nunca dá falso negativo, mas o \"talvez\" erra na taxa escolhida, inclusive na gravação: no laboratório, 65 de 100 mil itens novos voltaram 0 no Redis. Usado como idempotência, ele descartaria pedidos legítimos. Idempotência precisa de resposta exata (marco 05); o Bloom serve de pré-filtro."
+
+  - question: "Em qual destes usos uma estrutura aproximada é inaceitável?"
+    options:
+      - "Na contagem de clientes distintos do relatório ao regulador, que precisa ser defendida"
+      - "No painel de volume de pagadores distintos por hora, que o time de operação consulta durante o dia"
+      - "No pré-filtro de chaves denunciadas, em que o \"talvez\" leva a uma consulta exata ao banco"
+      - "Na estimativa de usuários ativos no mês para dimensionar a capacidade da próxima campanha"
+    answer: 0
+    explanation: "O número do regulador precisa ser exato e reproduzível, e vem do banco ou de uma estrutura exata. O painel e o dimensionamento toleram erro de 1% a 2%. No pré-filtro, o erro do Bloom vira só custo, uma consulta a mais, porque o \"talvez\" é confirmado no banco."
