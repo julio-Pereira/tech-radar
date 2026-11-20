@@ -1,0 +1,54 @@
+questions:
+  - question: "Duas requisições com a mesma Idempotency-Key chegam ao mesmo tempo e fazem SET pix:idem:<chave> EM_PROCESSAMENTO NX PX 30000. O que acontece?"
+    options:
+      - "As duas recebem OK, porque o NX só compara o valor gravado, e o valor é o mesmo nas duas"
+      - "Exatamente uma recebe OK e reserva; a outra recebe nil e segue a máquina de estados"
+      - "A segunda recebe um erro de concorrência e precisa repetir o SET depois de esperar o PX"
+      - "As duas recebem OK se chegarem no mesmo milissegundo, e uma só recebe se chegarem separadas"
+    answer: 1
+    explanation: "O SET NX é um comando só e a execução é serial: entre duas chamadas simultâneas, uma grava e a outra encontra a chave. A que não reservou não executa; ela espera um tempo limitado pela resposta ou recebe o que o contrato diz. O NX protege a reserva, não o que acontece se a chave sumir depois."
+
+  - question: "Uma requisição encontra a chave em EM_PROCESSAMENTO. Pelo contrato do fin-kv, o que o filtro faz?"
+    options:
+      - "Executa de novo, porque a primeira requisição pode ter morrido e o cliente não pode ficar sem resposta"
+      - "Devolve 201 com corpo vazio, porque o pagamento já está em andamento e vai acabar acontecendo"
+      - "Espera até 1 s pela resposta concluída e, se ela não aparecer, devolve 409 sem executar"
+      - "Apaga a reserva e passa a ser a dona dela, já que chegou depois e tem a informação mais nova"
+    answer: 2
+    explanation: "Executar seria o segundo efeito, e responder sucesso sem resposta seria mentir ao cliente. O contrato escolhe espera limitada e depois 409, e o teste lê essa escolha do arquivo do contrato. Se a reserva expirar durante a espera (o dono morreu), quem decide se o efeito aconteceu é o banco."
+
+  - question: "O contrato permite reenviar a mesma Idempotency-Key por 24 horas, e o TTL da chave CONCLUIDO no Redis é de 12 horas. O que pode acontecer?"
+    options:
+      - "Nada, porque o cliente quase nunca reenvia depois das primeiras horas, e o risco fica desprezível"
+      - "O reenvio da 13ª hora em diante recebe 409, porque a chave expirada vira EM_PROCESSAMENTO"
+      - "O servidor estende o TTL sozinho a cada reenvio, e a chave nunca expira enquanto houver tráfego"
+      - "Um reenvio após a 12ª hora não acha a chave e, sem o banco, executa de novo"
+    answer: 3
+    explanation: "O TTL da resposta concluída precisa ser maior ou igual à janela de repetição do contrato. Com TTL menor, a chave some antes de o cliente parar de reenviar, e o reenvio é tratado como requisição nova. O fin-kv usa 25 h para uma janela de 24 h, e um teste lê o contrato e o código."
+
+  - question: "A instância do Redis chegou no maxmemory com uma política de eviction que descarta qualquer chave. O que isso faz com a idempotência?"
+    options:
+      - "Pode descartar chaves CONCLUIDO dentro da janela; a unicidade no banco segura o reenvio"
+      - "Nada, porque chaves com TTL nunca são escolhidas pela eviction antes das que não têm TTL"
+      - "Recusa as novas reservas com OOM, e o filtro passa a devolver 409 a todas as requisições"
+      - "Converte as chaves CONCLUIDO para um formato compacto, e as respostas ficam aproximadas"
+    answer: 0
+    explanation: "Uma política que descarta qualquer chave (allkeys-*) pode escolher uma chave de idempotência no meio da janela. O reenvio seguinte encontra a chave ausente, reserva de novo e chega ao banco, onde o INSERT falha por unicidade e a resposta original é devolvida. O marco 09 separa a instância de estado da de cache."
+
+  - question: "O primário caiu e a réplica promovida não tinha recebido as últimas chaves de idempotência. Com o Redis como único guardião, qual é o efeito?"
+    options:
+      - "Nenhum, porque o cliente do Redis reenvia as escritas perdidas para o novo primário depois do failover"
+      - "As requisições com essas chaves recebem 409 até que a réplica alcance o que o primário tinha"
+      - "Os reenvios das chaves perdidas são tratados como novos, e os pagamentos saem duas vezes"
+      - "A réplica recusa a promoção enquanto houver chaves de idempotência sem replicar no primário"
+    answer: 2
+    explanation: "A replicação é assíncrona: o primário confirma a escrita antes de a réplica recebê-la. No failover, as escritas que não chegaram somem, e o reenvio encontra a chave ausente. Sem a unicidade no banco, isso é pagamento duplicado. O marco 10 mede quantas escritas confirmadas o failover perde."
+
+  - question: "Por que o banco, e não o Redis, é a segunda linha de defesa da idempotência de pagamento?"
+    options:
+      - "Porque o banco responde mais rápido que o Redis quando a chave já existe e o reenvio é comum"
+      - "Porque a chave entra no banco com unicidade, na transação do efeito, e não some"
+      - "Porque o Redis não tem um comando atômico para reservar uma chave só se ela ainda não existir"
+      - "Porque o banco guarda a resposta comprimida, e o Redis não tem espaço para respostas grandes"
+    answer: 1
+    explanation: "A restrição de unicidade inserida antes do efeito, na mesma transação, não depende de TTL, memória ou réplica: se a linha existe, o efeito aconteceu. No laboratório, o efeito ficou único com FLUSHALL entre as chamadas, com o processo morto entre o commit e a marca no Redis e com o Redis fora do ar."

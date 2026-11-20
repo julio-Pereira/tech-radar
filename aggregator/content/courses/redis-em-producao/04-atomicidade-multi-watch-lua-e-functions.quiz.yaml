@@ -1,0 +1,54 @@
+questions:
+  - question: "Num MULTI, o primeiro comando é um DECRBY válido e o segundo é um RPUSH sobre uma chave que é string. O que o EXEC faz?"
+    options:
+      - "Aborta a transação inteira com EXECABORT, e o DECRBY não é aplicado"
+      - "Executa o DECRBY, devolve WRONGTYPE para o RPUSH e mantém o débito aplicado"
+      - "Executa os dois, e o RPUSH converte a string em lista antes de inserir o item"
+      - "Desfaz o DECRBY ao encontrar o erro, como um rollback, e devolve a lista de erros"
+    answer: 1
+    explanation: "WRONGTYPE é erro de execução: o comando é válido e falha ao rodar. Os outros comandos da fila rodam normalmente, e o EXEC devolve o resultado de cada um. Só o erro de enfileiramento (comando inexistente, aridade errada) faz o EXEC devolver EXECABORT. No laboratório, o débito ficou e o disponível terminou em 95.000 centavos."
+
+  - question: "O time quer que \"debitar o limite e registrar o uso\" volte atrás se o registro falhar. O que o Redis oferece para isso?"
+    options:
+      - "O MULTI com DISCARD automático, que desfaz os comandos anteriores quando um deles falha"
+      - "O WATCH, que restaura o valor da chave vigiada se o EXEC terminar com erro"
+      - "O script Lua, que faz rollback de todas as escritas quando o script levanta um erro"
+      - "Nada: não há rollback; valide tudo antes da primeira escrita ou compense explicitamente"
+    answer: 3
+    explanation: "O Redis dá isolamento (ninguém intercala) e não dá atomicidade de falha. Nem o MULTI nem o script desfazem uma escrita já feita, e o WATCH só impede o EXEC de rodar quando a chave mudou. A saída é escrever o script com toda validação antes da primeira escrita, ou compensar de forma explícita."
+
+  - question: "Sob 200 débitos concorrentes na mesma conta, a versão com WATCH teve mais de 30 abortos por débito e desistiu de dezenas de pedidos. O que isso indica?"
+    options:
+      - "Que, com contenção alta, o otimismo gira em falso; o retry precisa de limite e métrica"
+      - "Que o WATCH tem um bug sob concorrência e, por isso, deixou passar débitos acima do limite da conta"
+      - "Que o go-redis perde a conexão do WATCH entre a leitura e o EXEC quando o pool está cheio demais"
+      - "Que o servidor serializou mal os EXEC concorrentes e aplicou parte das transações duas vezes"
+    answer: 0
+    explanation: "O WATCH não errou: em nenhuma versão o total passou do limite. Ele desistiu. Cada escrita de outro cliente entre o WATCH e o EXEC aborta a transação, e com uma chave quente isso vira um laço de leituras desperdiçadas. O script Lua lê, decide e escreve sem intercalação e não aborta: zero abortos e 7 ms para os 200."
+
+  - question: "Um script Lua de manutenção roda há 6 segundos sobre uma coleção grande. O que os outros clientes veem?"
+    options:
+      - "Latência normal, porque o script roda numa thread separada da que atende os comandos dos clientes"
+      - "Latência normal até 5 s, e depois o servidor interrompe o script sozinho e volta a atender a fila"
+      - "Respostas BUSY a todos os comandos, menos SCRIPT KILL e SHUTDOWN NOSAVE, até o script acabar"
+      - "Respostas lentas só para os comandos que tocam nas chaves que o script declarou em KEYS[]"
+    answer: 2
+    explanation: "O script bloqueia o servidor inteiro, como um comando só. Passado o busy-reply-threshold (5.000 ms por padrão nos dois motores), o servidor responde BUSY a todos os clientes, mas não interrompe o script por conta própria. Só SCRIPT KILL e SHUTDOWN NOSAVE são aceitos nesse estado."
+
+  - question: "O operador manda SCRIPT KILL para o script travado e recebe UNKILLABLE. Por quê?"
+    options:
+      - "Porque o script foi carregado como Function, e Functions só podem ser paradas com FUNCTION DELETE"
+      - "Porque o script já fez escritas, e o servidor não tem como desfazê-las se o interromper no meio"
+      - "Porque o SCRIPT KILL só funciona na mesma conexão que iniciou o script, e o operador usou outra"
+      - "Porque o script ainda não passou do busy-reply-threshold, e antes dele o kill é recusado"
+    answer: 1
+    explanation: "Sem rollback, matar um script que já escreveu deixaria o dado pela metade. Por isso o servidor recusa com UNKILLABLE e oferece só duas saídas: esperar o fim ou SHUTDOWN NOSAVE, que derruba o servidor sem salvar. No laboratório, o mesmo SCRIPT KILL matou o script que ainda não tinha escrito."
+
+  - question: "O que as Functions (FUNCTION LOAD / FCALL) dão que o EVALSHA de um script solto não dá?"
+    options:
+      - "Execução sem bloqueio, porque a função roda fora da thread principal do servidor"
+      - "Rollback das escritas quando a função levanta um erro antes de terminar a execução"
+      - "Acesso a chaves fora de KEYS[], porque a biblioteca declara as chaves que vai usar"
+      - "Nome estável, versão trocada num ponto só, biblioteca persistida e replicada"
+    answer: 3
+    explanation: "A Function é chamada pelo nome, e não por um SHA1 que muda a cada edição. A biblioteca é carregada com FUNCTION LOAD REPLACE, persiste no RDB/AOF e chega às réplicas sem que cada cliente a recarregue. O custo de execução e o bloqueio são os de um script, e as chaves continuam entrando por KEYS[]."

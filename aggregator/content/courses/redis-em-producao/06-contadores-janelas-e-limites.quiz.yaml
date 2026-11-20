@@ -1,0 +1,54 @@
+questions:
+  - question: "O limitador faz INCR e, se o resultado é 1, EXPIRE. O processo morre entre os dois comandos. O que acontece com a chave?"
+    options:
+      - "Ela expira no fim da janela, porque o servidor aplica um TTL padrão às chaves criadas por INCR"
+      - "Ela é apagada quando a conexão fecha, porque o INCR sem EXPIRE fica pendente na sessão do cliente"
+      - "Ela fica sem TTL para sempre, e o contador nunca zera até alguém apagar a chave"
+      - "Ela recebe o TTL no próximo INCR de qualquer cliente, que encontra a chave sem expiração"
+    answer: 2
+    explanation: "São dois comandos, e nada liga o segundo ao primeiro. Sem o EXPIRE, a chave não expira, e o cliente fica bloqueado para sempre. O próximo INCR devolve 2, e o código só põe o TTL quando o resultado é 1. As correções são o script, o SET NX EX antes do INCR, ou o INCREX do Redis 8.8."
+
+  - question: "Sob a mesma carga, a janela por log nunca passou de 50 pedidos em 1 s, e o contador ponderado chegou a 67. Qual é a troca entre os dois?"
+    options:
+      - "O log é exato e guarda um membro por aceito; o ponderado tem memória fixa e aproxima"
+      - "O log é aproximado e o ponderado é exato, mas o log responde mais rápido sob contenção alta"
+      - "Os dois são exatos, e a diferença medida veio do relógio do cliente usado no contador ponderado"
+      - "O ponderado é exato com o relógio do servidor, e o log só aproxima quando a janela é deslizante"
+    answer: 0
+    explanation: "A janela por log guarda cada pedido aceito num sorted set e conta exatamente o que está dentro da janela: memória O(limite). O contador ponderado guarda só dois contadores e estima a janela deslizante, e passou do limite em até 34% na virada. Para capacidade, ele basta; para limite regulatório, o log."
+
+  - question: "Por que o script da janela usa TIME, o relógio do servidor, em vez do instante enviado pelo cliente?"
+    options:
+      - "Porque o TIME é mais preciso que o relógio do sistema operacional da instância do serviço"
+      - "Porque scripts não aceitam números em ARGV, e o instante precisa vir de um comando do servidor"
+      - "Porque o TIME faz a réplica reexecutar o script com o mesmo instante, e as janelas não divergem"
+      - "Porque as instâncias têm relógios diferentes, e o servidor dá um relógio só"
+    answer: 3
+    explanation: "Duas instâncias com 200 ms de diferença discordariam sobre quem está na janela. O TIME dá um relógio único para todos os clientes daquela chave. Desde o Redis 7.0 o script é replicado pelos efeitos: a réplica recebe o ZADD com o instante já calculado, e não reexecuta o TIME."
+
+  - question: "O limite Pix noturno vale por CPF, conta e dispositivo. O script debita o CPF e a conta e depois descobre que o dispositivo estourou. Qual é o defeito, e a correção?"
+    options:
+      - "Não há defeito: o script é atômico, e o servidor desfaz os dois débitos quando ele devolve recusa"
+      - "Dois limites foram consumidos por um pagamento recusado; o script valida as três antes de debitar"
+      - "O defeito é de desempenho: três dimensões exigem três scripts, um por chave, para não bloquear"
+      - "O defeito é só no cluster; no standalone as três chaves estão no mesmo nó e o débito se desfaz"
+    answer: 1
+    explanation: "O script não tem rollback: o que ele escreveu antes de recusar fica escrito. A correção é ler e validar todas as dimensões primeiro e só então debitar todas. No cluster, ainda é preciso que as três chaves estejam no mesmo slot, ou o script falha com CROSSSLOT."
+
+  - question: "O Redis caiu. Pelo mapa de estado do fin-kv, o que fazem o limite Pix noturno e a proteção de capacidade da API?"
+    options:
+      - "Os dois falham abertos, porque derrubar pagamentos legítimos custa mais que um limite furado"
+      - "Os dois falham fechados, porque qualquer limite sem verificação é um risco de segurança"
+      - "O noturno falha fechado, e o de capacidade degrada para um limite local por instância"
+      - "O noturno degrada para limite local, e o de capacidade falha aberto até o Redis voltar"
+    answer: 2
+    explanation: "O limite regulatório falha fechado: deixar passar é descumprir a regra na hora em que o golpe acontece. A capacidade degrada para um limite local, que protege o serviço sem derrubar o tráfego legítimo. No laboratório, com o Toxiproxy derrubando o Redis, o noturno recusou e a capacidade deixou passar 10 de 50."
+
+  - question: "A reconciliação encontrou o contador do limite da conta c7 com R$ 7,77 a mais que o total do banco. O que ela deve fazer?"
+    options:
+      - "Corrigir o contador para o total do banco, que é a verdade, e registrar a divergência"
+      - "Corrigir o banco para o valor do Redis, porque o contador é a fonte mais recente do uso"
+      - "Ignorar a diferença, porque uma divergência pequena desaparece quando a janela expira"
+      - "Apagar o contador da conta, para que o próximo pagamento recrie a chave a partir de zero"
+    answer: 0
+    explanation: "O contador é derivado; o banco registrou cada pagamento aceito. A diferença vem de um débito que entrou no Redis e cujo pagamento falhou, de uma perda no failover ou de um restart. A reconciliação corrige o contador para o valor do banco (SET ... KEEPTTL) e registra o que encontrou. Apagar zeraria o uso."
