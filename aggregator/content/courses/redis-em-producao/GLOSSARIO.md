@@ -178,6 +178,62 @@ tempo de ida e volta uma vez só; não dá atomicidade.
 **Erro comum:** decidir no código, sem dono, e descobrir na queda que o limite regulatório falhou aberto.
 **Onde na prática:** marco 06.
 
+### Lease
+**Em uma frase:** um lock com prazo, adquirido com `SET chave token NX PX`; resolve o dono morto e cria o dono vivo que perdeu o direito sem saber.
+**No fin-kv:** `job:lease:conc-<dia>`, com o fencing token emitido no mesmo script.
+**Erro comum:** liberar com `DEL` sem comparar o token e apagar o lease que já é de outro.
+**Onde na prática:** marco 07.
+
+### Watchdog
+**Em uma frase:** a rotina que renova o lease a cada fração do prazo, só se ele ainda for do mesmo dono (`SET ... IFEQ token PX`).
+**No fin-kv:** renova a cada terço do prazo e marca a perda quando o `IFEQ` devolve nulo.
+**Erro comum:** achar que ele protege da pausa: ele congela junto com o processo.
+**Onde na prática:** marco 07.
+
+## Mensagens
+
+### Pub/Sub
+**Em uma frase:** entrega a mensagem a quem assina o canal naquele instante, sem histórico nem confirmação: no máximo uma vez.
+**No fin-kv:** só para invalidar cache local; perder uma invalidação custa uma leitura velha até o TTL.
+**Erro comum:** notificar "Pix recebido" por Pub/Sub e perder as mensagens publicadas durante um *deploy*.
+**Onde na prática:** marco 08.
+
+### Sharded Pub/Sub
+**Em uma frase:** o Pub/Sub ligado a um *slot* do *cluster* (`SSUBSCRIBE`, `SPUBLISH`), em vez de repassado a todos os nós.
+**No fin-kv:** nenhum uso; o Pub/Sub do `fin-kv` roda numa instância só.
+**Erro comum:** esperar dele outra garantia de entrega: continua no máximo uma vez.
+**Onde na prática:** marco 08, também no marco 11.
+
+### Stream
+**Em uma frase:** um *log* dentro de uma chave, com ids crescentes, corte por `MAXLEN` ou `MINID` e grupos de consumo.
+**No fin-kv:** `ntf:pix`, a fila de trabalho das notificações; a fonte é o tópico Kafka.
+**Erro comum:** usá-lo como fonte da verdade: a durabilidade dele é a do Redis.
+**Onde na prática:** marco 08.
+
+### Grupo de consumo
+**Em uma frase:** um conjunto de consumidores que dividem um stream, cada entrada entregue a um deles e confirmada com `XACK`.
+**No fin-kv:** o grupo `app` dos notificadores.
+**Erro comum:** esperar que o grupo segure o corte do que ainda não leu.
+**Onde na prática:** marco 08.
+
+### PEL
+**Em uma frase:** a lista de entradas entregues e ainda não confirmadas de um grupo, com o consumidor, o instante e a contagem de entregas.
+**No fin-kv:** a contagem de entregas da PEL decide a ida para a *dead-letter*.
+**Erro comum:** deixar a PEL crescer sem um *job* de `XAUTOCLAIM`.
+**Onde na prática:** marco 08.
+
+### XAUTOCLAIM
+**Em uma frase:** transfere para outro consumidor as entradas da PEL ociosas há mais que um tempo mínimo, incrementando a contagem de entregas.
+**No fin-kv:** recupera as notificações de um consumidor que morreu antes do `XACK`.
+**Erro comum:** processar a entrada reivindicada sem idempotência e duplicar o efeito.
+**Onde na prática:** marco 08.
+
+### MAXLEN
+**Em uma frase:** o corte do stream pelo número de entradas; com `~`, corta nós inteiros e guarda pelo menos o pedido.
+**No fin-kv:** `MAXLEN ~ 100000` em `ntf:pix`.
+**Erro comum:** esquecer que o corte é a janela de *replay*: o consumidor atrasado perde o que foi cortado.
+**Onde na prática:** marco 08.
+
 ## Durabilidade
 
 ### Política de eviction

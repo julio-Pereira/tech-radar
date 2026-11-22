@@ -218,3 +218,43 @@ Functions desde 7.0; `FUNCTION LOAD` O(1); `WATCH` O(1) por chave; Lua como mód
   ancorado no marco 02 (identificador fim a fim).
 - 04 e 06: os pacotes de teste não podem rodar em paralelo (`go test -p 1`), porque o teste de `BUSY` do 04
   bloqueia o servidor durante 1,5 s.
+
+## Fase 3 — Bloco B, segunda metade (marcos 07–08)
+
+Ambiente: o da Fase 2 (20 nov 2026). No marco 07, o dono do lease roda como **processo separado** (o próprio
+binário de teste, reexecutado) e é congelado com `SIGSTOP`, o mesmo mecanismo de *freezer* do `docker pause`.
+Invariantes provados em Go (todos os testáveis) e em Java (07-1, 07-2 em processo único, 08-1 e 08-3).
+
+| Marco | Medida | Redis 8.10.3 | Valkey 9.1.4 |
+| --- | --- | --- | --- |
+| 07 | liberação ingênua (`DEL`) / segura (script): o lease de B sobrevive? | não / sim | não / sim |
+| 07 | comparar e apagar nativo | `DELEX ... IFEQ` = 1; `DELIFEQ` desconhecido | `DELIFEQ` = 1; `DELEX` desconhecido |
+| 07 | renovar com `SET ... IFEQ token PX` (dono certo / errado) | `OK` / nulo | `OK` / nulo |
+| 07 | dono congelado 900 ms (lease 300 ms): escrita atrasada com fencing / sem | recusada (1 escrita) / aceita (2) | recusada (1) / aceita (2) |
+| 07 | 1.000 trabalhadores, 200 dias, 30% com pausa > TTL: recusas / dias com 2 donos (com fencing) | 102 / 0 | 68 / 0 |
+| 07 | idem sem fencing: dias com 2 donos | 59 | 51 |
+| 08 | consumidor morre com 70 na PEL: reivindicadas / repetidas descartadas / efeitos | 70 / 10 / 100 | 70 / 10 / 100 |
+| 08 | mensagem venenosa, K = 3 | *dead-letter* com `entregas=3` | *dead-letter* com `entregas=3` |
+| 08 | 150 publicadas, 50 no reinício: Pub/Sub / Stream | 100 / 150 | 100 / 150 |
+| 08 | 10.050 `XADD`: `MAXLEN =` / `~ 1000` → `XLEN`; o atrasado perde | 1000 / 1050; 9.050 / 9.000 | 1000 / 1050; 9.050 / 9.000 |
+| 08 | 5.000 `XADD ACKED MAXLEN 1000` sem leitura | `XLEN` 5.000 | não existe |
+
+**Conferido na fonte:** `DELEX` desde 8.4.0 (O(1) para `IFEQ`/`IFNE`); `DELIFEQ` desde Valkey 9.0.0; `XREADGROUP`
+`CLAIM` desde 8.4.0 e `MAXCOUNT`/`MAXSIZE` desde 8.10.0; `XADD` `KEEPREF`/`DELREF`/`ACKED` desde 8.2.0 e `IDMP`
+desde 8.6.0; `XNACK` desde 8.8.0 ("releases claimed messages back to the group's PEL without acknowledging them");
+nada disso existe no Valkey 9.1.4. Redisson 4.8.0 (fontes do Maven Central): `lockWatchdogTimeout = 30 * 1000` e
+`RFencedLock` com `lockAndGetToken()`. ShedLock 7.11.0, `shedlock-provider-redis-spring`: aquisição com
+`SET ... NX PX`; o *builder* tem `safeUpdate(false)` por padrão ("when enabled, the lock will not be released or
+extended when the lock is held by somebody else").
+
+**Ajustes ao plano e erros corrigidos no laboratório:**
+
+- 07 (3): a primeira versão semeava o gerador aleatório com o tamanho da data, igual para todos os dias, e não gerou
+  nenhuma pausa. Corrigida a semente, o teste passou a contar as aquisições do lease (261 a 309 por rodada).
+- 07: as recusas pelo `fin-store` (102 no Redis) passaram das pausas injetadas (83). Com 1.000 trabalhadores e
+  prazo de 100 ms, a carga sozinha atrasou renovações; o texto registra o efeito.
+- 07 (4): o ADR é um documento; o invariante não tem teste automatizado. O complemento pede ao aluno para medir o
+  *advisory lock* com o dono congelado.
+- 08 (4): com 10.000 entradas, o `MAXLEN ~` deu exatamente 1.000, porque 10.000 é múltiplo do nó de 100 entradas.
+  O teste passou a gravar 10.050 para mostrar a folga do corte aproximado.
+- 08 (5): o ADR é um documento, com a tabela de decisão aplicada no próprio marco.

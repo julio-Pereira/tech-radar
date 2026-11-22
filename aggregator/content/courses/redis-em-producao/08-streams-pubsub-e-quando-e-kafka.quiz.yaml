@@ -1,0 +1,36 @@
+questions:
+  - question: "O notificador assina um canal Pub/Sub e reinicia durante um deploy. O que acontece com as mensagens publicadas nesse intervalo?"
+    options:
+      - "Ficam guardadas no canal e são entregues assim que o assinante volta a se conectar"
+      - "Somem sem rastro: o Pub/Sub entrega só a quem está conectado"
+      - "Voltam ao publicador como erro, que pode republicá-las depois do deploy"
+      - "Vão para um canal de dead-letter, que o assinante lê ao voltar"
+    answer: 1
+    explanation: "O Pub/Sub é no máximo uma vez: sem histórico, sem confirmação. No laboratório, das 150 mensagens publicadas, as 50 do reinício não chegaram a ninguém, nos dois motores. O mesmo roteiro com Stream e grupo de consumo entregou as 150."
+
+  - question: "O consumidor A recebeu 100 entradas do stream e morreu antes do XACK de 70 delas. Como elas chegam a outro consumidor?"
+    options:
+      - "Ficam na PEL do grupo; o consumidor B as reivindica com XAUTOCLAIM após o tempo de ociosidade"
+      - "Voltam ao fim do stream automaticamente quando a conexão de A cai, e B as lê com XREADGROUP >"
+      - "São perdidas, porque o XREADGROUP já as removeu do stream no momento da entrega a A"
+      - "O servidor as reentrega a A quando ele reiniciar, e só A pode confirmá-las com XACK"
+    answer: 0
+    explanation: "Toda entrada entregue e não confirmada fica na PEL com o consumidor, o instante e a contagem de entregas. O XAUTOCLAIM transfere as ociosas para outro consumidor. No laboratório, B reivindicou as 70; 10 eram repetições das que A tinha processado, e o efeito idempotente as descartou."
+
+  - question: "O stream de notificações usa MAXLEN ~ 100000, e um grupo de consumo ficou parado enquanto 300 mil entradas chegavam. O que o grupo recebe quando volta?"
+    options:
+      - "Todas as 300 mil, porque o grupo de consumo impede o corte do que ainda não leu"
+      - "Nenhuma, porque o grupo é removido quando o seu último id lido é cortado do stream"
+      - "As 300 mil, desde que o MAXLEN seja aproximado, já que o ~ só corta o que foi lido"
+      - "Só as que sobraram do corte, pouco mais de 100 mil; o resto se perdeu"
+    answer: 3
+    explanation: "O corte é a janela de replay, e o grupo não protege o que não leu. No laboratório, um consumidor atrasado recebeu só as 1.050 restantes de 10.050 com MAXLEN ~ 1000. Só o ACKED do Redis 8.2+ corta apenas o que todos os grupos confirmaram; o Valkey não tem."
+
+  - question: "Os eventos de liquidação precisam de replay por dias, ordem por chave e escala por partição. Para onde eles vão?"
+    options:
+      - "Para um Stream com MAXLEN grande, porque o Redis guarda os eventos em memória por mais tempo"
+      - "Para o sharded Pub/Sub, porque ele distribui os canais por slot e escala com o cluster"
+      - "Para o Kafka, que retém em disco, replica entre brokers e permite replay por offset"
+      - "Para um Stream com ACKED, porque nada é cortado antes de todos os grupos confirmarem"
+    answer: 2
+    explanation: "Evento que é a verdade e precisa de replay por dias vai para o Kafka. A durabilidade do Stream é a do Redis (perde na janela do AOF e no failover), e a retenção dele é limitada pela memória. O ADR do fin-kv usa Streams para a notificação, com o Kafka como fonte, e Pub/Sub só para invalidar cache."
