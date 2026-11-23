@@ -243,3 +243,109 @@ toda escrita (`noeviction`) a descartar qualquer chave (`allkeys-lru`).
 **Erro comum:** guardar cache e estado na mesma instância com `allkeys-lru`, e perder a chave de
 idempotência junto com o cache.
 **Onde na prática:** marco 09.
+
+### RDB
+**Em uma frase:** o *snapshot* do conjunto de dados inteiro, gerado por `fork` (`BGSAVE`), que perde tudo o que veio depois dele.
+**No fin-kv:** nenhum uso como persistência do estado; o `kv-estado` usa AOF.
+**Erro comum:** confiar no RDB para estado e perder até um intervalo inteiro de `save`: 4,5 s no laboratório, com `save 5 1`.
+**Onde na prática:** marco 09.
+
+### AOF
+**Em uma frase:** o *log* de comandos de escrita, reexecutado no *restart*; desde o 7.0, um base mais incrementais e um manifesto.
+**No fin-kv:** o `kv-estado` usa AOF com `appendfsync everysec`.
+**Erro comum:** achar que o AOF sozinho fecha a janela da queda do *host*.
+**Onde na prática:** marco 09.
+
+### appendfsync
+**Em uma frase:** quando o servidor chama `fsync` no AOF: `always` (a cada escrita), `everysec` (padrão, uma vez por segundo) ou `no` (o sistema operacional decide).
+**No fin-kv:** `everysec`, com `WAITAOF` para as escritas que não aceitam a janela do *host*.
+**Erro comum:** confundir a janela do `everysec` com a do `kill -9`: o processo morto quase não perdeu nada no laboratório (no máximo 4 ms), e o *host* derrubado perde até 1 a 2 s.
+**Onde na prática:** marco 09.
+
+### Copy-on-write
+**Em uma frase:** depois do `fork`, o kernel só duplica uma página quando alguém escreve nela; a memória cresce com a escrita durante o *save*.
+**No fin-kv:** o `maxmemory` fica em 40% do limite do contêiner para caber o pico.
+**Erro comum:** dimensionar a memória pelo dataset e ter o processo morto no meio do `BGSAVE`: o pico medido foi de 91% a 102% do dataset.
+**Onde na prática:** marco 09.
+
+### maxmemory
+**Em uma frase:** o limite do dataset; ao atingi-lo, a política de *eviction* decide entre despejar e recusar.
+**No fin-kv:** 30 MB por instância no laboratório; em produção, 40% do limite do contêiner.
+**Erro comum:** deixar sem limite e descobrir o tamanho pelo OOM killer do sistema operacional.
+**Onde na prática:** marco 09.
+
+### Fragmentação
+**Em uma frase:** a diferença entre a memória que o processo ocupa e a do dataset, vista em `mem_fragmentation_ratio`.
+**No fin-kv:** o painel alerta acima de 1,5.
+**Erro comum:** ler `used_memory` e ignorar o RSS real do processo.
+**Onde na prática:** marco 09.
+
+### PSYNC
+**Em uma frase:** a sincronização parcial: a réplica que reconecta pede só o que falta, a partir do *replication backlog*.
+**No fin-kv:** o *backlog* é dimensionado pela pior desconexão aceita vezes a taxa de escrita.
+**Erro comum:** um *backlog* pequeno que transforma cada desconexão curta numa sincronização completa, com `fork`.
+**Onde na prática:** marco 10.
+
+### Replication backlog
+**Em uma frase:** o *buffer* circular com as escritas recentes do primário, de onde sai a sincronização parcial; 1 MB no Redis e 10 MB no Valkey, por padrão.
+**No fin-kv:** ajustado no `kv-estado` pelo pico de escrita.
+**Erro comum:** assumir o mesmo padrão nos dois motores.
+**Onde na prática:** marco 10.
+
+### WAIT
+**Em uma frase:** bloqueia o cliente até N réplicas receberem as escritas anteriores da conexão, ou até o prazo; confirma recebimento, não persistência.
+**No fin-kv:** `WAIT 1 100` nas escritas críticas: perda zero medida, com o dobro da latência no mesmo *host*.
+**Erro comum:** tratar como garantia: a réplica promovida pode ser a que não recebeu.
+**Onde na prática:** marco 10.
+
+### min-replicas-to-write
+**Em uma frase:** faz o primário recusar escrita (`NOREPLICAS`) quando tem menos réplicas saudáveis que o pedido, com atraso até `min-replicas-max-lag`.
+**No fin-kv:** `1`, com `max-lag 2`: o primário isolado parou em cerca de 3 s.
+**Erro comum:** achar que zera a perda: o que foi confirmado antes do freio atuar continua perdido.
+**Onde na prática:** marco 10.
+
+### Sentinel
+**Em uma frase:** o processo que monitora primário e réplicas, decide quando o primário caiu e promove uma réplica; o cliente pergunta a ele quem é o primário.
+**No fin-kv:** três sentinelas, `down-after-milliseconds` ajustado para baixo do padrão de 30 s.
+**Erro comum:** confundir disponibilidade com ausência de perda.
+**Onde na prática:** marco 10.
+
+### Quórum
+**Em uma frase:** o número de sentinelas que precisam concordar que o primário caiu para começar o *failover*.
+**No fin-kv:** 2 de 3.
+**Erro comum:** achar que ele torna a escrita consensual: só a detecção passa por ele.
+**Onde na prática:** marco 10.
+
+
+## Cluster e operação
+
+### Hash slot
+**Em uma frase:** uma das 16.384 partições do *cluster*; o *slot* de uma chave é `CRC16(chave) & 0x3FFF`.
+**No fin-kv:** 3 primários, cerca de 5.461 *slots* cada.
+**Erro comum:** esperar operação multichave entre *slots*: `CROSSSLOT`.
+**Onde na prática:** marco 11.
+
+### Hash tag
+**Em uma frase:** o trecho entre `{}` numa chave, que é o único que entra no CRC16, pondo chaves diferentes no mesmo *slot*.
+**No fin-kv:** `{conta:<id>}` no débito, `{cpf:<id>}` no limite noturno, `{<job>}` no *lease*.
+**Erro comum:** `{pix}` em tudo: 100 mil chaves num nó só, no laboratório.
+**Onde na prática:** marco 11.
+
+### MOVED
+**Em uma frase:** o redirecionamento de um nó que não é dono do *slot*: o cliente atualiza o mapa e repete no dono.
+**No fin-kv:** tratado pelo cliente de *cluster*.
+**Erro comum:** usar um cliente comum num *cluster* e ver `MOVED` como erro.
+**Onde na prática:** marco 11.
+
+### ASK
+**Em uma frase:** o redirecionamento durante a migração de um *slot*: vale só para o comando, precedido de `ASKING`, sem mudar o mapa.
+**No fin-kv:** tratado pelo cliente; nenhum erro visível em 1.000 *slots* migrados sob carga.
+**Erro comum:** atualizar o mapa num `ASK` e perder a migração de vista.
+**Onde na prática:** marco 11.
+
+### Resharding
+**Em uma frase:** mover *slots* entre primários: chave a chave com `MIGRATE`, ou atomicamente (`CLUSTER MIGRATION` no Redis 8.4+, `CLUSTER MIGRATESLOTS` no Valkey 9.0+).
+**No fin-kv:** feito sob carga, com o invariante do débito verificado depois.
+**Erro comum:** esquecer o `TRYAGAIN` dos comandos multichave com chaves dos dois lados da migração.
+**Onde na prática:** marco 11.
+

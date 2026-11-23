@@ -1,0 +1,54 @@
+questions:
+  - question: "Com AOF em appendfsync everysec, o laboratório matou o processo do Redis com kill -9 sob carga em 40 rodadas e não perdeu nenhuma escrita confirmada. Onde mora a janela de cerca de 1 s do everysec?"
+    options:
+      - "Na reescrita do AOF, que descarta o último segundo do log quando gera o arquivo base novo"
+      - "No carregamento depois do restart, que ignora o último segundo do log se ele estiver incompleto"
+      - "Na queda do host ou da VM: o que passou por write() e não por fsync some"
+      - "Na réplica, que só recebe as escritas do último segundo quando o fsync do primário termina"
+    answer: 2
+    explanation: "O servidor faz write() do log antes de responder, e o dado fica no page cache do kernel. Um kill -9 mata o processo, e o kernel continua vivo e grava depois. A janela do everysec é para a queda do host. A exceção é o disco lento: o write() pode ser adiado por até 2 s, e aí nem o kill -9 está a salvo."
+
+  - question: "O time troca appendfsync everysec por always no kv-estado. O que muda?"
+    options:
+      - "Fecha a janela também na queda do host, e a vazão caiu de 136 mil para 35 mil/s"
+      - "Nada muda na durabilidade, porque o everysec já fazia fsync antes de responder a cada escrita"
+      - "A latência cai, porque o fsync por comando evita o acúmulo de escritas no buffer do AOF"
+      - "A memória cai, porque o always dispensa o buffer do AOF e grava direto no arquivo base"
+    answer: 0
+    explanation: "Com always, o servidor chama fsync antes de responder a cada escrita: nada confirmado depende do page cache. O custo foi de 75% da vazão no laboratório. Para as poucas escritas que precisam disso, WAITAOF faz o mesmo por comando."
+
+  - question: "Durante um BGSAVE, com 16 clientes escrevendo em chaves aleatórias, a memória do processo quase dobrou. Por quê?"
+    options:
+      - "Porque o BGSAVE carrega o RDB anterior em memória para comparar com o dataset atual"
+      - "Porque o fork copia toda a memória do pai para o filho no instante em que é chamado"
+      - "Porque o servidor guarda as escritas feitas durante o save num buffer até o filho terminar"
+      - "Porque, após o fork, cada página escrita pelo pai é copiada, e quase todas são"
+    answer: 3
+    explanation: "O fork copia a tabela de páginas, não a memória. O kernel só duplica uma página quando alguém escreve nela: é o copy-on-write. Sem escrita, foi 1 MB; com escrita aleatória e intensa, 91% a 102% do dataset. O limite de memória do contêiner precisa dessa margem."
+
+  - question: "Uma instância compartilhada usa volatile-lru, e as chaves de cache e as de idempotência têm TTL. Ela enche. O que acontece com a idempotência?"
+    options:
+      - "Fica protegida, porque volatile-lru despeja só chaves sem TTL, e a idempotência tem TTL"
+      - "É despejada junto com o cache, porque volatile-* escolhe entre todas as chaves com TTL"
+      - "Fica protegida, porque chaves com TTL longo nunca são escolhidas antes das de TTL curto"
+      - "A instância passa a recusar escrita com OOM até alguém liberar memória manualmente"
+    answer: 1
+    explanation: "volatile-* considera só as chaves com TTL, e as de idempotência têm TTL. No laboratório, no Valkey, sobraram 79 de 20 mil. A eviction não distingue cache de estado; a separação em duas instâncias, com noeviction no estado, manteve todas."
+
+  - question: "Por que o fin-kv separa o kv-cache (allkeys-lru, sem AOF) do kv-estado (noeviction, AOF everysec)?"
+    options:
+      - "Porque o cluster exige uma instância por política de eviction, e as duas não convivem no mesmo nó"
+      - "Porque o AOF não funciona com allkeys-lru, e a idempotência precisa de persistência para existir"
+      - "Porque, na mesma instância, o cache que cresce despeja as chaves de idempotência e de limite"
+      - "Porque o kv-estado precisa de mais memória que o cache, e a instância não suporta dois maxmemory"
+    answer: 2
+    explanation: "A eviction escolhe por recência ou frequência, e a chave de idempotência costuma ser a mais antiga e menos lida. Numa instância compartilhada, de 80% a quase 100% delas sumiram quando o cache encheu. Separadas, nenhuma: o estado não é despejado, e o cache despeja só cache."
+
+  - question: "O kv-estado, com noeviction, chegou no maxmemory. O que a próxima reserva de idempotência recebe, e o que o código deve fazer?"
+    options:
+      - "Recebe OK, porque noeviction despeja a chave mais antiga para caber, sem avisar o cliente"
+      - "Recebe OOM; o cliente trata como falha da reserva e segue a política do mapa de estado"
+      - "Recebe OK e a chave é gravada em disco, porque noeviction move o excedente para o AOF"
+      - "Fica bloqueada até a memória liberar, porque noeviction enfileira as escritas que não cabem"
+    answer: 1
+    explanation: "Com noeviction, a escrita é recusada com OOM command not allowed; leitura e DEL continuam funcionando. A reserva não foi feita, e o cliente tem de saber disso: a idempotência segue para o banco, e o limite regulatório falha fechado. Ignorar o erro é o que transforma memória cheia em limite furado."

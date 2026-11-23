@@ -1,0 +1,36 @@
+questions:
+  - question: "Durante um resharding, o cliente manda um comando e recebe ASK em vez de MOVED. O que ele deve fazer?"
+    options:
+      - "Atualizar o mapa de slots e mandar todos os comandos seguintes daquele slot ao novo nó"
+      - "Repetir só este comando no nó indicado, precedido de ASKING, sem mudar o mapa de slots"
+      - "Esperar a migração terminar, porque o slot fica indisponível para escrita durante o ASK"
+      - "Repetir o comando no mesmo nó, porque o ASK indica que a chave está sendo copiada"
+    answer: 1
+    explanation: "ASK vale para um comando: o slot está no meio da migração e esta chave já foi para o destino. MOVED quer dizer que o slot mudou de dono de vez, e aí o cliente atualiza o mapa. No laboratório, o go-redis tratou os redirecionamentos sozinho, sem nenhum erro visível."
+
+  - question: "O script do débito toca pix:lim:conta-42 e pix:lim:uso:conta-42 e falha com CROSSSLOT no cluster. Qual é a correção?"
+    options:
+      - "Rodar o script com MULTI/EXEC, que coordena as chaves de slots diferentes entre os nós"
+      - "Trocar o script por dois comandos separados, um para cada nó dono das chaves"
+      - "Dar às duas chaves a mesma hash tag, {conta:42}, para que caiam no mesmo slot"
+      - "Configurar o cliente para mandar o script ao primeiro nó, que repassa a chave do outro"
+    answer: 2
+    explanation: "Script, MULTI e comando multichave só funcionam dentro de um slot. Com a tag, só o trecho entre chaves entra no CRC16: pix:lim:{conta:42} e pix:lim:uso:{conta:42} caíram no slot 1351. Dois comandos separados perderiam a atomicidade do marco 04."
+
+  - question: "Para nunca ver CROSSSLOT, o time pôs {pix} em todas as chaves. O que aconteceu com as 100 mil contas?"
+    options:
+      - "Ficaram distribuídas entre os primários, porque o cluster rebalanceia as tags iguais"
+      - "Foram recusadas, porque o cluster limita o número de chaves que compartilham a mesma tag"
+      - "Foram para um slot só, e o cluster passou a recusar escrita nos outros primários"
+      - "Foram todas para um slot só, num primário só, e os outros ficaram ociosos"
+    answer: 3
+    explanation: "A tag manda todas as chaves para o mesmo slot, e um slot mora num primário. No laboratório, as 100 mil foram para um nó, enquanto a tag por conta deixou cada primário a 0,1% da média. A tag tem a granularidade da operação atômica, e nada além disso."
+
+  - question: "O conjunto de dados do kv-estado cabe com folga num primário, e o problema é disponibilidade. O que resolve com menos peças?"
+    options:
+      - "Sentinel com réplicas, ou um gerenciado: failover sem tags, slots nem restrição multichave"
+      - "Cluster com 3 primários, porque ele é a única forma de ter failover automático no Redis"
+      - "Cluster com um primário só e réplicas, para manter a compatibilidade com scripts multichave"
+      - "Uma instância só com AOF always, porque a persistência substitui a réplica no failover"
+    answer: 0
+    explanation: "O cluster resolve dado ou vazão que não cabem num primário, e cobra em tudo o que é multichave e no desenho das tags. Se o dado cabe numa instância, o Sentinel do marco 10 (failover em 2,4 a 2,7 s no laboratório) ou um gerenciado dão disponibilidade sem esse custo."

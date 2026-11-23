@@ -1,0 +1,54 @@
+questions:
+  - question: "O cliente recebeu OK numa escrita e, segundos depois, o primário caiu e uma réplica foi promovida. Por que a escrita pode não existir no novo primário?"
+    options:
+      - "Porque o novo primário descarta as escritas dos últimos segundos para garantir consistência"
+      - "Porque o Sentinel apaga as chaves escritas no primário antigo durante a reconfiguração"
+      - "Porque a escrita ficou no AOF do primário antigo e só volta quando ele reiniciar"
+      - "Porque a replicação é assíncrona: o primário confirma antes de a réplica receber"
+    answer: 3
+    explanation: "O primário responde OK antes de a réplica receber a escrita. Na maior parte do tempo, a diferença é de microssegundos; num failover, a escrita que não tinha chegado à réplica promovida não existe mais."
+
+  - question: "Uma partição isola o primário das réplicas e dos sentinelas, mas alguns clientes continuam falando com ele. O que acontece com as escritas que ele aceita?"
+    options:
+      - "São rejeitadas, porque o primário isolado percebe a partição e para de aceitar escrita na hora"
+      - "São descartadas quando a partição cura e ele volta como réplica do novo primário"
+      - "São mescladas com as do novo primário quando a partição cura, pela ordem dos ids"
+      - "São replicadas para o novo primário assim que a rede volta, pelo backlog de replicação"
+    answer: 1
+    explanation: "Sem freio, o isolado aceita escrita normalmente. Quando a partição cura, os sentinelas o reconfiguram como réplica, e ele descarta tudo o que aceitou sozinho para sincronizar. No laboratório, cerca de 10 mil escritas confirmadas em 6 s sumiram, nos dois motores."
+
+  - question: "O que min-replicas-to-write 1 com min-replicas-max-lag 2 fez no cenário de partição do laboratório?"
+    options:
+      - "O primário isolado passou a recusar escrita em cerca de 3 s, e a perda caiu à metade"
+      - "Zerou a perda, porque nenhuma escrita é aceita sem pelo menos uma réplica confirmar o recebimento"
+      - "Acelerou o failover, porque o primário isolado se rebaixa sozinho a réplica depois de 2 s"
+      - "Não teve efeito, porque a configuração só vale para clientes que usam WAIT em cada escrita"
+    answer: 0
+    explanation: "O primário recusa escrita (NOREPLICAS) quando tem menos réplicas saudáveis que o pedido, com atraso de até max-lag. O isolado parou em 2,8 a 3,0 s, e a perda caiu de cerca de 10 mil para cerca de 5 mil: o que foi confirmado antes do freio atuar continua perdido."
+
+  - question: "O que um WAIT 1 100 que devolve 1 garante sobre a escrita anterior?"
+    options:
+      - "Que ela está gravada em disco na réplica e sobrevive à queda das duas máquinas ao mesmo tempo"
+      - "Que ela nunca será perdida no failover, qualquer que seja a réplica promovida pelo Sentinel"
+      - "Que pelo menos uma réplica a recebeu; não que gravou em disco, nem que é ela a promovida"
+      - "Que ela foi replicada para a maioria dos nós, como numa confirmação por quórum"
+    answer: 2
+    explanation: "WAIT confirma recebimento pela réplica. Não é persistência (WAITAOF cobre isso), e com duas réplicas a promovida pode ser a que não recebeu. No laboratório, com WAIT em cada escrita, a perda medida foi zero, e a garantia continua sendo de redução."
+
+  - question: "Os clientes Java e Go voltaram a escrever em 2,4 a 2,7 s depois do failover, sem reiniciar. Como eles descobriram o novo primário?"
+    options:
+      - "Pelo DNS do serviço, que o Sentinel atualiza para o IP do novo primário a cada failover"
+      - "Pelo MOVED que o primário antigo devolve, apontando para o novo dono das escritas"
+      - "Pela lista fixa de endereços na configuração, que inclui o primário e as réplicas"
+      - "Perguntando aos sentinelas quem é o primário e reconectando quando ele muda"
+    answer: 3
+    explanation: "O cliente não guarda o endereço do primário: pergunta aos sentinelas (SENTINEL get-master-addr-by-name) e segue a mudança. O laboratório usou down-after-milliseconds de 1 s; com o padrão de 30 s, a indisponibilidade passaria de 30 s."
+
+  - question: "Três sentinelas e duas réplicas: o que essa topologia dá, e o que não dá?"
+    options:
+      - "Dá disponibilidade, com failover em segundos; não dá ausência de perda de escrita confirmada"
+      - "Dá ausência de perda, porque o quórum dos sentinelas só promove a réplica com todas as escritas"
+      - "Dá consenso sobre cada escrita, porque o Sentinel coordena o OK entre primário e réplicas"
+      - "Dá leitura consistente em qualquer réplica, porque o Sentinel bloqueia as réplicas atrasadas"
+    answer: 0
+    explanation: "O Sentinel elege quem conduz o failover, mas a escrita confirmada não passa por consenso: a replicação continua assíncrona. Perda é outra conversa. A garantia de efeito único é do banco: no laboratório, o reenvio das 300 reservas perdidas não gerou nenhum efeito novo."

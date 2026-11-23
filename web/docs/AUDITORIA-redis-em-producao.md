@@ -258,3 +258,59 @@ extended when the lock is held by somebody else").
 - 08 (4): com 10.000 entradas, o `MAXLEN ~` deu exatamente 1.000, porque 10.000 é múltiplo do nó de 100 entradas.
   O teste passou a gravar 10.050 para mostrar a folga do corte aproximado.
 - 08 (5): o ADR é um documento, com a tabela de decisão aplicada no próprio marco.
+
+## Fase 4 — Bloco C (marcos 09–11)
+
+Ambiente: o das fases anteriores (22 nov 2026). Cada teste sobe os próprios contêineres, fixados por *digest*, e os
+acessa pelo IP da rede Docker. O marco 10 usa duas redes com sub-redes fixas: a interna (nós e sentinelas) e a dos
+clientes. A partição é `docker network disconnect` do primário da rede interna, e a cura o reconecta com o mesmo IP.
+O marco 11 usa 6 nós (3 primários e 3 réplicas) criados com `--cluster create`. Os testes Java dos marcos 10 e 11
+(Lettuce) são chamados pelo teste Go, que cria a topologia e passa os endereços.
+
+| Marco | Medida | Redis 8.10.3 | Valkey 9.1.4 |
+| --- | --- | --- | --- |
+| 09 | `kill -9` com AOF `everysec`: confirmadas perdidas | 0 em 40 rodadas | 0 em 59; 506 (≈ 4 ms) em 1 |
+| 09 | `kill -9` com AOF `always` / `no` | 0 / 0 | 0 / 0 |
+| 09 | vazão `everysec` × `always` (16 clientes) | 136–149 mil × 35 mil/s | 140–150 mil × 34 mil/s |
+| 09 | só RDB, `save 5 1`: pior perda | 693 mil escritas (4,5 s) | 727 mil (4,5 s) |
+| 09 | `BGSAVE` de ~300 MB: *fork* / CoW sem escrita / CoW com 16 escritores | 4–8 ms / 1 MB / 289 MB (91%) | 5 ms / 1 MB / 297 MB (102%) |
+| 09 | 20 mil chaves de idempotência numa instância de 30 MB cheia de cache: sobreviveram (`allkeys-lru` / `allkeys-lfu` / `volatile-lru`) | 393–4.111 / 4.003–4.111 / 4.034–4.137 | 3.567 / 3.703 / 79 |
+| 09 | idem, com duas instâncias | 20.000 | 20.000 |
+| 09 | `noeviction` de 5 MB: escritas até o `OOM` | 12.339 | 14.148 |
+| 10 | partição de 6 s, sem freio: confirmadas durante / sumidas | 10.235 / 10.200 | 9.920 / 9.880 |
+| 10 | `min-replicas-to-write 1`, `max-lag 2`: recusa após / sumidas | 3,0 s / 5.088 | 2,8 s / 4.653 |
+| 10 | `WAIT 1 100`: sumidas / latência p50–p99 (sem `WAIT`: p50–p99) | 0 / 0,33–0,58 ms (0,15–0,37) | 0 / 0,29–0,51 ms (0,13–0,28) |
+| 10 | `docker kill` do primário: escrita indisponível (go-redis / Lettuce) | 2,42 s / 2,65 s | 2,41 s / 2,67 s |
+| 10 | reservas apagadas no *failover* / efeitos novos no reenvio | 300 / 0 | 300 / 0 |
+| 11 | 100 mil contas: por primário (tag por conta) / com `{pix}` | 33.327–33.383 (0,1%) / 100.000 num nó | igual |
+| 11 | 1.000 *slots* sob carga, `--cluster reshard` / atômica: duração, erros visíveis, contas furadas | 1,1 s / ≤ 0,1 s; 0; 0 | 7,1 s / ≤ 0,1 s; 0; 0 |
+| 11 | primário derrubado: volta a escrever (go-redis 2 s / go-redis padrão / Lettuce padrão) | 6,5 s / 1min46s / 8,8 s | 5,3 s / 1min19s / 8,8 s |
+
+**Conferido na fonte:** `appendfsync everysec`, `appendonly no`, `aof-use-rdb-preamble yes`, `maxmemory-policy
+noeviction`, `maxmemory-samples 5`, `activedefrag no` e `save 3600 1 300 100 60 10000` (padrões nos dois motores e nas
+imagens); o adiamento do `write()` do AOF por até 2 s com `fsync` em andamento (`aof.c`, `aof_delayed_fsync`); as
+políticas `allkeys-lrm` e `volatile-lrm` (*least recently modified*) só no Redis 8.10; `repl-backlog-size` 1 MB (Redis)
+e 10 MB (Valkey); `repl-diskless-sync-delay` 5 s; `repl-rdb-channel` ligado no Redis e
+`dual-channel-replication-enabled` desligado no Valkey; `min-replicas-max-lag` 10; `down-after-milliseconds` 30.000
+(`sentinel.c`); `cluster-node-timeout` 15.000; `CRC16(chave) & 0x3FFF` (`cluster.c`); `CLUSTER MIGRATION IMPORT`
+desde 8.4.0 e `CLUSTER MIGRATESLOTS` desde Valkey 9.0.0; `cluster-databases` só no Valkey; go-redis v9.23
+`ClusterStateReloadInterval` 60 s, com recarga só em `MOVED`, `ASK` e réplica somente leitura (`osscluster.go`);
+Lettuce 7.9 com todos os gatilhos adaptativos ligados e a atualização periódica desligada
+(`ClusterTopologyRefreshOptions`).
+
+**Ajustes ao plano e erros corrigidos no laboratório:**
+
+- 09 (1): o plano previa uma perda de "~1–2 s" com `kill -9`. Com o processo morto e o kernel vivo, a perda foi zero
+  em 99 de 100 rodadas. A janela do `everysec` é da queda do *host*, que o laboratório não reproduz; o texto a explica
+  com o código e deixa a reprodução como complemento.
+- 09 (1), **item em aberto:** uma rodada do Valkey perdeu 506 escritas (≈ 4 ms), sem `aof_delayed_fsync`, e não se
+  repetiu em 40 rodadas seguintes. A causa não foi identificada.
+- 09 (6): o `current_cow_size` amostrado durante o *save* ficou perto de zero no Valkey; a medida passou a ser o
+  `rdb_last_cow_size` que o filho reporta ao terminar. A margem declarada é de 1,5 vez o dataset.
+- 10: o `down-after-milliseconds` do laboratório é de 1 s, para encurtar o *failover*; o texto avisa que o padrão é de 30 s.
+- 11 (4): a primeira versão derrubava um primário antes de a réplica terminar a primeira sincronização (o RDB sem disco
+  espera 5 s), e a réplica nunca assumia. A topologia passou a esperar as réplicas.
+- 11 (4): o go-redis com as opções padrão não voltou a escrever no *slot* do primário derrubado dentro de 30 s. A causa,
+  lida no código, é a recarga do mapa a cada 60 s, sem recarga em erro de discagem. O teste mede as duas configurações.
+- Pontes: `kubernetes/07` virou `kubernetes/05` (limites de memória); `observabilidade/08` virou `/07` (métricas);
+  `performance-resiliencia/09`, inexistente, virou `aws-para-backend/10`; `kubernetes/09` virou `kubernetes/08`.
