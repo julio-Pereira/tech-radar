@@ -82,8 +82,9 @@ comando devolve nulo, e o *watchdog* sabe que perdeu.
 
 O *watchdog* não resolve a pausa. Uma pausa de GC congela o processo inteiro, e o *watchdog* junto com ele.
 No laboratório, o dono foi congelado com `SIGSTOP`, o mesmo mecanismo do `docker pause`, por 900 ms, com um
-lease de 300 ms. Quando o processo voltou, o *watchdog* encontrou o lease com outro dono e marcou a perda. Só
-que o trabalho do processo continuou do ponto em que tinha parado, e a próxima linha era a escrita no banco.
+lease de 300 ms. Quando o processo voltou, o *watchdog* pôde descobrir que o lease era de outro dono, mas o
+trabalho do processo continuou do ponto em que tinha parado, e a próxima linha era a escrita no banco. Quem chega
+primeiro depois do `SIGCONT`, o *watchdog* ou a escrita, é uma corrida.
 Checar o lease antes de escrever também não fecha o buraco, porque a pausa pode acontecer entre a checagem e
 a escrita.
 
@@ -92,8 +93,11 @@ a escrita.
 A terceira exigência não se resolve no Redis. Ela se resolve **no recurso protegido**, que é quem recebe a
 escrita.
 
-O ***fencing token*** é um número que só cresce, emitido junto com o lease. O `fin-kv` emite o token no mesmo
-script que adquire o lease, com um `INCR`, para que as duas coisas aconteçam juntas ou não aconteçam. O dono
+O ***fencing token*** é um número que cresce a cada aquisição, emitido junto com o lease. O `fin-kv` emite o token
+no mesmo script que adquire o lease, com um `INCR`, para que ninguém intercale entre as duas coisas. (O script dá
+isolamento, e não *rollback*, como o marco 04 mostrou. E o contador mora no Redis: um *failover* que perde escritas
+confirmadas, como o do marco 10, pode fazê-lo voltar atrás. A segurança continua, porque o recurso recusa o token que
+não for maior que o último visto, mas um dono novo pode ser recusado até o contador passar do valor antigo.) O dono
 manda o token em toda escrita, e o recurso guarda o maior token que já viu e recusa qualquer escrita com
 token menor. Um dono antigo que volta de uma pausa tem um token menor que o do dono atual, e o recurso o
 recusa, por mais convencido que ele esteja de ainda ter o lease.
@@ -112,7 +116,7 @@ O laboratório mediu o cenário inteiro nos dois motores, com o dono como um pro
 | | Com fencing | Sem fencing |
 | --- | --- | --- |
 | dono-1 adquire com token 1 e é congelado | — | — |
-| dono-2 adquire com token 2, 930 ms depois, e escreve | aceita | aceita |
+| dono-2 adquire com token 2, logo depois dos 900 ms, e escreve | aceita | aceita |
 | dono-1 volta e escreve | **recusada pelo `fin-store`** | aceita |
 | escritas no dia | 1 (dono-2) | 2 (dono-1 e dono-2) |
 
@@ -198,14 +202,15 @@ escrito uma vez.
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey, em Java e em Go.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos os testáveis foram provados em Go; em Java, os de número 1 e 2 (este num processo só, sem `SIGSTOP`).
 
 1. A liberação ingênua apaga o lease de outro dono num cenário reproduzido. A segura, nunca.
 2. Com o dono congelado (`SIGSTOP` ou `docker pause`) por mais que o prazo, um segundo processo adquire o lease, e a
    escrita atrasada do primeiro é recusada pelo `fin-store` por fencing token menor.
-3. Em 1.000 execuções com pausas aleatórias, nenhum dia de conciliação é escrito por dois donos. A verificação é
+3. Com 1.000 trabalhadores disputando 200 dias (de 260 a 310 execuções por rodada), com pausas aleatórias, nenhum dia
+   de conciliação é escrito por dois donos. A verificação é
    sobre a tabela.
-4. O ADR compara a solução no Redis com o *advisory lock* do Postgres para o mesmo job e escolhe com critério
+4. O ADR (revisado, e não testado por máquina) compara a solução no Redis com o *advisory lock* do Postgres para o mesmo job e escolhe com critério
    escrito.
 
 **Complemento.** Troque o `SIGSTOP` por `docker pause` no contêiner do dono e repita o invariante 2. Depois,

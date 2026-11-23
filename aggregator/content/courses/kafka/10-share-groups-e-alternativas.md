@@ -76,6 +76,12 @@ de "quem vai operar isso em 3 anos" tanto quanto técnica.
 chave, ecossistema enorme (Connect, Streams, Schema Registry). Custa operação e, sem
 share groups, é ruim como fila de tarefas.
 
+**Redis Streams** — um *log* dentro de uma chave do Redis, com grupos de consumo, reentrega
+de mensagem órfã e corte por tamanho. Barato quando o Redis já existe, e com a durabilidade
+do Redis: perde na janela do AOF e no *failover*. Bom como fila de trabalho com o Kafka como
+fonte, ruim como registro do evento. A comparação com Pub/Sub e Kafka, medida, está em
+`redis-em-producao/08`.
+
 ### Streams vs Flink vs ksqlDB
 
 - **Kafka Streams** — biblioteca dentro da sua app, só Java, só Kafka como fonte e

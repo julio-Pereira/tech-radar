@@ -187,7 +187,7 @@ segundo cliente durante o `KEYS` foi de 3,4 ms, e o pior caso foi de 224 ms.
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey, em Java e em Go.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos os testáveis foram provados em Go; em Java, os de número 1, 3 e 4.
 
 1. Com ~2 ms de RTT injetado, 100 `GET` em *pipeline* levam **menos de 10%** do tempo dos 100 `GET`
    sequenciais.

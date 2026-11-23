@@ -188,7 +188,7 @@ maiores. Configure `StringRedisSerializer` para chaves e campos. O marco 12 volt
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey, em Java e em Go.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos os testáveis foram provados em Go; em Java, o de número 2.
 
 1. O teste reporta a memória média por sessão nas três modelagens. A escolhida é a menor ou tem
    justificativa escrita no ADR.

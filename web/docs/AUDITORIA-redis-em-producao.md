@@ -371,3 +371,75 @@ dos dois motores; `enable-debug-command`, `enable-module-command` e `enable-prot
   declarou no `conceitos.yaml`.
 - A ponte de `aws-para-backend/07` ("o MemoryDB é durável, o ElastiCache é cache") ficou desatualizada com o modo de
   durabilidade do ElastiCache para Valkey 9.0+; a correção vai na Fase 6, com as outras pontes de volta.
+
+## Fase 6 — pontes de volta, revisão independente e fechamento
+
+### Pontes de volta (§12 do plano)
+
+| Trilha vizinha | O que mudou |
+| --- | --- |
+| `dados-distribuidos/09` | o bloco "o mínimo sobre Redis" ganhou um parágrafo com pontes para `redis-em-producao/01`, `/09`, `/10` e `/11`; o marco continua dono do cache |
+| `dados-distribuidos/10` | depois do *fencing token*, a ponte para a implementação em `redis-em-producao/07` |
+| `system-design/06` | na seção "Falhar aberto × fechado", a ponte para `redis-em-producao/06` |
+| `spring-boot/06` | depois da tabela de idempotência, o Redis como acelerador e a ponte para `redis-em-producao/05` |
+| `kafka/10` | na comparação de mensageria, um parágrafo sobre Redis Streams com ponte para `redis-em-producao/08` |
+| `aws-para-backend/07` | a linha "o MemoryDB é durável, o ElastiCache é cache" foi corrigida (modo de durabilidade do ElastiCache para Valkey 9.0+, sem Redis 8) e aponta para `redis-em-producao/13` |
+| `azure-para-backend/07` | a menção ao Azure Managed Redis aponta para `redis-em-producao/13` |
+| jornada `entrevista-senior` | grupo opcional "Estado em memória" com `redis-em-producao/04`, `/05`, `/09` e `/10` |
+
+### Revisão independente (marcos 04, 05, 07, 09 e 10)
+
+Um revisor que não escreveu os marcos conferiu cada afirmação de garantia, perda, padrão e versão contra esta
+auditoria, o código-fonte dos motores e dos clientes e os testes do laboratório. Ele encontrou 26 achados: 4 erros e
+22 fracos. Todos foram tratados neste PR:
+
+- **Erros.**
+  - "Todos rodam em Java e em Go" não batia com o laboratório nos marcos 04, 05 e 07. A frase passou a dizer, nos 13
+    marcos, quais invariantes o laboratório provou em cada linguagem.
+  - Marco 04: durante o `BUSY`, passam também os comandos marcados `allow-busy`. E uma Function não morre com
+    `SCRIPT KILL`, e sim com `FUNCTION KILL`. O texto e o quiz foram corrigidos.
+  - Marco 09: os invariantes 1 e 3 não tinham asserção no teste. Elas foram acrescentadas: menos de 1 s de perda com
+    AOF `everysec`/`no`, `aof_delayed_fsync` em zero, e a perda do RDB dentro de um intervalo mais o *save*.
+- **Fracos.**
+  - "Por débito" virou "por pedido" (o divisor são os 200 pedidos).
+  - O teto do valor sorteado é R$ 14,99.
+  - O `BUSY` chega "na hora", porque o tempo medido incluía o `SCRIPT KILL`.
+  - A replicação de script por efeitos é padrão desde o 5.0, e o único modo desde o 7.0.
+  - O verificador de `KEYS[]` confere o primeiro argumento de cada chamada, e o texto diz isso.
+  - O trecho Java do 05 trata a exceção do Redis caído.
+  - O contraexemplo do 05 foi descrito como é: dois `SET NX` com `FLUSHALL` no meio.
+  - Marco 07:
+    - o *watchdog* "pode" marcar a perda, porque há uma corrida com a escrita depois do `SIGCONT`;
+    - o *fencing token* cresce a cada aquisição, e pode voltar atrás num *failover*, sem perder a segurança;
+    - "1.000 execuções" virou "1.000 trabalhadores, de 260 a 310 execuções";
+    - o invariante do ADR é revisão, e não teste.
+  - Marco 09: o `appendfsync no` ainda chama `fsync` no *shutdown* e na reescrita.
+  - Marco 10:
+    - o Jepsen observou a perda com o Redis como banco e só afirma o mesmo sobre Sentinel e Cluster;
+    - o nome da configuração é `repl-rdb-channel`;
+    - o exemplo do *failover* usa uma versão resumida do filtro;
+    - os trechos Go e Java trazem os *timeouts* com que os 2,4 s e os 2,7 s foram medidos.
+  - Números registrados agora nesta auditoria, para que o texto não cite nada fora dela:
+    - 05: os 50 reenvios tiveram 1 resposta do efeito e 49 do Redis;
+    - 10: com `WAIT 1 100`, 28 escritas foram confirmadas durante a partição, nos dois motores;
+    - 10: o exemplo do *failover* teve 4.085 iniciações no Redis e 3.984 no Valkey.
+  - O "930 ms" do 07 saiu do texto.
+- **Repetição do 09 com as asserções novas:** AOF `everysec` e `no` perderam zero escritas confirmadas, com
+  `aof_delayed_fsync` em zero, nos dois motores; o `always` ficou em 34,5 mil escritas/s; só RDB, o pior caso foi de
+  826 mil escritas (5,4 s) no Redis e de 747 mil (4,5 s) no Valkey. O texto do 09 passou a citar até 5,4 s.
+- **Contagem do Valkey no 09:** são 60 rodadas de `everysec`: 20 na primeira medição, 20 na que teve a perda de 506 e
+  20 na repetição. A terceira foi lida no terminal, sem log guardado. A suíte final desta fase rodou mais 20, e a
+  repetição com as asserções novas, outras 20, ambas com log.
+
+### Fechamento
+
+- **13 marcos, 775 min, `estimatedHours` 26, 66 questões.** O script de viés dá de 23% a 27% de respostas certas por
+  posição, e a resposta certa é a mais longa em 1 questão.
+- **Glossário com 62 verbetes** (o mínimo era 30). Dois conceitos no `conceitos.yaml`.
+- **`reviewEvery: 6m` em todos os marcos.** Os 13 têm os cinco blocos do Hands-on: o marco 13 ganhou nesta fase o
+  Tutorial, com ACL e mTLS no go-redis e no Lettuce, este provado por um teste Java chamado pelo teste Go.
+- **A suíte inteira do laboratório passa contra os dois motores:**
+  - Go, de `m01` a `m13`, com um único SKIP, o processo auxiliar do 07;
+  - Java, 38 testes. Os 3 que pulam sozinhos (TLS, Sentinel e Cluster) são chamados pelos testes Go com a topologia
+    montada, e passam ali.
+- **Caixa "diferença Redis × Valkey" em 11 marcos.** O 05 e o 12 não têm divergência de comportamento que a peça.

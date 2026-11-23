@@ -121,7 +121,7 @@ testemunha) e **não aceita transações** nem TTL. Para o saldo do ledger, que 
 | --- | --- | --- |
 | Azure Database for PostgreSQL (flexível, com HA) | RDS Multi-AZ ou Aurora | o Aurora separa computação de armazenamento distribuído; o *failover* e o custo de E/S mudam |
 | Cosmos DB | DynamoDB (aproximação) | o Cosmos tem cinco níveis de consistência e várias APIs; o DynamoDB tem leitura eventual ou forte por chamada e só o modelo dele. O custo é por unidade de requisição, com outra conta (`dados-distribuidos/16`) |
-| Azure Cache for Redis | ElastiCache ou MemoryDB | o MemoryDB é durável, o ElastiCache é cache |
+| Azure Cache for Redis | ElastiCache ou MemoryDB | o MemoryDB é durável por desenho; o ElastiCache para Valkey 9.0+ tem um modo de durabilidade (síncrono sem perda, assíncrono com até 10 s em risco), e não oferece Redis 8. O que o gerenciado não resolve está em `redis-em-producao/13` |
 
 O marco gêmeo no Azure é `azure-para-backend/07`.
 

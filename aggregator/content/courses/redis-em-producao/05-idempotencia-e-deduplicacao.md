@@ -129,7 +129,8 @@ O laboratório reproduziu os quatro cenários, nos dois motores:
 | processo morto entre o *commit* e a marca no Redis | 1 | o banco, quando a reserva expirou |
 | Redis fora do ar, 20 chamadas simultâneas | 1 | o banco (a unicidade serializou as 20) |
 
-O contraexemplo também foi medido: o mesmo roteiro com `FLUSHALL`, sem a tabela no banco, aplicou 2 efeitos.
+O contraexemplo, reduzido ao essencial: dois `SET NX` da mesma chave, com um `FLUSHALL` entre eles, reservaram as
+duas vezes, nos dois motores. Sem a tabela no banco, cada reserva seria um efeito.
 
 ## Hands-on
 
@@ -149,8 +150,13 @@ _, err = tx.Exec(ctx, `INSERT INTO iniciacao_pix (idempotency_key, resposta) VAL
 ```
 
 ```java
-Boolean reservou = template.opsForValue()
-        .setIfAbsent("pix:idem:" + chave, "EM_PROCESSAMENTO", Duration.ofSeconds(2));
+Boolean reservou;
+try {
+    reservou = template.opsForValue()
+            .setIfAbsent("pix:idem:" + chave, "EM_PROCESSAMENTO", Duration.ofSeconds(2));
+} catch (DataAccessException redisFora) { // o Redis caído lança exceção, e não devolve nulo
+    reservou = null;
+}
 if (Boolean.FALSE.equals(reservou)) return esperar(chave); // espera limitada; depois, 409
 // reservou, ou o Redis falhou: INSERT da chave antes do efeito, na mesma transação
 ```
@@ -160,7 +166,7 @@ do ar.
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey, em Java e em Go.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos os testáveis foram provados em Go; em Java, os de número 1 e 3.
 
 1. 50 reenvios concorrentes da mesma chave produzem um efeito e 50 respostas idênticas.
 2. A requisição que chega com a chave em `EM_PROCESSAMENTO` recebe a resposta definida no contrato (espera

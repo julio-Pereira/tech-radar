@@ -71,6 +71,10 @@ primeira terminar. Se ela comitou, a segunda colide (`DuplicateKeyException`), n
 processa nada e devolve a resposta gravada — byte a byte a mesma. Se a primeira falhou e
 fez rollback, a chave não existe mais e a segunda processa normalmente, como deve ser.
 
+Um Redis na frente dessa tabela acelera o reenvio e segura quem chega no meio, mas não substitui a
+unicidade: a chave dele some por TTL, por *eviction*, por *failover* ou por *restart*. O filtro com o
+Redis como acelerador e o banco como verdade está em `redis-em-producao/05`.
+
 ```diagrama
 sb-idempotency-key
 ```

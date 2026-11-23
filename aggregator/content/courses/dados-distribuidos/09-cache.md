@@ -99,6 +99,12 @@ O mínimo sobre Redis que muda decisões:
   `noeviction` passa a recusar escrita. A segunda transforma pressão de memória em erro visível —
   às vezes é o que se quer.
 
+Cada item desta lista tem marco próprio, com número medido contra Redis e Valkey: a execução serial e
+o custo de um comando O(n) em `redis-em-producao/01`; o que cada configuração de persistência perde e
+o perigo de cache e estado na mesma instância em `redis-em-producao/09`; as escritas confirmadas que
+somem no *failover* em `redis-em-producao/10`; e os *slots*, as *hash tags* e o *resharding* em
+`redis-em-producao/11`. Este marco continua sendo o dono do cache.
+
 ## Exemplo numa fintech
 
 **O limite disponível pode ser cacheado.** Ele muda com frequência moderada, a consulta é por

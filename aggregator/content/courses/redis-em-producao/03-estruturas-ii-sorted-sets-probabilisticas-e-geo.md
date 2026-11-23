@@ -159,7 +159,7 @@ puro não tem Bloom.
 
 **Invariantes testáveis**
 
-Rodam contra o Redis **e** o Valkey, em Java e em Go. O 3 roda contra o Valkey Bundle.
+Rodam contra o Redis **e** o Valkey. O 3 roda contra o Valkey Bundle. No laboratório desta trilha, todos foram provados em Go e em Java.
 
 1. A contagem de pagadores distintos pelo *sorted set* é idêntica à contagem exata calculada pelo teste
    sobre o mesmo *dataset*, em todas as janelas. No capstone, a contagem exata vem de SQL sobre o
