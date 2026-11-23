@@ -1,7 +1,7 @@
 ---
 id: atomicidade-multi-watch-lua-e-functions
 title: "Atomicidade: MULTI, WATCH, Lua e Functions"
-summary: "O Redis tem atomicidade de isolamento (ninguém intercala) e não tem atomicidade de falha (não há rollback). Quem confunde as duas escreve código que debita metade. MULTI/EXEC e os dois tipos de erro; WATCH como concorrência otimista e o preço dela sob contenção; scripts Lua atômicos e bloqueantes; SCRIPT KILL e o script que não morre; KEYS[] como contrato; Functions; e o Lua como módulo no Valkey 9.1. Medido nos dois motores: 200 débitos concorrentes custaram de 33 a 35 abortos de WATCH por débito, e a mesma regra em Lua, nenhum."
+summary: "O Redis tem atomicidade de isolamento (ninguém intercala) e não tem atomicidade de falha (não há rollback). Quem confunde as duas escreve código que debita metade. MULTI/EXEC e os dois tipos de erro; WATCH como concorrência otimista e o preço dela sob contenção; scripts Lua atômicos e bloqueantes; SCRIPT KILL e o script que não morre; KEYS[] como contrato; Functions; e o Lua como módulo no Valkey 9.1. Medido nos dois motores: 200 pedidos de débito concorrentes custaram de 33 a 35 abortos de WATCH por pedido, e a mesma regra em Lua, nenhum."
 estimatedMinutes: 65
 reviewedAt: 2026-11-20
 reviewEvery: 6m
@@ -65,20 +65,20 @@ valor, decide e abre o `MULTI`. Se **qualquer** cliente alterar a chave vigiada 
 `EXEC` não executa nada e devolve nulo. O cliente lê de novo e tenta outra vez. É o *check-and-set* de
 `concorrencia-e-recursos/03`, com o servidor fazendo o papel do CAS.
 
-Sob contenção, o otimismo cobra. O laboratório pôs 200 clientes concorrentes debitando de R$ 1,00 a R$ 15,00
+Sob contenção, o otimismo cobra. O laboratório pôs 200 clientes concorrentes debitando de R$ 1,00 a R$ 14,99
 de um limite de R$ 1.000,00, com até 50 tentativas cada:
 
 | | Redis 8.10.3 | Valkey 9.1.4 |
 | --- | --- | --- |
-| WATCH + MULTI (go-redis): abortos | 6.672 (33,4 por débito) | 6.935 (34,7 por débito) |
+| WATCH + MULTI (go-redis): abortos | 6.672 (33,4 por pedido) | 6.935 (34,7 por pedido) |
 | WATCH + MULTI (go-redis): desistências após 50 tentativas | 36 de 200 | 75 de 200 |
 | WATCH + MULTI (go-redis): tempo total | 313 ms | 315 ms |
 | script Lua (go-redis): abortos / tempo | 0 / 7 ms | 0 / 5 ms |
 | Function (go-redis): abortos / tempo | 0 / 3 ms | 0 / 3 ms |
 | WATCH + MULTI (Spring Data Redis): abortos | 4.877 | 4.214 |
 
-Ambiente: o do marco 01, cliente e servidor no mesmo host (20 nov 2026). Nas três versões e nos dois
-clientes, o total debitado nunca passou do limite, e o disponível final bateu com a soma do registro de uso.
+Ambiente: o do marco 01, cliente e servidor no mesmo host (20 nov 2026). Nas três versões em Go e nas duas
+versões em Java (Lua e `WATCH`), o total debitado nunca passou do limite, e o disponível final bateu com a soma do registro de uso.
 
 O `WATCH` não erra: ele desiste. As desistências são pedidos legítimos recusados porque o cliente não
 conseguiu a vez, e não porque faltava saldo. O retry precisa de limite, como todo retry (`spring-boot/08`), e o
@@ -117,11 +117,13 @@ escrita. A regra continua valendo: escreva o script para que toda validação ve
 O preço é o do marco 01, numa escala maior: o script **bloqueia** o servidor enquanto roda. Um script de
 200 ms é uma pausa de 200 ms para todos os clientes. Quando um script passa de `busy-reply-threshold` (5.000 ms
 por padrão nos dois motores; o nome antigo, `lua-time-limit`, continua como apelido), o servidor começa a
-responder `BUSY` a todo mundo. Só dois comandos são aceitos nesse estado: `SCRIPT KILL` e `SHUTDOWN NOSAVE`.
+responder `BUSY` a quase todo comando. Passam só os que têm a marca `allow-busy` (`AUTH`, `HELLO`, `MULTI` e alguns
+outros de conexão), e, para o operador, sobram dois caminhos: `SCRIPT KILL` (ou `FUNCTION KILL`, se o que está rodando
+é uma Function) e `SHUTDOWN NOSAVE`.
 
 No laboratório, com o limiar baixado para 100 ms e um script que girava por 1,5 s:
 
-- um segundo cliente recebeu `BUSY` em 7 a 8 ms, nos dois motores;
+- um segundo cliente recebeu `BUSY` na hora, nos dois motores;
 - o `SCRIPT KILL` matou o script que **ainda não tinha escrito**;
 - o mesmo `SCRIPT KILL` contra um script que **já tinha escrito** recebeu `UNKILLABLE`. O servidor não mata
   um script pela metade, porque não tem como desfazer a escrita. Restam esperar o fim ou `SHUTDOWN NOSAVE`,
@@ -132,15 +134,16 @@ com a diferença de que não dá para matar depois que ele escreve.
 
 ### Determinismo, replicação e KEYS[]
 
-Desde o Redis 7.0, o script é replicado **pelos efeitos**: a réplica recebe os comandos de escrita que o
-script fez, e não o script. Por isso um script pode chamar `TIME` e usar o resultado (o marco 06 faz isso) sem
+O script é replicado **pelos efeitos** (o padrão desde o Redis 5.0, e o único modo desde o 7.0): a réplica recebe
+os comandos de escrita que o script fez, e não o script. Por isso um script pode chamar `TIME` e usar o resultado (o marco 06 faz isso) sem
 divergir na réplica.
 
 Toda chave que o script toca precisa chegar por `KEYS[]`, e nunca ser montada dentro dele. No `cluster` do
 marco 11, o cliente usa `KEYS[]` para descobrir em que nó rodar o script, e todas as chaves precisam estar no
 mesmo *slot*. Uma chave montada dentro do script (`'pix:lim:' .. ARGV[1]`) esconde do cliente onde ela mora. O
-`fin-kv` verifica isso estaticamente: um teste lê todos os scripts do repositório e falha se algum
-`redis.call` recebe a chave fora de `KEYS[]`.
+`fin-kv` verifica isso estaticamente: um teste lê todos os scripts do repositório e falha se o primeiro argumento de
+algum `redis.call` não vier de `KEYS[]`. É uma verificação simples, que não confere as chaves seguintes de um comando
+multichave nem um nome de comando guardado em variável, e por isso a revisão de código continua valendo.
 
 ## Functions
 
@@ -160,7 +163,8 @@ A diferença prática é de operação. A biblioteca é persistida no RDB e no A
 sobrevive a um *restart* e chega às réplicas sem que cada cliente a recarregue. O nome é estável: o código
 chama `debitar_limite`, e não um SHA1 que muda a cada vírgula. E `FUNCTION LOAD REPLACE` troca a versão num
 ponto só, o que vira uma etapa do *deploy* com versão no repositório. O custo de execução é o mesmo de um
-script, e o bloqueio também.
+script, e o bloqueio também, com uma diferença na hora de parar: uma Function que travou não morre com `SCRIPT KILL`
+(o servidor recusa), e sim com `FUNCTION KILL`, que também respeita o `UNKILLABLE` de quem já escreveu.
 
 > **Diferença Redis × Valkey.** No Valkey 9.1, o motor Lua virou um **módulo**. Ele vem ligado por padrão
 > e linkado estaticamente na imagem oficial, e por isso os scripts e Functions deste marco rodaram sem
@@ -213,7 +217,7 @@ total debitado conferido contra o registro de uso.
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey, em Java e em Go.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos os testáveis foram provados em Go; em Java, os de número 1, 2 e 3 (Lua e `WATCH`).
 
 1. 200 clientes concorrentes debitando de um limite de R$ 1.000 nunca debitam mais que R$ 1.000 no total, e o
    disponível final bate com a soma dos débitos aceitos e com o registro de uso, nas três versões.
@@ -250,7 +254,7 @@ Lua?
 - O Redis dá isolamento (ninguém intercala) e não dá *rollback*. Um comando que falha no meio de um `MULTI` ou
   de um script não desfaz os anteriores.
 - No `MULTI`, o erro de enfileiramento aborta tudo, e o erro de execução não aborta nada.
-- O `WATCH` é concorrência otimista. Sob contenção, ele custou mais de 30 abortos por débito e recusou até 38%
+- O `WATCH` é concorrência otimista. Sob contenção, ele custou mais de 30 abortos por pedido e recusou até 38%
   dos pedidos por desistência. Retry sempre limitado e medido.
 - O script Lua lê, decide e escreve sem intercalação e sem ida e volta. Valide tudo antes da primeira escrita.
 - Script bloqueia o servidor. Passou do limiar, todos recebem `BUSY`, e o script que já escreveu não pode ser

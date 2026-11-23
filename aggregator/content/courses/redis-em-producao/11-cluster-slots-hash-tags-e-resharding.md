@@ -169,7 +169,7 @@ Long ok = conn.sync().evalsha(sha, ScriptOutputType.INTEGER,
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos os testáveis foram provados em Go; em Java, o de número 4.
 
 1. Os scripts do 04 e do 06 rodam no cluster sem `CROSSSLOT`, e um teste estático garante que todas as chaves de cada
    script, o do 07 incluído, compartilham a *hash tag*.

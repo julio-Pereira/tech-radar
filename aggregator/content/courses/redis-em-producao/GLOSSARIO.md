@@ -247,7 +247,7 @@ idempotência junto com o cache.
 ### RDB
 **Em uma frase:** o *snapshot* do conjunto de dados inteiro, gerado por `fork` (`BGSAVE`), que perde tudo o que veio depois dele.
 **No fin-kv:** nenhum uso como persistência do estado; o `kv-estado` usa AOF.
-**Erro comum:** confiar no RDB para estado e perder até um intervalo inteiro de `save`: 4,5 s no laboratório, com `save 5 1`.
+**Erro comum:** confiar no RDB para estado e perder até um intervalo inteiro de `save`: até 5,4 s no laboratório, com `save 5 1`.
 **Onde na prática:** marco 09.
 
 ### AOF

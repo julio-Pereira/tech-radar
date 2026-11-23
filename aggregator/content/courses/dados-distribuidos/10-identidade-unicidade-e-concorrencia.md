@@ -86,6 +86,10 @@ onde a escrita acontece — e é a única que sobrevive a uma pausa arbitrária.
 Onde não dá para adicionar o token, a saída é tornar a operação idempotente, de modo que a
 execução dupla não cause dano. É a mesma conclusão do marco 01, chegando por outro caminho.
 
+A implementação no Redis (o *lease* com token, a liberação que confere o dono, a renovação que não
+renova o *lease* de outro e o *fencing token* verificado no banco, com o dono congelado de verdade
+por `SIGSTOP`) está em `redis-em-producao/07`.
+
 ```diagrama
 dd-fencing-token
 ```

@@ -165,6 +165,22 @@ steps:
   - ref: open-finance-brasil/04
     group: "Domínio fintech como diferencial"
     why: "Consentimento no transmissor é o diferencial regulatório do desafio de extrato no Open Finance."
+  - ref: redis-em-producao/04
+    group: "Estado em memória (opcional)"
+    optional: true
+    why: "Para a vaga que cobra Redis: o MULTI não desfaz nada, o WATCH desiste sob contenção e o script bloqueia o servidor, com número medido."
+  - ref: redis-em-producao/05
+    group: "Estado em memória (opcional)"
+    optional: true
+    why: "A pergunta \"e se o Redis perder a chave de idempotência?\" tem resposta: o banco é a segunda linha, provada com FLUSHALL e failover."
+  - ref: redis-em-producao/09
+    group: "Estado em memória (opcional)"
+    optional: true
+    why: "O que um kill -9 perde e o que só a queda do host perde, e por que cache e estado não dividem a instância."
+  - ref: redis-em-producao/10
+    group: "Estado em memória (opcional)"
+    optional: true
+    why: "Replicação assíncrona com número: quantas escritas confirmadas somem no failover, e o que WAIT e min-replicas mudam."
   - ref: lideranca-tecnica/06
     group: "Liderança e comportamental"
     why: "Decidir sob incerteza dá estrutura às perguntas comportamentais sobre decisões difíceis."

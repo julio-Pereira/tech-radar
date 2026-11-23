@@ -93,7 +93,9 @@ região dona da escrita.
   restauração para uma conta nova.
 
 O **Azure Managed Redis** é o sucessor do Azure Cache for Redis, que se aposenta (Enterprise em mar 2027; Basic,
-Standard e Premium em set 2028). O *cache* segue os padrões de `dados-distribuidos/09`.
+Standard e Premium em set 2028). O *cache* segue os padrões de `dados-distribuidos/09`, e o que o
+gerenciado não resolve (*eviction*, desenho de chave, cliente e perda na replicação) está em
+`redis-em-producao/13`.
 
 ## Na AWS → no Azure
 

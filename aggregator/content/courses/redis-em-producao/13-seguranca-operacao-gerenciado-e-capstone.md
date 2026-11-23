@@ -178,11 +178,40 @@ A correção em uma semana:
 
 ## Hands-on
 
+**Tutorial.** Suba o `kv-estado` com a porta em claro desligada e mTLS, crie os usuários da ACL e conecte os dois
+clientes com o usuário do serviço e o certificado dele:
+
+```bash
+redis-server --port 0 --tls-port 6379 --tls-cert-file servidor.crt --tls-key-file servidor.key \
+  --tls-ca-cert-file ca.crt --tls-auth-clients yes
+```
+
+```go
+ca := x509.NewCertPool()
+ca.AppendCertsFromPEM(caPEM) // só a CA do Redis
+cert, _ := tls.LoadX509KeyPair("cliente.crt", "cliente.key")
+rdb := redis.NewClient(&redis.Options{Addr: "kv-estado:6379", Username: "ledger-core", Password: senha,
+    TLSConfig: &tls.Config{RootCAs: ca, Certificates: []tls.Certificate{cert}, MinVersion: tls.VersionTLS12}})
+```
+
+```java
+var ssl = SslOptions.builder()
+        .trustManager(new File("ca.crt"))                                          // só a CA do Redis, em PEM
+        .keyManager(new File("cliente.crt"), new File("cliente-pkcs8.key"), null)  // chave em PKCS#8
+        .build();
+var uri = RedisURI.builder().withHost("kv-estado").withPort(6379).withSsl(true)
+        .withAuthentication("pix-gateway", senha).build();
+var cliente = RedisClient.create(uri);
+cliente.setOptions(ClientOptions.builder().sslOptions(ssl).build());
+```
+
+A senha vem do gerenciador de segredos (`seguranca-aplicacao/10`), e não do código nem da imagem.
+
 **Desafio.** Endurecer e observar o `fin-kv`.
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos os testáveis foram provados em Go; em Java, o de número 2.
 
 1. Cada serviço tem um usuário ACL próprio. O teste prova que o `pix-gateway` não lê as chaves do antifraude nem executa
    `FLUSHALL`, `CONFIG` ou `KEYS`.

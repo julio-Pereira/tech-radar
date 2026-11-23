@@ -37,7 +37,7 @@ outro RDB inteiro.
 > **Diferença Redis × Valkey.** O `repl-backlog-size` padrão é de **1 MB** no Redis 8.10 e de **10 MB** no Valkey
 > 9.1. Com 1 MB e algumas dezenas de MB/s de escrita, uma réplica que fica 1 s desconectada já não cabe no
 > *backlog*. Dimensione pelo pior intervalo de desconexão que você aceita, vezes a taxa de escrita. O Redis 8 também
-> envia o RDB e o fluxo de comandos por canais separados na sincronização completa (`rdb-channel`, ligado por
+> envia o RDB e o fluxo de comandos por canais separados na sincronização completa (`repl-rdb-channel`, uma configuração oculta, ligado por
 > padrão, visto nos *logs* do laboratório). O Valkey tem o equivalente, `dual-channel-replication-enabled`, desligado
 > por padrão.
 
@@ -66,8 +66,9 @@ o *failover*. Os clientes escreviam chaves de idempotência pelo lado do primár
 | **confirmadas que não existiam depois do failover** | **10.200** | **9.880** |
 
 Praticamente tudo o que o primário isolado confirmou sumiu. Todas essas escritas receberam `OK`. A análise do Jepsen
-sobre o Orkes Conductor, publicada em outubro de 2026, observou a mesma perda de escritas confirmadas em Redis
-Sentinel e Cluster sob partição.
+sobre o Orkes Conductor, publicada em outubro de 2026, observou perda de escritas confirmadas com o Redis como banco,
+e afirma que o Sentinel e o Cluster perdem escritas confirmadas sob partição. Ela não confirma qual versão do Redis
+foi testada.
 
 > **Armadilha.** Achar que três sentinelas e duas réplicas dão "alta disponibilidade sem perda". Dão
 > disponibilidade: o sistema volta a aceitar escrita em segundos. Perda é outra conversa, e o número dela, sob
@@ -154,10 +155,11 @@ Uma partição de rede isolou o primário do `kv-estado` por alguns segundos, co
 dele. As duas continuaram reservando chaves de idempotência e marcando-as `CONCLUIDO`. Quando a partição curou, o
 primário antigo virou réplica e descartou tudo o que tinha aceitado sozinho.
 
-O laboratório reproduziu o cenário com o filtro do marco 05. Das cerca de 4 mil iniciações, as **300** feitas pelo
-lado isolado tiveram as reservas apagadas pelo *failover*. O TPP reenviou todas as 4 mil, e o reenvio gerou **zero**
-efeitos novos, nos dois motores: o `INSERT` no `fin-store` falhou por unicidade em cada uma, e o banco devolveu a
-resposta original. A defesa do marco 05 é o que transforma uma perda de 300 escritas confirmadas num não-evento.
+O laboratório reproduziu o cenário com uma versão resumida do filtro do marco 05: a reserva no Redis e a chave no
+banco antes do efeito. Das cerca de 4 mil iniciações (4.085 no Redis e 3.984 no Valkey), as **300** feitas pelo lado
+isolado tiveram as reservas apagadas pelo *failover*. O TPP reenviou todas, e o reenvio gerou **zero** efeitos novos,
+nos dois motores: o `INSERT` no `fin-store` não aplicou nenhuma, por unicidade. No filtro completo, é nesse ponto que
+o banco devolve a resposta original. A defesa do marco 05 é o que transforma uma perda de 300 escritas confirmadas num não-evento.
 
 O `kv-estado` roda com `min-replicas-to-write 1` e `min-replicas-max-lag 2`, o que limita o tamanho do problema. O
 ADR registra que isso não o elimina, e que a garantia é do banco.
@@ -171,21 +173,27 @@ desconecte-o da rede interna (`docker network disconnect`). Os clientes do lado 
 ```go
 rdb := redis.NewFailoverClient(&redis.FailoverOptions{
     MasterName: "mestre", SentinelAddrs: []string{"s1:26379", "s2:26379", "s3:26379"},
-    DialTimeout: 300 * time.Millisecond, ReadTimeout: 300 * time.Millisecond, DialerRetries: 1})
+    DialTimeout: 300 * time.Millisecond, ReadTimeout: 300 * time.Millisecond, WriteTimeout: 300 * time.Millisecond,
+    MaxRetries: -1, DialerRetries: 1}) // as opções da medição de 2,4 s
 n, err := rdb.Wait(ctx, 1, 100*time.Millisecond).Result() // n < 1: trate como falha
 ```
 
 ```java
 RedisURI uri = RedisURI.Builder.sentinel("s1", 26379, "mestre")
-        .withSentinel("s2", 26379).withSentinel("s3", 26379).build();
-var conn = RedisClient.create(uri).connect(); // pergunta aos sentinelas e segue o primário
+        .withSentinel("s2", 26379).withSentinel("s3", 26379)
+        .withTimeout(Duration.ofMillis(500)).build();             // o padrão é 60 s
+var cliente = RedisClient.create(uri);
+cliente.setOptions(ClientOptions.builder()
+        .socketOptions(SocketOptions.builder().connectTimeout(Duration.ofMillis(300)).build())
+        .timeoutOptions(TimeoutOptions.enabled(Duration.ofMillis(500))).build()); // as opções da medição de 2,7 s
+var conn = cliente.connect(); // pergunta aos sentinelas e segue o primário
 ```
 
 **Desafio.** Medir e limitar a perda: o número sem freio, com `min-replicas-to-write` e com `WAIT`.
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos os testáveis foram provados em Go; em Java, o de número 4.
 
 1. Com uma partição isolando o primário e escrita contínua, o teste **conta as escritas confirmadas que não existem
    depois do failover**. É o defeito documentado, com número.

@@ -1,7 +1,7 @@
 ---
 id: persistencia-memoria-e-eviction
 title: "Persistência, memória e eviction: o que se perde"
-summary: "Há duas formas de o Redis perder um dado que você escreveu sem que nenhum comando falhe: crash antes do fsync e eviction por falta de memória. As duas têm tamanho e configuração, e as duas precisam estar no mapa de estado. RDB e fork com copy-on-write; AOF e os três appendfsync; o que um kill -9 perde e o que só a queda do host perde; maxmemory, as políticas de eviction e o perigo de misturar cache e estado; noeviction cheio. Medido nos dois motores: com kill -9, o AOF perdeu no máximo 4 ms de escrita em 100 rodadas, o RDB a cada 5 s perdeu até 4,5 s, o always custou 75% da vazão, e uma instância única com allkeys-lru despejou até 98% das chaves de idempotência."
+summary: "Há duas formas de o Redis perder um dado que você escreveu sem que nenhum comando falhe: crash antes do fsync e eviction por falta de memória. As duas têm tamanho e configuração, e as duas precisam estar no mapa de estado. RDB e fork com copy-on-write; AOF e os três appendfsync; o que um kill -9 perde e o que só a queda do host perde; maxmemory, as políticas de eviction e o perigo de misturar cache e estado; noeviction cheio. Medido nos dois motores: com kill -9, o AOF perdeu no máximo 4 ms de escrita em 100 rodadas, o RDB a cada 5 s perdeu até 5,4 s, o always custou 75% da vazão, e uma instância única com allkeys-lru despejou até 98% das chaves de idempotência."
 estimatedMinutes: 65
 reviewedAt: 2026-11-22
 reviewEvery: 6m
@@ -35,8 +35,8 @@ atendendo. O padrão dos dois motores, conferido nas imagens oficiais, é `save 
 
 O RDB perde **tudo o que foi escrito depois do último *snapshot***. No laboratório, com `save 5 1` (um
 *snapshot* a cada 5 s, para encurtar a medição) e escrita contínua, o `kill -9` perdeu em média 341 mil
-escritas e no pior caso 693 mil no Redis, o equivalente a **4,5 s** de escrita. No Valkey, o pior caso foi de
-727 mil escritas, também 4,5 s. A perda é coerente com o intervalo: até um intervalo inteiro mais a duração do
+escritas e no pior caso 693 mil no Redis, o equivalente a **4,5 s** de escrita, e uma repetição chegou a 826 mil, ou
+**5,4 s**. No Valkey, o pior caso foi de 727 mil e 747 mil escritas, 4,5 s nas duas medições. A perda é coerente com o intervalo: até um intervalo inteiro mais a duração do
 *save*.
 
 ### Fork e copy-on-write
@@ -71,7 +71,8 @@ A durabilidade do AOF está em `appendfsync`, que decide quando o servidor chama
 
 - `always`: `fsync` antes de responder a cada escrita;
 - `everysec` (padrão nos dois motores): `fsync` uma vez por segundo, numa *thread* de fundo;
-- `no`: o servidor nunca chama `fsync`, e o sistema operacional grava quando quiser.
+- `no`: no laço normal, o servidor não chama `fsync`, e o sistema operacional grava quando quiser (o `fsync` só
+  acontece em momentos como o *shutdown* e a reescrita).
 
 ### O que um kill -9 perde, e o que só a queda do host perde
 
@@ -91,7 +92,7 @@ um `kill -9` a perde.
 | AOF `no`, 5 rodadas: confirmadas perdidas | 0 | 0 |
 | AOF `always`, 5 rodadas: confirmadas perdidas | 0 | 0 |
 | vazão com `everysec` × `always` (16 clientes) | 136 mil × 35 mil escritas/s | 150 mil × 34 mil escritas/s |
-| só RDB a cada 5 s: pior perda | 4,5 s | 4,5 s |
+| só RDB a cada 5 s: pior perda | 4,5 a 5,4 s | 4,5 s |
 
 A janela de 1 segundo do `everysec` existe, mas para outra falha: a **queda do host**, ou do disco, ou da VM.
 Aí o *page cache* some junto, e o que não tinha passado por `fsync` se perde. Com `everysec`, isso é até cerca
@@ -209,7 +210,7 @@ o número de cada uma.
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos foram provados em Go.
 
 1. Com AOF `everysec` e `kill -9` do processo sob carga contínua, as escritas confirmadas perdidas ficam abaixo de
    1 s de escrita em 20 rodadas (máximo registrado), com `aof_delayed_fsync` em zero. A janela de até 1 a 2 s da
@@ -244,7 +245,7 @@ isso representa?
 
 - O Redis perde sem erro de dois jeitos: crash antes do `fsync` e *eviction*. Os dois entram no mapa de estado, com
   tamanho.
-- O RDB perde tudo desde o último *snapshot*: até 4,5 s com um *snapshot* a cada 5 s.
+- O RDB perde tudo desde o último *snapshot*: até 5,4 s com um *snapshot* a cada 5 s.
 - Com AOF, o `kill -9` do processo quase não perdeu escrita confirmada (0 em 40 rodadas no Redis, até 4 ms numa de 60
   no Valkey), porque o dado já estava no kernel. A janela de 1 s do `everysec` é da queda do *host*, e um disco lento a
   estende ao próprio processo, por até 2 s.

@@ -232,7 +232,7 @@ mapa de estado.
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos os testáveis foram provados em Go; em Java, os de número 1 e 3.
 
 1. Com latência injetada de 500 ms, o p99 do endpoint fica dentro do orçamento declarado (o *timeout* do Redis é menor
    que o orçamento), e nenhuma *thread* ou goroutine fica presa além dele.

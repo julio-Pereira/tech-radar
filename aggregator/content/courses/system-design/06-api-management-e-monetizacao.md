@@ -84,6 +84,10 @@ limite protege algo caro ou sensível (uma operação de alto custo computaciona
 decisão tem dono nomeado, e vale o mesmo raciocínio do orçamento de erro: qual lado do erro custa
 mais caro, medido em dinheiro ou risco, não em preferência técnica.
 
+O que quebra quando o algoritmo roda no Redis (o `INCR` sem TTL, a janela aproximada que passa do
+limite, o limite em várias dimensões) e a política de falha por tipo de limite, medida com o Redis
+derrubado, estão em `redis-em-producao/06`.
+
 ## Exemplo numa fintech
 
 Três planos para TPPs de Open Finance — básico (100 req/min), parceiro (1.000 req/min), parceiro

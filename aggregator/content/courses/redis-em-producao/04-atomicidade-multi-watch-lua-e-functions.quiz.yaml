@@ -17,7 +17,7 @@ questions:
     answer: 3
     explanation: "O Redis dá isolamento (ninguém intercala) e não dá atomicidade de falha. Nem o MULTI nem o script desfazem uma escrita já feita, e o WATCH só impede o EXEC de rodar quando a chave mudou. A saída é escrever o script com toda validação antes da primeira escrita, ou compensar de forma explícita."
 
-  - question: "Sob 200 débitos concorrentes na mesma conta, a versão com WATCH teve mais de 30 abortos por débito e desistiu de dezenas de pedidos. O que isso indica?"
+  - question: "Sob 200 débitos concorrentes na mesma conta, a versão com WATCH teve mais de 30 abortos por pedido e desistiu de dezenas de pedidos. O que isso indica?"
     options:
       - "Que, com contenção alta, o otimismo gira em falso; o retry precisa de limite e métrica"
       - "Que o WATCH tem um bug sob concorrência e, por isso, deixou passar débitos acima do limite da conta"
@@ -30,10 +30,10 @@ questions:
     options:
       - "Latência normal, porque o script roda numa thread separada da que atende os comandos dos clientes"
       - "Latência normal até 5 s, e depois o servidor interrompe o script sozinho e volta a atender a fila"
-      - "Respostas BUSY a todos os comandos, menos SCRIPT KILL e SHUTDOWN NOSAVE, até o script acabar"
+      - "Respostas BUSY a quase todos os comandos, menos SCRIPT KILL e SHUTDOWN NOSAVE"
       - "Respostas lentas só para os comandos que tocam nas chaves que o script declarou em KEYS[]"
     answer: 2
-    explanation: "O script bloqueia o servidor inteiro, como um comando só. Passado o busy-reply-threshold (5.000 ms por padrão nos dois motores), o servidor responde BUSY a todos os clientes, mas não interrompe o script por conta própria. Só SCRIPT KILL e SHUTDOWN NOSAVE são aceitos nesse estado."
+    explanation: "O script bloqueia o servidor inteiro, como um comando só. Passado o busy-reply-threshold (5.000 ms por padrão nos dois motores), o servidor responde BUSY a todos os clientes, mas não interrompe o script por conta própria. Para o operador, sobram SCRIPT KILL (FUNCTION KILL, se for uma Function) e SHUTDOWN NOSAVE; só alguns comandos de conexão, como AUTH e HELLO, também passam."
 
   - question: "O operador manda SCRIPT KILL para o script travado e recebe UNKILLABLE. Por quê?"
     options:

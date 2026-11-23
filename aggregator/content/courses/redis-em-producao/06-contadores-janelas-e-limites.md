@@ -174,7 +174,7 @@ proteção de capacidade, cada um com a sua política de falha lida do mapa de e
 
 **Invariantes testáveis**
 
-Todos rodam contra o Redis **e** o Valkey, em Java e em Go.
+Rodam contra o Redis **e** o Valkey. No laboratório desta trilha, todos os testáveis foram provados em Go; em Java, os de número 1 e 2.
 
 1. Matando o cliente entre `INCR` e `EXPIRE` na versão ingênua, o teste encontra a chave sem TTL. Nas versões
    corrigidas, nunca.
