@@ -1,0 +1,36 @@
+questions:
+  - question: "O pix-gateway e o antifraude usam o mesmo Redis. Qual configuração de ACL segue o menor privilégio?"
+    options:
+      - "Um usuário compartilhado com senha forte e todos os comandos, porque os dois serviços são internos"
+      - "Um usuário por serviço com todos os comandos, mas só nas chaves do prefixo de cada um"
+      - "O usuário default com senha e rename-command nos comandos perigosos, para todos os serviços"
+      - "Um usuário por serviço, só no próprio prefixo, sem @dangerous nem KEYS, default off"
+    answer: 3
+    explanation: "A ACL limita por usuário os comandos e as chaves. No laboratório, o pix-gateway recebeu NOPERM nas chaves af:*, em FLUSHALL, CONFIG e KEYS, e a conexão sem usuário foi recusada. Só o prefixo, sem tirar os comandos perigosos, ainda deixaria um FLUSHALL apagar o banco inteiro."
+
+  - question: "O kv-estado subiu com a imagem oficial, sem arquivo de configuração. Como ele está?"
+    options:
+      - "Com o modo protegido desligado, em todas as interfaces, sem senha"
+      - "Com o modo protegido ligado, aceitando só conexões do próprio contêiner"
+      - "Com TLS ligado e um certificado autoassinado gerado na primeira inicialização"
+      - "Com o usuário default desligado, esperando a criação de um usuário pela ACL"
+    answer: 0
+    explanation: "O código-fonte liga o protected-mode por padrão, mas as imagens oficiais dos dois motores sobem com protected-mode no e bind * -::*, como o laboratório mediu. O DEBUG e o CONFIG SET dir vêm fechados, mas ler, apagar e mudar o resto da configuração continua aberto. Produção não usa a configuração da imagem."
+
+  - question: "O time migrou o kv-estado para um Redis gerenciado. O que continua sendo responsabilidade do time?"
+    options:
+      - "O failover entre zonas, porque o gerenciado só substitui o nó dentro da mesma zona"
+      - "O patch de segurança do motor, porque o gerenciado só atualiza a versão quando o time pede"
+      - "A eviction, o desenho de chave, o cliente e a perda na replicação assíncrona"
+      - "O backup diário, porque o gerenciado não guarda snapshot de instâncias com dados de estado"
+    answer: 2
+    explanation: "O gerenciado opera os nós: failover, patch, backup, TLS. Ele não sabe que a idempotência não pode ser despejada, não escolhe a hash tag, não configura o cliente e não torna a replicação síncrona; o modo assíncrono do ElastiCache admite até 10 s de perda."
+
+  - question: "Na escolha entre Redis 8 e Valkey 9 para o fin-platform, o que pesa além da licença?"
+    options:
+      - "Só a licença: os dois são o mesmo código, com outro nome, e se comportam igual em tudo"
+      - "Os comandos que divergem, o gerenciado de cada nuvem e a governança"
+      - "A velocidade: o Valkey é sempre mais rápido porque não tem os módulos do Redis 8 carregados"
+      - "O protocolo: os clientes Java e Go precisam de uma biblioteca diferente para cada motor"
+    answer: 1
+    explanation: "Os dois falam o mesmo protocolo, mas divergem: INCREX, DELEX e as políticas lrm só no Redis; DELIFEQ e COMMANDLOG só no Valkey; lazyfree e backlog com padrões diferentes. O ElastiCache oferece Valkey e não Redis 8. A licença conta, e a escolha vai num ADR, com o código escrito para rodar nos dois."

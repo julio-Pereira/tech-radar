@@ -349,3 +349,45 @@ idempotência junto com o cache.
 **Erro comum:** esquecer o `TRYAGAIN` dos comandos multichave com chaves dos dois lados da migração.
 **Onde na prática:** marco 11.
 
+### Conexão multiplexada
+**Em uma frase:** uma conexão única por onde todas as *threads* mandam comandos, com as respostas voltando em ordem; o modelo do Lettuce.
+**No fin-kv:** o `pix-gateway` usa uma, mais um *pool* para `WATCH` e `XREADGROUP BLOCK`.
+**Erro comum:** usar a conexão compartilhada para um comando bloqueante e travar a aplicação inteira.
+**Onde na prática:** marco 12.
+
+### Id de operação
+**Em uma frase:** um identificador único por operação, gravado com `SET NX` no mesmo script do efeito, que torna seguro o retry de um comando não idempotente.
+**No fin-kv:** o incremento dos contadores do antifraude; com ele, 300 operações deram 300 exatos depois do reenvio.
+**Erro comum:** confiar no retry automático do cliente para um `INCR`: no laboratório, até 81 a mais em 300.
+**Onde na prática:** marco 12.
+
+### Client-side caching
+**Em uma frase:** o cache no processo do cliente, invalidado pelo servidor com `CLIENT TRACKING` quando a chave é escrita.
+**No fin-kv:** só para configuração muito lida e pouco escrita.
+**Erro comum:** pôr no cache local o que o mapa de estado classifica como derivado.
+**Onde na prática:** marco 12.
+
+### ACL
+**Em uma frase:** a lista de controle de acesso por usuário: senha, comandos, padrões de chave e canais.
+**No fin-kv:** um usuário por serviço, só no próprio prefixo, sem `@dangerous` nem `KEYS`; `default` desligado.
+**Erro comum:** um usuário compartilhado por todos os serviços, com todos os comandos.
+**Onde na prática:** marco 13.
+
+### Modo protegido
+**Em uma frase:** com `protected-mode yes` e sem senha, o servidor só aceita conexão do *loopback*.
+**No fin-kv:** não depende dele: ACL e TLS em todas as instâncias.
+**Erro comum:** subir a imagem oficial em produção: ela vem com `protected-mode no` e `bind *`.
+**Onde na prática:** marco 13.
+
+### Configuração protegida
+**Em uma frase:** uma configuração que `CONFIG SET` recusa por padrão (`enable-protected-configs no`), como `dir` e `dbfilename`.
+**No fin-kv:** o padrão mantido.
+**Erro comum:** ligar `enable-protected-configs` para "facilitar" e reabrir o ataque de gravar arquivo pelo `CONFIG SET dir`.
+**Onde na prática:** marco 13.
+
+### Valkey
+**Em uma frase:** o *fork* do Redis 7.2 mantido pela Linux Foundation, sob licença BSD-3, compatível no protocolo e com comandos próprios.
+**No fin-kv:** toda a suíte do `fin-kv` roda contra o Redis 8.10.3 e o Valkey 9.1.4.
+**Erro comum:** assumir que os padrões são iguais: `lazyfree-lazy-user-del` e `repl-backlog-size` divergem.
+**Onde na prática:** marco 13, e em todos os marcos, nas caixas de diferença.
+
