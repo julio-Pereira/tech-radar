@@ -1,0 +1,54 @@
+questions:
+  - question: "O pix-gateway usa Lettuce com uma conexão para toda a aplicação. Em que caso ele precisa de uma conexão própria, de um pool?"
+    options:
+      - "Para qualquer comando de escrita, porque a conexão multiplexada só aceita leitura concorrente"
+      - "Para WATCH com MULTI/EXEC e comandos bloqueantes como XREADGROUP BLOCK, que prendem a conexão"
+      - "Para comandos de mais de 1 KB, porque eles atrasam as respostas pequenas das outras threads"
+      - "Para scripts Lua, porque o EVALSHA não pode ser multiplexado com outros comandos na mesma conexão"
+    answer: 1
+    explanation: "A conexão do Lettuce é multiplexada: todas as threads mandam comandos por ela, e as respostas voltam em ordem. O que prende a conexão (o WATCH até o EXEC, um BLPOP, um XREADGROUP com BLOCK) bloquearia todo mundo, e por isso usa uma conexão própria."
+
+  - question: "Com ~500 ms de RTT, o go-redis com as opções padrão teve p99 de 4 s, sem nenhum timeout de leitura. Onde as requisições esperaram?"
+    options:
+      - "No retry automático, que repetiu cada GET três vezes até a resposta chegar"
+      - "No DialerRetries, que tentou abrir a conexão cinco vezes antes de cada comando"
+      - "No servidor, que enfileirou os comandos porque a execução é serial"
+      - "Na fila do pool: as 40 conexões padrão ficaram ocupadas com comandos de 500 ms"
+    answer: 3
+    explanation: "O ReadTimeout padrão é de 5 s, então nenhum GET de 500 ms deu timeout. O pool padrão (10 por GOMAXPROCS, 40 com 4 vCPUs) encheu, e as requisições seguintes esperaram uma conexão livre. O PoolTimeout é o timeout dessa fila; com 50 ms e ReadTimeout de 100 ms, o p99 caiu para 0,1 s."
+
+  - question: "O endpoint tem orçamento de 300 ms, e o pix-gateway usa o timeout padrão do Lettuce, de 60 s. O que acontece quando o Redis fica lento?"
+    options:
+      - "Cada requisição espera até 60 s, e o serviço esgota threads antes do alerta"
+      - "O Lettuce detecta a lentidão e reduz o timeout sozinho para caber no orçamento do endpoint"
+      - "O Spring cancela a chamada ao Redis quando a requisição HTTP passa de 300 ms"
+      - "O Redis recusa os comandos que esperam mais de 300 ms, e o cliente recebe erro rápido"
+    answer: 0
+    explanation: "O timeout do cliente é o único limite da espera, e o padrão do Lettuce é 60 s. Com o Redis lento, cada requisição fica presa, e o serviço cai por exaustão. O timeout sai do orçamento: com 100 ms, o p99 ficou em cerca de 200 ms no laboratório."
+
+  - question: "O ledger-core faz INCR no contador do antifraude com o go-redis e MaxRetries padrão. Com a latência perto do ReadTimeout, o contador ficou maior que os pagamentos aceitos. Por quê?"
+    options:
+      - "Porque o INCR não é atômico sob concorrência, e duas goroutines leram o mesmo valor antes de somar"
+      - "Porque o pipelining do go-redis junta INCR repetidos num lote e o servidor não os deduplica"
+      - "Porque o servidor aplica o INCR duas vezes quando a conexão é reaberta durante o comando"
+      - "Porque a resposta atrasou, o cliente repetiu, e o primeiro INCR já tinha rodado"
+    answer: 3
+    explanation: "O go-redis repete o comando quando a leitura da resposta dá timeout, e o INCR já tinha rodado. No laboratório, foram de 48 a 81 a mais em 300. A correção é um id de operação: o script só incrementa se o SET NX do id passar, e aí o retry é seguro (300 exatos depois do reenvio)."
+
+  - question: "Por que o RedisTemplate do Spring Data Redis sem serializador configurado é um risco de segurança?"
+    options:
+      - "Porque ele grava os valores sem criptografia, e qualquer um com acesso ao Redis lê os dados"
+      - "Porque ele desliga a ACL do usuário e passa a se conectar como default sem senha"
+      - "Porque usa serialização JDK, e desserializar o que vem do Redis é inseguro"
+      - "Porque ele envia o nome das classes Java nas chaves, e isso vaza a estrutura interna do serviço"
+    answer: 2
+    explanation: "Sem configuração, o RedisTemplate usa o JdkSerializationRedisSerializer. Quem consegue escrever no Redis pode gravar uma cadeia de objetos que executa código no readObject de quem lê (OWASP A08). Além disso, só uma JVM com a mesma classe lê o valor. O fin-kv usa StringRedisTemplate e um teste que reprova o serializador JDK."
+
+  - question: "O ledger-core passou a usar CLIENT TRACKING para a configuração da chave Pix, muito lida e pouco escrita. Qual é o custo?"
+    options:
+      - "O servidor passa a guardar uma cópia por cliente e dobra a memória da instância"
+      - "Entre a escrita e a chegada da invalidação, o cliente lê o valor velho"
+      - "A chave deixa de poder ter TTL, porque o servidor não invalida chaves que expiram"
+      - "O cliente precisa abrir uma conexão por chave rastreada, e o pool cresce sem limite"
+    answer: 1
+    explanation: "Com CLIENT TRACKING, o servidor lembra o que a conexão leu e manda uma invalidação quando a chave é escrita. Até ela chegar, o cache local está velho; se a conexão de invalidação cair, o cliente descarta tudo. Por isso nada derivado, como idempotência e limites, vai para cache local."

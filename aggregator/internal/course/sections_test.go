@@ -404,7 +404,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 	sort.Strings(noSection)
 
 	wantKinds := map[string]int{
-		"tutorial": 286, "desafio": 333, "invariantes": 325, "complemento": 316, "checagem": 331, "gabarito": 5,
+		"tutorial": 287, "desafio": 335, "invariantes": 327, "complemento": 318, "checagem": 333, "gabarito": 5,
 	}
 	for kind, want := range wantKinds {
 		if kindCounts[kind] != want {
@@ -424,10 +424,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 
 	// The redis-em-producao stubs (Fase 0) leave this list as each block is
 	// written; once the trilha is complete it must be empty again.
-	wantNoSection := []string{
-		"redis-em-producao/clientes-em-producao-java-e-go",
-		"redis-em-producao/seguranca-operacao-gerenciado-e-capstone",
-	}
+	wantNoSection := []string{}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}

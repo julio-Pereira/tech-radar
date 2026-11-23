@@ -314,3 +314,60 @@ Lettuce 7.9 com todos os gatilhos adaptativos ligados e a atualização periódi
   lida no código, é a recarga do mapa a cada 60 s, sem recarga em erro de discagem. O teste mede as duas configurações.
 - Pontes: `kubernetes/07` virou `kubernetes/05` (limites de memória); `observabilidade/08` virou `/07` (métricas);
   `performance-resiliencia/09`, inexistente, virou `aws-para-backend/10`; `kubernetes/09` virou `kubernetes/08`.
+
+## Fase 5 — Bloco D (marcos 12–13), capstone e conceitos
+
+Ambiente: o das fases anteriores (23 nov 2026), mais `oliver006/redis_exporter:v1.97.0`
+(`sha256:f5f903fbe77571d455ede0453b084d6840bc62fc105efac001034421cab83b99`) para conferir os nomes de métrica e
+`prom/prometheus:v3.16.0` (`sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06`) para o
+`promtool test rules`. Os certificados de TLS são gerados pelo próprio teste (CA, servidor e cliente de laboratório).
+
+| Marco | Medida | Redis 8.10.3 | Valkey 9.1.4 |
+| --- | --- | --- | --- |
+| 12 | ~500 ms de RTT, 200 requisições: go-redis padrão / ajustado (p50–p99) | 3,0–4,0 s / 50–101 ms | 3,0–4,0 s / 50–102 ms |
+| 12 | idem, Lettuce padrão (60 s) / *timeout* 100 ms | 512–521 ms / 200–204 ms | 506–511 ms / 191–194 ms |
+| 12 | 300 `INCR` com o retry padrão: a mais no contador | +69 a +81 | +48 a +61 |
+| 12 | 300 incrementos com id de operação, depois do reenvio das desconhecidas | 300 | 300 |
+| 12 | 2.000 goroutines, `PoolSize: 32`: pico no cliente / no servidor | 32 / 32 | 32 / 32 |
+| 12 | Redis derrubado, *breaker* de 5 falhas: 100 ciclos | 1 ms; 100 à origem; 100 recusas | igual |
+| 12 | configuração do `pix-gateway` / `RedisTemplate` sem configuração: serializadores JDK | 0 / 4 | — |
+| 13 | imagem oficial sem configuração: `protected-mode` / `bind` | `no` / `* -::*` | `no` / `* -::*` |
+| 13 | ACL do `pix-gateway`: `af:*`, `FLUSHALL`, `CONFIG`, `KEYS` | `NOPERM` em todos | `NOPERM` em todos |
+| 13 | `CONFIG SET dir` com o padrão | `can't set protected config` | igual |
+| 13 | sem TLS / TLS sem certificado de cliente / sem a CA / mTLS | recusa / recusa / recusa / aceita | igual |
+| 13 | varredura de CPF: *dataset* de 4 mil chaves / com a *fixture* | 0 / 1 | 0 / 1 |
+| 13 | `promtool test rules` dos 6 alertas | `SUCCESS` | — |
+| capstone | validador do `STATE-MAP.md`: 9 usos / *fixtures* ruins | 0 erros / 3 erros | — |
+
+**Conferido na fonte:** go-redis v9.23 `ReadTimeout` 5 s, `WriteTimeout` = `ReadTimeout`, `DialTimeout` 5 s,
+`PoolTimeout` = `ReadTimeout` + 1 s, `PoolSize` 10 × `GOMAXPROCS`, `MaxRetries` 3 (`options.go`); *timeout* de leitura
+repetido (`shouldRetry`, `error.go`); Lettuce 7.9 `RedisURI.DEFAULT_TIMEOUT` 60 s, `autoReconnect` ligado e garantia
+*at-least-once* na reconexão (`DefaultEndpoint`: "reconnect will retrigger them"); Spring Data Redis 4.1
+`RedisTemplate.afterPropertiesSet` com `JdkSerializationRedisSerializer` por padrão; `protected-mode` 1 no `config.c`
+dos dois motores; `enable-debug-command`, `enable-module-command` e `enable-protected-configs` `no`; `dir` e
+`dbfilename` como `PROTECTED_CONFIG`; nomes de métrica no `redis_exporter` em execução (`redis_up`,
+`redis_memory_used_bytes`, `redis_memory_max_bytes`, `redis_evicted_keys_total`, `redis_connected_slave_lag_seconds`,
+`redis_rejected_connections_total`, `redis_rdb_last_bgsave_status`, `redis_aof_last_write_status`).
+
+**Ajustes ao plano e erros corrigidos no laboratório:**
+
+- 12 (1): o p99 de 4 s do go-redis padrão não veio de *timeout* de leitura (o padrão é 5 s, não 3 s como o primeiro
+  rascunho dizia), e sim da fila do *pool* de 40 conexões. O texto atribui o atraso à fila e trata o `PoolTimeout`
+  como o *timeout* dela.
+- 12 (1): com *timeout* de 100 ms, o Lettuce também não completa a conexão sob 500 ms de RTT, porque o `HELLO` obedece
+  ao mesmo *timeout*. O teste conecta antes de injetar a latência, e o texto manda abrir a conexão no *startup*. A
+  expiração de 100 ms saiu perto de 200 ms (temporizador do Netty).
+- 12 (2): o "contador bate com as operações aceitas" do plano não fecha: parte das operações sem resposta foi aplicada.
+  O invariante passou a ser "depois do reenvio das de resultado desconhecido, com o mesmo id, o contador é exatamente o
+  número de operações". A primeira versão do teste reaproveitava ids de uma rodada anterior, com TTL de 60 s; os ids
+  passaram a ser únicos por rodada.
+- 12 (4): o *breaker* do laboratório é mínimo (5 falhas, 2 s), em Go; o Java aponta o Resilience4j de `spring-boot/08`.
+- 13 (1): o `DEBUG` foi recusado pelo servidor (`enable-debug-command no`) antes da ACL; o teste aceita as duas recusas.
+- 13: a imagem oficial com `protected-mode no` não estava no plano e virou a abertura do marco.
+- Conceitos: dos sete donos propostos pelo plano, ficaram `redis-execucao-serial` (01) e `aof` (09). `listpack`,
+  `multi-exec`, `politica-de-eviction` e `hash-slot` não têm citação ligável fora do marco dono (e o `MULTI/EXEC` do 04
+  só aparece em código), e o compilador recusa conceito que não é transversal. `replicacao-assincrona-redis` ficou
+  fora pelo mesmo motivo. `fencing-token` e `redlock` continuam com `dados-distribuidos/10`, que ainda não os
+  declarou no `conceitos.yaml`.
+- A ponte de `aws-para-backend/07` ("o MemoryDB é durável, o ElastiCache é cache") ficou desatualizada com o modo de
+  durabilidade do ElastiCache para Valkey 9.0+; a correção vai na Fase 6, com as outras pontes de volta.
