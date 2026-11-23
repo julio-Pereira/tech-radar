@@ -424,8 +424,7 @@ func TestSplitSectionsGoldenCoverage(t *testing.T) {
 
 	// The redis-em-producao stubs (Fase 0) leave this list as each block is
 	// written; once the trilha is complete it must be empty again.
-	wantNoSection := []string{
-	}
+	wantNoSection := []string{}
 	if !equalStrings(noSection, wantNoSection) {
 		t.Errorf("milestones with no hands-on section at all = %v, want %v", noSection, wantNoSection)
 	}
