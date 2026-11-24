@@ -240,7 +240,7 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 	for i, a := range s.Atores {
 		v.id(fmt.Sprintf("atores[%d]", i), a.ID, atores)
 		v.rotulo(fmt.Sprintf("ator %q", a.ID), a.Rotulo)
-		w.Atores = append(w.Atores, WalkthroughAtor{ID: a.ID, Rotulo: a.Rotulo})
+		w.Atores = append(w.Atores, WalkthroughAtor(a))
 	}
 
 	// Rules 2 and 5, and the layer limits.
