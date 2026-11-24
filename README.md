@@ -428,6 +428,33 @@ the full textual description into the milestone — every step, its prose and ev
 as `origem → destino: msg` — for a screen reader, a reader without JavaScript and a
 printout. A walkthrough is never part of the completion gate (the quiz is).
 
+The player (`web/js/courses/walkthrough-player.js`, ≤ 6 KB gzip, downloaded only for a
+milestone with a walkthrough) shares its core with the diagram player
+(`diagram-core.js`: the packet, the state marks, pausing out of sight) and draws the
+layers and the sequences with the same renderer. On a phone the view is sticky on top
+(at most 45vh) with the breadcrumb and a `Topologia | Sequência` tablist, then the event
+card (`origem → destino`, the `msg`, the annotation), the controls (⏮ « ◀ ▶ ▶| » and
+0,5× / 1× / 2×), "Etapa 6 de 7", the step's prose and, when the event has one, the panel
+with its lines highlighted (closed by default); on a desktop the view sits on the left.
+It never autoplays: play runs the current step and stops at its end, so the reader gets
+to the prose before going on. Space, ←/→, PageUp/PageDown and Home/End drive it; each
+event is announced ("Evento 16 de 19. kubelet (worker2) para kube-apiserver. …"), and a new step's
+title first. Off screen, in a hidden tab or with `prefers-reduced-motion` nothing moves,
+not even the change of layer. **Ampliar** opens the view alone, on the current event.
+A deep link lands paused on one event: `#/learn/<slug>/<marco>/wt/<id>/<evento>` (the
+4th segment is `wt`, which is why no concept may have that id); moving inside the player
+replaces the entry instead of adding history.
+
+**Walkthrough or animated diagram.** Use a walkthrough when the process has **more than
+12 steps, or changes scale** (cluster → node), **or needs a panel** that ties an event to
+the YAML, the command or the log the reader sees; anything shorter stays an animated
+diagram. `msg` is an assertion in the present with its subject ("O scheduler grava um
+Binding para o worker2"), not a label. Numbers agree across YAML, panel, `msg` and
+prose — replicas, node names, the one Pod followed — and with the rest of the track
+(the kubernetes pilot uses the track's 3 replicas and the `kind` cluster of milestone 01,
+not new ones). A panel that shows tool output that was not captured from a real run says
+so in its `nota` ("Saída ilustrativa").
+
 **Illustrations** (what isn't a graph — the anatomy of a log record, say) are authored
 images in `content/courses/<trilha>/assets/` (`svg`, `png` or `webp`, at most 200 KB),
 referenced as `![alt text](assets/file.svg)` with a non-empty alt. Remote images and
