@@ -1,0 +1,157 @@
+id: of-iniciacao-ponta-a-ponta
+titulo: "Uma iniciação de pagamento, do consentimento ao estado terminal"
+resumo: "O único consentimento que move dinheiro: de uso único, preso ao valor e ao recebedor, e com um só desfecho."
+
+atores:
+  - { id: cliente, rotulo: "cliente (app da detentora)" }
+  - { id: itp, rotulo: "ITP" }
+  - { id: det, rotulo: "detentora" }
+  - { id: spi, rotulo: "SPI" }
+  - { id: pag, rotulo: "API de pagamentos" }
+  - { id: cons, rotulo: "consentimentos" }
+  - { id: antifraude, rotulo: "limites e antifraude" }
+  - { id: ledger, rotulo: "fin-books (contas)" }
+  - { id: rails, rotulo: "fin-rails (Pix)" }
+
+camadas:
+  - { id: ecossistema, rotulo: "Ecossistema", diagrama: of-wt-ecossistema }
+  - { id: detentora, rotulo: "Detentora", diagrama: of-wt-detentora, pai: ecossistema }
+
+etapas:
+  - id: consentimento
+    titulo: "O consentimento de pagamento"
+    subtitulo: "Valor, recebedor e conta, exatos"
+    camada: ecossistema
+    texto: |
+      Diferente do consentimento de dados, o de pagamento especifica **valor**, **recebedor** e
+      **conta de débito** de forma exata, tem validade curta e é de **uso único**: depois de
+      consumido, nunca autoriza um segundo movimento, mesmo que o primeiro falhe.
+    eventos:
+      - de: itp
+        para: det
+        msg: "A ITP cria na detentora o consentimento de um Pix de 100.00, com recebedor e conta de débito exatos"
+      - de: det
+        para: itp
+        tipo: reply
+        msg: "A detentora registra o consentimento, de validade curta, que ainda espera o cliente"
+
+  - id: autenticacao
+    titulo: "O cliente autoriza aquele pagamento"
+    subtitulo: "Autenticação forte, não a sessão de dados"
+    camada: ecossistema
+    texto: |
+      O cliente confirma no app da **sua** detentora, com **autenticação forte**: uma
+      confirmação ativa daquele movimento específico de dinheiro, mais rigorosa que a da
+      consulta de dados. A jornada pode ter ou não redirecionamento; o marco manda conferir a
+      vigente.
+    eventos:
+      - de: det
+        para: cliente
+        msg: "A detentora mostra ao cliente o valor e o recebedor consentidos"
+      - de: cliente
+        para: det
+        msg: "O cliente autentica fortemente e confirma aquele pagamento"
+        anotacao: "mais rigorosa que a de consulta de dados"
+
+  - id: iniciacao
+    titulo: "A iniciação chega à detentora"
+    subtitulo: "Conferir, consumir, avaliar"
+    camada: detentora
+    texto: |
+      A ação desce para dentro da detentora. Valor e recebedor da iniciação precisam ser
+      **idênticos** aos do consentimento: uma diferença é outra operação, e é recusada. Conferido,
+      o consentimento é consumido. Limites e antifraude olham o perfil de risco próprio da
+      iniciação por terceiros.
+    eventos:
+      - de: itp
+        para: pag
+        msg: "A ITP inicia o pagamento com a sua chave de idempotência"
+      - de: pag
+        para: cons
+        msg: "A API de pagamentos confere valor e recebedor contra o consentimento: idênticos"
+        anotacao: "qualquer diferença é recusada"
+      - de: cons
+        para: pag
+        tipo: reply
+        msg: "O consentimento é consumido e não autoriza mais nenhum movimento"
+        estados: { cons: removido }
+        anotacao: "uso único, mesmo que algo falhe depois"
+      - de: pag
+        para: antifraude
+        msg: "A API de pagamentos passa a iniciação por limites e antifraude"
+      - de: antifraude
+        para: pag
+        tipo: reply
+        msg: "Limites e antifraude aprovam"
+
+  - id: debito
+    titulo: "O débito e a ordem"
+    subtitulo: "É a detentora quem move o dinheiro"
+    camada: detentora
+    texto: |
+      Aprovada, a iniciação debita a conta que o cliente consentiu e segue para o Pix. A ITP não
+      toca no dinheiro em nenhum momento: ela pediu, o cliente autorizou na própria detentora, e
+      é a detentora que executa.
+    eventos:
+      - de: pag
+        para: ledger
+        msg: "A API de pagamentos debita 100.00 da conta de débito consentida"
+        estados: { ledger: novo }
+      - de: pag
+        para: rails
+        msg: "A ordem segue para o Pix pelo fin-rails"
+
+  - id: desconhecido
+    titulo: "O SPI não responde"
+    subtitulo: "Consultar, nunca reenviar"
+    camada: ecossistema
+    texto: |
+      De volta ao ecossistema, o mesmo problema do `system-design/09`: o SPI não responde no
+      prazo, e o resultado é **desconhecido**. A detentora resolve por consulta. Reenviar às cegas
+      arriscaria uma segunda movimentação de dinheiro para a mesma intenção.
+    eventos:
+      - de: det
+        para: spi
+        tipo: async
+        msg: "A detentora envia a ordem ao SPI"
+      - de: spi
+        para: det
+        tipo: reply
+        msg: "O SPI não responde no prazo: o resultado é desconhecido"
+        anotacao: "não é falha"
+      - de: det
+        para: spi
+        msg: "A detentora consulta o estado da ordem, em vez de reenviar"
+      - de: spi
+        para: det
+        tipo: reply
+        msg: "A consulta mostra que a ordem liquidou"
+        estados: { det: ativo }
+
+  - id: terminal
+    titulo: "Um só desfecho"
+    subtitulo: "Retry idempotente, notificação repetida"
+    camada: ecossistema
+    texto: |
+      Sem resposta a tempo, a ITP repete a chamada com a **mesma chave**, e recebe a mesma
+      resposta: um único pagamento. O estado terminal chega por notificação, e uma notificação
+      duplicada ou fora de ordem, depois dele, não o reverte.
+    eventos:
+      - de: itp
+        para: det
+        msg: "Sem resposta a tempo, a ITP repete a iniciação com a mesma chave de idempotência"
+      - de: det
+        para: itp
+        tipo: reply
+        msg: "A detentora devolve a mesma resposta da primeira chamada: um único pagamento"
+        anotacao: "nunca um segundo débito"
+      - de: det
+        para: itp
+        tipo: async
+        msg: "A detentora notifica a ITP do estado terminal: liquidado"
+        estados: { itp: ativo }
+      - de: det
+        para: itp
+        tipo: async
+        msg: "A mesma notificação chega de novo, e a ITP mantém o estado terminal"
+        anotacao: "duplicata não reverte o terminal"

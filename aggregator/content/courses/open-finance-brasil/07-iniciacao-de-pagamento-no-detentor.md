@@ -61,6 +61,14 @@ cegas, o que arriscaria uma segunda movimentação de dinheiro para a mesma inte
 of-iniciacao
 ```
 
+O roteiro abaixo segue o Pix de R$ 100 do "Exemplo numa fintech" deste marco, desce para dentro
+da detentora quando a iniciação chega e volta ao ecossistema para o que mais importa: o
+resultado desconhecido, o retry com a mesma chave e a notificação repetida.
+
+```walkthrough
+of-iniciacao-ponta-a-ponta
+```
+
 ## Pagamento agendado, recorrente, e o uso de *hold*
 
 Pagamento **agendado** (executar numa data futura) e **recorrente** (**conferir** as modalidades e

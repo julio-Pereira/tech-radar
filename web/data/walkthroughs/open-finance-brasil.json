@@ -1,0 +1,540 @@
+{
+  "slug": "open-finance-brasil",
+  "walkthroughs": {
+    "of-iniciacao-ponta-a-ponta": {
+      "id": "of-iniciacao-ponta-a-ponta",
+      "titulo": "Uma iniciação de pagamento, do consentimento ao estado terminal",
+      "resumo": "O único consentimento que move dinheiro: de uso único, preso ao valor e ao recebedor, e com um só desfecho.",
+      "atores": [
+        {
+          "id": "cliente",
+          "rotulo": "cliente (app da detentora)"
+        },
+        {
+          "id": "itp",
+          "rotulo": "ITP"
+        },
+        {
+          "id": "det",
+          "rotulo": "detentora"
+        },
+        {
+          "id": "spi",
+          "rotulo": "SPI"
+        },
+        {
+          "id": "pag",
+          "rotulo": "API de pagamentos"
+        },
+        {
+          "id": "cons",
+          "rotulo": "consentimentos"
+        },
+        {
+          "id": "antifraude",
+          "rotulo": "limites e antifraude"
+        },
+        {
+          "id": "ledger",
+          "rotulo": "fin-books (contas)"
+        },
+        {
+          "id": "rails",
+          "rotulo": "fin-rails (Pix)"
+        }
+      ],
+      "camadas": [
+        {
+          "id": "ecossistema",
+          "rotulo": "Ecossistema",
+          "diagrama": "of-wt-ecossistema",
+          "trilha": [
+            "ecossistema"
+          ]
+        },
+        {
+          "id": "detentora",
+          "rotulo": "Detentora",
+          "diagrama": "of-wt-detentora",
+          "trilha": [
+            "ecossistema",
+            "detentora"
+          ]
+        }
+      ],
+      "etapas": [
+        {
+          "id": "consentimento",
+          "titulo": "O consentimento de pagamento",
+          "subtitulo": "Valor, recebedor e conta, exatos",
+          "camada": "ecossistema",
+          "html": "\u003cp\u003eDiferente do consentimento de dados, o de pagamento especifica \u003cstrong\u003evalor\u003c/strong\u003e, \u003cstrong\u003erecebedor\u003c/strong\u003e e\n\u003cstrong\u003econta de débito\u003c/strong\u003e de forma exata, tem validade curta e é de \u003cstrong\u003euso único\u003c/strong\u003e: depois de\nconsumido, nunca autoriza um segundo movimento, mesmo que o primeiro falhe.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 1,
+              "de": "itp",
+              "para": "det",
+              "msg": "A ITP cria na detentora o consentimento de um Pix de 100.00, com recebedor e conta de débito exatos"
+            },
+            {
+              "n": 2,
+              "de": "det",
+              "para": "itp",
+              "msg": "A detentora registra o consentimento, de validade curta, que ainda espera o cliente"
+            }
+          ],
+          "sequencia": {
+            "id": "of-iniciacao-ponta-a-ponta-consentimento",
+            "tipo": "sequencia",
+            "titulo": "O consentimento de pagamento",
+            "descricao": "Etapa \"O consentimento de pagamento\" em sequência: 2 eventos entre 2 atores.",
+            "participantes": [
+              {
+                "id": "itp",
+                "rotulo": "ITP"
+              },
+              {
+                "id": "det",
+                "rotulo": "detentora"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "itp",
+                "para": "det",
+                "rotulo": "pede",
+                "tipo": "sync"
+              },
+              {
+                "de": "det",
+                "para": "itp",
+                "rotulo": "responde",
+                "tipo": "reply"
+              }
+            ]
+          },
+          "omitidos": 7
+        },
+        {
+          "id": "autenticacao",
+          "titulo": "O cliente autoriza aquele pagamento",
+          "subtitulo": "Autenticação forte, não a sessão de dados",
+          "camada": "ecossistema",
+          "html": "\u003cp\u003eO cliente confirma no app da \u003cstrong\u003esua\u003c/strong\u003e detentora, com \u003cstrong\u003eautenticação forte\u003c/strong\u003e: uma\nconfirmação ativa daquele movimento específico de dinheiro, mais rigorosa que a da\nconsulta de dados. A jornada pode ter ou não redirecionamento; o marco manda conferir a\nvigente.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 3,
+              "de": "det",
+              "para": "cliente",
+              "msg": "A detentora mostra ao cliente o valor e o recebedor consentidos"
+            },
+            {
+              "n": 4,
+              "de": "cliente",
+              "para": "det",
+              "msg": "O cliente autentica fortemente e confirma aquele pagamento",
+              "anotacao": "mais rigorosa que a de consulta de dados"
+            }
+          ],
+          "sequencia": {
+            "id": "of-iniciacao-ponta-a-ponta-autenticacao",
+            "tipo": "sequencia",
+            "titulo": "O cliente autoriza aquele pagamento",
+            "descricao": "Etapa \"O cliente autoriza aquele pagamento\" em sequência: 2 eventos entre 2 atores.",
+            "participantes": [
+              {
+                "id": "cliente",
+                "rotulo": "cliente (app da detentora)"
+              },
+              {
+                "id": "det",
+                "rotulo": "detentora"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "det",
+                "para": "cliente",
+                "rotulo": "mostra",
+                "tipo": "sync"
+              },
+              {
+                "de": "cliente",
+                "para": "det",
+                "rotulo": "confirma",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 7
+        },
+        {
+          "id": "iniciacao",
+          "titulo": "A iniciação chega à detentora",
+          "subtitulo": "Conferir, consumir, avaliar",
+          "camada": "detentora",
+          "html": "\u003cp\u003eA ação desce para dentro da detentora. Valor e recebedor da iniciação precisam ser\n\u003cstrong\u003eidênticos\u003c/strong\u003e aos do consentimento: uma diferença é outra operação, e é recusada. Conferido,\no consentimento é consumido. Limites e antifraude olham o perfil de risco próprio da\niniciação por terceiros.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 5,
+              "de": "itp",
+              "para": "pag",
+              "msg": "A ITP inicia o pagamento com a sua chave de idempotência"
+            },
+            {
+              "n": 6,
+              "de": "pag",
+              "para": "cons",
+              "msg": "A API de pagamentos confere valor e recebedor contra o consentimento: idênticos",
+              "anotacao": "qualquer diferença é recusada"
+            },
+            {
+              "n": 7,
+              "de": "cons",
+              "para": "pag",
+              "msg": "O consentimento é consumido e não autoriza mais nenhum movimento",
+              "anotacao": "uso único, mesmo que algo falhe depois",
+              "estados": {
+                "cons": "removido"
+              }
+            },
+            {
+              "n": 8,
+              "de": "pag",
+              "para": "antifraude",
+              "msg": "A API de pagamentos passa a iniciação por limites e antifraude",
+              "estados": {
+                "cons": "removido"
+              }
+            },
+            {
+              "n": 9,
+              "de": "antifraude",
+              "para": "pag",
+              "msg": "Limites e antifraude aprovam",
+              "estados": {
+                "cons": "removido"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "of-iniciacao-ponta-a-ponta-iniciacao",
+            "tipo": "sequencia",
+            "titulo": "A iniciação chega à detentora",
+            "descricao": "Etapa \"A iniciação chega à detentora\" em sequência: 5 eventos entre 4 atores.",
+            "participantes": [
+              {
+                "id": "itp",
+                "rotulo": "ITP"
+              },
+              {
+                "id": "pag",
+                "rotulo": "API de pagamentos"
+              },
+              {
+                "id": "cons",
+                "rotulo": "consentimentos"
+              },
+              {
+                "id": "antifraude",
+                "rotulo": "limites e antifraude"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "itp",
+                "para": "pag",
+                "rotulo": "inicia",
+                "tipo": "sync"
+              },
+              {
+                "de": "pag",
+                "para": "cons",
+                "rotulo": "confere",
+                "tipo": "sync"
+              },
+              {
+                "de": "cons",
+                "para": "pag",
+                "rotulo": "consumido",
+                "tipo": "reply"
+              },
+              {
+                "de": "pag",
+                "para": "antifraude",
+                "rotulo": "avalia",
+                "tipo": "sync"
+              },
+              {
+                "de": "antifraude",
+                "para": "pag",
+                "rotulo": "decisão",
+                "tipo": "reply"
+              }
+            ]
+          },
+          "omitidos": 5
+        },
+        {
+          "id": "debito",
+          "titulo": "O débito e a ordem",
+          "subtitulo": "É a detentora quem move o dinheiro",
+          "camada": "detentora",
+          "html": "\u003cp\u003eAprovada, a iniciação debita a conta que o cliente consentiu e segue para o Pix. A ITP não\ntoca no dinheiro em nenhum momento: ela pediu, o cliente autorizou na própria detentora, e\né a detentora que executa.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 10,
+              "de": "pag",
+              "para": "ledger",
+              "msg": "A API de pagamentos debita 100.00 da conta de débito consentida",
+              "estados": {
+                "cons": "removido",
+                "ledger": "novo"
+              }
+            },
+            {
+              "n": 11,
+              "de": "pag",
+              "para": "rails",
+              "msg": "A ordem segue para o Pix pelo fin-rails",
+              "estados": {
+                "cons": "removido",
+                "ledger": "novo"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "of-iniciacao-ponta-a-ponta-debito",
+            "tipo": "sequencia",
+            "titulo": "O débito e a ordem",
+            "descricao": "Etapa \"O débito e a ordem\" em sequência: 2 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "pag",
+                "rotulo": "API de pagamentos"
+              },
+              {
+                "id": "ledger",
+                "rotulo": "fin-books (contas)"
+              },
+              {
+                "id": "rails",
+                "rotulo": "fin-rails (Pix)"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "pag",
+                "para": "ledger",
+                "rotulo": "debita",
+                "tipo": "sync"
+              },
+              {
+                "de": "pag",
+                "para": "rails",
+                "rotulo": "ordem",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 6
+        },
+        {
+          "id": "desconhecido",
+          "titulo": "O SPI não responde",
+          "subtitulo": "Consultar, nunca reenviar",
+          "camada": "ecossistema",
+          "html": "\u003cp\u003eDe volta ao ecossistema, o mesmo problema do \u003ccode\u003esystem-design/09\u003c/code\u003e: o SPI não responde no\nprazo, e o resultado é \u003cstrong\u003edesconhecido\u003c/strong\u003e. A detentora resolve por consulta. Reenviar às cegas\narriscaria uma segunda movimentação de dinheiro para a mesma intenção.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 12,
+              "de": "det",
+              "para": "spi",
+              "msg": "A detentora envia a ordem ao SPI",
+              "estados": {
+                "cons": "removido",
+                "ledger": "novo"
+              }
+            },
+            {
+              "n": 13,
+              "de": "spi",
+              "para": "det",
+              "msg": "O SPI não responde no prazo: o resultado é desconhecido",
+              "anotacao": "não é falha",
+              "estados": {
+                "cons": "removido",
+                "ledger": "novo"
+              }
+            },
+            {
+              "n": 14,
+              "de": "det",
+              "para": "spi",
+              "msg": "A detentora consulta o estado da ordem, em vez de reenviar",
+              "estados": {
+                "cons": "removido",
+                "ledger": "novo"
+              }
+            },
+            {
+              "n": 15,
+              "de": "spi",
+              "para": "det",
+              "msg": "A consulta mostra que a ordem liquidou",
+              "estados": {
+                "cons": "removido",
+                "det": "ativo",
+                "ledger": "novo"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "of-iniciacao-ponta-a-ponta-desconhecido",
+            "tipo": "sequencia",
+            "titulo": "O SPI não responde",
+            "descricao": "Etapa \"O SPI não responde\" em sequência: 4 eventos entre 2 atores.",
+            "participantes": [
+              {
+                "id": "det",
+                "rotulo": "detentora"
+              },
+              {
+                "id": "spi",
+                "rotulo": "SPI"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "det",
+                "para": "spi",
+                "rotulo": "ordem",
+                "tipo": "async"
+              },
+              {
+                "de": "spi",
+                "para": "det",
+                "rotulo": "resultado",
+                "tipo": "reply"
+              },
+              {
+                "de": "det",
+                "para": "spi",
+                "rotulo": "ordem",
+                "tipo": "sync"
+              },
+              {
+                "de": "spi",
+                "para": "det",
+                "rotulo": "resultado",
+                "tipo": "reply"
+              }
+            ]
+          },
+          "omitidos": 7
+        },
+        {
+          "id": "terminal",
+          "titulo": "Um só desfecho",
+          "subtitulo": "Retry idempotente, notificação repetida",
+          "camada": "ecossistema",
+          "html": "\u003cp\u003eSem resposta a tempo, a ITP repete a chamada com a \u003cstrong\u003emesma chave\u003c/strong\u003e, e recebe a mesma\nresposta: um único pagamento. O estado terminal chega por notificação, e uma notificação\nduplicada ou fora de ordem, depois dele, não o reverte.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 16,
+              "de": "itp",
+              "para": "det",
+              "msg": "Sem resposta a tempo, a ITP repete a iniciação com a mesma chave de idempotência",
+              "estados": {
+                "cons": "removido",
+                "det": "ativo",
+                "ledger": "novo"
+              }
+            },
+            {
+              "n": 17,
+              "de": "det",
+              "para": "itp",
+              "msg": "A detentora devolve a mesma resposta da primeira chamada: um único pagamento",
+              "anotacao": "nunca um segundo débito",
+              "estados": {
+                "cons": "removido",
+                "det": "ativo",
+                "ledger": "novo"
+              }
+            },
+            {
+              "n": 18,
+              "de": "det",
+              "para": "itp",
+              "msg": "A detentora notifica a ITP do estado terminal: liquidado",
+              "estados": {
+                "cons": "removido",
+                "det": "ativo",
+                "itp": "ativo",
+                "ledger": "novo"
+              }
+            },
+            {
+              "n": 19,
+              "de": "det",
+              "para": "itp",
+              "msg": "A mesma notificação chega de novo, e a ITP mantém o estado terminal",
+              "anotacao": "duplicata não reverte o terminal",
+              "estados": {
+                "cons": "removido",
+                "det": "ativo",
+                "itp": "ativo",
+                "ledger": "novo"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "of-iniciacao-ponta-a-ponta-terminal",
+            "tipo": "sequencia",
+            "titulo": "Um só desfecho",
+            "descricao": "Etapa \"Um só desfecho\" em sequência: 4 eventos entre 2 atores.",
+            "participantes": [
+              {
+                "id": "itp",
+                "rotulo": "ITP"
+              },
+              {
+                "id": "det",
+                "rotulo": "detentora"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "itp",
+                "para": "det",
+                "rotulo": "pede",
+                "tipo": "sync"
+              },
+              {
+                "de": "det",
+                "para": "itp",
+                "rotulo": "responde",
+                "tipo": "reply"
+              },
+              {
+                "de": "det",
+                "para": "itp",
+                "rotulo": "responde",
+                "tipo": "async"
+              },
+              {
+                "de": "det",
+                "para": "itp",
+                "rotulo": "responde",
+                "tipo": "async"
+              }
+            ]
+          },
+          "omitidos": 7
+        }
+      ],
+      "total": 19
+    }
+  }
+}

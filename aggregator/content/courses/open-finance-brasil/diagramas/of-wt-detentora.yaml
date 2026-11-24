@@ -1,0 +1,25 @@
+id: of-wt-detentora
+tipo: topologia
+titulo: "Dentro da detentora, o consentimento é conferido e consumido antes do débito"
+descricao: >
+  A iniciação da ITP chega à API de pagamentos do transmissor. Ela confere valor e recebedor
+  contra o consentimento, que é consumido e nunca autoriza um segundo movimento. Depois passa por
+  limites e antifraude, com o perfil de risco próprio da iniciação por terceiros. Só então debita
+  a conta do cliente no fin-books e entrega a ordem ao fin-rails, que fala com o Pix.
+grupos:
+  - { id: det, rotulo: "detentora", col: 1, row: 0, cols: 2, rows: 3 }
+nos:
+  - { id: itp, rotulo: "ITP", col: 0, row: 1, papel: externo }
+  - { id: antifraude, rotulo: "limites e antifraude", grupo: det, col: 1, row: 0 }
+  - { id: pag, rotulo: "API de pagamentos", grupo: det, col: 1, row: 1, papel: destaque }
+  - { id: cons, rotulo: "consentimentos", grupo: det, col: 2, row: 1 }
+  - { id: ledger, rotulo: "fin-books (contas)", grupo: det, col: 1, row: 2 }
+  - { id: rails, rotulo: "fin-rails (Pix)", grupo: det, col: 2, row: 2 }
+arestas:
+  - { de: itp, para: pag, rotulo: "inicia" }
+  - { de: pag, para: cons, rotulo: "confere" }
+  - { de: cons, para: pag, rotulo: "consumido" }
+  - { de: pag, para: antifraude, rotulo: "avalia" }
+  - { de: antifraude, para: pag, rotulo: "decisão" }
+  - { de: pag, para: ledger, rotulo: "debita" }
+  - { de: pag, para: rails, rotulo: "ordem" }

@@ -1,0 +1,21 @@
+id: of-wt-ecossistema
+tipo: topologia
+titulo: "Na iniciação, a ITP pede e a detentora é quem move o dinheiro"
+descricao: >
+  A ITP, a iniciadora de pagamento, cria o consentimento e depois inicia o pagamento na
+  detentora, a instituição onde está a conta do cliente. O cliente fala com a própria detentora
+  para autenticar fortemente e confirmar aquele pagamento. É a detentora que envia a ordem ao SPI,
+  consulta o estado quando ele não responde no prazo e devolve à ITP o estado terminal, por
+  resposta ou por notificação.
+nos:
+  - { id: cliente, rotulo: "cliente (app da detentora)", col: 1, row: 0, papel: externo }
+  - { id: itp, rotulo: "ITP", col: 0, row: 1 }
+  - { id: det, rotulo: "detentora", col: 1, row: 1, papel: destaque }
+  - { id: spi, rotulo: "SPI", col: 2, row: 1, papel: externo }
+arestas:
+  - { de: itp, para: det, rotulo: "pede" }
+  - { de: det, para: itp, rotulo: "responde" }
+  - { de: det, para: cliente, rotulo: "mostra" }
+  - { de: cliente, para: det, rotulo: "confirma" }
+  - { de: det, para: spi, rotulo: "ordem" }
+  - { de: spi, para: det, rotulo: "resultado" }
