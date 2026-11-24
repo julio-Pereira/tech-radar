@@ -4,22 +4,11 @@
 // Never autoplays; pauses off screen and in a hidden tab; with reduced
 // motion, steps still change but nothing moves. Packets run on the Web
 // Animations API, which sets no style attribute (CSP style-src 'self').
-import { el } from './diagram-svg.js';
+import { nodesOf, setState, still, packet, pauseWhenHidden, button } from './diagram-core.js';
 
-// Every state has a text mark too, never color alone.
-const MARK = { ativo: '●', novo: '+', saindo: '↓', removido: '∅', falha: '✕', inativo: '○', destaque: '★' };
 const STEP_MS = 2500;
 const SPEEDS = [1, 2, 0.5];
 const players = new WeakMap();
-
-const button = (cls, text, label) => {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = cls;
-  b.textContent = text;
-  b.setAttribute('aria-label', label);
-  return b;
-};
 
 /**
  * Wires a player to a drawn diagram. `mount` is the element the controls
@@ -28,11 +17,7 @@ const button = (cls, text, label) => {
 export function attach(svg, spec, mount, twin) {
   const steps = spec.animacao;
   const last = steps.length - 1;
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  const nodes = [...svg.querySelectorAll('[data-id]')].map((g) => {
-    const t = g.querySelector('.diagrama-no-rotulo');
-    return { g, t, base: t.textContent };
-  });
+  const nodes = nodesOf(svg);
   const edges = [...svg.querySelectorAll('[data-aresta]')].map((g) => {
     const t = g.querySelector('.diagrama-aresta-rotulo');
     return { g, t, base: t && t.textContent };
@@ -60,31 +45,15 @@ export function attach(svg, spec, mount, twin) {
   let speed = 1;
   let playing = false;
 
-  const packet = (geo) => {
-    const len = geo.getTotalLength();
-    const dot = el('circle', { r: 5, class: 'diagrama-pacote' });
-    svg.appendChild(dot);
-    const frames = [];
-    for (let k = 0; k <= 12; k++) {
-      const p = geo.getPointAtLength((len * k) / 12);
-      frames.push({ transform: `translate(${p.x}px, ${p.y}px)` });
-    }
-    dot.animate(frames, { duration: 1400 / speed, easing: 'ease-in-out', fill: 'forwards' })
-      .finished.then(() => dot.remove(), () => dot.remove());
-  };
-
   function go(n, sync = true) {
     i = Math.max(0, Math.min(last, n));
     const s = steps[i];
-    svg.getAnimations({ subtree: true }).forEach((a) => a.cancel());
-    svg.querySelectorAll('.diagrama-pacote').forEach((d) => d.remove());
+    still(svg);
     const moving = [];
-    for (const { g, t, base } of nodes) {
-      const id = g.dataset.id;
+    for (const n of nodes) {
+      const id = n.g.dataset.id;
       const st = s.atual ? (s.atual === id ? 'atual' : '') : (s.estados || {})[id] || '';
-      g.className.baseVal = g.className.baseVal.replace(/ diagrama-est-\S+/g, '') + (st ? ` diagrama-est-${st}` : '');
-      const text = (s.rotulos || {})[id] || base;
-      t.textContent = st === 'atual' ? `▶ ${text}` : MARK[st] ? `${MARK[st]} ${text}` : text;
+      setState(n, st, (s.rotulos || {})[id] || n.base);
     }
     const flows = s.transicao ? [s.transicao] : s.fluxos || [];
     for (const { g, t, base } of edges) {
@@ -100,7 +69,7 @@ export function attach(svg, spec, mount, twin) {
       g.classList.toggle('diagrama-percorrida', fresh);
       if (fresh) moving.push(g);
     });
-    if (!reduce.matches) moving.forEach((g) => packet(g.querySelector('.diagrama-aresta')));
+    moving.forEach((g) => packet(svg, g.querySelector('.diagrama-aresta'), speed));
 
     pos.textContent = `passo ${i + 1} de ${steps.length}`;
     // aria-disabled, not disabled: the focused button keeps the focus.
@@ -156,9 +125,7 @@ export function attach(svg, spec, mount, twin) {
 
   // Out of sight, out of motion (WCAG 2.2.2).
   const host = mount.closest('figure, dialog');
-  new IntersectionObserver((es) => { if (!es[0].isIntersecting) pause(); }).observe(host);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
-  if (host.tagName === 'DIALOG') host.addEventListener('close', pause, { once: true });
+  pauseWhenHidden(host, pause);
 
   const api = { go, pause, get step() { return i; } };
   // The figure's player and the Ampliar one stay on the same step.
