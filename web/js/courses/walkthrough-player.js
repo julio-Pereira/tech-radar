@@ -72,25 +72,46 @@ function attach(figure, slug, w, diagramas) {
   zoom.setAttribute('aria-label', 'Ampliar a visão');
   visao.append(trilha, tabs, area, zoom);
 
-  // The card, the controls and the step's prose and panel.
+  // A face is the event card, the controls and the live region. The figure
+  // has one; Ampliar builds a second inside the dialog (the page behind a
+  // modal dialog is inert), and every face shows the same state.
+  const faces = [];
+  function face() {
+    const f = {
+      cartao: make('div', 'wt-cartao'), num: make('p', 'wt-num'), rota: make('p', 'wt-rota'),
+      msg: make('p', 'wt-msg'), anot: make('p', 'wt-anot'), ctl: make('div', 'wt-controles'), vivo: make('p', 'sr-only'),
+      first: button('wt-inicio', '⏮', 'Início'),
+      prevE: button('wt-etapa-ant', '«', 'Etapa anterior'),
+      prev: button('wt-ant', '◀', 'Evento anterior'),
+      play: button('wt-play', '▶', 'Reproduzir até o fim da etapa'),
+      next: button('wt-prox', '▶|', 'Próximo evento'),
+      nextE: button('wt-etapa-prox', '»', 'Próxima etapa'),
+      speed: button('wt-velocidade', speedLabel(), `Velocidade: ${speedLabel()}`),
+    };
+    f.cartao.append(f.num, f.rota, f.msg, f.anot);
+    f.ctl.setAttribute('role', 'group');
+    f.ctl.setAttribute('aria-label', 'Controles do roteiro');
+    f.ctl.append(f.first, f.prevE, f.prev, f.play, f.next, f.nextE, f.speed);
+    f.first.addEventListener('click', () => to(0));
+    f.prev.addEventListener('click', () => to(i - 1));
+    f.next.addEventListener('click', () => to(i + 1));
+    f.prevE.addEventListener('click', () => etapaAnterior());
+    f.nextE.addEventListener('click', () => toEtapa(k + 1));
+    f.play.addEventListener('click', toggle);
+    f.speed.addEventListener('click', () => {
+      speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length];
+      for (const x of faces) {
+        x.speed.textContent = speedLabel();
+        x.speed.setAttribute('aria-label', `Velocidade: ${speedLabel()}`);
+      }
+    });
+    faces.push(f);
+    return f;
+  }
+  const speedLabel = () => `${String(speed).replace('.', ',')}×`;
+
+  // The figure's face, then the step's prose and panel.
   const lado = make('div', 'wt-lado');
-  const cartao = make('div', 'wt-cartao');
-  const num = make('p', 'wt-num');
-  const rota = make('p', 'wt-rota');
-  const msg = make('p', 'wt-msg');
-  const anot = make('p', 'wt-anot');
-  cartao.append(num, rota, msg, anot);
-  const ctl = make('div', 'wt-controles');
-  ctl.setAttribute('role', 'group');
-  ctl.setAttribute('aria-label', 'Controles do roteiro');
-  const first = button('wt-inicio', '⏮', 'Início');
-  const prevE = button('wt-etapa-ant', '«', 'Etapa anterior');
-  const prev = button('wt-ant', '◀', 'Evento anterior');
-  const play = button('wt-play', '▶', 'Reproduzir até o fim da etapa');
-  const next = button('wt-prox', '▶|', 'Próximo evento');
-  const nextE = button('wt-etapa-prox', '»', 'Próxima etapa');
-  const speedBtn = button('wt-velocidade', '1×', 'Velocidade: 1×');
-  ctl.append(first, prevE, prev, play, next, nextE, speedBtn);
   const etapaPos = make('p', 'wt-etapa-pos');
   const pontos = make('span', 'wt-pontos');
   pontos.setAttribute('aria-hidden', 'true');
@@ -106,16 +127,17 @@ function attach(figure, slug, w, diagramas) {
   const code = make('code');
   pre.append(code);
   painel.append(painelSum, painelNota, pre);
-  const vivo = make('p', 'sr-only');
-  lado.append(cartao, ctl, etapaPos, titulo, sub, prosa, painel, vivo);
+  let speed = 1;
+  const main = face();
+  lado.append(main.cartao, main.ctl, etapaPos, titulo, sub, prosa, painel, main.vivo);
   root.append(visao, lado);
   figure.querySelector('.walkthrough-resumo').after(root);
 
   let i = 0;
   let k = -1;
   let showSeq = false;
-  let speed = 1;
   let timer = 0;
+  let zoomed = null; // { svg, spec } while Ampliar is open
   let playing = false;
 
   function view(e) {
@@ -167,6 +189,18 @@ function attach(figure, slug, w, diagramas) {
       }
     }
     light(v.svg, e, user);
+    // Ampliar follows the walkthrough, layer and view included.
+    if (zoomed) {
+      if (zoomed.spec !== v.spec) {
+        const z = draw(v.spec, `wt${n}z${++seq}`, false);
+        z.setAttribute('aria-labelledby', 'diagrama-dialogo-titulo');
+        zoomed.svg.replaceWith(z);
+        fitViewBox(z);
+        z.closest('dialog').querySelector('h2').textContent = v.spec.titulo;
+        zoomed = { svg: z, spec: v.spec };
+      }
+      light(zoomed.svg, e, user);
+    }
 
     const c = camadas[etapa.camada];
     crumbs.replaceChildren(...c.trilha.map((id, x) => {
@@ -179,11 +213,6 @@ function attach(figure, slug, w, diagramas) {
     tabT.tabIndex = showSeq ? -1 : 0;
     tabS.tabIndex = showSeq ? 0 : -1;
 
-    num.textContent = `Evento ${e.n} de ${events.length}`;
-    rota.textContent = `${rotulo[e.de]} → ${rotulo[e.para]}`;
-    msg.textContent = e.msg;
-    anot.textContent = e.anotacao || '';
-    anot.hidden = !e.anotacao;
 
     if (novaEtapa) {
       etapaTxt.textContent = `Etapa ${k + 1} de ${w.etapas.length}`;
@@ -202,10 +231,17 @@ function attach(figure, slug, w, diagramas) {
       code.replaceChildren(...p.linhas.map((l, x) => make('span', x + 1 >= e.painel.de && x + 1 <= e.painel.ate ? 'wt-linha wt-linha-on' : 'wt-linha', `${l}\n`)));
     }
 
-    for (const [b, off] of [[first, i === 0], [prev, i === 0], [prevE, i === 0], [next, i === last], [nextE, k === w.etapas.length - 1]]) {
-      b.setAttribute('aria-disabled', String(off));
+    for (const f of faces) {
+      f.num.textContent = `Evento ${e.n} de ${events.length}`;
+      f.rota.textContent = `${rotulo[e.de]} → ${rotulo[e.para]}`;
+      f.msg.textContent = e.msg;
+      f.anot.textContent = e.anotacao || '';
+      f.anot.hidden = !e.anotacao;
+      for (const [b, off] of [[f.first, i === 0], [f.prev, i === 0], [f.prevE, i === 0], [f.next, i === last], [f.nextE, k === w.etapas.length - 1]]) {
+        b.setAttribute('aria-disabled', String(off));
+      }
+      f.vivo.textContent = `${novaEtapa ? `Etapa ${k + 1} de ${w.etapas.length}: ${etapa.titulo}. ` : ''}Evento ${e.n} de ${events.length}. ${rotulo[e.de]} para ${rotulo[e.para]}. ${e.msg}`;
     }
-    vivo.textContent = `${novaEtapa ? `Etapa ${k + 1} de ${w.etapas.length}: ${etapa.titulo}. ` : ''}Evento ${e.n} de ${events.length}. ${rotulo[e.de]} para ${rotulo[e.para]}. ${e.msg}`;
     if (user) link();
   }
 
@@ -220,8 +256,14 @@ function attach(figure, slug, w, diagramas) {
   function pause() {
     clearTimeout(timer);
     playing = false;
-    play.textContent = '▶';
-    play.setAttribute('aria-label', 'Reproduzir até o fim da etapa');
+    labelPlay();
+  }
+
+  function labelPlay() {
+    for (const f of faces) {
+      f.play.textContent = playing ? '⏸' : '▶';
+      f.play.setAttribute('aria-label', playing ? 'Pausar' : 'Reproduzir até o fim da etapa');
+    }
   }
 
   function tick() {
@@ -240,14 +282,15 @@ function attach(figure, slug, w, diagramas) {
     if (i === last) go(0);
     else if (e.j === w.etapas[e.k].eventos.length - 1) go(i + 1);
     playing = true;
-    play.textContent = '⏸';
-    play.setAttribute('aria-label', 'Pausar');
+    labelPlay();
     tick();
   }
 
   const to = (x) => { pause(); go(x); };
   const etapaStart = (x) => events.findIndex((e) => e.k === x);
   const toEtapa = (x) => to(etapaStart(Math.max(0, Math.min(w.etapas.length - 1, x))));
+  // Mid-step, « goes to the step's start; at its start, to the previous step.
+  const etapaAnterior = () => toEtapa(k - (events[i].j === 0 ? 1 : 0));
   const setView = (s) => {
     if (s === showSeq) return;
     showSeq = s;
@@ -255,26 +298,31 @@ function attach(figure, slug, w, diagramas) {
     (s ? tabS : tabT).focus();
   };
 
-  first.addEventListener('click', () => to(0));
-  prev.addEventListener('click', () => to(i - 1));
-  next.addEventListener('click', () => to(i + 1));
-  prevE.addEventListener('click', () => toEtapa(k - (events[i].j === 0 ? 1 : 0)));
-  nextE.addEventListener('click', () => toEtapa(k + 1));
-  play.addEventListener('click', toggle);
   tabT.addEventListener('click', () => setView(false));
   tabS.addEventListener('click', () => setView(true));
-  speedBtn.addEventListener('click', () => {
-    speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length];
-    const label = `${String(speed).replace('.', ',')}×`;
-    speedBtn.textContent = label;
-    speedBtn.setAttribute('aria-label', `Velocidade: ${label}`);
-  });
+  // Ampliar: the view full screen, with its own card and controls (the
+  // class diagrama-player makes openZoom remove them on close).
   zoom.addEventListener('click', () => {
-    pause();
     const v = view(events[i]);
-    light(openZoom(v.spec, v.spec.titulo, zoom), events[i], false);
+    const svg = openZoom(v.spec, v.spec.titulo, zoom);
+    const dlg = svg.closest('dialog');
+    const f = face();
+    const bar = make('div', 'diagrama-player wt-zoom');
+    bar.append(f.cartao, f.ctl, f.vivo);
+    bar.addEventListener('keydown', onKey);
+    dlg.append(bar);
+    zoomed = { svg, spec: v.spec };
+    dlg.addEventListener('close', () => {
+      pause();
+      faces.splice(faces.indexOf(f), 1);
+      zoomed = null;
+    }, { once: true });
+    go(i, false);
+    labelPlay();
+    f.vivo.setAttribute('aria-live', 'polite');
   });
-  root.addEventListener('keydown', (ev) => {
+  root.addEventListener('keydown', onKey);
+  function onKey(ev) {
     const t = ev.target;
     if (t.getAttribute('role') === 'tab' && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight')) {
       ev.preventDefault();
@@ -287,15 +335,15 @@ function attach(figure, slug, w, diagramas) {
       ' ': toggle,
       ArrowLeft: () => to(i - 1),
       ArrowRight: () => to(i + 1),
-      PageUp: () => prevE.click(),
-      PageDown: () => nextE.click(),
+      PageUp: etapaAnterior,
+      PageDown: () => toEtapa(k + 1),
       Home: () => to(0),
       End: () => to(last),
     };
     if (!keys[ev.key]) return;
     ev.preventDefault();
     keys[ev.key]();
-  });
+  }
   area.tabIndex = 0;
 
   pauseWhenHidden(figure, pause);
@@ -307,5 +355,5 @@ function attach(figure, slug, w, diagramas) {
   if (start >= 0) figure.scrollIntoView({ block: 'start', behavior: reduceMotion() ? 'auto' : 'smooth' });
   // Live only after the first event is shown: opening the milestone does
   // not read the whole card at once.
-  vivo.setAttribute('aria-live', 'polite');
+  main.vivo.setAttribute('aria-live', 'polite');
 }

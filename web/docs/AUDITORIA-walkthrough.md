@@ -83,6 +83,15 @@ Cada regra tem caso válido e caso inválido em `aggregator/internal/course/walk
 - **D12 — `«` no meio de uma etapa volta ao início dela**; no início, vai à etapa anterior
   (como "faixa anterior" num player de áudio). O PageUp faz o mesmo.
 
+- **D13 — Ampliar com controles (pedido no checkpoint do celular).** No PR do piloto, o
+  Ampliar pausava e abria só a visão; como a página atrás de um `<dialog>` modal fica inerte,
+  no celular não havia como avançar nem tocar. Agora o diálogo ganha a sua própria "face":
+  cartão do evento, os 7 controles e uma região `aria-live` (a da figura fica inerte, então só a
+  do diálogo fala). As duas faces mostram o mesmo estado, a visão ampliada troca de camada e de
+  visão junto com o roteiro, e fechar o diálogo pausa e devolve o foco, com a figura no evento
+  onde ele parou. A barra usa a classe `diagrama-player`, que o `openZoom` já remove ao fechar,
+  como faz com o player da Fase 1.6. O `walkthrough-player.js` foi para 5.031 bytes gzip.
+
 ### Piloto 7.1: conteúdo conferido
 
 Encaixe: marco 01 (`arquitetura`), logo depois de "Quem executa esse laço", que já ensina o
@@ -120,7 +129,7 @@ colunas `LAST SEEN` e `TYPE` foram omitidas.
 Começa pausado; teclado completo (←/→, PageUp/PageDown, Home/End, Espaço); texto do
 `aria-live` por evento e por troca de etapa; play para no fim da etapa; deep link abre pausado
 no evento e a navegação não cria entrada no histórico; a troca de visão preserva o evento; o
-painel começa fechado e destaca as linhas; Ampliar abre só a visão, no evento atual; com
+painel começa fechado e destaca as linhas; Ampliar abre a visão com cartão e controles próprios, sincronizados com a figura, inclusive na troca de camada e no play; com
 `reducedMotion: 'reduce'`, `document.getAnimations()` vazio; zero violação de CSP e zero
 `style` no player; pausa com a aba oculta; 360 px com a visão sticky, a área ≤ 45vh e sem
 rolagem lateral; o módulo só é baixado em marco com walkthrough; rótulos dentro do `viewBox`

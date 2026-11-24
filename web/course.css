@@ -1975,3 +1975,7 @@ a.diagrama-conceito.conceito-retorno .diagrama-no-caixa { stroke: var(--accent-h
   .wt-entra { animation: wt-entra 0.35s ease-out; }
   @keyframes wt-entra { from { opacity: 0; } to { opacity: 1; } }
 }
+/* Ampliar on a walkthrough: the card and the controls under the view. */
+.wt-zoom { flex-direction: column; align-items: stretch; }
+.wt-zoom .wt-cartao { padding-top: 0; padding-bottom: 0; }
+.wt-zoom .wt-msg { font-size: 0.9rem; }

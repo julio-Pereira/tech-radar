@@ -29,11 +29,16 @@ async function watchCsp(page) {
 /** @param {import('@playwright/test').Page} page @param {string} [hash] */
 async function open(page, hash = `#/learn/${SLUG}`) {
   await watchCsp(page);
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'warning' || m.type() === 'error') errors.push(m.text()); });
   await page.goto(`/${hash}`);
   const node = page.locator(`.timeline-node[data-id="${MARCO}"]`);
   if (!hash.includes(`/${MARCO}`)) await node.locator('.node-toggle').click();
   const figure = page.locator(`figure.walkthrough[data-walkthrough="${SLUG}/${WT}"]`);
-  await expect(figure.locator('.wt-area svg')).toBeVisible();
+  await expect(figure.locator('.wt-area svg')).toBeVisible().catch((err) => {
+    throw new Error(`${err.message}\n${errors.join('\n')}`);
+  });
   return figure;
 }
 
@@ -171,16 +176,54 @@ test.describe('Walkthrough player', () => {
     await expect(painel).toBeHidden();
   });
 
-  test('Ampliar opens only the view, on the current event', async ({ page }) => {
-    const figure = await open(page, `#/learn/${SLUG}/${MARCO}/wt/${WT}/16`);
+  test('Ampliar opens the view with its own card and controls, in sync with the figure', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 760 });
+    const figure = await open(page, `#/learn/${SLUG}/${MARCO}/wt/${WT}/9`);
     await figure.locator('.diagrama-ampliar').click();
     const dialog = page.locator('dialog.diagrama-dialogo');
     await expect(dialog).toBeVisible();
-    await expect(dialog.locator('[data-aresta="kubelet>api"]')).toHaveClass(/diagrama-percorrida/);
-    await expect(dialog.locator('[data-id="pod"]')).toHaveClass(/diagrama-est-ativo/);
+    // The page behind a modal dialog is inert: the dialog has the controls.
+    const bar = dialog.locator('.wt-zoom');
+    await expect(bar.locator('.wt-controles button')).toHaveCount(7);
+    await expect(bar.locator('.wt-num')).toHaveText(`Evento 9 de ${TOTAL}`);
+    await expect(dialog.locator('[data-aresta="sched>api"]')).toHaveClass(/diagrama-percorrida/);
+    await expect(bar.locator('[aria-live="polite"]')).toHaveCount(1);
+
+    // Next crosses into the node layer: the zoomed view follows it.
+    await bar.locator('.wt-prox').click();
+    await expect(bar.locator('.wt-num')).toHaveText(`Evento 10 de ${TOTAL}`);
+    await expect(dialog.locator('svg [data-id="kubelet"]')).toHaveCount(1);
+    await expect(dialog.locator('[data-aresta="api>kubelet"]')).toHaveClass(/diagrama-percorrida/);
+    await expect(dialog.locator('h2')).toHaveText(/kubelet puxa o trabalho/);
+    await expect(dialog.locator('svg')).toHaveCount(1);
+
+    // The keyboard works on the dialog's controls too.
+    await bar.locator('.wt-prox').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(bar.locator('.wt-num')).toHaveText(`Evento 11 de ${TOTAL}`);
+
+    // Play runs inside the dialog and stops at the end of the step.
+    await bar.locator('.wt-velocidade').click(); // 2×
+    await bar.locator('.wt-play').click();
+    await expect(bar.locator('.wt-play')).toHaveAttribute('aria-label', 'Pausar');
+    await expect(bar.locator('.wt-num')).toHaveText(`Evento 12 de ${TOTAL}`, { timeout: 4000 });
+    await expect(bar.locator('.wt-play')).toHaveAttribute('aria-label', 'Reproduzir até o fim da etapa', { timeout: 4000 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+
+    // Closing keeps the event in the figure and gives the focus back.
     await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(dialog.locator('.wt-zoom')).toHaveCount(0);
     await expect(figure.locator('.diagrama-ampliar')).toBeFocused();
-    await expect(num(figure)).toHaveText(`Evento 16 de ${TOTAL}`);
+    await expect(num(figure)).toHaveText(`Evento 12 de ${TOTAL}`);
+    await expect(figure.locator('.wt-velocidade')).toHaveText('2×');
+
+    // Opened again, it starts on the current event, with one set of controls.
+    await figure.locator('.diagrama-ampliar').click();
+    await expect(dialog.locator('.wt-zoom')).toHaveCount(1);
+    await expect(dialog.locator('.wt-zoom .wt-num')).toHaveText(`Evento 12 de ${TOTAL}`);
+    await expect(dialog.locator('[data-id="pod"]')).toHaveCount(1);
+    await page.keyboard.press('Escape');
   });
 
   test('with reduced motion nothing animates, not even the change of layer', async ({ page }) => {
