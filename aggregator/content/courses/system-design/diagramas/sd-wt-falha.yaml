@@ -1,0 +1,30 @@
+id: sd-wt-falha
+tipo: topologia
+titulo: "No teste, o Toxiproxy fica entre o pix-gateway e o fake do SPI"
+descricao: >
+  O cliente pede o Pix ao pix-gateway, que valida, reserva no ledger e envia a ordem ao SPI.
+  No laboratório do marco, o SPI é um fake, e toda conversa com ele passa pelo Toxiproxy, que
+  injeta latência, derruba conexões ou corrompe respostas. O fake do SPI registra o que liquidou
+  no arquivo de liquidação do dia. A conciliação D+1 lê esse arquivo, resolve no ledger os
+  pagamentos que ficaram em verificação, e o ledger devolve o estado terminal ao pix-gateway, que
+  notifica o cliente.
+nos:
+  - { id: cliente, rotulo: "cliente (app)", col: 0, row: 0, papel: externo }
+  - { id: gw, rotulo: "pix-gateway", col: 1, row: 0, papel: destaque }
+  - { id: toxi, rotulo: "Toxiproxy", col: 2, row: 0 }
+  - { id: spi, rotulo: "fake do SPI", col: 3, row: 0, papel: externo }
+  - { id: ledger, rotulo: "ledger", col: 1, row: 1 }
+  - { id: conc, rotulo: "conciliação D+1", col: 2, row: 1 }
+  - { id: arquivo, rotulo: "arquivo do SPI", col: 3, row: 1 }
+arestas:
+  - { de: cliente, para: gw, rotulo: "pede" }
+  - { de: gw, para: cliente, rotulo: "estado" }
+  - { de: gw, para: ledger, rotulo: "lança" }
+  - { de: ledger, para: gw, rotulo: "terminal" }
+  - { de: gw, para: toxi, rotulo: "ordem" }
+  - { de: toxi, para: gw, rotulo: "resposta" }
+  - { de: toxi, para: spi, rotulo: "atrasa" }
+  - { de: spi, para: arquivo, rotulo: "registra" }
+  - { de: conc, para: arquivo, rotulo: "lê" }
+  - { de: arquivo, para: conc, rotulo: "linhas" }
+  - { de: conc, para: ledger, rotulo: "resolve" }

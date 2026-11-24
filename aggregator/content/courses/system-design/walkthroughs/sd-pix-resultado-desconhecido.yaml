@@ -1,0 +1,161 @@
+id: sd-pix-resultado-desconhecido
+titulo: "Um Pix sem resposta do SPI, até a conciliação D+1"
+resumo: "Débito feito, SPI em silêncio: o pagamento não falhou nem concluiu, e o desenho garante que ele chegue a um destino só."
+
+atores:
+  - { id: cliente, rotulo: "cliente (app)" }
+  - { id: gw, rotulo: "pix-gateway" }
+  - { id: toxi, rotulo: "Toxiproxy" }
+  - { id: spi, rotulo: "fake do SPI" }
+  - { id: ledger, rotulo: "ledger" }
+  - { id: conc, rotulo: "conciliação D+1" }
+  - { id: arquivo, rotulo: "arquivo do SPI" }
+
+camadas:
+  - { id: teste, rotulo: "Teste de falha", diagrama: sd-wt-falha }
+
+paineis:
+  - id: toxi
+    linguagem: bash
+    titulo: "a falha injetada (Toxiproxy)"
+    nota: "Portas e nomes do laboratório, ilustrativos"
+    conteudo: |
+      # o pix-gateway aponta para a porta do proxy, nunca para o fake do SPI
+      toxiproxy-cli create -l localhost:26090 -u localhost:8090 fake-spi
+      # 8 s de latência, acima do timeout configurado no pix-gateway
+      toxiproxy-cli toxic add -t latency -a latency=8000 fake-spi
+  - id: ledger
+    linguagem: log
+    titulo: "lançamentos e estados no ledger"
+    nota: "Ilustrativo: um pagamento, do débito ao destino"
+    conteudo: |
+      p-0042  idem k-9b1e  RESERVA  -120.00  EM_TRANSITO
+      p-0042  idem k-9b1e  ESTADO            ENVIADO_AO_SPI
+      p-0042  idem k-9b1e  ESTADO            EM_VERIFICACAO  prazo: conciliação D+1
+      p-0042  idem k-9b1e  EFETIVA  -120.00  LIQUIDADO       origem: conciliação D+1
+
+etapas:
+  - id: pedido
+    titulo: "O pedido e a reserva"
+    subtitulo: "Síncrono e local"
+    camada: teste
+    texto: |
+      Até aqui, nada de novo em relação ao fluxo feliz: validação de limite e antifraude,
+      síncronas, e a **reserva** no ledger, que debita e marca como "em trânsito" numa transação
+      local. A chave de idempotência vem do pedido e vai até o SPI.
+    eventos:
+      - de: cliente
+        para: gw
+        msg: "O cliente pede um Pix de 120.00, com chave de idempotência"
+      - de: gw
+        para: ledger
+        msg: "O pix-gateway valida limite e antifraude e reserva: débito de 120.00 em trânsito"
+        painel: { id: ledger, linhas: "1" }
+        estados: { ledger: novo }
+
+  - id: silencio
+    titulo: "O envio cai no silêncio"
+    subtitulo: "Resultado desconhecido não é falha"
+    camada: teste
+    texto: |
+      A partir do envio, o fluxo sai do controle do sistema. No teste, o Toxiproxy segura a
+      ordem por 8 segundos, mais que o timeout configurado. O pix-gateway não sabe se o SPI
+      liquidou. Dizer "falhou" ou "concluído" ao cliente seria mentir, e reenviar arriscaria
+      um segundo pagamento.
+    eventos:
+      - de: gw
+        para: toxi
+        msg: "O pix-gateway envia a ordem ao SPI, que no teste passa pelo Toxiproxy"
+        painel: { id: toxi, linhas: "1-2" }
+      - de: toxi
+        para: spi
+        msg: "O Toxiproxy segura a ordem por 8 s antes de entregá-la ao fake do SPI"
+        anotacao: "acima do timeout configurado"
+        painel: { id: toxi, linhas: "3-4" }
+      - de: gw
+        para: cliente
+        msg: "Estoura o timeout, e o pix-gateway responde ao cliente: pagamento em processamento"
+        anotacao: "nunca falhou, nunca concluído"
+        painel: { id: ledger, linhas: "2" }
+        estados: { gw: destaque }
+
+  - id: spi
+    titulo: "Enquanto isso, no SPI"
+    subtitulo: "A verdade existe, longe daqui"
+    camada: teste
+    texto: |
+      A ordem chega atrasada, mas chega. O fake do SPI liquida e registra a liquidação no
+      arquivo do dia. É por isso que "assumir falha e tentar de novo" é a resposta errada: o
+      pagamento pode já ter acontecido do outro lado.
+    eventos:
+      - de: spi
+        para: arquivo
+        msg: "O fake do SPI recebe a ordem atrasada, liquida e registra no arquivo do dia"
+        anotacao: "o pix-gateway ainda não sabe"
+        estados: { spi: ativo }
+
+  - id: consulta
+    titulo: "Consultar, nunca reenviar"
+    subtitulo: "Em verificação, com prazo"
+    camada: teste
+    texto: |
+      A resposta certa é **consultar o status** com o mesmo identificador, até obter um
+      resultado definitivo. Aqui a consulta também não resolve no prazo, e o pagamento entra em
+      "em verificação", com prazo declarado e alerta se não sair dele: nenhum pagamento fica
+      ali para sempre.
+    eventos:
+      - de: gw
+        para: toxi
+        msg: "O pix-gateway consulta o status da ordem, com o mesmo identificador, em vez de reenviar"
+      - de: toxi
+        para: gw
+        msg: "A consulta cai na mesma latência e não volta no prazo"
+        estados: { toxi: falha }
+      - de: gw
+        para: ledger
+        msg: "O pagamento entra em EM_VERIFICACAO, com prazo declarado e alerta"
+        painel: { id: ledger, linhas: "3" }
+        estados: { ledger: destaque }
+
+  - id: conciliacao
+    titulo: "A conciliação D+1 decide"
+    subtitulo: "O pior caso tem saída"
+    camada: teste
+    texto: |
+      No dia seguinte, a conciliação confere o que ficou em verificação contra o **arquivo de
+      liquidação** que o SPI publica. Se a ordem está lá, liquidou: o débito em trânsito vira
+      definitivo. Se não estivesse, o pagamento viraria revertido e o valor voltaria. Nunca os
+      dois destinos.
+    eventos:
+      - de: conc
+        para: arquivo
+        msg: "A conciliação D+1 lê o arquivo de liquidação publicado pelo SPI"
+      - de: arquivo
+        para: conc
+        tipo: reply
+        msg: "A ordem está no arquivo: ela liquidou"
+      - de: conc
+        para: ledger
+        msg: "A conciliação resolve no ledger: o débito em trânsito vira definitivo, LIQUIDADO"
+        painel: { id: ledger, linhas: "4" }
+        anotacao: "se não estivesse no arquivo, REVERTIDO"
+        estados: { ledger: ativo }
+
+  - id: aviso
+    titulo: "O cliente fica sabendo"
+    subtitulo: "Tarde, mas verdadeiro"
+    camada: teste
+    texto: |
+      O estado terminal volta ao pix-gateway, que notifica o cliente. A notificação chega
+      tarde, e é verdadeira. A conservação vale em todo instante do teste: débitos são iguais a
+      créditos mais o valor em trânsito.
+    eventos:
+      - de: ledger
+        para: gw
+        tipo: async
+        msg: "O ledger devolve ao pix-gateway o estado terminal: LIQUIDADO"
+      - de: gw
+        para: cliente
+        tipo: async
+        msg: "O pix-gateway notifica o cliente, tarde: o pagamento foi concluído"
+        estados: { gw: ativo }
