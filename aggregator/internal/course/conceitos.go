@@ -136,6 +136,12 @@ func resolveConceitos(list []Conceito, index bridgeIndex) (*conceitoSet, []error
 		if !conceitoIDRe.MatchString(c.ID) {
 			errs = append(errs, fmt.Errorf("conceito %q: id precisa ser kebab-case", c.ID))
 		}
+		// "wt" is the 4th segment of a walkthrough deep link
+		// (#/learn/<slug>/<marco>/wt/<id>/<evento>), where a concept's return
+		// point also lives: the two must never be confused.
+		if c.ID == "wt" {
+			errs = append(errs, fmt.Errorf("conceito %q: id reservado para o deep link de walkthrough", c.ID))
+		}
 		if seenID[c.ID] {
 			errs = append(errs, fmt.Errorf("conceito %q: id duplicado", c.ID))
 		}

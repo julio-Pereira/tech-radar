@@ -114,7 +114,7 @@ function widthClass(svg) {
 }
 
 // Grows the viewBox where a label sticks out (C2); needs layout.
-function fitViewBox(svg) {
+export function fitViewBox(svg) {
   if (svg.dataset.ajustado) return false;
   const b = svg.getBBox();
   if (!b.width || !b.height) return false;
