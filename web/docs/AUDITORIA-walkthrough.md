@@ -183,7 +183,7 @@ pede para domínio regulado.
 | 4 | Identificador fim a fim, base da idempotência; aceite dentro do prazo do manual vigente (sem número) | marco 02, "Mensagens, identificador fim a fim e estado" e "Limites de tempo"; `pg-pix` |
 | 5 | Liquidação bruta, individual, 24x7, entre as contas de liquidação; confirmação aos dois lados | marco 02, "O SPI como infraestrutura de liquidação"; `pg-pix` |
 | 6 | Em trânsito vira definitivo; estado terminal liquidado; se rejeitado, a compensação reverte a reserva | `system-design/09`, "Estados terminais únicos" e "O que é síncrono, e onde entra a saga" |
-| 7 | O crédito ao recebedor vem depois da liquidação | marco 02 (aceite → liquida → confirma) e marco 03 (devolução "depois da transação concluída e do valor creditado") |
+| 7 | O crédito ao recebedor vem depois da liquidação | marco 02 (aceite → liquida → confirma aos dois lados); o marco 03 põe o bloqueio cautelar "no recebimento, antes de o valor ficar disponível", isto é, entre a liquidação e o crédito disponível ao lojista, que este roteiro não aborda |
 
 Fora do roteiro, de propósito: prazos e limites numéricos (o marco manda conferir o valor
 vigente), participação direta × indireta, MED e devolução (marco 03).
