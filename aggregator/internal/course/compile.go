@@ -85,6 +85,9 @@ func Compile(contentDir, outDir string) (Index, error) {
 		if err := writeDiagramas(filepath.Dir(outDir), compiled.Slug, compiled.diagramas); err != nil {
 			log.Printf("WARN could not write diagramas for %s: %v", compiled.Slug, err)
 		}
+		if err := writeWalkthroughs(filepath.Dir(outDir), compiled.Slug, compiled.walkthroughs); err != nil {
+			log.Printf("WARN could not write walkthroughs for %s: %v", compiled.Slug, err)
+		}
 		if err := copyAssets(courseDir, compiled.Slug, filepath.Dir(outDir), compiled.assets); err != nil {
 			log.Printf("WARN could not copy assets for %s: %v", compiled.Slug, err)
 		}
@@ -199,6 +202,17 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 		return CompiledCourse{}, nil, err
 	}
 	usedDiagramas := map[string]bool{}
+	walkthroughs, err := loadWalkthroughs(dir, diagramas)
+	if err != nil {
+		return CompiledCourse{}, nil, err
+	}
+	usedWalkthroughs := map[string]bool{}
+	// A layer's diagram is referenced by its walkthrough, not by a milestone.
+	for _, w := range walkthroughs {
+		for _, c := range w.Camadas {
+			usedDiagramas[c.Diagrama] = true
+		}
+	}
 	var assets []string
 
 	milestones := make([]CompiledMilestone, 0, len(manifest.Milestones))
@@ -214,8 +228,14 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 		if missing := applyDiagramas(&html, sections, manifest.Slug, diagramas, usedDiagramas); len(missing) > 0 {
 			return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %s", file, strings.Join(missing, "; "))
 		}
+		if missing := applyWalkthroughs(&html, sections, manifest.Slug, walkthroughs, usedWalkthroughs); len(missing) > 0 {
+			return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %s", file, strings.Join(missing, "; "))
+		}
 		if source, rerr := os.ReadFile(filepath.Join(dir, file)); rerr == nil {
 			if ierr := checkDiagramaIndent(source); ierr != nil {
+				return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %w", file, ierr)
+			}
+			if ierr := checkWalkthroughIndent(source); ierr != nil {
 				return CompiledCourse{}, nil, fmt.Errorf("milestone %s: %w", file, ierr)
 			}
 			names, aerr := validateAssets(source, dir)
@@ -300,6 +320,11 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 			log.Printf("WARN %s: diagramas/%s.yaml não é referenciado por nenhum marco", manifest.Slug, id)
 		}
 	}
+	for id := range walkthroughs {
+		if !usedWalkthroughs[id] {
+			return CompiledCourse{}, nil, fmt.Errorf("walkthroughs/%s.yaml não é referenciado por nenhum marco", id)
+		}
+	}
 
 	var glossary string
 	if manifest.Glossary != "" {
@@ -323,6 +348,7 @@ func compileCourse(dir string, index bridgeIndex, planned map[string]bool, vocab
 		Glossary:       glossary,
 		Prerequisites:  manifest.Prerequisites,
 		diagramas:      diagramas,
+		walkthroughs:   walkthroughs,
 		assets:         assets,
 	}, allBroken, nil
 }

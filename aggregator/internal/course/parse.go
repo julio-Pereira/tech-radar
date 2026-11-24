@@ -52,6 +52,12 @@ func newBodyPolicy() *bluemonday.Policy {
 	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagrama-(descricao|dados)$`)).OnElements("details")
 	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagrama-fonte$`)).OnElements("p")
 	p.AllowAttrs("class").Matching(regexp.MustCompile(`^diagramas-lado-a-lado$`)).OnElements("div")
+	// Walkthroughs (walkthroughs.go): the figure, its summary and the
+	// textual description; the player is built by the front end.
+	p.AllowAttrs("data-walkthrough").Matching(regexp.MustCompile(`^[a-z0-9-]+/[a-z0-9-]+$`)).OnElements("figure")
+	p.AllowAttrs("class").Matching(regexp.MustCompile(`^walkthrough$`)).OnElements("figure")
+	p.AllowAttrs("class").Matching(regexp.MustCompile(`^walkthrough-descricao$`)).OnElements("details")
+	p.AllowAttrs("class").Matching(regexp.MustCompile(`^walkthrough-resumo$`)).OnElements("p")
 	return p
 }
 
@@ -105,7 +111,7 @@ func parseMilestone(path string, index bridgeIndex, planned map[string]bool, set
 		return MilestoneFrontmatter{}, "", nil, nil, fmt.Errorf("parse frontmatter %s: %w", path, err)
 	}
 
-	body := markDiagramaFences(match[2])
+	body := markWalkthroughFences(markDiagramaFences(match[2]))
 	html, err := renderMarkdown(body)
 	if err != nil {
 		return MilestoneFrontmatter{}, "", nil, nil, fmt.Errorf("render markdown %s: %w", path, err)
