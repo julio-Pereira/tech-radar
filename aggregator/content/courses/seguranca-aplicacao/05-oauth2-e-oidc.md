@@ -73,7 +73,7 @@ para uma API validar) é o erro estrutural que nasce de tratar os dois como
 intercambiáveis. A separação maior por trás disso: **autenticação (provar quem você é) não
 é autorização (o que você pode fazer)** — o `id_token` resolve a primeira, o
 `access_token` (com seu escopo) participa da segunda, mas nenhum dos dois é suficiente
-sozinho para decidir permissão sobre um recurso específico, tema que o marco 07 aprofunda.
+sozinho para decidir permissão sobre um recurso específico, tema que o marco 08 aprofunda.
 
 ## Redirect URI: onde o desenho vira vulnerabilidade
 
@@ -119,7 +119,14 @@ sujeito a vazamento como qualquer segredo estático), **`private_key_jwt`** (o c
 uma asserção com chave privada própria, verificada pela pública) e **mTLS** (o certificado
 do client na própria camada de transporte). Esta trilha não fecha essa escolha aqui — o
 degrau completo, com mTLS de verdade (validação de cadeia, revogação, sanitização de
-header), é o marco 06.
+header), é o marco 07.
+
+O roteiro abaixo junta as peças deste marco no fluxo do tutorial, comando a comando, e vai
+além dele: o `access_token` chegando à API e um refresh token roubado sendo pego.
+
+```walkthrough
+sa-code-pkce-ponta-a-ponta
+```
 
 ## Exemplo numa fintech
 
@@ -146,17 +153,18 @@ o logout de fato encerra**. É o assunto do marco 06.
 **Tutorial — authorization code + PKCE ponta a ponta.** Suba o `fin-idp` e execute o fluxo
 completo contra o `pix-gateway`: gere o `code_verifier` e o `code_challenge`, monte a
 requisição de autorização, capture o código, troque por token, e **inspecione cada
-parâmetro** em cada etapa — `state`, `code_challenge_method`, o `id_token` decodificado, o
-`access_token`. O objetivo é ver o protocolo, não só fazer o login funcionar.
+parâmetro** em cada etapa — `state`, `nonce`, `code_challenge_method`, o `id_token`
+decodificado, o `access_token`. O objetivo é ver o protocolo, não só fazer o login funcionar.
 
 ```bash
 # 1. gere code_verifier (43-128 chars, base64url) e o code_challenge (S256)
 CODE_VERIFIER=$(openssl rand -base64 96 | tr -d '=+/\n' | cut -c1-64)
 CODE_CHALLENGE=$(echo -n "$CODE_VERIFIER" | openssl dgst -sha256 -binary | base64 | tr -d '=' | tr '/+' '_-')
 STATE=$(openssl rand -hex 16)
+NONCE=$(openssl rand -hex 16)
 
 # 2. monte a URL de autorização e abra no navegador (o login é interativo)
-echo "http://localhost:9000/oauth2/authorize?response_type=code&client_id=pix-gateway&redirect_uri=http://localhost:8080/callback&scope=openid%20payments:read&state=${STATE}&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256"
+echo "http://localhost:9000/oauth2/authorize?response_type=code&client_id=pix-gateway&redirect_uri=http://localhost:8080/callback&scope=openid%20payments:read&state=${STATE}&nonce=${NONCE}&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256"
 
 # 3. depois do login, copie o "code" da query string do redirect e troque por token
 AUTH_CODE="<cole o code aqui>"
@@ -168,9 +176,10 @@ curl -s -X POST http://localhost:9000/oauth2/token \
   -d "code_verifier=${CODE_VERIFIER}" | jq .
 
 # 4. inspecione o id_token (JWS: header.payload.signature) sem verificar assinatura,
-#    só para ler as claims
+#    só para ler as claims; o nonce dele tem de ser o que você gerou no passo 1
 ID_TOKEN="<cole o id_token da resposta acima>"
 echo "$ID_TOKEN" | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null | jq .
+echo "esperado: nonce=${NONCE}"
 ```
 
 **Desafio — corrigir redirect URI validada por prefixo.** Configure (ou identifique) uma

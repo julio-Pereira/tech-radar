@@ -1,0 +1,163 @@
+id: sa-code-pkce-ponta-a-ponta
+titulo: "Authorization code com PKCE, do redirect ao refresh roubado"
+resumo: "Cada parâmetro fecha uma classe de ataque: o roteiro do tutorial, comando a comando, até a API e a detecção de reuso."
+
+atores:
+  - { id: titular, rotulo: "titular (navegador)" }
+  - { id: client, rotulo: "pix-gateway (client)" }
+  - { id: as, rotulo: "fin-idp" }
+  - { id: api, rotulo: "API /payments" }
+  - { id: atacante, rotulo: "atacante" }
+
+camadas:
+  - { id: fluxo, rotulo: "Fluxo OAuth2/OIDC", diagrama: sa-wt-code-pkce }
+
+paineis:
+  - id: tutorial
+    linguagem: bash
+    titulo: "o tutorial deste marco"
+    conteudo: |
+      # 1. gere code_verifier (43-128 chars, base64url) e o code_challenge (S256)
+      CODE_VERIFIER=$(openssl rand -base64 96 | tr -d '=+/\n' | cut -c1-64)
+      CODE_CHALLENGE=$(echo -n "$CODE_VERIFIER" | openssl dgst -sha256 -binary | base64 | tr -d '=' | tr '/+' '_-')
+      STATE=$(openssl rand -hex 16)
+      NONCE=$(openssl rand -hex 16)
+
+      # 2. monte a URL de autorização e abra no navegador (o login é interativo)
+      echo "http://localhost:9000/oauth2/authorize?response_type=code&client_id=pix-gateway&redirect_uri=http://localhost:8080/callback&scope=openid%20payments:read&state=${STATE}&nonce=${NONCE}&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256"
+
+      # 3. depois do login, copie o "code" da query string do redirect e troque por token
+      AUTH_CODE="<cole o code aqui>"
+      curl -s -X POST http://localhost:9000/oauth2/token \
+        -u "pix-gateway:$(cat client-secret.txt)" \
+        -d "grant_type=authorization_code" \
+        -d "code=${AUTH_CODE}" \
+        -d "redirect_uri=http://localhost:8080/callback" \
+        -d "code_verifier=${CODE_VERIFIER}" | jq .
+
+      # 4. inspecione o id_token (JWS: header.payload.signature) sem verificar assinatura,
+      #    só para ler as claims; o nonce dele tem de ser o que você gerou no passo 1
+      ID_TOKEN="<cole o id_token da resposta acima>"
+      echo "$ID_TOKEN" | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null | jq .
+      echo "esperado: nonce=${NONCE}"
+
+etapas:
+  - id: preparar
+    titulo: "Os segredos desta requisição"
+    subtitulo: "Gerados antes de sair de casa"
+    camada: fluxo
+    texto: |
+      Antes de qualquer redirect, o client gera três valores só desta requisição: o
+      `code_verifier` (e o seu hash, o `code_challenge`), o `state` e o `nonce`. O navegador vai
+      carregar o challenge, nunca o verifier. Com **PAR**, como no diagrama acima, estes
+      parâmetros iriam por back-channel e o navegador levaria só uma referência opaca.
+    eventos:
+      - de: client
+        para: titular
+        msg: "O pix-gateway gera verifier, challenge, state e nonce e redireciona o navegador ao fin-idp"
+        painel: { id: tutorial, linhas: "1-5" }
+      - de: titular
+        para: as
+        msg: "O navegador leva ao /authorize o client_id, a redirect_uri, o escopo, o state, o nonce e o challenge"
+        painel: { id: tutorial, linhas: "8" }
+        anotacao: "o verifier nunca passa pelo navegador"
+
+  - id: autorizar
+    titulo: "O titular autoriza"
+    subtitulo: "Delegação sem compartilhar a senha"
+    camada: fluxo
+    texto: |
+      A senha só existe entre o titular e o fin-idp: é a delegação sem compartilhar credencial
+      que o protocolo existe para resolver. Na volta, o fin-idp compara a `redirect_uri` byte a
+      byte com a registrada, e o client confere o `state`, que protege o redirect contra CSRF.
+    eventos:
+      - de: as
+        para: titular
+        msg: "O fin-idp autentica o titular; o pix-gateway nunca vê a senha"
+      - de: titular
+        para: as
+        msg: "O titular consente o escopo payments:read"
+      - de: as
+        para: titular
+        tipo: reply
+        msg: "O fin-idp confere a redirect_uri byte a byte e responde 302 com o code e o state"
+        anotacao: "matching exato, nunca por prefixo"
+      - de: titular
+        para: client
+        msg: "O navegador entrega o code e o state no callback, e o pix-gateway confere o state"
+        anotacao: "state: CSRF no redirect"
+        painel: { id: tutorial, linhas: "11" }
+
+  - id: trocar
+    titulo: "A troca do code"
+    subtitulo: "Back-channel, e o verifier aparece pela primeira vez"
+    camada: fluxo
+    texto: |
+      A troca sai do navegador. O client se autentica no fin-idp (aqui com `client_secret`, o
+      degrau mais fraco; o marco 07 sobe para mTLS) e envia, pela primeira vez, o
+      `code_verifier`. O fin-idp confere que o hash dele bate com o challenge. Na resposta, o
+      client confere o `nonce` dentro do `id_token`: é a proteção contra replay.
+    eventos:
+      - de: client
+        para: as
+        msg: "O pix-gateway troca o code por back-channel, autenticado, enviando o code_verifier"
+        painel: { id: tutorial, linhas: "12-17" }
+      - de: as
+        para: client
+        tipo: reply
+        msg: "O fin-idp confere o verifier contra o challenge e emite id_token, access_token e refresh_token"
+        anotacao: "um code interceptado não vale nada sem o verifier"
+        painel: { id: tutorial, linhas: "21-23" }
+
+  - id: api
+    titulo: "Quem é não é o que pode"
+    subtitulo: "O id_token fica no client"
+    camada: fluxo
+    texto: |
+      O `id_token` diz ao client **quem** o titular é; para a API vai só o `access_token`. A API
+      valida o token do jeito do marco 04: algoritmo fixo, nunca o do token; chave escolhida pelo
+      `kid` no JWKS; `iss`, `aud` e `exp`. Só então olha o escopo, e o escopo sozinho ainda não
+      decide o acesso a um recurso específico.
+    eventos:
+      - de: client
+        para: api
+        msg: "O pix-gateway chama a API com o access_token, nunca com o id_token"
+      - de: api
+        para: as
+        msg: "A API busca no JWKS do fin-idp a chave pública do kid do token"
+      - de: as
+        para: api
+        tipo: reply
+        msg: "O fin-idp publica as chaves; na rotação, a antiga e a nova ficam lado a lado"
+      - de: api
+        para: client
+        tipo: reply
+        msg: "A API valida assinatura, iss, aud, exp e o escopo, e responde 200"
+
+  - id: refresh
+    titulo: "Refresh com rotação"
+    subtitulo: "Um refresh token vale uma vez"
+    camada: fluxo
+    texto: |
+      Quando o access_token expira, o client usa o refresh token e recebe um **par novo**; o
+      anterior morre na troca. É o que torna o roubo detectável: um refresh já usado que
+      reaparece só pode ser cópia. A resposta não é só recusar aquela chamada, é invalidar a
+      família inteira e obrigar o titular a autenticar de novo.
+    eventos:
+      - de: client
+        para: as
+        msg: "O access_token expira, e o pix-gateway troca o refresh_token por um par novo"
+      - de: as
+        para: client
+        tipo: reply
+        msg: "O fin-idp emite um access_token e um refresh_token novos e invalida o anterior"
+        anotacao: "rotação a cada uso"
+      - de: atacante
+        para: as
+        msg: "Um atacante tenta usar o refresh_token antigo, copiado antes da rotação"
+        estados: { atacante: falha }
+      - de: as
+        para: atacante
+        tipo: reply
+        msg: "O fin-idp detecta o reuso, recusa e invalida a família inteira de refresh tokens"
+        anotacao: "o titular terá de autenticar de novo"

@@ -201,3 +201,32 @@ O teste de legibilidade do `walkthrough.spec.js` passou a percorrer todo walkthr
 compilado não for citado por um marco. O primeiro desenho do `pg-wt-ecossistema` passou de
 1.100 px (1.135); os rótulos das arestas horizontais foram encurtados ("busca", "cobrança",
 "confirma") e o aviso sumiu.
+
+## 6. Expansão: `seguranca-aplicacao` / marco 05, "Authorization code com PKCE, do redirect ao refresh roubado"
+
+Checkpoint do Julio no celular e no desktop aprovado depois do piloto 7.2; esta é a primeira
+trilha da expansão. Regra do README atendida: **painel** (o tutorial do marco, comando a comando)
+e mais de 12 passos (16 eventos em 5 etapas, contra os 9 do diagrama `sa-code-pkce-par`, que
+fica). Uma camada, `sa-wt-code-pkce`; 5 atores, então a sequência derivada mostra sempre as 5
+colunas na mesma ordem.
+
+O roteiro vai além do diagrama em dois pontos que o marco ensina e o diagrama não mostra: o
+`access_token` indo à API (e o `id_token` ficando no client, com a validação do marco 04:
+algoritmo fixo, `kid` no JWKS, `iss`, `aud`, `exp`) e o **complemento** do hands-on, a rotação
+do refresh token com detecção de reuso.
+
+### Correções no próprio marco 05, achadas ao ligar os eventos ao tutorial
+
+| Achado | Correção |
+| --- | --- |
+| O texto ensina que o `nonce` protege o `id_token` contra replay, mas a URL de autorização do tutorial não mandava `nonce`, e o passo 4 não o conferia | O tutorial gera `NONCE`, manda `&nonce=${NONCE}` e o passo 4 diz qual valor esperar no `id_token`; a lista "inspecione cada parâmetro" inclui o `nonce` |
+| "o degrau completo, com mTLS de verdade (...), é o marco 06" | É o marco 07 (`fapi-mtls-e-ciba`; o `PROJETO.md` também põe o mTLS no 07) |
+| "autorização sobre um recurso específico, tema que o marco 07 aprofunda" | É o marco 08 (`autorizacao`) |
+
+### Papéis neste laboratório
+
+O `PROJETO.md` da trilha usa o `pix-gateway` como client **e** como resource server ("ou um
+resource server mínimo equivalente"). O roteiro os mostra como dois atores, `pix-gateway (client)`
+e `API /payments`, porque o que cada papel confere no token é diferente; o texto da etapa 4 diz
+isso. O PAR aparece na prosa da etapa 1 ("como no diagrama acima"), não nos eventos, porque o
+tutorial usa a requisição de autorização sem PAR.

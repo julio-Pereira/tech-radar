@@ -1,0 +1,29 @@
+id: sa-wt-code-pkce
+tipo: topologia
+titulo: "O navegador só carrega o code; os tokens andam por back-channel"
+descricao: >
+  O titular usa o navegador, que vai e volta entre o pix-gateway, no papel de client, e o
+  fin-idp, o authorization server: é o front-channel, por onde passam só o redirect, o code e o
+  state. A troca do code pelos tokens e a renovação com o refresh token acontecem por
+  back-channel, direto entre o client e o fin-idp. A API de pagamentos, no papel de resource
+  server, recebe o access_token e valida a assinatura com as chaves públicas do JWKS do fin-idp.
+  Um atacante com um refresh token roubado também fala direto com o fin-idp.
+nos:
+  - { id: titular, rotulo: "titular (navegador)", col: 1, row: 0, papel: externo }
+  - { id: atacante, rotulo: "atacante", col: 2, row: 0, papel: externo }
+  - { id: client, rotulo: "pix-gateway (client)", col: 0, row: 1, papel: destaque }
+  - { id: as, rotulo: "fin-idp", col: 2, row: 1, papel: destaque }
+  - { id: api, rotulo: "API /payments", col: 1, row: 2 }
+arestas:
+  - { de: client, para: titular, rotulo: "redireciona" }
+  - { de: titular, para: client, rotulo: "callback" }
+  - { de: titular, para: as, rotulo: "autoriza" }
+  - { de: as, para: titular, rotulo: "login, 302" }
+  - { de: client, para: as, rotulo: "token" }
+  - { de: as, para: client, rotulo: "tokens" }
+  - { de: client, para: api, rotulo: "access_token" }
+  - { de: api, para: client, rotulo: "200" }
+  - { de: api, para: as, rotulo: "JWKS" }
+  - { de: as, para: api, rotulo: "chaves" }
+  - { de: atacante, para: as, rotulo: "refresh roubado" }
+  - { de: as, para: atacante, rotulo: "400" }
