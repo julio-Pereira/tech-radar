@@ -23,6 +23,14 @@ function milestonesWithDiagrams(slug) {
     .map((/** @type {any} */ m) => m.id);
 }
 
+/** Diagrams that are layers of a walkthrough of the track. */
+function walkthroughLayers(slug) {
+  const f = path.join(dataDir, 'walkthroughs', `${slug}.json`);
+  if (!fs.existsSync(f)) return [];
+  return Object.values(JSON.parse(fs.readFileSync(f, 'utf8')).walkthroughs)
+    .flatMap((/** @type {any} */ w) => w.camadas.map((/** @type {any} */ c) => c.diagrama));
+}
+
 /** @param {import('@playwright/test').Page} page @param {string} slug */
 async function openAll(page, slug) {
   await page.addInitScript(() => {
@@ -51,7 +59,11 @@ for (const slug of slugs) {
   test(`${slug}: every diagram is drawn, legible and fits a 1280px desktop`, async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await openAll(page, slug);
-    const ids = Object.keys(JSON.parse(fs.readFileSync(path.join(diagramDir, `${slug}.json`), 'utf8')).diagramas);
+    // A walkthrough layer's diagram is drawn by the walkthrough, not as a
+    // figure; walkthrough.spec.js checks its labels at every event.
+    const camadas = new Set(walkthroughLayers(slug));
+    const ids = Object.keys(JSON.parse(fs.readFileSync(path.join(diagramDir, `${slug}.json`), 'utf8')).diagramas)
+      .filter((id) => !camadas.has(id));
 
     const report = await page.evaluate(() => {
       /** @type {string[]} */

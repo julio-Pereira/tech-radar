@@ -74,6 +74,14 @@ k8s-control-plane
 Repare que o kubelet **puxa** o trabalho do API server em vez de recebê-lo por push. É
 o que permite ao nó reconectar e se reconciliar sozinho depois de uma partição de rede.
 
+Juntando as peças: o roteiro abaixo segue **um** Pod do `pix-gateway`, do `kubectl apply`
+até a primeira requisição. Repare em quem fala com quem. Todo evento passa pelo API
+server, e nenhum componente manda outro agir.
+
+```walkthrough
+k8s-do-apply-ao-pod-ready
+```
+
 ## Versionamento é rotina, não projeto
 
 Kubernetes lança cerca de **três versões por ano** e mantém suporte **N-2** — ou seja,

@@ -28,6 +28,18 @@ test.describe('Accessibility (axe-core)', () => {
     expect(serious, describe(serious)).toHaveLength(0);
   });
 
+  test('milestone with a walkthrough has no serious/critical violations, on both views', async ({ page }) => {
+    await page.goto('/#/learn/kubernetes/arquitetura/wt/k8s-do-apply-ao-pod-ready/14');
+    const figure = page.locator('figure.walkthrough');
+    await expect(figure.locator('.wt-area svg')).toBeVisible();
+    await figure.locator('.wt-painel summary').click();
+    let serious = seriousViolations(await new AxeBuilder({ page }).include('figure.walkthrough').analyze());
+    expect(serious, describe(serious)).toHaveLength(0);
+    await figure.locator('.wt-aba', { hasText: 'Sequência' }).click();
+    serious = seriousViolations(await new AxeBuilder({ page }).include('figure.walkthrough').analyze());
+    expect(serious, describe(serious)).toHaveLength(0);
+  });
+
   test('radar view (#/) has no serious/critical violations', async ({ page }) => {
     await page.goto('/#/');
     await expect(page.locator('#articles .card').first()).toBeVisible();

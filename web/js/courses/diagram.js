@@ -52,7 +52,7 @@ export async function renderDiagrams(root) {
   }
 }
 
-function draw(spec, prefix, links) {
+export function draw(spec, prefix, links) {
   const svg = spec.tipo === 'sequencia' ? drawSequence(spec, prefix, links)
     : spec.tipo === 'grafico' ? drawChart(spec)
       : drawGraph(spec, prefix, links);
@@ -114,7 +114,7 @@ function widthClass(svg) {
 }
 
 // Grows the viewBox where a label sticks out (C2); needs layout.
-function fitViewBox(svg) {
+export function fitViewBox(svg) {
   if (svg.dataset.ajustado) return false;
   const b = svg.getBBox();
   if (!b.width || !b.height) return false;
@@ -182,7 +182,7 @@ function animate(svg, spec, mount, twin) {
   if (spec.animacao) import('./diagram-player.js').then((m) => m.attach(svg, spec, mount, twin));
 }
 
-function openZoom(spec, title, opener) {
+export function openZoom(spec, title, opener) {
   const d = zoomDialog();
   const h = (d.querySelector('h2'));
   const area = (d.querySelector('.diagrama-dialogo-area'));
@@ -202,6 +202,7 @@ function openZoom(spec, title, opener) {
   wireChartKeys(svg);
   animate(svg, spec, area, opener.closest('figure'));
   (d.querySelector('.diagrama-fechar')).focus();
+  return svg;
 }
 
 function hidden(node) {

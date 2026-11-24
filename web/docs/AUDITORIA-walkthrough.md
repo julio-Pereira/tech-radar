@@ -56,3 +56,91 @@ Cada regra tem caso válido e caso inválido em `aggregator/internal/course/walk
 | Caso válido (numeração contínua, estados cumulativos, painéis, breadcrumb) | `TestWalkthroughValido` |
 | Descrição textual | `TestWalkthroughDescricaoTextual` |
 | De ponta a ponta no `compileCourse` | `TestCompileCourseWalkthroughs` |
+
+## 4. PR do player e do piloto 7.1
+
+### Decisões
+
+- **D8 — Deep link por segmentos**: `#/learn/<slug>/<marco>/wt/<id>/<evento>`. O roteador não
+  tem query string em rota nenhuma, e o 4º segmento já é o ponto de retorno de um conceito;
+  `wt` passa a ser reservado (o compilador recusa um conceito com esse id, coberto em
+  `TestResolveConceitosRejectsInvalidRegistry`). O roteador não trata `wt` como conceito; o
+  player lê o resto do hash, abre pausado no evento e rola a figura até a tela. Navegar no
+  player usa `history.replaceState`, e só quando o hash é da própria trilha (um ponto de
+  retorno de conceito aberto não é sobrescrito).
+- **D9 — Núcleo compartilhado** em `web/js/courses/diagram-core.js`: pacote (WAAPI +
+  `getPointAtLength`), estados com marca textual, cancelamento de animações e pausa fora da
+  tela, aba oculta ou diálogo fechado. O `diagram-player.js` usa o núcleo sem mudar de
+  comportamento: a suíte da Fase 1.6 (`diagram-player`, `diagram`, `diagram-budget`) passou
+  com **67 de 67, sem alterar nenhum teste**, e o arquivo caiu de 2.944 para 2.340 bytes gzip.
+- **D10 — Orçamento.** `diagram.js` + `diagram-svg.js` estavam em 9.943 de 10.000 bytes gzip;
+  o walkthrough só acrescentou `export` em `draw`, `fitViewBox` e `openZoom` (e o `return svg`
+  deste), e o par ficou em 9.952. O `walkthrough-player.js` tem 4.383 bytes gzip (teto 6.000),
+  com teste em `diagram-budget.spec.js`.
+- **D11 — Espaço faz play/pause também com o foco num botão**, como no `diagram-player` (que
+  tem teste para isso). A exceção é o `<summary>` do painel, onde o Espaço abre e fecha.
+  Dentro do `tablist`, ←/→ trocam de aba (padrão ARIA); fora dele, trocam de evento.
+- **D12 — `«` no meio de uma etapa volta ao início dela**; no início, vai à etapa anterior
+  (como "faixa anterior" num player de áudio). O PageUp faz o mesmo.
+
+### Piloto 7.1: conteúdo conferido
+
+Encaixe: marco 01 (`arquitetura`), logo depois de "Quem executa esse laço", que já ensina o
+API server como única porta, o apply que retorna antes da convergência e o kubelet que puxa o
+trabalho. Diagramas de camada novos: `k8s-wt-cluster` e `k8s-wt-node`.
+
+Coerência com a trilha (o plano manda validar a semente contra o marco):
+
+| Semente do plano | Publicado | Por quê |
+| --- | --- | --- |
+| `replicas: 4`, "os outros 3 Pods" | `replicas: 3`, "os outros 2 Pods" | A trilha usa 3 réplicas para o `pix-gateway` (marcos 01, 02 e 06, e o overlay de prod do marco 03) |
+| `node-1..3`, Pod no `node-2` | `fin-platform-worker` e `fin-platform-worker2`, Pod no worker2 | É o cluster `kind` do hands-on do próprio marco 01 (1 control plane, 2 workers) |
+| 18 eventos; o 17 é "o controller de EndpointSlice vê o Pod e o inclui" | 19 eventos: ver (`api → kcm`) e gravar (`kcm → api`) são dois eventos | Incluir é uma escrita no API server; juntar as duas coisas num evento `api → kcm` contradiria a regra do próprio roteiro (todo efeito passa pelo API server) |
+| namespace não dito | `payments`, imagem `ghcr.io/fin/pix-gateway@sha256:9c8f2e…` | Os nomes que a trilha já usa |
+
+Motivos e mensagens dos eventos do painel `kubectl get events`, conferidos no código do
+Kubernetes (`master` em `43cbb94`, 21 nov 2026):
+
+| Motivo | Mensagem | Fonte |
+| --- | --- | --- |
+| `ScalingReplicaSet` | `Scaled up replica set %s from 0 to %d` | `pkg/controller/deployment/sync.go` |
+| `SuccessfulCreate` | `Created pod: %v` | `pkg/controller/controller_utils.go` |
+| `Scheduled` | `Successfully assigned %v/%v to %v` | `pkg/scheduler/schedule_one.go` |
+| `Pulling` | `Pulling image %q` | `pkg/kubelet/images/image_manager.go` |
+| `Pulled` | `Successfully pulled image %q in %v (%v including waiting). Image size: %v bytes.` | idem |
+| `Created` | `Container created` | `pkg/kubelet/kuberuntime/kuberuntime_container.go` |
+| `Started` | `Container started` | idem |
+
+A ordem do kubelet também está no código: sandbox (com o CNI) antes do pull, e pull antes de
+criar e iniciar o container. O painel é marcado como **saída ilustrativa** e diz que as
+colunas `LAST SEEN` e `TYPE` foram omitidas.
+
+### Testes (`web/tests/walkthrough.spec.js`, 15 testes, sobre o piloto real)
+
+Começa pausado; teclado completo (←/→, PageUp/PageDown, Home/End, Espaço); texto do
+`aria-live` por evento e por troca de etapa; play para no fim da etapa; deep link abre pausado
+no evento e a navegação não cria entrada no histórico; a troca de visão preserva o evento; o
+painel começa fechado e destaca as linhas; Ampliar abre só a visão, no evento atual; com
+`reducedMotion: 'reduce'`, `document.getAnimations()` vazio; zero violação de CSP e zero
+`style` no player; pausa com a aba oculta; 360 px com a visão sticky, a área ≤ 45vh e sem
+rolagem lateral; o módulo só é baixado em marco com walkthrough; rótulos dentro do `viewBox`
+nas duas camadas e em cada sequência derivada, em todos os 19 eventos. O `a11y.spec.js`
+roda o axe nas duas visões. O `diagram-real.spec.js` deixa os diagramas de camada fora da
+regra "todo diagrama aparece como figura num marco", porque eles aparecem dentro do
+walkthrough e são cobertos pelo teste acima.
+
+### Achados fora do escopo (registrados, não corrigidos aqui)
+
+- `web/js/dom-helpers.js:26` põe `style="width: N%"` na barra de progresso da trilha (CSSOM,
+  permitido pela CSP, mas é um atributo `style`). O teste do walkthrough verifica só a figura e
+  o diálogo.
+- A transição de cor do link ativo no cabeçalho roda mesmo com `prefers-reduced-motion`. Não é
+  movimento, mas aparece em `document.getAnimations()` logo depois da troca de rota; o teste de
+  movimento reduzido espera a página assentar antes de navegar.
+
+### Candidatos a walkthrough (passo 9 do plano)
+
+O `PLANO-visuais-animacao.md` não está no repositório; o registro fica aqui. Candidatos, pela
+regra do README (mais de 12 passos, troca de escala ou painel): `system-design` / caso Pix de
+ponta a ponta, `seguranca-aplicacao` / OAuth 2 e OIDC, `open-finance-brasil` / iniciação de
+pagamento. O piloto 7.2 (`pagamentos-e-liquidacao`, "Um Pix por dentro") espera o checkpoint.

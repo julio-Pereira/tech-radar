@@ -66,6 +66,7 @@ var basicConceitos = []Conceito{
 func TestResolveConceitosRejectsInvalidRegistry(t *testing.T) {
 	cases := map[string][]Conceito{
 		"id não kebab-case":      {{ID: "JWS", Termo: "x", Dono: "dono/01", Apelidos: []string{"JWS"}}},
+		"id reservado wt":        {{ID: "wt", Termo: "x", Dono: "dono/01", Apelidos: []string{"WT"}}},
 		"id duplicado":           {{ID: "a", Termo: "x", Dono: "dono/01", Apelidos: []string{"A"}}, {ID: "a", Termo: "y", Dono: "dono/01", Apelidos: []string{"B"}}},
 		"dono não resolve":       {{ID: "a", Termo: "x", Dono: "dono/09", Apelidos: []string{"A"}}},
 		"dono sem forma slug/NN": {{ID: "a", Termo: "x", Dono: "dono", Apelidos: []string{"A"}}},

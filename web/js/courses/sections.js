@@ -70,6 +70,12 @@ export function buildMilestoneBody(slug, milestone) {
 export const diagramsReady = new WeakMap();
 
 function hydrateDiagrams(article) {
+  // Walkthroughs (Fase 1.7): the player is downloaded only for a milestone
+  // that has one; the figure already carries the full textual description.
+  if (article.querySelector('figure.walkthrough[data-walkthrough]')) {
+    import('./walkthrough-player.js').then((m) => m.renderWalkthroughs(article))
+      .catch((err) => console.warn('walkthrough-player.js não carregou; fica a descrição textual', err));
+  }
   if (!article.querySelector('figure.diagrama[data-diagrama]')) return;
   // Title and description stay readable when the renderer fails to load;
   // the warning keeps the failure visible in diagnostics (C8).

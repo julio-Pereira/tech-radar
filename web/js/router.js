@@ -38,8 +38,11 @@ function parseRoute() {
   const hash = location.hash.replace(/^#/, '');
   const parts = hash.split('/').filter(Boolean); // "#/learn/x/y" → ["learn","x","y"]
   if (parts[0] === 'learn') {
-    // 4th segment: a concept's return point (#/learn/<slug>/<marco>/<conceito>).
-    return parts[1] ? { name: 'course', slug: parts[1], marcoId: parts[2], conceitoId: parts[3] } : { name: 'learn' };
+    // 4th segment: a concept's return point (#/learn/<slug>/<marco>/<conceito>),
+    // or "wt", a walkthrough's event (#/learn/<slug>/<marco>/wt/<id>/<evento>),
+    // which the player reads itself.
+    const conceitoId = parts[3] === 'wt' ? undefined : parts[3];
+    return parts[1] ? { name: 'course', slug: parts[1], marcoId: parts[2], conceitoId } : { name: 'learn' };
   }
   if (parts[0] === 'paths') {
     return parts[1] ? { name: 'path', slug: parts[1] } : { name: 'paths' };

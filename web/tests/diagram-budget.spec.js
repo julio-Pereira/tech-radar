@@ -18,3 +18,8 @@ test('diagram-player.js stays within 4 KB gzip', () => {
   const size = zlib.gzipSync(fs.readFileSync(path.join(__dirname, '..', 'js', 'courses', 'diagram-player.js'))).length;
   expect(size).toBeLessThanOrEqual(4_000);
 });
+
+test('walkthrough-player.js stays within 6 KB gzip (the shared core apart)', () => {
+  const size = zlib.gzipSync(fs.readFileSync(path.join(__dirname, '..', 'js', 'courses', 'walkthrough-player.js'))).length;
+  expect(size).toBeLessThanOrEqual(6_000);
+});

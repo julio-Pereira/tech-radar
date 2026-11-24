@@ -1,0 +1,24 @@
+id: k8s-wt-node
+tipo: topologia
+titulo: "No nó, o kubelet puxa o trabalho do API server e manda o containerd executar"
+descricao: >
+  Dentro do nó fin-platform-worker2, o kubelet mantém um watch no API server só para os
+  Pods atribuídos a este nó e devolve o status deles pelo mesmo API server. Para executar,
+  ele fala com o containerd pela interface CRI: o containerd cria o sandbox, chama o plugin
+  CNI para ligar o Pod à rede e cria o container. O kubelet roda as probes direto no Pod;
+  nenhum outro componente do control plane fala com o nó.
+grupos:
+  - { id: no, rotulo: "fin-platform-worker2", col: 0, row: 1, cols: 3, rows: 2 }
+nos:
+  - { id: api, rotulo: "kube-apiserver", col: 1, row: 0, papel: externo }
+  - { id: kubelet, rotulo: "kubelet", grupo: no, col: 1, row: 1, papel: destaque }
+  - { id: cni, rotulo: "plugin CNI", grupo: no, col: 0, row: 2 }
+  - { id: cri, rotulo: "containerd", grupo: no, col: 1, row: 2 }
+  - { id: pod, rotulo: "pix-gateway-…-x2k8p", grupo: no, col: 2, row: 2 }
+arestas:
+  - { de: api, para: kubelet, rotulo: "watch do nó" }
+  - { de: kubelet, para: api, rotulo: "status" }
+  - { de: kubelet, para: cri, rotulo: "CRI" }
+  - { de: cri, para: cni, rotulo: "CNI ADD" }
+  - { de: cri, para: pod, rotulo: "cria" }
+  - { de: kubelet, para: pod, rotulo: "probe" }
