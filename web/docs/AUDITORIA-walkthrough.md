@@ -230,3 +230,33 @@ resource server mínimo equivalente"). O roteiro os mostra como dois atores, `pi
 e `API /payments`, porque o que cada papel confere no token é diferente; o texto da etapa 4 diz
 isso. O PAR aparece na prosa da etapa 1 ("como no diagrama acima"), não nos eventos, porque o
 tutorial usa a requisição de autorização sem PAR.
+
+## 7. Expansão: `system-design` / marco 09, "Um Pix sem resposta do SPI, até a conciliação D+1"
+
+O caminho feliz do Pix já é o piloto 7.2; este roteiro segue o **caminho da falha**, que é o
+coração do marco 09 ("o desenho de um pagamento é o desenho de estados terminais únicos e de
+resultado desconhecido"). Regra do README atendida: **painel** (a falha injetada no Toxiproxy e os
+lançamentos no ledger) e mais passos que o diagrama `sd-pix-estados` (6 passos), que fica: 6
+etapas, 14 eventos, uma camada `sd-wt-falha`. 7 atores, então cada etapa mostra na sequência só os
+seus.
+
+O cenário é o do **"Exemplo numa fintech" do próprio marco**: débito feito, SPI sem resposta por
+8 s, acima do timeout configurado; o cliente vê "em processamento"; o ledger guarda "em
+trânsito"; a conciliação D+1 decide e, como o arquivo mostra que liquidou, "em trânsito" vira
+"liquidado" e o cliente é notificado tarde. O ramo "não liquidou → revertido" fica na anotação do
+evento da conciliação, para não haver dois desfechos no mesmo roteiro.
+
+| Afirmação | Fonte |
+| --- | --- |
+| Validação, antifraude e reserva síncronas e locais; chave de idempotência até o SPI | marco 09, "O fluxo feliz", "Idempotência de ponta a ponta", "O que é síncrono" |
+| Timeout não é falha; não reenviar; consultar o status | marco 09, "Estados terminais únicos" e "Resultado desconhecido" |
+| "Em verificação" com prazo declarado e alerta; conciliação D+1 contra o arquivo do SPI | marco 09, "Resultado desconhecido" |
+| 8 s sem resposta, "em processamento", "em trânsito", notificação tardia | marco 09, "Exemplo numa fintech" |
+| Estados `EM_TRANSITO`, `ENVIADO_AO_SPI`, `EM_VERIFICACAO`, `LIQUIDADO` | diagrama `sd-pix-estados` |
+| Fake do SPI atrás do Toxiproxy, latência injetada | marco 09, Desafio; `PROJETO.md` ("Toxiproxy, falha injetada no caso do marco 09") |
+| Conservação: débitos = créditos + em trânsito | marco 09, invariante 2 |
+
+Os comandos do painel seguem o README do Toxiproxy (`Shopify/toxiproxy`, commit `49299d8`, 14 out
+2026): `toxiproxy-cli create -l <listen> -u <upstream> <nome>` e `toxiproxy-cli toxic add -t
+latency -a latency=<ms> <nome>`. Portas e nomes são do laboratório e estão marcados como
+ilustrativos.

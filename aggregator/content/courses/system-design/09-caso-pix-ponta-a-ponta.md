@@ -86,6 +86,14 @@ cliente é notificado tardiamente; se mostra que não liquidou, vira "revertido"
 sd-pix-estados
 ```
 
+O roteiro abaixo segue esse mesmo pagamento no laboratório do desafio, com o Toxiproxy segurando
+a ordem: do débito ao aviso tardio, passando pelo que acontece do outro lado enquanto o sistema
+não sabe.
+
+```walkthrough
+sd-pix-resultado-desconhecido
+```
+
 ## Hands-on
 
 **Tutorial.** Escreva o documento de design completo do Pix ponta a ponta, no molde desta seção.

@@ -1,0 +1,538 @@
+{
+  "slug": "system-design",
+  "walkthroughs": {
+    "sd-pix-resultado-desconhecido": {
+      "id": "sd-pix-resultado-desconhecido",
+      "titulo": "Um Pix sem resposta do SPI, até a conciliação D+1",
+      "resumo": "Débito feito, SPI em silêncio: o pagamento não falhou nem concluiu, e o desenho garante que ele chegue a um destino só.",
+      "atores": [
+        {
+          "id": "cliente",
+          "rotulo": "cliente (app)"
+        },
+        {
+          "id": "gw",
+          "rotulo": "pix-gateway"
+        },
+        {
+          "id": "toxi",
+          "rotulo": "Toxiproxy"
+        },
+        {
+          "id": "spi",
+          "rotulo": "fake do SPI"
+        },
+        {
+          "id": "ledger",
+          "rotulo": "ledger"
+        },
+        {
+          "id": "conc",
+          "rotulo": "conciliação D+1"
+        },
+        {
+          "id": "arquivo",
+          "rotulo": "arquivo do SPI"
+        }
+      ],
+      "camadas": [
+        {
+          "id": "teste",
+          "rotulo": "Teste de falha",
+          "diagrama": "sd-wt-falha",
+          "trilha": [
+            "teste"
+          ]
+        }
+      ],
+      "paineis": [
+        {
+          "id": "toxi",
+          "linguagem": "bash",
+          "titulo": "a falha injetada (Toxiproxy)",
+          "nota": "Portas e nomes do laboratório, ilustrativos",
+          "linhas": [
+            "# o pix-gateway aponta para a porta do proxy, nunca para o fake do SPI",
+            "toxiproxy-cli create -l localhost:26090 -u localhost:8090 fake-spi",
+            "# 8 s de latência, acima do timeout configurado no pix-gateway",
+            "toxiproxy-cli toxic add -t latency -a latency=8000 fake-spi"
+          ]
+        },
+        {
+          "id": "ledger",
+          "linguagem": "log",
+          "titulo": "lançamentos e estados no ledger",
+          "nota": "Ilustrativo: um pagamento, do débito ao destino",
+          "linhas": [
+            "p-0042  idem k-9b1e  RESERVA  -120.00  EM_TRANSITO",
+            "p-0042  idem k-9b1e  ESTADO            ENVIADO_AO_SPI",
+            "p-0042  idem k-9b1e  ESTADO            EM_VERIFICACAO  prazo: conciliação D+1",
+            "p-0042  idem k-9b1e  EFETIVA  -120.00  LIQUIDADO       origem: conciliação D+1"
+          ]
+        }
+      ],
+      "etapas": [
+        {
+          "id": "pedido",
+          "titulo": "O pedido e a reserva",
+          "subtitulo": "Síncrono e local",
+          "camada": "teste",
+          "html": "\u003cp\u003eAté aqui, nada de novo em relação ao fluxo feliz: validação de limite e antifraude,\nsíncronas, e a \u003cstrong\u003ereserva\u003c/strong\u003e no ledger, que debita e marca como \u0026#34;em trânsito\u0026#34; numa transação\nlocal. A chave de idempotência vem do pedido e vai até o SPI.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 1,
+              "de": "cliente",
+              "para": "gw",
+              "msg": "O cliente pede um Pix de 120.00, com chave de idempotência"
+            },
+            {
+              "n": 2,
+              "de": "gw",
+              "para": "ledger",
+              "msg": "O pix-gateway valida limite e antifraude e reserva: débito de 120.00 em trânsito",
+              "estados": {
+                "ledger": "novo"
+              },
+              "painel": {
+                "id": "ledger",
+                "de": 1,
+                "ate": 1
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "sd-pix-resultado-desconhecido-pedido",
+            "tipo": "sequencia",
+            "titulo": "O pedido e a reserva",
+            "descricao": "Etapa \"O pedido e a reserva\" em sequência: 2 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "cliente",
+                "rotulo": "cliente (app)"
+              },
+              {
+                "id": "gw",
+                "rotulo": "pix-gateway"
+              },
+              {
+                "id": "ledger",
+                "rotulo": "ledger"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "cliente",
+                "para": "gw",
+                "rotulo": "pede",
+                "tipo": "sync"
+              },
+              {
+                "de": "gw",
+                "para": "ledger",
+                "rotulo": "lança",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 4
+        },
+        {
+          "id": "silencio",
+          "titulo": "O envio cai no silêncio",
+          "subtitulo": "Resultado desconhecido não é falha",
+          "camada": "teste",
+          "html": "\u003cp\u003eA partir do envio, o fluxo sai do controle do sistema. No teste, o Toxiproxy segura a\nordem por 8 segundos, mais que o timeout configurado. O pix-gateway não sabe se o SPI\nliquidou. Dizer \u0026#34;falhou\u0026#34; ou \u0026#34;concluído\u0026#34; ao cliente seria mentir, e reenviar arriscaria\num segundo pagamento.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 3,
+              "de": "gw",
+              "para": "toxi",
+              "msg": "O pix-gateway envia a ordem ao SPI, que no teste passa pelo Toxiproxy",
+              "estados": {
+                "ledger": "novo"
+              },
+              "painel": {
+                "id": "toxi",
+                "de": 1,
+                "ate": 2
+              }
+            },
+            {
+              "n": 4,
+              "de": "toxi",
+              "para": "spi",
+              "msg": "O Toxiproxy segura a ordem por 8 s antes de entregá-la ao fake do SPI",
+              "anotacao": "acima do timeout configurado",
+              "estados": {
+                "ledger": "novo"
+              },
+              "painel": {
+                "id": "toxi",
+                "de": 3,
+                "ate": 4
+              }
+            },
+            {
+              "n": 5,
+              "de": "gw",
+              "para": "cliente",
+              "msg": "Estoura o timeout, e o pix-gateway responde ao cliente: pagamento em processamento",
+              "anotacao": "nunca falhou, nunca concluído",
+              "estados": {
+                "gw": "destaque",
+                "ledger": "novo"
+              },
+              "painel": {
+                "id": "ledger",
+                "de": 2,
+                "ate": 2
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "sd-pix-resultado-desconhecido-silencio",
+            "tipo": "sequencia",
+            "titulo": "O envio cai no silêncio",
+            "descricao": "Etapa \"O envio cai no silêncio\" em sequência: 3 eventos entre 4 atores.",
+            "participantes": [
+              {
+                "id": "cliente",
+                "rotulo": "cliente (app)"
+              },
+              {
+                "id": "gw",
+                "rotulo": "pix-gateway"
+              },
+              {
+                "id": "toxi",
+                "rotulo": "Toxiproxy"
+              },
+              {
+                "id": "spi",
+                "rotulo": "fake do SPI"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "gw",
+                "para": "toxi",
+                "rotulo": "ordem",
+                "tipo": "sync"
+              },
+              {
+                "de": "toxi",
+                "para": "spi",
+                "rotulo": "atrasa",
+                "tipo": "sync"
+              },
+              {
+                "de": "gw",
+                "para": "cliente",
+                "rotulo": "estado",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 3
+        },
+        {
+          "id": "spi",
+          "titulo": "Enquanto isso, no SPI",
+          "subtitulo": "A verdade existe, longe daqui",
+          "camada": "teste",
+          "html": "\u003cp\u003eA ordem chega atrasada, mas chega. O fake do SPI liquida e registra a liquidação no\narquivo do dia. É por isso que \u0026#34;assumir falha e tentar de novo\u0026#34; é a resposta errada: o\npagamento pode já ter acontecido do outro lado.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 6,
+              "de": "spi",
+              "para": "arquivo",
+              "msg": "O fake do SPI recebe a ordem atrasada, liquida e registra no arquivo do dia",
+              "anotacao": "o pix-gateway ainda não sabe",
+              "estados": {
+                "gw": "destaque",
+                "ledger": "novo",
+                "spi": "ativo"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "sd-pix-resultado-desconhecido-spi",
+            "tipo": "sequencia",
+            "titulo": "Enquanto isso, no SPI",
+            "descricao": "Etapa \"Enquanto isso, no SPI\" em sequência: 1 eventos entre 2 atores.",
+            "participantes": [
+              {
+                "id": "spi",
+                "rotulo": "fake do SPI"
+              },
+              {
+                "id": "arquivo",
+                "rotulo": "arquivo do SPI"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "spi",
+                "para": "arquivo",
+                "rotulo": "registra",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 5
+        },
+        {
+          "id": "consulta",
+          "titulo": "Consultar, nunca reenviar",
+          "subtitulo": "Em verificação, com prazo",
+          "camada": "teste",
+          "html": "\u003cp\u003eA resposta certa é \u003cstrong\u003econsultar o status\u003c/strong\u003e com o mesmo identificador, até obter um\nresultado definitivo. Aqui a consulta também não resolve no prazo, e o pagamento entra em\n\u0026#34;em verificação\u0026#34;, com prazo declarado e alerta se não sair dele: nenhum pagamento fica\nali para sempre.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 7,
+              "de": "gw",
+              "para": "toxi",
+              "msg": "O pix-gateway consulta o status da ordem, com o mesmo identificador, em vez de reenviar",
+              "estados": {
+                "gw": "destaque",
+                "ledger": "novo",
+                "spi": "ativo"
+              }
+            },
+            {
+              "n": 8,
+              "de": "toxi",
+              "para": "gw",
+              "msg": "A consulta cai na mesma latência e não volta no prazo",
+              "estados": {
+                "gw": "destaque",
+                "ledger": "novo",
+                "spi": "ativo",
+                "toxi": "falha"
+              }
+            },
+            {
+              "n": 9,
+              "de": "gw",
+              "para": "ledger",
+              "msg": "O pagamento entra em EM_VERIFICACAO, com prazo declarado e alerta",
+              "estados": {
+                "gw": "destaque",
+                "ledger": "destaque",
+                "spi": "ativo",
+                "toxi": "falha"
+              },
+              "painel": {
+                "id": "ledger",
+                "de": 3,
+                "ate": 3
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "sd-pix-resultado-desconhecido-consulta",
+            "tipo": "sequencia",
+            "titulo": "Consultar, nunca reenviar",
+            "descricao": "Etapa \"Consultar, nunca reenviar\" em sequência: 3 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "gw",
+                "rotulo": "pix-gateway"
+              },
+              {
+                "id": "toxi",
+                "rotulo": "Toxiproxy"
+              },
+              {
+                "id": "ledger",
+                "rotulo": "ledger"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "gw",
+                "para": "toxi",
+                "rotulo": "ordem",
+                "tipo": "sync"
+              },
+              {
+                "de": "toxi",
+                "para": "gw",
+                "rotulo": "resposta",
+                "tipo": "sync"
+              },
+              {
+                "de": "gw",
+                "para": "ledger",
+                "rotulo": "lança",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 4
+        },
+        {
+          "id": "conciliacao",
+          "titulo": "A conciliação D+1 decide",
+          "subtitulo": "O pior caso tem saída",
+          "camada": "teste",
+          "html": "\u003cp\u003eNo dia seguinte, a conciliação confere o que ficou em verificação contra o \u003cstrong\u003earquivo de\nliquidação\u003c/strong\u003e que o SPI publica. Se a ordem está lá, liquidou: o débito em trânsito vira\ndefinitivo. Se não estivesse, o pagamento viraria revertido e o valor voltaria. Nunca os\ndois destinos.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 10,
+              "de": "conc",
+              "para": "arquivo",
+              "msg": "A conciliação D+1 lê o arquivo de liquidação publicado pelo SPI",
+              "estados": {
+                "gw": "destaque",
+                "ledger": "destaque",
+                "spi": "ativo",
+                "toxi": "falha"
+              }
+            },
+            {
+              "n": 11,
+              "de": "arquivo",
+              "para": "conc",
+              "msg": "A ordem está no arquivo: ela liquidou",
+              "estados": {
+                "gw": "destaque",
+                "ledger": "destaque",
+                "spi": "ativo",
+                "toxi": "falha"
+              }
+            },
+            {
+              "n": 12,
+              "de": "conc",
+              "para": "ledger",
+              "msg": "A conciliação resolve no ledger: o débito em trânsito vira definitivo, LIQUIDADO",
+              "anotacao": "se não estivesse no arquivo, REVERTIDO",
+              "estados": {
+                "gw": "destaque",
+                "ledger": "ativo",
+                "spi": "ativo",
+                "toxi": "falha"
+              },
+              "painel": {
+                "id": "ledger",
+                "de": 4,
+                "ate": 4
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "sd-pix-resultado-desconhecido-conciliacao",
+            "tipo": "sequencia",
+            "titulo": "A conciliação D+1 decide",
+            "descricao": "Etapa \"A conciliação D+1 decide\" em sequência: 3 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "ledger",
+                "rotulo": "ledger"
+              },
+              {
+                "id": "conc",
+                "rotulo": "conciliação D+1"
+              },
+              {
+                "id": "arquivo",
+                "rotulo": "arquivo do SPI"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "conc",
+                "para": "arquivo",
+                "rotulo": "lê",
+                "tipo": "sync"
+              },
+              {
+                "de": "arquivo",
+                "para": "conc",
+                "rotulo": "linhas",
+                "tipo": "reply"
+              },
+              {
+                "de": "conc",
+                "para": "ledger",
+                "rotulo": "resolve",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 4
+        },
+        {
+          "id": "aviso",
+          "titulo": "O cliente fica sabendo",
+          "subtitulo": "Tarde, mas verdadeiro",
+          "camada": "teste",
+          "html": "\u003cp\u003eO estado terminal volta ao pix-gateway, que notifica o cliente. A notificação chega\ntarde, e é verdadeira. A conservação vale em todo instante do teste: débitos são iguais a\ncréditos mais o valor em trânsito.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 13,
+              "de": "ledger",
+              "para": "gw",
+              "msg": "O ledger devolve ao pix-gateway o estado terminal: LIQUIDADO",
+              "estados": {
+                "gw": "destaque",
+                "ledger": "ativo",
+                "spi": "ativo",
+                "toxi": "falha"
+              }
+            },
+            {
+              "n": 14,
+              "de": "gw",
+              "para": "cliente",
+              "msg": "O pix-gateway notifica o cliente, tarde: o pagamento foi concluído",
+              "estados": {
+                "gw": "ativo",
+                "ledger": "ativo",
+                "spi": "ativo",
+                "toxi": "falha"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "sd-pix-resultado-desconhecido-aviso",
+            "tipo": "sequencia",
+            "titulo": "O cliente fica sabendo",
+            "descricao": "Etapa \"O cliente fica sabendo\" em sequência: 2 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "cliente",
+                "rotulo": "cliente (app)"
+              },
+              {
+                "id": "gw",
+                "rotulo": "pix-gateway"
+              },
+              {
+                "id": "ledger",
+                "rotulo": "ledger"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "ledger",
+                "para": "gw",
+                "rotulo": "terminal",
+                "tipo": "async"
+              },
+              {
+                "de": "gw",
+                "para": "cliente",
+                "rotulo": "estado",
+                "tipo": "async"
+              }
+            ]
+          },
+          "omitidos": 4
+        }
+      ],
+      "total": 14
+    }
+  }
+}
