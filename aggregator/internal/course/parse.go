@@ -58,6 +58,9 @@ func newBodyPolicy() *bluemonday.Policy {
 	p.AllowAttrs("class").Matching(regexp.MustCompile(`^walkthrough$`)).OnElements("figure")
 	p.AllowAttrs("class").Matching(regexp.MustCompile(`^walkthrough-descricao$`)).OnElements("details")
 	p.AllowAttrs("class").Matching(regexp.MustCompile(`^walkthrough-resumo$`)).OnElements("p")
+	// Event numbers run across steps: each step's list starts where the
+	// previous one ended (and markdown lists that start at N keep N).
+	p.AllowAttrs("start").Matching(regexp.MustCompile(`^[1-9][0-9]{0,2}$`)).OnElements("ol")
 	return p
 }
 

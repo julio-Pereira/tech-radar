@@ -1,0 +1,84 @@
+[
+  {
+    "id": "fixture-chega",
+    "tipo": "sequencia",
+    "titulo": "O pedido chega",
+    "descricao": "Etapa \"O pedido chega\" em sequência: 3 eventos entre 4 atores.",
+    "participantes": [
+      {
+        "id": "cli",
+        "rotulo": "cliente"
+      },
+      {
+        "id": "api",
+        "rotulo": "API"
+      },
+      {
+        "id": "db",
+        "rotulo": "banco"
+      },
+      {
+        "id": "agente",
+        "rotulo": "agente"
+      }
+    ],
+    "mensagens": [
+      {
+        "de": "cli",
+        "para": "api",
+        "rotulo": "envia",
+        "tipo": "sync"
+      },
+      {
+        "de": "api",
+        "para": "db",
+        "rotulo": "grava",
+        "tipo": "sync"
+      },
+      {
+        "de": "api",
+        "para": "cli",
+        "rotulo": "evento 3",
+        "tipo": "reply"
+      }
+    ]
+  },
+  {
+    "id": "fixture-reage",
+    "tipo": "sequencia",
+    "titulo": "O agente reage",
+    "descricao": "Etapa \"O agente reage\" em sequência: 2 eventos entre 4 atores.",
+    "participantes": [
+      {
+        "id": "cli",
+        "rotulo": "cliente"
+      },
+      {
+        "id": "api",
+        "rotulo": "API"
+      },
+      {
+        "id": "db",
+        "rotulo": "banco"
+      },
+      {
+        "id": "agente",
+        "rotulo": "agente"
+      }
+    ],
+    "mensagens": [
+      {
+        "de": "api",
+        "para": "agente",
+        "rotulo": "evento 4",
+        "tipo": "async"
+      },
+      {
+        "de": "agente",
+        "para": "api",
+        "rotulo": "status",
+        "tipo": "sync"
+      }
+    ]
+  }
+]
