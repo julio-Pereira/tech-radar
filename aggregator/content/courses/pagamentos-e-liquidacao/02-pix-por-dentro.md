@@ -107,6 +107,14 @@ embutida para buscar o valor exato da cobrança; em seguida consulta o DICT para
 do lojista para a conta de destino real, monta a mensagem com um identificador fim a fim novo, e o
 SPI liquida a transação em segundos.
 
+O roteiro abaixo segue esse mesmo Pix de R$ 120,00, evento por evento, e desce para dentro do PSP
+do pagador quando a ação muda de escala. Repare na ordem: reserva antes da ordem, e aceite,
+liquidação e crédito, nessa sequência.
+
+```walkthrough
+pg-um-pix-por-dentro
+```
+
 ## Hands-on
 
 **Tutorial.** Implemente `sim-spi/` com um DICT simulado, um gerador/leitor de QR e uma mensagem

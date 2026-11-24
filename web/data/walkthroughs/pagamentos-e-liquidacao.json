@@ -1,0 +1,667 @@
+{
+  "slug": "pagamentos-e-liquidacao",
+  "walkthroughs": {
+    "pg-um-pix-por-dentro": {
+      "id": "pg-um-pix-por-dentro",
+      "titulo": "Um Pix por dentro, do QR dinâmico ao crédito na loja",
+      "resumo": "Ninguém transfere dinheiro diretamente: o PSP do pagador reserva, o SPI liquida e só então os dois lados fecham.",
+      "atores": [
+        {
+          "id": "pagador",
+          "rotulo": "pagador (app)"
+        },
+        {
+          "id": "psp-pa",
+          "rotulo": "PSP do pagador"
+        },
+        {
+          "id": "dict",
+          "rotulo": "DICT"
+        },
+        {
+          "id": "spi",
+          "rotulo": "SPI"
+        },
+        {
+          "id": "liq",
+          "rotulo": "contas de liquidação"
+        },
+        {
+          "id": "psp-pb",
+          "rotulo": "PSP do recebedor"
+        },
+        {
+          "id": "recebedor",
+          "rotulo": "recebedor (loja)"
+        },
+        {
+          "id": "gateway",
+          "rotulo": "pix-gateway"
+        },
+        {
+          "id": "orq",
+          "rotulo": "orquestrador"
+        },
+        {
+          "id": "antifraude",
+          "rotulo": "antifraude"
+        },
+        {
+          "id": "razao",
+          "rotulo": "razão"
+        }
+      ],
+      "camadas": [
+        {
+          "id": "ecossistema",
+          "rotulo": "Ecossistema Pix",
+          "diagrama": "pg-wt-ecossistema",
+          "trilha": [
+            "ecossistema"
+          ]
+        },
+        {
+          "id": "psp",
+          "rotulo": "PSP do pagador",
+          "diagrama": "pg-wt-psp",
+          "trilha": [
+            "ecossistema",
+            "psp"
+          ]
+        }
+      ],
+      "paineis": [
+        {
+          "id": "cobranca",
+          "linguagem": "json",
+          "titulo": "cobrança hospedada (sim-spi)",
+          "nota": "Formato didático do sim-spi, não o leiaute oficial",
+          "linhas": [
+            "{",
+            "  \"idCobranca\": \"cob-20261124-0042\",",
+            "  \"chave\": \"loja@exemplo.test\",",
+            "  \"valor\": \"120.00\",",
+            "  \"estado\": \"pendente\"",
+            "}"
+          ]
+        },
+        {
+          "id": "ordem",
+          "linguagem": "json",
+          "titulo": "ordem de pagamento (sim-spi)",
+          "nota": "Formato didático do sim-spi, dados sintéticos",
+          "linhas": [
+            "{",
+            "  \"idFimAFim\": \"E-SIM-PSPA-20261124-000001\",",
+            "  \"valor\": \"120.00\",",
+            "  \"pagador\": { \"psp\": \"PSP-A\", \"conta\": \"0001-000123\" },",
+            "  \"recebedor\": { \"psp\": \"PSP-B\", \"conta\": \"0007-004567\" },",
+            "  \"idCobranca\": \"cob-20261124-0042\",",
+            "  \"estado\": \"em-processamento\"",
+            "}"
+          ]
+        },
+        {
+          "id": "razao",
+          "linguagem": "log",
+          "titulo": "lançamentos no razão do PSP do pagador",
+          "nota": "Ilustrativo: um pagamento, duas fases",
+          "linhas": [
+            "pagamento p-0001  chave-idem k-7f3a  RESERVA  -120.00  em trânsito",
+            "pagamento p-0001  chave-idem k-7f3a  EFETIVA  -120.00  definitivo"
+          ]
+        }
+      ],
+      "etapas": [
+        {
+          "id": "cobranca",
+          "titulo": "A cobrança",
+          "subtitulo": "O QR carrega uma URL, não o valor",
+          "camada": "ecossistema",
+          "html": "\u003cp\u003eUm QR \u003cstrong\u003edinâmico\u003c/strong\u003e normalmente não traz o valor: traz uma URL. O aplicativo busca nela a\ncobrança completa, hospedada pelo PSP do recebedor. É essa indireção que deixa a cobrança\nter estado (pendente, paga, expirada) sem regravar o QR.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 1,
+              "de": "pagador",
+              "para": "psp-pa",
+              "msg": "O pagador lê o QR dinâmico no caixa, e o app do seu PSP extrai a URL da cobrança"
+            },
+            {
+              "n": 2,
+              "de": "psp-pa",
+              "para": "psp-pb",
+              "msg": "O PSP do pagador busca na URL o payload hospedado pelo PSP do recebedor"
+            },
+            {
+              "n": 3,
+              "de": "psp-pb",
+              "para": "psp-pa",
+              "msg": "Volta a cobrança: valor, chave e identificador, com o valor como texto decimal",
+              "painel": {
+                "id": "cobranca",
+                "de": 2,
+                "ate": 5
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "pg-um-pix-por-dentro-cobranca",
+            "tipo": "sequencia",
+            "titulo": "A cobrança",
+            "descricao": "Etapa \"A cobrança\" em sequência: 3 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "pagador",
+                "rotulo": "pagador (app)"
+              },
+              {
+                "id": "psp-pa",
+                "rotulo": "PSP do pagador"
+              },
+              {
+                "id": "psp-pb",
+                "rotulo": "PSP do recebedor"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "pagador",
+                "para": "psp-pa",
+                "rotulo": "confirma",
+                "tipo": "sync"
+              },
+              {
+                "de": "psp-pa",
+                "para": "psp-pb",
+                "rotulo": "busca",
+                "tipo": "sync"
+              },
+              {
+                "de": "psp-pb",
+                "para": "psp-pa",
+                "rotulo": "cobrança",
+                "tipo": "reply"
+              }
+            ]
+          },
+          "omitidos": 8
+        },
+        {
+          "id": "chave",
+          "titulo": "A chave vira conta",
+          "subtitulo": "O DICT traduz, e não vaza",
+          "camada": "ecossistema",
+          "html": "\u003cp\u003eAté aqui o PSP do pagador só conhece uma \u003cstrong\u003echave\u003c/strong\u003e. O DICT a traduz na conta de destino. A\nconsulta tem limite de taxa, e a resposta a uma chave inexistente é igual à de uma consulta\nrecusada: qualquer diferença deixaria enumerar chaves.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 4,
+              "de": "psp-pa",
+              "para": "dict",
+              "msg": "O PSP do pagador consulta a chave da loja no DICT, dentro do limite de consultas"
+            },
+            {
+              "n": 5,
+              "de": "dict",
+              "para": "psp-pa",
+              "msg": "O DICT devolve a conta de destino ligada à chave",
+              "anotacao": "inexistente e recusada respondem igual"
+            },
+            {
+              "n": 6,
+              "de": "psp-pa",
+              "para": "pagador",
+              "msg": "O app mostra valor e recebedor para o pagador conferir"
+            },
+            {
+              "n": 7,
+              "de": "pagador",
+              "para": "psp-pa",
+              "msg": "O pagador confirma o pagamento"
+            }
+          ],
+          "sequencia": {
+            "id": "pg-um-pix-por-dentro-chave",
+            "tipo": "sequencia",
+            "titulo": "A chave vira conta",
+            "descricao": "Etapa \"A chave vira conta\" em sequência: 4 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "pagador",
+                "rotulo": "pagador (app)"
+              },
+              {
+                "id": "psp-pa",
+                "rotulo": "PSP do pagador"
+              },
+              {
+                "id": "dict",
+                "rotulo": "DICT"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "psp-pa",
+                "para": "dict",
+                "rotulo": "consulta chave",
+                "tipo": "sync"
+              },
+              {
+                "de": "dict",
+                "para": "psp-pa",
+                "rotulo": "conta",
+                "tipo": "reply"
+              },
+              {
+                "de": "psp-pa",
+                "para": "pagador",
+                "rotulo": "mostra",
+                "tipo": "sync"
+              },
+              {
+                "de": "pagador",
+                "para": "psp-pa",
+                "rotulo": "confirma",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 8
+        },
+        {
+          "id": "autorizacao",
+          "titulo": "A autorização interna",
+          "subtitulo": "Síncrona, local, antes de sair de casa",
+          "camada": "psp",
+          "html": "\u003cp\u003eA ação desce para dentro do PSP do pagador. Validação, antifraude e \u003cstrong\u003ereserva\u003c/strong\u003e são síncronas\ne locais: uma transação só. A reserva debita e marca o valor como \u0026#34;em trânsito\u0026#34;. A chave de\nidempotência acompanha o pedido até o SPI, e o razão é a última linha de defesa contra débito\nduplo.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 8,
+              "de": "gateway",
+              "para": "orq",
+              "msg": "O pix-gateway entrega o pedido ao orquestrador, com a chave de idempotência"
+            },
+            {
+              "n": 9,
+              "de": "orq",
+              "para": "antifraude",
+              "msg": "O orquestrador pede a decisão da antifraude para esta transação"
+            },
+            {
+              "n": 10,
+              "de": "antifraude",
+              "para": "orq",
+              "msg": "A antifraude aprova"
+            },
+            {
+              "n": 11,
+              "de": "orq",
+              "para": "razao",
+              "msg": "O orquestrador reserva no razão: debita 120.00 e marca como em trânsito",
+              "estados": {
+                "razao": "novo"
+              },
+              "painel": {
+                "id": "razao",
+                "de": 1,
+                "ate": 1
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "pg-um-pix-por-dentro-autorizacao",
+            "tipo": "sequencia",
+            "titulo": "A autorização interna",
+            "descricao": "Etapa \"A autorização interna\" em sequência: 4 eventos entre 4 atores.",
+            "participantes": [
+              {
+                "id": "gateway",
+                "rotulo": "pix-gateway"
+              },
+              {
+                "id": "orq",
+                "rotulo": "orquestrador"
+              },
+              {
+                "id": "antifraude",
+                "rotulo": "antifraude"
+              },
+              {
+                "id": "razao",
+                "rotulo": "razão"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "gateway",
+                "para": "orq",
+                "rotulo": "pedido",
+                "tipo": "sync"
+              },
+              {
+                "de": "orq",
+                "para": "antifraude",
+                "rotulo": "avalia",
+                "tipo": "sync"
+              },
+              {
+                "de": "antifraude",
+                "para": "orq",
+                "rotulo": "decisão",
+                "tipo": "reply"
+              },
+              {
+                "de": "orq",
+                "para": "razao",
+                "rotulo": "reserva, efetiva",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 7
+        },
+        {
+          "id": "ordem",
+          "titulo": "A ordem vai ao SPI",
+          "subtitulo": "O identificador fim a fim viaja junto",
+          "camada": "ecossistema",
+          "html": "\u003cp\u003eDe volta ao ecossistema. A ordem sai com o \u003cstrong\u003eidentificador fim a fim\u003c/strong\u003e, que acompanha a\ntransação do começo ao fim: a mesma ordem enviada duas vezes não pode virar dois pagamentos.\nO SPI encaminha ao PSP do recebedor, que precisa aceitar dentro do prazo do manual vigente.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 12,
+              "de": "psp-pa",
+              "para": "spi",
+              "msg": "O PSP do pagador envia a ordem ao SPI com o identificador fim a fim",
+              "estados": {
+                "razao": "novo"
+              },
+              "painel": {
+                "id": "ordem",
+                "de": 2,
+                "ate": 3
+              }
+            },
+            {
+              "n": 13,
+              "de": "spi",
+              "para": "psp-pb",
+              "msg": "O SPI encaminha a ordem ao PSP do recebedor",
+              "estados": {
+                "razao": "novo"
+              }
+            },
+            {
+              "n": 14,
+              "de": "psp-pb",
+              "para": "spi",
+              "msg": "O PSP do recebedor aceita",
+              "estados": {
+                "razao": "novo"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "pg-um-pix-por-dentro-ordem",
+            "tipo": "sequencia",
+            "titulo": "A ordem vai ao SPI",
+            "descricao": "Etapa \"A ordem vai ao SPI\" em sequência: 3 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "psp-pa",
+                "rotulo": "PSP do pagador"
+              },
+              {
+                "id": "spi",
+                "rotulo": "SPI"
+              },
+              {
+                "id": "psp-pb",
+                "rotulo": "PSP do recebedor"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "psp-pa",
+                "para": "spi",
+                "rotulo": "ordem",
+                "tipo": "async"
+              },
+              {
+                "de": "spi",
+                "para": "psp-pb",
+                "rotulo": "ordem, liquidado",
+                "tipo": "async"
+              },
+              {
+                "de": "psp-pb",
+                "para": "spi",
+                "rotulo": "aceita",
+                "tipo": "reply"
+              }
+            ]
+          },
+          "omitidos": 8
+        },
+        {
+          "id": "liquidacao",
+          "titulo": "A liquidação",
+          "subtitulo": "Bruta, uma a uma, 24x7",
+          "camada": "ecossistema",
+          "html": "\u003cp\u003eSó agora o dinheiro muda de dono. O SPI liquida \u003cstrong\u003eesta\u003c/strong\u003e transação individualmente: debita a\nconta de liquidação do PSP do pagador e credita a do PSP do recebedor, sem esperar um lote.\nDepois confirma aos dois lados.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 15,
+              "de": "spi",
+              "para": "liq",
+              "msg": "O SPI debita a conta de liquidação do PSP do pagador e credita a do recebedor",
+              "anotacao": "liquidação bruta em tempo real",
+              "estados": {
+                "liq": "ativo",
+                "razao": "novo"
+              }
+            },
+            {
+              "n": 16,
+              "de": "spi",
+              "para": "psp-pa",
+              "msg": "O SPI confirma ao PSP do pagador: liquidado",
+              "estados": {
+                "liq": "ativo",
+                "razao": "novo"
+              }
+            },
+            {
+              "n": 17,
+              "de": "spi",
+              "para": "psp-pb",
+              "msg": "O SPI confirma ao PSP do recebedor: liquidado",
+              "estados": {
+                "liq": "ativo",
+                "razao": "novo"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "pg-um-pix-por-dentro-liquidacao",
+            "tipo": "sequencia",
+            "titulo": "A liquidação",
+            "descricao": "Etapa \"A liquidação\" em sequência: 3 eventos entre 4 atores.",
+            "participantes": [
+              {
+                "id": "psp-pa",
+                "rotulo": "PSP do pagador"
+              },
+              {
+                "id": "spi",
+                "rotulo": "SPI"
+              },
+              {
+                "id": "liq",
+                "rotulo": "contas de liquidação"
+              },
+              {
+                "id": "psp-pb",
+                "rotulo": "PSP do recebedor"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "spi",
+                "para": "liq",
+                "rotulo": "liquida bruto",
+                "tipo": "sync"
+              },
+              {
+                "de": "spi",
+                "para": "psp-pa",
+                "rotulo": "liquidado",
+                "tipo": "reply"
+              },
+              {
+                "de": "spi",
+                "para": "psp-pb",
+                "rotulo": "ordem, liquidado",
+                "tipo": "async"
+              }
+            ]
+          },
+          "omitidos": 7
+        },
+        {
+          "id": "pagador-fecha",
+          "titulo": "O lado do pagador fecha",
+          "subtitulo": "Em trânsito vira definitivo",
+          "camada": "psp",
+          "html": "\u003cp\u003eDentro do PSP do pagador, a confirmação encerra a saga: o débito que estava \u0026#34;em trânsito\u0026#34;\nvira definitivo, e o pagamento chega ao seu estado terminal, liquidado. Se o SPI tivesse\nrejeitado, a compensação seria reverter a reserva.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 18,
+              "de": "orq",
+              "para": "razao",
+              "msg": "O orquestrador efetiva no razão: o débito em trânsito vira definitivo",
+              "estados": {
+                "liq": "ativo",
+                "razao": "ativo"
+              },
+              "painel": {
+                "id": "razao",
+                "de": 2,
+                "ate": 2
+              }
+            },
+            {
+              "n": 19,
+              "de": "orq",
+              "para": "gateway",
+              "msg": "O orquestrador devolve ao pix-gateway o estado terminal: liquidado",
+              "estados": {
+                "liq": "ativo",
+                "razao": "ativo"
+              }
+            },
+            {
+              "n": 20,
+              "de": "gateway",
+              "para": "pagador",
+              "msg": "O pix-gateway notifica o pagador, que vê o comprovante",
+              "estados": {
+                "liq": "ativo",
+                "razao": "ativo"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "pg-um-pix-por-dentro-pagador-fecha",
+            "tipo": "sequencia",
+            "titulo": "O lado do pagador fecha",
+            "descricao": "Etapa \"O lado do pagador fecha\" em sequência: 3 eventos entre 4 atores.",
+            "participantes": [
+              {
+                "id": "pagador",
+                "rotulo": "pagador (app)"
+              },
+              {
+                "id": "gateway",
+                "rotulo": "pix-gateway"
+              },
+              {
+                "id": "orq",
+                "rotulo": "orquestrador"
+              },
+              {
+                "id": "razao",
+                "rotulo": "razão"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "orq",
+                "para": "razao",
+                "rotulo": "reserva, efetiva",
+                "tipo": "sync"
+              },
+              {
+                "de": "orq",
+                "para": "gateway",
+                "rotulo": "estado",
+                "tipo": "reply"
+              },
+              {
+                "de": "gateway",
+                "para": "pagador",
+                "rotulo": "notifica",
+                "tipo": "async"
+              }
+            ]
+          },
+          "omitidos": 7
+        },
+        {
+          "id": "recebedor-fecha",
+          "titulo": "O lado do recebedor fecha",
+          "subtitulo": "O crédito vem depois da liquidação",
+          "camada": "ecossistema",
+          "html": "\u003cp\u003eO PSP do recebedor credita a conta do lojista com o valor já liquidado no SPI. A ordem é\nsempre esta: aceite, liquidação, crédito. Um crédito antes da liquidação seria dinheiro que\nainda não chegou.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 21,
+              "de": "psp-pb",
+              "para": "recebedor",
+              "msg": "O PSP do recebedor credita 120.00 na conta da loja, e o caixa vê o pagamento",
+              "estados": {
+                "liq": "ativo",
+                "razao": "ativo",
+                "recebedor": "ativo"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "pg-um-pix-por-dentro-recebedor-fecha",
+            "tipo": "sequencia",
+            "titulo": "O lado do recebedor fecha",
+            "descricao": "Etapa \"O lado do recebedor fecha\" em sequência: 1 eventos entre 2 atores.",
+            "participantes": [
+              {
+                "id": "psp-pb",
+                "rotulo": "PSP do recebedor"
+              },
+              {
+                "id": "recebedor",
+                "rotulo": "recebedor (loja)"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "psp-pb",
+                "para": "recebedor",
+                "rotulo": "credita",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 9
+        }
+      ],
+      "total": 21
+    }
+  }
+}

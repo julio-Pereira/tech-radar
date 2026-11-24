@@ -1,0 +1,208 @@
+id: pg-um-pix-por-dentro
+titulo: "Um Pix por dentro, do QR dinâmico ao crédito na loja"
+resumo: "Ninguém transfere dinheiro diretamente: o PSP do pagador reserva, o SPI liquida e só então os dois lados fecham."
+
+atores:
+  - { id: pagador, rotulo: "pagador (app)" }
+  - { id: psp-pa, rotulo: "PSP do pagador" }
+  - { id: dict, rotulo: "DICT" }
+  - { id: spi, rotulo: "SPI" }
+  - { id: liq, rotulo: "contas de liquidação" }
+  - { id: psp-pb, rotulo: "PSP do recebedor" }
+  - { id: recebedor, rotulo: "recebedor (loja)" }
+  - { id: gateway, rotulo: "pix-gateway" }
+  - { id: orq, rotulo: "orquestrador" }
+  - { id: antifraude, rotulo: "antifraude" }
+  - { id: razao, rotulo: "razão" }
+
+camadas:
+  - { id: ecossistema, rotulo: "Ecossistema Pix", diagrama: pg-wt-ecossistema }
+  - { id: psp, rotulo: "PSP do pagador", diagrama: pg-wt-psp, pai: ecossistema }
+
+paineis:
+  - id: cobranca
+    linguagem: json
+    titulo: "cobrança hospedada (sim-spi)"
+    nota: "Formato didático do sim-spi, não o leiaute oficial"
+    conteudo: |
+      {
+        "idCobranca": "cob-20261124-0042",
+        "chave": "loja@exemplo.test",
+        "valor": "120.00",
+        "estado": "pendente"
+      }
+  - id: ordem
+    linguagem: json
+    titulo: "ordem de pagamento (sim-spi)"
+    nota: "Formato didático do sim-spi, dados sintéticos"
+    conteudo: |
+      {
+        "idFimAFim": "E-SIM-PSPA-20261124-000001",
+        "valor": "120.00",
+        "pagador": { "psp": "PSP-A", "conta": "0001-000123" },
+        "recebedor": { "psp": "PSP-B", "conta": "0007-004567" },
+        "idCobranca": "cob-20261124-0042",
+        "estado": "em-processamento"
+      }
+  - id: razao
+    linguagem: log
+    titulo: "lançamentos no razão do PSP do pagador"
+    nota: "Ilustrativo: um pagamento, duas fases"
+    conteudo: |
+      pagamento p-0001  chave-idem k-7f3a  RESERVA  -120.00  em trânsito
+      pagamento p-0001  chave-idem k-7f3a  EFETIVA  -120.00  definitivo
+
+etapas:
+  - id: cobranca
+    titulo: "A cobrança"
+    subtitulo: "O QR carrega uma URL, não o valor"
+    camada: ecossistema
+    texto: |
+      Um QR **dinâmico** normalmente não traz o valor: traz uma URL. O aplicativo busca nela a
+      cobrança completa, hospedada pelo PSP do recebedor. É essa indireção que deixa a cobrança
+      ter estado (pendente, paga, expirada) sem regravar o QR.
+    eventos:
+      - de: pagador
+        para: psp-pa
+        msg: "O pagador lê o QR dinâmico no caixa, e o app do seu PSP extrai a URL da cobrança"
+      - de: psp-pa
+        para: psp-pb
+        msg: "O PSP do pagador busca na URL o payload hospedado pelo PSP do recebedor"
+      - de: psp-pb
+        para: psp-pa
+        tipo: reply
+        msg: "Volta a cobrança: valor, chave e identificador, com o valor como texto decimal"
+        painel: { id: cobranca, linhas: "2-5" }
+
+  - id: chave
+    titulo: "A chave vira conta"
+    subtitulo: "O DICT traduz, e não vaza"
+    camada: ecossistema
+    texto: |
+      Até aqui o PSP do pagador só conhece uma **chave**. O DICT a traduz na conta de destino. A
+      consulta tem limite de taxa, e a resposta a uma chave inexistente é igual à de uma consulta
+      recusada: qualquer diferença deixaria enumerar chaves.
+    eventos:
+      - de: psp-pa
+        para: dict
+        msg: "O PSP do pagador consulta a chave da loja no DICT, dentro do limite de consultas"
+      - de: dict
+        para: psp-pa
+        tipo: reply
+        msg: "O DICT devolve a conta de destino ligada à chave"
+        anotacao: "inexistente e recusada respondem igual"
+      - de: psp-pa
+        para: pagador
+        msg: "O app mostra valor e recebedor para o pagador conferir"
+      - de: pagador
+        para: psp-pa
+        msg: "O pagador confirma o pagamento"
+
+  - id: autorizacao
+    titulo: "A autorização interna"
+    subtitulo: "Síncrona, local, antes de sair de casa"
+    camada: psp
+    texto: |
+      A ação desce para dentro do PSP do pagador. Validação, antifraude e **reserva** são síncronas
+      e locais: uma transação só. A reserva debita e marca o valor como "em trânsito". A chave de
+      idempotência acompanha o pedido até o SPI, e o razão é a última linha de defesa contra débito
+      duplo.
+    eventos:
+      - de: gateway
+        para: orq
+        msg: "O pix-gateway entrega o pedido ao orquestrador, com a chave de idempotência"
+      - de: orq
+        para: antifraude
+        msg: "O orquestrador pede a decisão da antifraude para esta transação"
+      - de: antifraude
+        para: orq
+        tipo: reply
+        msg: "A antifraude aprova"
+      - de: orq
+        para: razao
+        msg: "O orquestrador reserva no razão: debita 120.00 e marca como em trânsito"
+        painel: { id: razao, linhas: "1" }
+        estados: { razao: novo }
+
+  - id: ordem
+    titulo: "A ordem vai ao SPI"
+    subtitulo: "O identificador fim a fim viaja junto"
+    camada: ecossistema
+    texto: |
+      De volta ao ecossistema. A ordem sai com o **identificador fim a fim**, que acompanha a
+      transação do começo ao fim: a mesma ordem enviada duas vezes não pode virar dois pagamentos.
+      O SPI encaminha ao PSP do recebedor, que precisa aceitar dentro do prazo do manual vigente.
+    eventos:
+      - de: psp-pa
+        para: spi
+        tipo: async
+        msg: "O PSP do pagador envia a ordem ao SPI com o identificador fim a fim"
+        painel: { id: ordem, linhas: "2-3" }
+      - de: spi
+        para: psp-pb
+        tipo: async
+        msg: "O SPI encaminha a ordem ao PSP do recebedor"
+      - de: psp-pb
+        para: spi
+        tipo: reply
+        msg: "O PSP do recebedor aceita"
+
+  - id: liquidacao
+    titulo: "A liquidação"
+    subtitulo: "Bruta, uma a uma, 24x7"
+    camada: ecossistema
+    texto: |
+      Só agora o dinheiro muda de dono. O SPI liquida **esta** transação individualmente: debita a
+      conta de liquidação do PSP do pagador e credita a do PSP do recebedor, sem esperar um lote.
+      Depois confirma aos dois lados.
+    eventos:
+      - de: spi
+        para: liq
+        msg: "O SPI debita a conta de liquidação do PSP do pagador e credita a do recebedor"
+        anotacao: "liquidação bruta em tempo real"
+        estados: { liq: ativo }
+      - de: spi
+        para: psp-pa
+        tipo: reply
+        msg: "O SPI confirma ao PSP do pagador: liquidado"
+      - de: spi
+        para: psp-pb
+        tipo: async
+        msg: "O SPI confirma ao PSP do recebedor: liquidado"
+
+  - id: pagador-fecha
+    titulo: "O lado do pagador fecha"
+    subtitulo: "Em trânsito vira definitivo"
+    camada: psp
+    texto: |
+      Dentro do PSP do pagador, a confirmação encerra a saga: o débito que estava "em trânsito"
+      vira definitivo, e o pagamento chega ao seu estado terminal, liquidado. Se o SPI tivesse
+      rejeitado, a compensação seria reverter a reserva.
+    eventos:
+      - de: orq
+        para: razao
+        msg: "O orquestrador efetiva no razão: o débito em trânsito vira definitivo"
+        painel: { id: razao, linhas: "2" }
+        estados: { razao: ativo }
+      - de: orq
+        para: gateway
+        tipo: reply
+        msg: "O orquestrador devolve ao pix-gateway o estado terminal: liquidado"
+      - de: gateway
+        para: pagador
+        tipo: async
+        msg: "O pix-gateway notifica o pagador, que vê o comprovante"
+
+  - id: recebedor-fecha
+    titulo: "O lado do recebedor fecha"
+    subtitulo: "O crédito vem depois da liquidação"
+    camada: ecossistema
+    texto: |
+      O PSP do recebedor credita a conta do lojista com o valor já liquidado no SPI. A ordem é
+      sempre esta: aceite, liquidação, crédito. Um crédito antes da liquidação seria dinheiro que
+      ainda não chegou.
+    eventos:
+      - de: psp-pb
+        para: recebedor
+        msg: "O PSP do recebedor credita 120.00 na conta da loja, e o caixa vê o pagamento"
+        estados: { recebedor: ativo }
