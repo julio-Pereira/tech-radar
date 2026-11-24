@@ -1,0 +1,212 @@
+id: k8s-do-apply-ao-pod-ready
+titulo: "Do kubectl apply ao Pod recebendo tráfego"
+resumo: "Ninguém manda o nó rodar o Pod: cada componente observa o API server e reage ao que mudou."
+
+atores:
+  - { id: kubectl, rotulo: "kubectl" }
+  - { id: api, rotulo: "kube-apiserver" }
+  - { id: etcd, rotulo: "etcd" }
+  - { id: kcm, rotulo: "kube-controller-manager" }
+  - { id: sched, rotulo: "kube-scheduler" }
+  - { id: kubelet, rotulo: "kubelet (worker2)" }
+  - { id: cri, rotulo: "containerd" }
+  - { id: cni, rotulo: "plugin CNI" }
+  - { id: pod, rotulo: "pix-gateway-…-x2k8p" }
+  - { id: proxy, rotulo: "kube-proxy" }
+
+camadas:
+  - { id: cluster, rotulo: "Cluster", diagrama: k8s-wt-cluster }
+  - { id: worker2, rotulo: "fin-platform-worker2", diagrama: k8s-wt-node, pai: cluster }
+
+paineis:
+  - id: deployment
+    linguagem: yaml
+    titulo: "deployment.yaml"
+    conteudo: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: pix-gateway
+        namespace: payments
+      spec:
+        replicas: 3
+        selector:
+          matchLabels: { app.kubernetes.io/name: pix-gateway }
+        template:
+          metadata:
+            labels: { app.kubernetes.io/name: pix-gateway }
+          spec:
+            containers:
+              - name: pix-gateway
+                image: ghcr.io/fin/pix-gateway@sha256:9c8f2e…
+                resources:
+                  requests: { cpu: 250m, memory: 512Mi }
+                readinessProbe:
+                  httpGet: { path: /actuator/health/readiness, port: 8080 }
+                  periodSeconds: 5
+  - id: eventos
+    linguagem: log
+    titulo: "kubectl get events -n payments --watch"
+    nota: "Saída ilustrativa, sem as colunas LAST SEEN e TYPE"
+    conteudo: |
+      REASON             OBJECT                          MESSAGE
+      ScalingReplicaSet  deployment/pix-gateway          Scaled up replica set pix-gateway-7c9d6f from 0 to 3
+      SuccessfulCreate   replicaset/pix-gateway-7c9d6f   Created pod: pix-gateway-7c9d6f-x2k8p
+      Scheduled          pod/pix-gateway-7c9d6f-x2k8p    Successfully assigned payments/pix-gateway-7c9d6f-x2k8p to fin-platform-worker2
+      Pulling            pod/pix-gateway-7c9d6f-x2k8p    Pulling image "ghcr.io/fin/pix-gateway@sha256:9c8f2e…"
+      Pulled             pod/pix-gateway-7c9d6f-x2k8p    Successfully pulled image "ghcr.io/fin/pix-gateway@sha256:9c8f2e…" in 2.8s (2.8s including waiting). Image size: 98304512 bytes.
+      Created            pod/pix-gateway-7c9d6f-x2k8p    Container created
+      Started            pod/pix-gateway-7c9d6f-x2k8p    Container started
+
+etapas:
+  - id: pedido
+    titulo: "O pedido chega"
+    subtitulo: "Gravar não é executar"
+    camada: cluster
+    texto: |
+      O `kubectl apply` não executa nada. Ele entrega uma **declaração** ao API server, a
+      única porta de entrada do cluster, que autentica, autoriza, passa pela admissão e
+      grava no etcd. A resposta volta antes de existir qualquer Pod: é por isso que o
+      apply "deu certo" e nada mudou ainda.
+    eventos:
+      - de: kubectl
+        para: api
+        msg: "O kubectl envia o Deployment por HTTPS, autenticado pelo certificado do kubeconfig"
+        painel: { id: deployment, linhas: "1-5" }
+      - de: api
+        para: etcd
+        msg: "Autorizado pelo RBAC e aprovado pela admissão, o Deployment é gravado no etcd"
+      - de: api
+        para: kubectl
+        tipo: reply
+        msg: "O API server responde 201 Created. O kubectl termina aqui, e nenhum Pod existe ainda"
+        anotacao: "o apply retorna antes de qualquer Pod existir"
+
+  - id: controllers
+    titulo: "Os controllers reagem"
+    subtitulo: "Cada um reconcilia o próximo"
+    camada: cluster
+    texto: |
+      Ninguém chama o controller-manager. Os controllers mantêm um **watch** no API server
+      e acordam quando um objeto do seu tipo muda. O Deployment controller cria um
+      ReplicaSet; o ReplicaSet controller vê que faltam Pods e cria os registros. Cada passo
+      é uma escrita no API server, que dispara o próximo watch.
+    eventos:
+      - de: api
+        para: kcm
+        tipo: async
+        msg: "O Deployment controller, que mantém um watch, é notificado do Deployment novo"
+      - de: kcm
+        para: api
+        msg: "Ele cria um ReplicaSet com o template do Pod e replicas: 3"
+        painel: { id: eventos, linhas: "2" }
+      - de: api
+        para: kcm
+        tipo: async
+        msg: "O ReplicaSet controller vê um ReplicaSet com 0 de 3 Pods"
+        painel: { id: deployment, linhas: "7" }
+      - de: kcm
+        para: api
+        msg: "Ele cria 3 Pods. São só registros: spec.nodeName vazio, nada rodando"
+        painel: { id: eventos, linhas: "3" }
+
+  - id: scheduling
+    titulo: "O scheduler escolhe o nó"
+    subtitulo: "Decidir não é executar"
+    camada: cluster
+    texto: |
+      O scheduler observa Pods sem `nodeName`. Para cada um, descarta os nós em que ele não
+      cabe pelos `requests` (marco 05), pontua os que sobram e grava a decisão como um
+      **Binding**. Ele nunca fala com o nó escolhido: a decisão vira um campo no API server.
+    eventos:
+      - de: api
+        para: sched
+        tipo: async
+        msg: "O scheduler observa Pods sem nó, e este entra na fila"
+      - de: sched
+        para: api
+        msg: "Filtra e pontua os nós pelos requests e grava um Binding para o worker2"
+        anotacao: "o scheduler nunca contata o nó"
+        painel: { id: deployment, linhas: "17-18" }
+
+  - id: kubelet
+    titulo: "O kubelet assume"
+    subtitulo: "O nó puxa o trabalho"
+    camada: worker2
+    texto: |
+      A ação desce para dentro do nó. O kubelet do worker2 só observa Pods com o seu nome em
+      `nodeName`. Ao ver um, prepara o terreno pelo containerd: um **sandbox** com o
+      namespace de rede do Pod, ligado à rede pelo plugin CNI.
+    eventos:
+      - de: api
+        para: kubelet
+        tipo: async
+        msg: "O kubelet do worker2 só observa Pods do seu nó, e agora há um"
+        painel: { id: eventos, linhas: "4" }
+      - de: kubelet
+        para: cri
+        msg: "Pela CRI, o kubelet pede um sandbox: o namespace de rede e a casa vazia do Pod"
+      - de: cri
+        para: cni
+        msg: "O containerd chama o plugin CNI, que liga o Pod à rede e atribui um IP"
+
+  - id: container
+    titulo: "Imagem e container"
+    subtitulo: "A parte lenta"
+    camada: worker2
+    texto: |
+      Com o sandbox pronto, o kubelet pede a imagem e o container. O pull costuma ser o passo
+      mais demorado de todo o roteiro, e é por isso que a imagem fixada por digest e já em
+      cache no nó encurta o tempo até o Pod existir.
+    eventos:
+      - de: kubelet
+        para: cri
+        msg: "O kubelet pede a imagem do pix-gateway. O pull costuma ser a parte lenta"
+        painel: { id: eventos, linhas: "5-6" }
+      - de: cri
+        para: pod
+        msg: "O containerd cria o container dentro do sandbox e o inicia"
+        anotacao: "os outros 2 Pods seguem o mesmo caminho, em paralelo"
+        estados: { pod: novo }
+        painel: { id: eventos, linhas: "7-8" }
+
+  - id: pronto
+    titulo: "Rodando não é pronto"
+    subtitulo: "Running ≠ Ready"
+    camada: worker2
+    texto: |
+      O container está rodando, mas ainda não recebe tráfego. O kubelet roda a
+      **readinessProbe** (marco 06) e só quando ela passa marca o Pod como Ready. A
+      aplicação decide quando está pronta, não o Kubernetes.
+    eventos:
+      - de: kubelet
+        para: pod
+        msg: "A readiness probe começa. Até ela passar, o Pod não recebe tráfego"
+        anotacao: "Running ≠ Ready"
+        painel: { id: deployment, linhas: "19-21" }
+      - de: kubelet
+        para: api
+        msg: "Probe ok: o kubelet atualiza o status do Pod para Ready no API server"
+        estados: { pod: ativo }
+
+  - id: service
+    titulo: "O Pod entra no Service"
+    subtitulo: "Tráfego, enfim"
+    camada: cluster
+    texto: |
+      De volta ao cluster. O controller de EndpointSlice, mais um laço do controller-manager,
+      vê o Pod Ready e grava o IP dele no EndpointSlice do Service. Cada kube-proxy observa
+      os EndpointSlices e reprograma as regras do seu nó (marco 04). Só aqui o Pod recebe a
+      primeira requisição.
+    eventos:
+      - de: api
+        para: kcm
+        tipo: async
+        msg: "O controller de EndpointSlice vê o Pod Ready"
+      - de: kcm
+        para: api
+        msg: "Ele grava o IP do Pod no EndpointSlice do Service pix-gateway"
+      - de: api
+        para: proxy
+        tipo: async
+        msg: "Cada kube-proxy recebe o endpoint novo e reprograma as regras do seu nó"

@@ -1,0 +1,31 @@
+id: k8s-wt-cluster
+tipo: topologia
+titulo: "No cluster, todo componente fala só com o API server, nunca um com o outro"
+descricao: >
+  O kubectl envia a declaração ao API server, que a grava no etcd e responde. O
+  controller-manager e o scheduler mantêm um watch no API server: recebem as mudanças por
+  ele e escrevem de volta por ele, sem nunca falar um com o outro nem com os nós. O
+  kube-proxy de cada nó também observa o API server, e é por ele que fica sabendo dos
+  endpoints de um Service. Os dois nós de trabalho do cluster kind fin-platform aparecem
+  embaixo; o worker2 é onde o Pod deste roteiro vai rodar.
+grupos:
+  - { id: cp, rotulo: "control plane", col: 1, row: 0, cols: 2, rows: 2 }
+  - { id: nos, rotulo: "nós de trabalho", col: 0, row: 2, cols: 3, rows: 2 }
+nos:
+  - { id: kubectl, rotulo: "kubectl", col: 0, row: 1, papel: externo }
+  - { id: etcd, rotulo: "etcd", grupo: cp, col: 1, row: 0 }
+  - { id: api, rotulo: "kube-apiserver", grupo: cp, col: 1, row: 1, papel: destaque }
+  - { id: sched, rotulo: "kube-scheduler", grupo: cp, col: 2, row: 0 }
+  - { id: kcm, rotulo: "kube-controller-manager", grupo: cp, col: 2, row: 1 }
+  - { id: proxy, rotulo: "kube-proxy (cada nó)", grupo: nos, col: 1, row: 2 }
+  - { id: worker, rotulo: "fin-platform-worker", grupo: nos, col: 0, row: 3 }
+  - { id: worker2, rotulo: "fin-platform-worker2", grupo: nos, col: 2, row: 3, papel: destaque }
+arestas:
+  - { de: kubectl, para: api, rotulo: "apply" }
+  - { de: api, para: kubectl, rotulo: "201 Created" }
+  - { de: api, para: etcd, rotulo: "grava" }
+  - { de: api, para: kcm, rotulo: "watch" }
+  - { de: kcm, para: api, rotulo: "cria objetos" }
+  - { de: api, para: sched, rotulo: "watch" }
+  - { de: sched, para: api, rotulo: "Binding" }
+  - { de: api, para: proxy, rotulo: "EndpointSlice" }
