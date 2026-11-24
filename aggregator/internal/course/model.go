@@ -160,8 +160,9 @@ type CompiledCourse struct {
 	// diagramas and assets are written next to the course JSON, not inside
 	// it: data/diagramas/<slug>.json is fetched only when a milestone on
 	// screen has a diagram, and assets are copied to data/assets/<slug>/.
-	diagramas map[string]Diagrama
-	assets    []string
+	diagramas    map[string]Diagrama
+	walkthroughs map[string]Walkthrough
+	assets       []string
 }
 
 // IndexEntry is the lightweight catalog row for the courses index.

@@ -374,6 +374,60 @@ of each other, a line over a box, a figure that scrolls on a 1280px desktop, or 
 violation. The renderer and its primitives have a budget of **10 KB gzip** together,
 checked by a test.
 
+**Walkthroughs by events** (Fase 1.7). When the lesson is a long chain of cause and
+effect between components — from `kubectl apply` to a Pod receiving traffic, a Pix end to
+end — a diagram's 12 steps are not enough and the prose drifts away from the drawing. A
+walkthrough is typed data too: `content/courses/<trilha>/walkthroughs/<id>.yaml`,
+referenced from a milestone by a fenced `walkthrough` block with its id (same rules as
+`diagrama`: column 0, an unknown id fails the build, and so does a walkthrough no
+milestone cites). It never draws a layout of its own: `atores` are the single source of
+truth, each `camada` points to an existing **`topologia`** diagram whose nodes use the
+actors' ids (`pai` builds the breadcrumb, `Cluster / node-2`), and each `etapa` fixes one
+layer and lists its `eventos`.
+
+```yaml
+id: k8s-do-apply-ao-pod-ready
+titulo: "Do kubectl apply ao Pod recebendo tráfego"
+resumo: "Ninguém manda o nó rodar o Pod: cada componente observa o API server e reage"
+atores:
+  - { id: kubectl, rotulo: "kubectl" }
+  - { id: api, rotulo: "kube-apiserver" }
+camadas:
+  - { id: cluster, rotulo: "Cluster", diagrama: k8s-wt-cluster }
+  - { id: node-2, rotulo: "node-2", diagrama: k8s-wt-node, pai: cluster }
+paineis:
+  - { id: deployment, linguagem: yaml, titulo: "deployment.yaml", conteudo: "…" }
+etapas:
+  - id: pedido
+    titulo: "O pedido chega"
+    subtitulo: "Gravar não é executar"
+    camada: cluster
+    texto: "Markdown curto (≤ 120 palavras)."
+    eventos:
+      - de: kubectl
+        para: api
+        msg: "kubectl envia o Deployment via HTTPS, autenticado pelo certificado do kubeconfig"
+        painel: { id: deployment, linhas: "1-6" }   # N or N-M, inside the panel
+        tipo: sync            # optional, for the sequence view: sync | async | reply
+        anotacao: "≤ 60 caracteres, só neste evento"
+        estados: { api: ativo }   # cumulative, the values of Fase 1.6
+```
+
+An event is a `fluxo` of Fase 1.6: the edge `de → para` must exist **in that direction**
+in the diagram of the step's layer (a watch and a write are two edges). Event numbers run
+across the whole walkthrough ("evento 14 de 18"); steps have their own. `msg` (≤ 110
+characters) is an assertion in the present with an explicit subject, like a legend.
+Limits: 8 steps, 6 events per step, 30 events, 3 layers (depth 2), 4 panels of 40 lines;
+past that, split the process in two walkthroughs or two milestones. **The sequence view is
+derived, never written**: one `sequencia` per step, one message per event, labelled with
+the topology edge's label (or "evento N"). With up to 6 actors every step shows all of
+them in the declared order, so columns never move; with more, a step shows only the actors
+it uses and says how many it left out, and a step that would need more than 6 columns
+fails the build. The compiler writes the specs to `web/data/walkthroughs/<slug>.json` and
+the full textual description into the milestone — every step, its prose and every event
+as `origem → destino: msg` — for a screen reader, a reader without JavaScript and a
+printout. A walkthrough is never part of the completion gate (the quiz is).
+
 **Illustrations** (what isn't a graph — the anatomy of a log record, say) are authored
 images in `content/courses/<trilha>/assets/` (`svg`, `png` or `webp`, at most 200 KB),
 referenced as `![alt text](assets/file.svg)` with a non-empty alt. Remote images and
