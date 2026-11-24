@@ -440,7 +440,10 @@ It never autoplays: play runs the current step and stops at its end, so the read
 to the prose before going on. Space, ←/→, PageUp/PageDown and Home/End drive it; each
 event is announced ("Evento 16 de 19. kubelet (worker2) para kube-apiserver. …"), and a new step's
 title first. Off screen, in a hidden tab or with `prefers-reduced-motion` nothing moves,
-not even the change of layer. **Ampliar** opens the view alone, on the current event.
+not even the change of layer. **Ampliar** opens the view full screen, on the current event,
+with its own event card, controls and announcements (the page behind a modal dialog is
+inert): the zoomed view follows the walkthrough across layers and views, plays the same way,
+and closing it leaves the figure on the event where the dialog stopped.
 A deep link lands paused on one event: `#/learn/<slug>/<marco>/wt/<id>/<evento>` (the
 4th segment is `wt`, which is why no concept may have that id); moving inside the player
 replaces the entry instead of adding history.
