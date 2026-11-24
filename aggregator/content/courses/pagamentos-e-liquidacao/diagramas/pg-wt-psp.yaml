@@ -1,0 +1,24 @@
+id: pg-wt-psp
+tipo: topologia
+titulo: "Dentro do PSP, o orquestrador decide e o razão guarda o dinheiro em trânsito"
+descricao: >
+  Dentro do PSP do pagador, o pix-gateway recebe o pedido do aplicativo com uma chave de
+  idempotência e o entrega ao orquestrador. O orquestrador pede a decisão da antifraude e, se
+  aprovada, reserva o valor no razão: debita e marca como em trânsito, numa transação local. É o
+  orquestrador que fala com o SPI e, quando a liquidação é confirmada, torna o débito definitivo e
+  devolve o estado ao pix-gateway, que avisa o pagador.
+grupos:
+  - { id: psp, rotulo: "PSP do pagador", col: 1, row: 0, cols: 3, rows: 2 }
+nos:
+  - { id: pagador, rotulo: "pagador (app)", col: 0, row: 0, papel: externo }
+  - { id: gateway, rotulo: "pix-gateway", grupo: psp, col: 1, row: 0 }
+  - { id: orq, rotulo: "orquestrador", grupo: psp, col: 2, row: 0, papel: destaque }
+  - { id: antifraude, rotulo: "antifraude", grupo: psp, col: 3, row: 0 }
+  - { id: razao, rotulo: "razão", grupo: psp, col: 2, row: 1 }
+arestas:
+  - { de: gateway, para: orq, rotulo: "pedido" }
+  - { de: orq, para: gateway, rotulo: "estado" }
+  - { de: orq, para: antifraude, rotulo: "avalia" }
+  - { de: antifraude, para: orq, rotulo: "decisão" }
+  - { de: orq, para: razao, rotulo: "reserva, efetiva" }
+  - { de: gateway, para: pagador, rotulo: "notifica" }

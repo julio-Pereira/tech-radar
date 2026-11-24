@@ -153,3 +153,51 @@ O `PLANO-visuais-animacao.md` não está no repositório; o registro fica aqui. 
 regra do README (mais de 12 passos, troca de escala ou painel): `system-design` / caso Pix de
 ponta a ponta, `seguranca-aplicacao` / OAuth 2 e OIDC, `open-finance-brasil` / iniciação de
 pagamento. O piloto 7.2 (`pagamentos-e-liquidacao`, "Um Pix por dentro") espera o checkpoint.
+
+## 5. Piloto 7.2: `pagamentos-e-liquidacao` / marco 02, "Um Pix por dentro"
+
+Encaixe: marco 02 (`pix-por-dentro`), logo depois do "Exemplo numa fintech", que narra o mesmo
+caminho (QR dinâmico → URL → DICT → identificador fim a fim → SPI liquida). 7 etapas, 21
+eventos, 2 camadas (`Ecossistema Pix` e `PSP do pagador`), 11 atores (a visão de sequência mostra
+só os atores de cada etapa, de 2 a 4 colunas). Diagramas de camada novos: `pg-wt-ecossistema` e
+`pg-wt-psp`. **Fica em PR aberto para o checkpoint com o Julio antes de publicar**, como o plano
+pede para domínio regulado.
+
+### A regra "o marco vence"
+
+| O plano sugeria | O que a trilha ensina | Publicado |
+| --- | --- | --- |
+| citar `pacs.008` e `pacs.002` | O marco 02 diz "mensagem estruturada baseada num padrão internacional (**conferir** o conjunto exato e a versão vigente)" e não nomeia mensagem nenhuma | Nenhum nome de mensagem ISO. "Ordem", "aceita" e "liquidado", os termos do marco e do diagrama `pg-pix` |
+| "liquidação nas contas PI" | A trilha diz "conta de liquidação", caso da "conta de reserva" do marco 01 | "contas de liquidação" |
+| camada `dentro-do-psp` com gateway, antifraude, ledger e "conector SPI" | O `PROJETO.md` da trilha tem o `pix-gateway` como cliente do `orquestrador`, que consome a antifraude e o razão; o marco 09 define o orquestrador e a camada anticorrupção por provedor | `pix-gateway`, `orquestrador`, `antifraude` e `razão`; quem fala com o SPI é o orquestrador |
+| "autorização interna (antifraude + reserva no ledger)" | `system-design/09`: validação de limite e antifraude, depois "reserva no ledger (debita e marca como em trânsito, dentro de uma transação local)" | Etapa 3, com essas palavras |
+
+### Cada afirmação e a sua fonte na trilha
+
+| Etapa | Afirmação | Fonte |
+| --- | --- | --- |
+| 1 | O QR dinâmico carrega uma URL; o payload é hospedado pelo recebedor (ou seu PSP) e tem estado | marco 02, "O payload dinâmico hospedado pelo recebedor" |
+| 1 | Valor como texto decimal com duas casas (`"120.00"`) | marco 02, "valor como texto decimal"; nota do `pg-pix` |
+| 2 | O DICT traduz a chave na conta; limite de consultas; inexistente e recusada respondem igual | marco 02, "O DICT como diretório de chaves" e "Proteção contra enumeração" |
+| 3 | Antifraude, reserva em trânsito numa transação local, chave de idempotência até o SPI, razão como última defesa | `system-design/09`, "O fluxo feliz", "Idempotência de ponta a ponta" e "O que é síncrono" |
+| 4 | Identificador fim a fim, base da idempotência; aceite dentro do prazo do manual vigente (sem número) | marco 02, "Mensagens, identificador fim a fim e estado" e "Limites de tempo"; `pg-pix` |
+| 5 | Liquidação bruta, individual, 24x7, entre as contas de liquidação; confirmação aos dois lados | marco 02, "O SPI como infraestrutura de liquidação"; `pg-pix` |
+| 6 | Em trânsito vira definitivo; estado terminal liquidado; se rejeitado, a compensação reverte a reserva | `system-design/09`, "Estados terminais únicos" e "O que é síncrono, e onde entra a saga" |
+| 7 | O crédito ao recebedor vem depois da liquidação | marco 02 (aceite → liquida → confirma aos dois lados); o marco 03 põe o bloqueio cautelar "no recebimento, antes de o valor ficar disponível", isto é, entre a liquidação e o crédito disponível ao lojista, que este roteiro não aborda |
+
+Fora do roteiro, de propósito: prazos e limites numéricos (o marco manda conferir o valor
+vigente), participação direta × indireta, MED e devolução (marco 03).
+
+**Salvaguarda do `PROJETO.md`.** Os painéis usam o formato didático do `sim-spi` do hands-on,
+marcados como tal, e só dados sintéticos: chave `loja@exemplo.test` (domínio reservado `.test`),
+contas `0001-000123` e `0007-004567`, PSPs `PSP-A` e `PSP-B`. Nenhum CPF, CNPJ, chave ou
+participante real.
+
+### Teste
+
+O teste de legibilidade do `walkthrough.spec.js` passou a percorrer todo walkthrough compilado
+(achando o marco pelo JSON da trilha), nas duas visões, em todos os eventos, em desktop e em
+360 px, com zero violação de CSP e sem rolagem lateral; e um teste falha se algum walkthrough
+compilado não for citado por um marco. O primeiro desenho do `pg-wt-ecossistema` passou de
+1.100 px (1.135); os rótulos das arestas horizontais foram encurtados ("busca", "cobrança",
+"confirma") e o aviso sumiu.

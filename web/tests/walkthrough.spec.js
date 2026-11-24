@@ -280,32 +280,58 @@ test.describe('Walkthrough player', () => {
   });
 });
 
-// The same legibility rule as diagram-real.spec.js, on what the walkthrough
-// draws: both layers and every derived sequence, at every event.
-test('every view of the walkthrough keeps its labels inside the viewBox', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 900 });
-  const figure = await open(page);
-  const problems = [];
-  for (const aba of ['Topologia', 'Sequência']) {
-    await figure.locator('.wt-aba', { hasText: aba }).click();
-    await figure.locator('.wt-area').focus();
-    await page.keyboard.press('Home');
-    for (let n = 1; n <= TOTAL; n++) {
-      problems.push(...await figure.evaluate((fig, where) => {
-        const out = [];
-        const svg = /** @type {SVGSVGElement} */ (fig.querySelector('.wt-area svg'));
-        const box = svg.getBoundingClientRect();
-        for (const t of svg.querySelectorAll('text')) {
-          if (t.closest('.diagrama-oculto')) continue;
-          const r = t.getBoundingClientRect();
-          if (r.left < box.left - 1 || r.right > box.right + 1 || r.top < box.top - 1 || r.bottom > box.bottom + 1) {
-            out.push(`${where}: "${t.textContent}" sai do viewBox`);
-          }
-        }
-        return out;
-      }, `${aba} evento ${n}`));
-      if (n < TOTAL) await figure.locator('.wt-prox').click();
-    }
-  }
-  expect(problems).toEqual([]);
+// The same legibility rule as diagram-real.spec.js, on what every compiled
+// walkthrough draws: its layers and every derived sequence, at every event,
+// plus no CSP violation, on a desktop and at 360px.
+const wtDir = path.join(__dirname, '..', 'data', 'walkthroughs');
+const all = fs.existsSync(wtDir) ? fs.readdirSync(wtDir).filter((f) => f.endsWith('.json')).flatMap((f) => {
+  const slug = f.slice(0, -5);
+  const course = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'courses', `${slug}.json`), 'utf8'));
+  return Object.values(JSON.parse(fs.readFileSync(path.join(wtDir, f), 'utf8')).walkthroughs).map((/** @type {any} */ w) => ({
+    slug, w,
+    marco: course.milestones.find((/** @type {any} */ m) => JSON.stringify(m).includes(`data-walkthrough=\\"${slug}/${w.id}\\"`))?.id,
+  }));
+}) : [];
+
+test('every compiled walkthrough is cited by a milestone', () => {
+  expect(all.length).toBeGreaterThan(1);
+  for (const { slug, w, marco } of all) expect(marco, `${slug}/${w.id}`).toBeTruthy();
 });
+
+for (const { slug, w, marco } of all) {
+  for (const [label, vp] of [['desktop', { width: 1280, height: 900 }], ['360px', { width: 360, height: 760 }]]) {
+    test(`${slug}/${w.id} (${label}): every view keeps its labels inside the viewBox`, async ({ page }) => {
+      await page.setViewportSize(vp);
+      await watchCsp(page);
+      await page.goto(`/#/learn/${slug}/${marco}/wt/${w.id}/1`);
+      const figure = page.locator(`figure.walkthrough[data-walkthrough="${slug}/${w.id}"]`);
+      await expect(figure.locator('.wt-area svg')).toBeVisible();
+      const problems = [];
+      for (const aba of ['Topologia', 'Sequência']) {
+        await figure.locator('.wt-aba', { hasText: aba }).click();
+        await figure.locator('.wt-area').focus();
+        await page.keyboard.press('Home');
+        for (let n = 1; n <= w.total; n++) {
+          problems.push(...await figure.evaluate((fig, where) => {
+            const out = [];
+            const svg = /** @type {SVGSVGElement} */ (fig.querySelector('.wt-area svg'));
+            const box = svg.getBoundingClientRect();
+            for (const t of svg.querySelectorAll('text')) {
+              if (t.closest('.diagrama-oculto')) continue;
+              const r = t.getBoundingClientRect();
+              if (r.left < box.left - 1 || r.right > box.right + 1 || r.top < box.top - 1 || r.bottom > box.bottom + 1) {
+                out.push(`${where}: "${t.textContent}" sai do viewBox`);
+              }
+            }
+            return out;
+          }, `${aba} evento ${n}`));
+          if (n < w.total) await page.keyboard.press('ArrowRight');
+        }
+      }
+      expect(problems).toEqual([]);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+      // @ts-ignore
+      expect(await page.evaluate(() => window.__csp)).toEqual([]);
+    });
+  }
+}
