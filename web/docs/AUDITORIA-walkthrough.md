@@ -260,3 +260,31 @@ Os comandos do painel seguem o README do Toxiproxy (`Shopify/toxiproxy`, commit 
 2026): `toxiproxy-cli create -l <listen> -u <upstream> <nome>` e `toxiproxy-cli toxic add -t
 latency -a latency=<ms> <nome>`. Portas e nomes são do laboratório e estão marcados como
 ilustrativos.
+
+## 8. Expansão: `open-finance-brasil` / marco 07, "Uma iniciação de pagamento, do consentimento ao estado terminal"
+
+Domínio regulado: o PR fica aberto para o Julio revisar o conteúdo antes do merge, como no piloto
+7.2. 6 etapas, 19 eventos, 2 camadas (`Ecossistema` e `Detentora`), 9 atores. Vai além do
+diagrama `of-iniciacao` (9 mensagens, que fica) em três pontos que o marco ensina e os invariantes
+testam: o que acontece **dentro** da detentora (conferência de valor e recebedor, consumo do
+consentimento, limites e antifraude, débito, ordem), o **retry com a mesma chave** (invariante 1)
+e a **notificação repetida** depois do estado terminal (invariante 4).
+
+| Afirmação | Fonte |
+| --- | --- |
+| Consentimento de pagamento com valor, recebedor e conta exatos, validade curta, uso único | marco 07, "O consentimento de pagamento, revisitado" |
+| Autenticação forte daquele movimento, mais rigorosa que a de dados; jornada com ou sem redirecionamento (**conferir**) | marco 07, "Autenticação forte do cliente" |
+| Valor e recebedor idênticos entre consentimento e iniciação; diferença é recusada | marco 07, "Vinculação" e invariante 3 |
+| Chave de idempotência da ITP; mesma chamada, um único pagamento | marco 07, "Idempotência da iniciação" e invariante 1 |
+| Limites e antifraude com o perfil de risco da iniciação por terceiros | marco 07, "Limites, antifraude e resposta assíncrona" |
+| A detentora debita e envia ao SPI; Pix de R$ 100 | marco 07, "Exemplo numa fintech" |
+| SPI sem resposta: resultado desconhecido, resolvido por consulta | marco 07, "A ligação com o Pix" e invariante 5; diagrama `of-iniciacao` |
+| Notificação duplicada ou fora de ordem não reverte o terminal | marco 07, "Estados e o estado terminal único" e invariante 4 |
+| `fin-books` (contas) e `fin-rails` (Pix) como vizinhos da detentora | `PROJETO.md` da trilha, contratos com os vizinhos |
+
+**Fora do roteiro, de propósito:** nomes de estados (o marco manda conferir os vigentes; o roteiro
+diz "liquidado", como o marco faz em prosa), o desenho exato da jornada com ou sem
+redirecionamento, pagamento agendado com *hold* e o caso "aceito e depois rejeitado pelo SPI",
+que o marco deixa como regra de negócio a decidir no complemento. Não há painel: o marco não tem
+código nem mensagem para ligar aos eventos, e inventar um leiaute de API regulada seria afirmar o
+que o marco manda conferir.
