@@ -1392,10 +1392,9 @@
 
 /* ── Reduced motion ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .progress::-webkit-progress-value,
-  .node-dot,
-  .node-marker::before,
-  .course-card { transition: none; }
+  /* The global rule in style.css covers elements and ::before/::after; the
+     progress bar's fill is a pseudo-element it cannot reach. */
+  .progress::-webkit-progress-value { transition: none; }
 }
 
 /* ── Diagramas tipados (diagram.js) ─────────────────────────────────────── */

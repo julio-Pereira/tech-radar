@@ -138,19 +138,11 @@ roda o axe nas duas visões. O `diagram-real.spec.js` deixa os diagramas de cama
 regra "todo diagrama aparece como figura num marco", porque eles aparecem dentro do
 walkthrough e são cobertos pelo teste acima.
 
-### Achados fora do escopo (corrigidos depois, a pedido do Julio)
+### Achados fora do escopo
 
-- A barra de progresso da trilha punha `style="width: N%"` (`dom-helpers.js` e `course-view.js`).
-  Agora é um `<progress>` nativo: o preenchimento é o atributo `value`, o papel `progressbar` e o
-  valor acessível vêm do elemento, e o gradiente e a transição continuam pelos pseudo-elementos.
-  O teste de CSP do walkthrough voltou a verificar o **documento inteiro**, sem nenhum `style`;
-  `learn.spec.js` confere o `value` e a ausência de `style` na barra.
-- A transição de cor do link ativo no cabeçalho (`.nav-link`) rodava mesmo com
-  `prefers-reduced-motion`. Agora não roda; o teste de movimento reduzido deixou de esperar a
-  página assentar e confere que a duração é `0s` (falha com o `style.css` anterior, que dá
-  `0.15s, 0.15s`).
-- Continuam com `style`, de propósito: o `desvio.js` põe `--site-header-h` no `<html>` e a prévia
-  de conceito é posicionada em px (`conceitos.js`), os dois com coordenadas que só existem na hora.
+Os dois achados desta seção (o `style` da barra de progresso e a transição do cabeçalho com
+movimento reduzido) foram corrigidos e estão registrados na seção 9, "Ajustes pós-Fase 1.7",
+frente 2.
 
 ### Candidatos a walkthrough (passo 9 do plano)
 
@@ -293,3 +285,40 @@ redirecionamento, pagamento agendado com *hold* e o caso "aceito e depois rejeit
 que o marco deixa como regra de negócio a decidir no complemento. Não há painel: o marco não tem
 código nem mensagem para ligar aos eventos, e inventar um leiaute de API regulada seria afirmar o
 que o marco manda conferir.
+
+
+## 9. Ajustes pós-Fase 1.7
+
+Task do Julio sobre `main` em `2228ed0`: três frentes, um PR cada. **Re-auditoria:** a frente 2 já
+estava quase toda no PR #189 (aberto antes da task, a pedido do Julio); ela foi completada no
+próprio #189 e entrou antes da frente 1. A ordem da task existe porque a frente 3 consome o
+orçamento que a frente 1 libera, e a frente 2 não mexe no renderer, então a troca não afeta isso.
+
+### Frente 2 — higiene (PR #189)
+
+- **Barra de progresso:** `<progress max="100">` nativo em `dom-helpers.js`, com `bar.value` em
+  `course-view.js`. Saíram o `role="progressbar"` e os `aria-value*`, redundantes no elemento
+  nativo; o `aria-label` fica. O visual está em CSS (`::-webkit-progress-bar`,
+  `::-webkit-progress-value`, `::-moz-progress-bar`).
+- **Outros `.style.` em `web/js`**, que ficam e por quê: `desvio.js:121` grava `--site-header-h`
+  no `<html>` com a altura medida do cabeçalho, e `conceitos.js:168-169` posiciona a prévia de
+  conceito em px junto ao termo. Os dois usam coordenadas que só existem em tempo de execução e
+  não cabem em classe estática; a CSP (`style-src 'self'`) permite CSSOM. Nenhum dos dois aparece
+  nas rotas do teste de higiene: o primeiro só durante um desvio de conceito, o segundo só com a
+  prévia aberta.
+- **Movimento reduzido:** em vez de uma regra por componente, uma regra **global** em `style.css`
+  (`*, *::before, *::after { transition: none !important; animation: none !important; }` dentro de
+  `prefers-reduced-motion: reduce`). É mais segura porque cobre também as transições criadas
+  depois: o CSS tinha 28 `transition` e quase todas valiam sem condição. As `animation` CSS já
+  eram todas condicionadas a `no-preference`. O `::-webkit-progress-value`, que o seletor universal
+  não alcança, fica explícito em `course.css`. As Web Animations disparadas por JS (pacotes dos
+  diagramas e do walkthrough) já consultam o media query.
+- **Testes:** `higiene.spec.js` confere zero `[style]` no documento inteiro em quatro rotas: início,
+  índice de trilhas (com as barras), trilha com marco e diagrama desenhado, e marco com
+  walkthrough. Também confere `document.getAnimations()` vazio **imediatamente** depois de cada
+  troca de rota pelo menu, com movimento reduzido. Sem a regra global, o teste falha com
+  `CSSTransition`; com ela, passa. O teste de movimento reduzido do walkthrough deixou de esperar a
+  página assentar, e o de CSP verifica o documento inteiro.
+- **Não feito:** a comparação de screenshot da barra em Chromium, Firefox e WebKit. O aceite a pede
+  "se já estiverem configurados", e o `playwright.config.js` só tem o projeto `chromium`. O
+  Firefox usa `::-moz-progress-bar`, que está no CSS, mas não foi verificado em navegador.
