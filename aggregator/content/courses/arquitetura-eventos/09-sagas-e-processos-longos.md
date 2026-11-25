@@ -109,6 +109,10 @@ falhou.
 Toda saga precisa de:
 
 - **Prazo por passo**, com ação definida ao estourar: retentar, compensar ou escalar.
+  Retentar um envio que ficou sem resposta é **consultar antes de reenviar**: perguntar ao PSP
+  pelo estado da ordem com o identificador dela e, só se ele não tiver registro, reenviar com o
+  **mesmo** identificador. Reenviar às cegas pode virar dois pagamentos; é o resultado
+  desconhecido de `system-design/09`, agora dentro da saga.
 - **Temporizador como evento.** "Passaram-se 30 minutos" é um fato que dispara uma política,
   exatamente como qualquer outro evento (marco 03).
 - **Alerta por idade**, não por erro: "sagas abertas há mais de 30 minutos" (marco 11).
