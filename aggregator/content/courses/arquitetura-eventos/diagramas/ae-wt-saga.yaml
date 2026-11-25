@@ -1,0 +1,34 @@
+id: ae-wt-saga
+tipo: topologia
+titulo: "O orquestrador comanda cada passo e grava a saga antes de agir"
+descricao: >
+  O fin-flow consome o pedido de liquidação do pix-gateway e conduz a saga. Cada passo muda o
+  registro na tabela saga, com estado, passo, tentativa, prazo e histórico. Ele reserva e libera
+  saldo no ledger-core, pede a decisão de risco e envia a ordem ao PSP, que é o pivot step. Um
+  temporizador, que é um job, busca as sagas com prazo vencido e entrega o fato ao orquestrador.
+  O atendimento pergunta onde está o pagamento e recebe o estado por uma consulta. Por último, a
+  notificação avisa o cliente.
+nos:
+  - { id: gw, rotulo: "pix-gateway", col: 0, row: 0, papel: externo }
+  - { id: risco, rotulo: "risco", col: 1, row: 0 }
+  - { id: psp, rotulo: "PSP", col: 2, row: 0, papel: externo }
+  - { id: atend, rotulo: "atendimento", col: 0, row: 1, papel: externo }
+  - { id: orq, rotulo: "fin-flow (orquestrador)", col: 1, row: 1, papel: destaque }
+  - { id: ledger, rotulo: "ledger-core", col: 2, row: 1 }
+  - { id: notif, rotulo: "notificação", col: 0, row: 2 }
+  - { id: sagadb, rotulo: "tabela saga", col: 1, row: 2 }
+  - { id: timer, rotulo: "temporizador (job)", col: 2, row: 2 }
+arestas:
+  - { de: gw, para: orq, rotulo: "liquidar" }
+  - { de: orq, para: sagadb, rotulo: "grava / lê estado" }
+  - { de: orq, para: ledger, rotulo: "reserva / libera" }
+  - { de: ledger, para: orq, rotulo: "ok" }
+  - { de: orq, para: risco, rotulo: "decidir" }
+  - { de: risco, para: orq, rotulo: "aprovado" }
+  - { de: orq, para: psp, rotulo: "ordem / consulta" }
+  - { de: psp, para: orq, rotulo: "resposta" }
+  - { de: timer, para: sagadb, rotulo: "busca vencidas" }
+  - { de: timer, para: orq, rotulo: "prazo vencido" }
+  - { de: atend, para: orq, rotulo: "onde está?" }
+  - { de: orq, para: atend, rotulo: "estado" }
+  - { de: orq, para: notif, rotulo: "avisar cliente" }

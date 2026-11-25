@@ -1,0 +1,238 @@
+id: ae-saga-sem-resposta
+titulo: "Uma liquidação que o PSP deixa sem resposta"
+resumo: "A saga é um registro no banco: o silêncio vira evento, a retentativa consulta antes de reenviar, e compensar é acrescentar."
+
+atores:
+  - { id: gw, rotulo: "pix-gateway" }
+  - { id: orq, rotulo: "fin-flow (orquestrador)" }
+  - { id: sagadb, rotulo: "tabela saga" }
+  - { id: ledger, rotulo: "ledger-core" }
+  - { id: risco, rotulo: "risco" }
+  - { id: psp, rotulo: "PSP" }
+  - { id: timer, rotulo: "temporizador (job)" }
+  - { id: atend, rotulo: "atendimento" }
+  - { id: notif, rotulo: "notificação" }
+
+camadas:
+  - { id: saga, rotulo: "Liquidação orquestrada", diagrama: ae-wt-saga }
+
+paineis:
+  - id: saga
+    linguagem: texto
+    titulo: "GET /sagas/pix-31e9"
+    nota: "O registro do marco, no momento da pergunta"
+    conteudo: |
+      Saga: settlement-8f2c
+        correlation_id: pix-31e9
+        estado: AGUARDANDO_PSP
+        passo: 3 de 5
+        tentativa: 1
+        prazo: 2026-08-15T18:00:00Z
+        histórico: [SaldoReservado, RiscoAprovado, EnvioAoPSP(tentativa 1)]
+  - id: timer
+    linguagem: sql
+    titulo: "a consulta do temporizador"
+    nota: "Ilustrativa"
+    conteudo: |
+      -- várias instâncias do job podem rodar; SKIP LOCKED evita duas pegarem a mesma saga
+      SELECT id, passo, tentativa
+        FROM saga
+       WHERE prazo < now()
+         AND estado NOT IN ('LIQUIDADA', 'NOTIFICADA', 'CANCELADA', 'ESCALADA')
+       ORDER BY prazo
+       LIMIT 100
+         FOR UPDATE SKIP LOCKED;
+  - id: historico
+    linguagem: log
+    titulo: "histórico da saga settlement-8f2c"
+    nota: "Uma linha por fato, na ordem do roteiro"
+    conteudo: |
+      SaldoReservado
+      RiscoAprovado
+      EnvioAoPSP(tentativa 1)
+      PrazoVencido(passo 3, tentativa 1)
+      ConsultaPSP(sem registro)
+      EnvioAoPSP(tentativa 2, mesmo identificador)
+      PSPRejeitou(conta de destino encerrada)
+      ReservaLiberada
+      Cancelada
+
+etapas:
+  - id: nasce-persistida
+    titulo: "A saga nasce no banco"
+    subtitulo: "Um registro, não um switch num consumidor"
+    camada: saga
+    texto: |
+      Antes de qualquer passo, a saga existe como uma linha na tabela, com id, estado, passo e
+      prazo. É isso que permite retomar depois de uma queda e responder "onde está?" com uma
+      consulta, em vez de um mergulho em log.
+    eventos:
+      - de: gw
+        para: orq
+        tipo: async
+        msg: "O pix-gateway publica payments.initiated, e o fin-flow abre a liquidação do Pix pix-31e9"
+      - de: orq
+        para: sagadb
+        msg: "O orquestrador grava a saga settlement-8f2c, com estado, passo, prazo e histórico"
+        painel: { id: saga, linhas: "1-2" }
+        estados: { sagadb: novo }
+
+  - id: reservar-e-decidir
+    titulo: "Reservar e decidir"
+    subtitulo: "Tudo o que é reversível vem antes"
+    camada: saga
+    texto: |
+      Cada passo escreve o resultado no histórico **na mesma transação** em que muda o estado da
+      saga, como o outbox/inbox do marco 08 aplicado ao próprio orquestrador. O risco é só
+      leitura e não tem compensação.
+    eventos:
+      - de: orq
+        para: ledger
+        msg: "O orquestrador pede ao ledger-core a reserva do saldo do pagador"
+      - de: ledger
+        para: orq
+        tipo: reply
+        msg: "O ledger-core confirma a reserva: o saldo fica indisponível, mas não saiu"
+      - de: orq
+        para: sagadb
+        msg: "Estado SALDO_RESERVADO e o fato no histórico, numa transação só"
+        painel: { id: historico, linhas: "1" }
+      - de: orq
+        para: risco
+        msg: "O orquestrador pede a decisão de risco"
+      - de: risco
+        para: orq
+        tipo: reply
+        msg: "O risco aprova. É só leitura, sem nada a compensar"
+      - de: orq
+        para: sagadb
+        msg: "Estado RISCO_APROVADO e o fato no histórico"
+        painel: { id: historico, linhas: "2" }
+
+  - id: pivot
+    titulo: "O pivot step"
+    subtitulo: "A partir daqui, só para a frente"
+    camada: saga
+    texto: |
+      O prazo do passo é gravado **antes** do envio. Se fosse gravado depois, uma queda entre os
+      dois deixaria a saga sem prazo, e o invariante 2 do marco (nenhuma saga aberta sem prazo)
+      quebraria. Enviar ao PSP é o passo depois do qual não há volta barata.
+    eventos:
+      - de: orq
+        para: sagadb
+        msg: "Estado AGUARDANDO_PSP, com o prazo do passo gravado antes do envio"
+        estados: { sagadb: destaque }
+      - de: orq
+        para: psp
+        tipo: async
+        msg: "O orquestrador envia a ordem ao PSP com o identificador pix-31e9"
+        anotacao: "pivot step"
+        painel: { id: historico, linhas: "3" }
+
+  - id: silencio
+    titulo: "O PSP fica em silêncio"
+    subtitulo: "Nada falha, e por isso nada alerta"
+    camada: saga
+    texto: |
+      Ninguém lança exceção. Sem o temporizador, a saga ficaria em AGUARDANDO_PSP para sempre.
+      "Passaram-se 30 minutos" é um fato que dispara uma política, exatamente como qualquer
+      outro evento.
+    eventos:
+      - de: orq
+        para: psp
+        tipo: timeout
+        msg: "O prazo do passo vence sem resposta do PSP"
+        anotacao: "silêncio não é erro"
+      - de: timer
+        para: sagadb
+        msg: "O job busca as sagas com prazo vencido e acha a settlement-8f2c"
+        painel: { id: timer, linhas: "2-8" }
+      - de: timer
+        para: orq
+        tipo: async
+        msg: "O temporizador entrega o fato ao orquestrador: prazo vencido, tentativa 1"
+        painel: { id: historico, linhas: "4" }
+
+  - id: onde-esta
+    titulo: "Onde está o pagamento?"
+    subtitulo: "Uma consulta, não um mergulho em log"
+    camada: saga
+    texto: |
+      Numa fintech, alguém sempre pergunta: o cliente, o atendimento, o regulador. É por isso que
+      a liquidação é orquestrada, e é a tabela da saga que responde.
+    eventos:
+      - de: atend
+        para: orq
+        msg: "O atendimento pergunta pelo pagamento pix-31e9"
+      - de: orq
+        para: sagadb
+        msg: "O orquestrador lê a saga pelo correlation_id"
+      - de: orq
+        para: atend
+        tipo: reply
+        msg: "Resposta: AGUARDANDO_PSP, passo 3 de 5, tentativa 1, prazo vencido"
+        painel: { id: saga, linhas: "3-6" }
+
+  - id: retentar
+    titulo: "Retentar sem pagar duas vezes"
+    subtitulo: "Consultar antes de reenviar"
+    camada: saga
+    texto: |
+      Reenviar às cegas pode virar dois pagamentos. A retentativa pergunta primeiro e, só se o
+      PSP não tiver registro, reenvia com o **mesmo** identificador, que o PSP usa para
+      deduplicar. Esgotadas as tentativas, a política seria escalar para um humano.
+    eventos:
+      - de: orq
+        para: sagadb
+        msg: "Tentativa 2 e um prazo novo, gravados antes de agir"
+      - de: orq
+        para: psp
+        msg: "O orquestrador consulta o estado da ordem pix-31e9"
+      - de: psp
+        para: orq
+        tipo: reply
+        msg: "O PSP não tem registro dessa ordem"
+        painel: { id: historico, linhas: "5" }
+      - de: orq
+        para: psp
+        tipo: async
+        msg: "O orquestrador reenvia a ordem com o mesmo identificador pix-31e9"
+        anotacao: "esgotou as tentativas → ESCALADA"
+        painel: { id: historico, linhas: "6" }
+      - de: psp
+        para: orq
+        tipo: reply
+        msg: "O PSP rejeita a ordem: a conta de destino está encerrada"
+        painel: { id: historico, linhas: "7" }
+
+  - id: compensar
+    titulo: "Compensar é acrescentar"
+    subtitulo: "Nada se apaga, tudo fica no extrato"
+    camada: saga
+    texto: |
+      A liberação da reserva é uma transação nova, com data e registro próprios: um rollback
+      apaga, uma compensação acrescenta. A compensação também pode falhar e tem retentativa
+      própria. Notificar o cliente vem por último, nunca antes.
+    eventos:
+      - de: orq
+        para: sagadb
+        msg: "Estado COMPENSANDO, gravado antes de compensar"
+        estados: { sagadb: falha }
+      - de: orq
+        para: ledger
+        msg: "O orquestrador pede a liberação da reserva: um lançamento novo, não um apagar"
+      - de: ledger
+        para: orq
+        tipo: reply
+        msg: "O ledger-core lança a liberação, e o saldo volta a ficar disponível"
+        painel: { id: historico, linhas: "8" }
+      - de: orq
+        para: sagadb
+        msg: "Estado CANCELADA, com o histórico completo"
+        painel: { id: historico, linhas: "9" }
+        estados: { sagadb: inativo }
+      - de: orq
+        para: notif
+        tipo: async
+        msg: "Só agora o cliente é avisado do cancelamento"
+        anotacao: "notificar vem por último"

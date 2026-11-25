@@ -150,6 +150,14 @@ uma decisão de negócio escrita sobre quem absorve a diferença.
 Repare no que aconteceu: o processo manual não sumiu. Ele passou a ser **visível, contável e
 alertável**, que é o máximo que a arquitetura pode fazer por uma decisão que é de negócio.
 
+O roteiro abaixo segue uma liquidação do `fin-flow` em que o PSP fica em silêncio: do registro
+da saga à compensação, com o temporizador, a pergunta do atendimento e a retentativa que consulta
+antes de reenviar.
+
+```walkthrough
+ae-saga-sem-resposta
+```
+
 ## Hands-on
 
 **Tutorial — orquestrador `fin-flow` com estado persistido.**

@@ -1,0 +1,799 @@
+{
+  "slug": "arquitetura-eventos",
+  "walkthroughs": {
+    "ae-saga-sem-resposta": {
+      "id": "ae-saga-sem-resposta",
+      "titulo": "Uma liquidação que o PSP deixa sem resposta",
+      "resumo": "A saga é um registro no banco: o silêncio vira evento, a retentativa consulta antes de reenviar, e compensar é acrescentar.",
+      "atores": [
+        {
+          "id": "gw",
+          "rotulo": "pix-gateway"
+        },
+        {
+          "id": "orq",
+          "rotulo": "fin-flow (orquestrador)"
+        },
+        {
+          "id": "sagadb",
+          "rotulo": "tabela saga"
+        },
+        {
+          "id": "ledger",
+          "rotulo": "ledger-core"
+        },
+        {
+          "id": "risco",
+          "rotulo": "risco"
+        },
+        {
+          "id": "psp",
+          "rotulo": "PSP"
+        },
+        {
+          "id": "timer",
+          "rotulo": "temporizador (job)"
+        },
+        {
+          "id": "atend",
+          "rotulo": "atendimento"
+        },
+        {
+          "id": "notif",
+          "rotulo": "notificação"
+        }
+      ],
+      "camadas": [
+        {
+          "id": "saga",
+          "rotulo": "Liquidação orquestrada",
+          "diagrama": "ae-wt-saga",
+          "trilha": [
+            "saga"
+          ]
+        }
+      ],
+      "paineis": [
+        {
+          "id": "saga",
+          "linguagem": "texto",
+          "titulo": "GET /sagas/pix-31e9",
+          "nota": "O registro do marco, no momento da pergunta",
+          "linhas": [
+            "Saga: settlement-8f2c",
+            "  correlation_id: pix-31e9",
+            "  estado: AGUARDANDO_PSP",
+            "  passo: 3 de 5",
+            "  tentativa: 1",
+            "  prazo: 2026-08-15T18:00:00Z",
+            "  histórico: [SaldoReservado, RiscoAprovado, EnvioAoPSP(tentativa 1)]"
+          ]
+        },
+        {
+          "id": "timer",
+          "linguagem": "sql",
+          "titulo": "a consulta do temporizador",
+          "nota": "Ilustrativa",
+          "linhas": [
+            "-- várias instâncias do job podem rodar; SKIP LOCKED evita duas pegarem a mesma saga",
+            "SELECT id, passo, tentativa",
+            "  FROM saga",
+            " WHERE prazo \u003c now()",
+            "   AND estado NOT IN ('LIQUIDADA', 'NOTIFICADA', 'CANCELADA', 'ESCALADA')",
+            " ORDER BY prazo",
+            " LIMIT 100",
+            "   FOR UPDATE SKIP LOCKED;"
+          ]
+        },
+        {
+          "id": "historico",
+          "linguagem": "log",
+          "titulo": "histórico da saga settlement-8f2c",
+          "nota": "Uma linha por fato, na ordem do roteiro",
+          "linhas": [
+            "SaldoReservado",
+            "RiscoAprovado",
+            "EnvioAoPSP(tentativa 1)",
+            "PrazoVencido(passo 3, tentativa 1)",
+            "ConsultaPSP(sem registro)",
+            "EnvioAoPSP(tentativa 2, mesmo identificador)",
+            "PSPRejeitou(conta de destino encerrada)",
+            "ReservaLiberada",
+            "Cancelada"
+          ]
+        }
+      ],
+      "etapas": [
+        {
+          "id": "nasce-persistida",
+          "titulo": "A saga nasce no banco",
+          "subtitulo": "Um registro, não um switch num consumidor",
+          "camada": "saga",
+          "html": "\u003cp\u003eAntes de qualquer passo, a saga existe como uma linha na tabela, com id, estado, passo e\nprazo. É isso que permite retomar depois de uma queda e responder \u0026#34;onde está?\u0026#34; com uma\nconsulta, em vez de um mergulho em log.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 1,
+              "de": "gw",
+              "para": "orq",
+              "msg": "O pix-gateway publica payments.initiated, e o fin-flow abre a liquidação do Pix pix-31e9"
+            },
+            {
+              "n": 2,
+              "de": "orq",
+              "para": "sagadb",
+              "msg": "O orquestrador grava a saga settlement-8f2c, com estado, passo, prazo e histórico",
+              "estados": {
+                "sagadb": "novo"
+              },
+              "painel": {
+                "id": "saga",
+                "de": 1,
+                "ate": 2
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "ae-saga-sem-resposta-nasce-persistida",
+            "tipo": "sequencia",
+            "titulo": "A saga nasce no banco",
+            "descricao": "Etapa \"A saga nasce no banco\" em sequência: 2 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "gw",
+                "rotulo": "pix-gateway"
+              },
+              {
+                "id": "orq",
+                "rotulo": "fin-flow (orquestrador)"
+              },
+              {
+                "id": "sagadb",
+                "rotulo": "tabela saga"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "gw",
+                "para": "orq",
+                "rotulo": "liquidar",
+                "tipo": "async"
+              },
+              {
+                "de": "orq",
+                "para": "sagadb",
+                "rotulo": "grava / lê estado",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 6
+        },
+        {
+          "id": "reservar-e-decidir",
+          "titulo": "Reservar e decidir",
+          "subtitulo": "Tudo o que é reversível vem antes",
+          "camada": "saga",
+          "html": "\u003cp\u003eCada passo escreve o resultado no histórico \u003cstrong\u003ena mesma transação\u003c/strong\u003e em que muda o estado da\nsaga, como o outbox/inbox do marco 08 aplicado ao próprio orquestrador. O risco é só\nleitura e não tem compensação.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 3,
+              "de": "orq",
+              "para": "ledger",
+              "msg": "O orquestrador pede ao ledger-core a reserva do saldo do pagador",
+              "estados": {
+                "sagadb": "novo"
+              }
+            },
+            {
+              "n": 4,
+              "de": "ledger",
+              "para": "orq",
+              "msg": "O ledger-core confirma a reserva: o saldo fica indisponível, mas não saiu",
+              "estados": {
+                "sagadb": "novo"
+              }
+            },
+            {
+              "n": 5,
+              "de": "orq",
+              "para": "sagadb",
+              "msg": "Estado SALDO_RESERVADO e o fato no histórico, numa transação só",
+              "estados": {
+                "sagadb": "novo"
+              },
+              "painel": {
+                "id": "historico",
+                "de": 1,
+                "ate": 1
+              }
+            },
+            {
+              "n": 6,
+              "de": "orq",
+              "para": "risco",
+              "msg": "O orquestrador pede a decisão de risco",
+              "estados": {
+                "sagadb": "novo"
+              }
+            },
+            {
+              "n": 7,
+              "de": "risco",
+              "para": "orq",
+              "msg": "O risco aprova. É só leitura, sem nada a compensar",
+              "estados": {
+                "sagadb": "novo"
+              }
+            },
+            {
+              "n": 8,
+              "de": "orq",
+              "para": "sagadb",
+              "msg": "Estado RISCO_APROVADO e o fato no histórico",
+              "estados": {
+                "sagadb": "novo"
+              },
+              "painel": {
+                "id": "historico",
+                "de": 2,
+                "ate": 2
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "ae-saga-sem-resposta-reservar-e-decidir",
+            "tipo": "sequencia",
+            "titulo": "Reservar e decidir",
+            "descricao": "Etapa \"Reservar e decidir\" em sequência: 6 eventos entre 4 atores.",
+            "participantes": [
+              {
+                "id": "orq",
+                "rotulo": "fin-flow (orquestrador)"
+              },
+              {
+                "id": "sagadb",
+                "rotulo": "tabela saga"
+              },
+              {
+                "id": "ledger",
+                "rotulo": "ledger-core"
+              },
+              {
+                "id": "risco",
+                "rotulo": "risco"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "orq",
+                "para": "ledger",
+                "rotulo": "reserva / libera",
+                "tipo": "sync"
+              },
+              {
+                "de": "ledger",
+                "para": "orq",
+                "rotulo": "ok",
+                "tipo": "reply"
+              },
+              {
+                "de": "orq",
+                "para": "sagadb",
+                "rotulo": "grava / lê estado",
+                "tipo": "sync"
+              },
+              {
+                "de": "orq",
+                "para": "risco",
+                "rotulo": "decidir",
+                "tipo": "sync"
+              },
+              {
+                "de": "risco",
+                "para": "orq",
+                "rotulo": "aprovado",
+                "tipo": "reply"
+              },
+              {
+                "de": "orq",
+                "para": "sagadb",
+                "rotulo": "grava / lê estado",
+                "tipo": "sync"
+              }
+            ]
+          },
+          "omitidos": 5
+        },
+        {
+          "id": "pivot",
+          "titulo": "O pivot step",
+          "subtitulo": "A partir daqui, só para a frente",
+          "camada": "saga",
+          "html": "\u003cp\u003eO prazo do passo é gravado \u003cstrong\u003eantes\u003c/strong\u003e do envio. Se fosse gravado depois, uma queda entre os\ndois deixaria a saga sem prazo, e o invariante 2 do marco (nenhuma saga aberta sem prazo)\nquebraria. Enviar ao PSP é o passo depois do qual não há volta barata.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 9,
+              "de": "orq",
+              "para": "sagadb",
+              "msg": "Estado AGUARDANDO_PSP, com o prazo do passo gravado antes do envio",
+              "estados": {
+                "sagadb": "destaque"
+              }
+            },
+            {
+              "n": 10,
+              "de": "orq",
+              "para": "psp",
+              "msg": "O orquestrador envia a ordem ao PSP com o identificador pix-31e9",
+              "anotacao": "pivot step",
+              "estados": {
+                "sagadb": "destaque"
+              },
+              "painel": {
+                "id": "historico",
+                "de": 3,
+                "ate": 3
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "ae-saga-sem-resposta-pivot",
+            "tipo": "sequencia",
+            "titulo": "O pivot step",
+            "descricao": "Etapa \"O pivot step\" em sequência: 2 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "orq",
+                "rotulo": "fin-flow (orquestrador)"
+              },
+              {
+                "id": "sagadb",
+                "rotulo": "tabela saga"
+              },
+              {
+                "id": "psp",
+                "rotulo": "PSP"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "orq",
+                "para": "sagadb",
+                "rotulo": "grava / lê estado",
+                "tipo": "sync"
+              },
+              {
+                "de": "orq",
+                "para": "psp",
+                "rotulo": "ordem / consulta",
+                "tipo": "async"
+              }
+            ]
+          },
+          "omitidos": 6
+        },
+        {
+          "id": "silencio",
+          "titulo": "O PSP fica em silêncio",
+          "subtitulo": "Nada falha, e por isso nada alerta",
+          "camada": "saga",
+          "html": "\u003cp\u003eNinguém lança exceção. Sem o temporizador, a saga ficaria em AGUARDANDO_PSP para sempre.\n\u0026#34;Passaram-se 30 minutos\u0026#34; é um fato que dispara uma política, exatamente como qualquer\noutro evento.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 11,
+              "de": "orq",
+              "para": "psp",
+              "tipo": "timeout",
+              "msg": "O prazo do passo vence sem resposta do PSP",
+              "anotacao": "silêncio não é erro",
+              "estados": {
+                "sagadb": "destaque"
+              }
+            },
+            {
+              "n": 12,
+              "de": "timer",
+              "para": "sagadb",
+              "msg": "O job busca as sagas com prazo vencido e acha a settlement-8f2c",
+              "estados": {
+                "sagadb": "destaque"
+              },
+              "painel": {
+                "id": "timer",
+                "de": 2,
+                "ate": 8
+              }
+            },
+            {
+              "n": 13,
+              "de": "timer",
+              "para": "orq",
+              "msg": "O temporizador entrega o fato ao orquestrador: prazo vencido, tentativa 1",
+              "estados": {
+                "sagadb": "destaque"
+              },
+              "painel": {
+                "id": "historico",
+                "de": 4,
+                "ate": 4
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "ae-saga-sem-resposta-silencio",
+            "tipo": "sequencia",
+            "titulo": "O PSP fica em silêncio",
+            "descricao": "Etapa \"O PSP fica em silêncio\" em sequência: 3 eventos entre 4 atores.",
+            "participantes": [
+              {
+                "id": "orq",
+                "rotulo": "fin-flow (orquestrador)"
+              },
+              {
+                "id": "sagadb",
+                "rotulo": "tabela saga"
+              },
+              {
+                "id": "psp",
+                "rotulo": "PSP"
+              },
+              {
+                "id": "timer",
+                "rotulo": "temporizador (job)"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "orq",
+                "para": "psp",
+                "rotulo": "sem resposta",
+                "tipo": "timeout"
+              },
+              {
+                "de": "timer",
+                "para": "sagadb",
+                "rotulo": "busca vencidas",
+                "tipo": "sync"
+              },
+              {
+                "de": "timer",
+                "para": "orq",
+                "rotulo": "prazo vencido",
+                "tipo": "async"
+              }
+            ]
+          },
+          "omitidos": 5
+        },
+        {
+          "id": "onde-esta",
+          "titulo": "Onde está o pagamento?",
+          "subtitulo": "Uma consulta, não um mergulho em log",
+          "camada": "saga",
+          "html": "\u003cp\u003eNuma fintech, alguém sempre pergunta: o cliente, o atendimento, o regulador. É por isso que\na liquidação é orquestrada, e é a tabela da saga que responde.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 14,
+              "de": "atend",
+              "para": "orq",
+              "msg": "O atendimento pergunta pelo pagamento pix-31e9",
+              "estados": {
+                "sagadb": "destaque"
+              }
+            },
+            {
+              "n": 15,
+              "de": "orq",
+              "para": "sagadb",
+              "msg": "O orquestrador lê a saga pelo correlation_id",
+              "estados": {
+                "sagadb": "destaque"
+              }
+            },
+            {
+              "n": 16,
+              "de": "orq",
+              "para": "atend",
+              "msg": "Resposta: AGUARDANDO_PSP, passo 3 de 5, tentativa 1, prazo vencido",
+              "estados": {
+                "sagadb": "destaque"
+              },
+              "painel": {
+                "id": "saga",
+                "de": 3,
+                "ate": 6
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "ae-saga-sem-resposta-onde-esta",
+            "tipo": "sequencia",
+            "titulo": "Onde está o pagamento?",
+            "descricao": "Etapa \"Onde está o pagamento?\" em sequência: 3 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "orq",
+                "rotulo": "fin-flow (orquestrador)"
+              },
+              {
+                "id": "sagadb",
+                "rotulo": "tabela saga"
+              },
+              {
+                "id": "atend",
+                "rotulo": "atendimento"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "atend",
+                "para": "orq",
+                "rotulo": "onde está?",
+                "tipo": "sync"
+              },
+              {
+                "de": "orq",
+                "para": "sagadb",
+                "rotulo": "grava / lê estado",
+                "tipo": "sync"
+              },
+              {
+                "de": "orq",
+                "para": "atend",
+                "rotulo": "estado",
+                "tipo": "reply"
+              }
+            ]
+          },
+          "omitidos": 6
+        },
+        {
+          "id": "retentar",
+          "titulo": "Retentar sem pagar duas vezes",
+          "subtitulo": "Consultar antes de reenviar",
+          "camada": "saga",
+          "html": "\u003cp\u003eReenviar às cegas pode virar dois pagamentos. A retentativa pergunta primeiro e, só se o\nPSP não tiver registro, reenvia com o \u003cstrong\u003emesmo\u003c/strong\u003e identificador, que o PSP usa para\ndeduplicar. Esgotadas as tentativas, a política seria escalar para um humano.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 17,
+              "de": "orq",
+              "para": "sagadb",
+              "msg": "Tentativa 2 e um prazo novo, gravados antes de agir",
+              "estados": {
+                "sagadb": "destaque"
+              }
+            },
+            {
+              "n": 18,
+              "de": "orq",
+              "para": "psp",
+              "msg": "O orquestrador consulta o estado da ordem pix-31e9",
+              "estados": {
+                "sagadb": "destaque"
+              }
+            },
+            {
+              "n": 19,
+              "de": "psp",
+              "para": "orq",
+              "msg": "O PSP não tem registro dessa ordem",
+              "estados": {
+                "sagadb": "destaque"
+              },
+              "painel": {
+                "id": "historico",
+                "de": 5,
+                "ate": 5
+              }
+            },
+            {
+              "n": 20,
+              "de": "orq",
+              "para": "psp",
+              "msg": "O orquestrador reenvia a ordem com o mesmo identificador pix-31e9",
+              "anotacao": "esgotou as tentativas → ESCALADA",
+              "estados": {
+                "sagadb": "destaque"
+              },
+              "painel": {
+                "id": "historico",
+                "de": 6,
+                "ate": 6
+              }
+            },
+            {
+              "n": 21,
+              "de": "psp",
+              "para": "orq",
+              "msg": "O PSP rejeita a ordem: a conta de destino está encerrada",
+              "estados": {
+                "sagadb": "destaque"
+              },
+              "painel": {
+                "id": "historico",
+                "de": 7,
+                "ate": 7
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "ae-saga-sem-resposta-retentar",
+            "tipo": "sequencia",
+            "titulo": "Retentar sem pagar duas vezes",
+            "descricao": "Etapa \"Retentar sem pagar duas vezes\" em sequência: 5 eventos entre 3 atores.",
+            "participantes": [
+              {
+                "id": "orq",
+                "rotulo": "fin-flow (orquestrador)"
+              },
+              {
+                "id": "sagadb",
+                "rotulo": "tabela saga"
+              },
+              {
+                "id": "psp",
+                "rotulo": "PSP"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "orq",
+                "para": "sagadb",
+                "rotulo": "grava / lê estado",
+                "tipo": "sync"
+              },
+              {
+                "de": "orq",
+                "para": "psp",
+                "rotulo": "ordem / consulta",
+                "tipo": "sync"
+              },
+              {
+                "de": "psp",
+                "para": "orq",
+                "rotulo": "resposta",
+                "tipo": "reply"
+              },
+              {
+                "de": "orq",
+                "para": "psp",
+                "rotulo": "ordem / consulta",
+                "tipo": "async"
+              },
+              {
+                "de": "psp",
+                "para": "orq",
+                "rotulo": "resposta",
+                "tipo": "reply"
+              }
+            ]
+          },
+          "omitidos": 6
+        },
+        {
+          "id": "compensar",
+          "titulo": "Compensar é acrescentar",
+          "subtitulo": "Nada se apaga, tudo fica no extrato",
+          "camada": "saga",
+          "html": "\u003cp\u003eA liberação da reserva é uma transação nova, com data e registro próprios: um rollback\napaga, uma compensação acrescenta. A compensação também pode falhar e tem retentativa\nprópria. Notificar o cliente vem por último, nunca antes.\u003c/p\u003e\n",
+          "eventos": [
+            {
+              "n": 22,
+              "de": "orq",
+              "para": "sagadb",
+              "msg": "Estado COMPENSANDO, gravado antes de compensar",
+              "estados": {
+                "sagadb": "falha"
+              }
+            },
+            {
+              "n": 23,
+              "de": "orq",
+              "para": "ledger",
+              "msg": "O orquestrador pede a liberação da reserva: um lançamento novo, não um apagar",
+              "estados": {
+                "sagadb": "falha"
+              }
+            },
+            {
+              "n": 24,
+              "de": "ledger",
+              "para": "orq",
+              "msg": "O ledger-core lança a liberação, e o saldo volta a ficar disponível",
+              "estados": {
+                "sagadb": "falha"
+              },
+              "painel": {
+                "id": "historico",
+                "de": 8,
+                "ate": 8
+              }
+            },
+            {
+              "n": 25,
+              "de": "orq",
+              "para": "sagadb",
+              "msg": "Estado CANCELADA, com o histórico completo",
+              "estados": {
+                "sagadb": "inativo"
+              },
+              "painel": {
+                "id": "historico",
+                "de": 9,
+                "ate": 9
+              }
+            },
+            {
+              "n": 26,
+              "de": "orq",
+              "para": "notif",
+              "msg": "Só agora o cliente é avisado do cancelamento",
+              "anotacao": "notificar vem por último",
+              "estados": {
+                "sagadb": "inativo"
+              }
+            }
+          ],
+          "sequencia": {
+            "id": "ae-saga-sem-resposta-compensar",
+            "tipo": "sequencia",
+            "titulo": "Compensar é acrescentar",
+            "descricao": "Etapa \"Compensar é acrescentar\" em sequência: 5 eventos entre 4 atores.",
+            "participantes": [
+              {
+                "id": "orq",
+                "rotulo": "fin-flow (orquestrador)"
+              },
+              {
+                "id": "sagadb",
+                "rotulo": "tabela saga"
+              },
+              {
+                "id": "ledger",
+                "rotulo": "ledger-core"
+              },
+              {
+                "id": "notif",
+                "rotulo": "notificação"
+              }
+            ],
+            "mensagens": [
+              {
+                "de": "orq",
+                "para": "sagadb",
+                "rotulo": "grava / lê estado",
+                "tipo": "sync"
+              },
+              {
+                "de": "orq",
+                "para": "ledger",
+                "rotulo": "reserva / libera",
+                "tipo": "sync"
+              },
+              {
+                "de": "ledger",
+                "para": "orq",
+                "rotulo": "ok",
+                "tipo": "reply"
+              },
+              {
+                "de": "orq",
+                "para": "sagadb",
+                "rotulo": "grava / lê estado",
+                "tipo": "sync"
+              },
+              {
+                "de": "orq",
+                "para": "notif",
+                "rotulo": "avisar cliente",
+                "tipo": "async"
+              }
+            ]
+          },
+          "omitidos": 5
+        }
+      ],
+      "total": 26
+    }
+  }
+}
