@@ -323,6 +323,11 @@ for (const { slug, w, marco } of all) {
                 out.push(`${where}: "${t.textContent}" sai do viewBox`);
               }
             }
+            // A node carries at most one state mark, however many events
+            // re-apply the cumulative states.
+            for (const t of svg.querySelectorAll('.diagrama-no-rotulo')) {
+              if (/^[●+↓∅✕○★▶] [●+↓∅✕○★▶] /.test(t.textContent || '')) out.push(`${where}: marca repetida em "${t.textContent}"`);
+            }
             return out;
           }, `${aba} evento ${n}`));
           if (n < w.total) await page.keyboard.press('ArrowRight');

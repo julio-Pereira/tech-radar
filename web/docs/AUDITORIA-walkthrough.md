@@ -492,3 +492,24 @@ dizendo que retentar um envio sem resposta é consultar o estado pelo identifica
 não tiver registro, reenviar com o mesmo identificador, com a ponte para `system-design/09`. Sem
 ela, o marco diz "prazo estoura → retentar" e o roteiro ensina "consultar antes de reenviar". As
 duas coisas são compatíveis, mas só o roteiro diz isso.
+
+### Dois defeitos achados ao preparar o PR do 2PC, corrigidos neste PR
+
+**1. Marcas de estado repetidas nos rótulos (player, desde o #183).** O teste de legibilidade
+falhou no roteiro do 2PC com "★ ★ ★ ★ ★ ★ ★ ★ banco (fin-store)" saindo do `viewBox`. A causa:
+`light()` chama `nodesOf(svg)` a cada evento, e `nodesOf` lia o texto **atual** do rótulo como
+"base". Depois do primeiro estado, a base já trazia a marca, e cada evento que reaplica os estados
+cumulativos acrescentava outra. O player da Fase 1.6 não sofria disso porque lê a base uma vez só.
+O defeito estava em **todos** os walkthroughs publicados com estados; nos anteriores, os rótulos
+eram curtos e não chegavam a sair do `viewBox`, então o teste não pegava. A correção é no núcleo
+(`diagram-core.js`): `nodesOf` guarda o texto original em `data-base` na primeira leitura. O
+teste de legibilidade passou a recusar um rótulo de nó com duas marcas seguidas. Com o núcleo
+antigo, 12 dos 14 casos falham (6 dos 7 walkthroughs, em desktop e em 360 px); com a correção,
+passam os 14, e a suíte da Fase 1.6 continua verde. Esta é a única mudança de JS do PR, e a
+regra "nenhum JS muda além do que o `sql` exigir" cede a um defeito publicado.
+
+**2. JSON compilado dos walkthroughs versionado (desde o #183).** O `.gitignore` ignorava
+`web/data/diagramas/`, `courses/` e os outros dados gerados, mas não `web/data/walkthroughs/`, e
+os `<slug>.json` entraram no repositório com `git add -A`. São saída do build: o deploy
+(`build.yml`) e o CI rodam `go run .` antes de usar `web/`. A pasta entrou no `.gitignore` e os
+arquivos saíram do índice.

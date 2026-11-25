@@ -9,6 +9,7 @@ web/data/capstones.json
 web/data/conceitos.json
 web/data/desafios.json
 web/data/diagramas/
+web/data/walkthroughs/
 web/data/assets/
 aggregator/tech-radar
 # cache/ is intentionally NOT ignored — committed to repo so CI can use it

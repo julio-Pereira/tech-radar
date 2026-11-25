@@ -9,10 +9,15 @@ export const MARK = { ativo: '●', novo: '+', saindo: '↓', removido: '∅', f
 
 export const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/** The nodes of a drawn diagram, with their base labels. */
+/**
+ * The nodes of a drawn diagram, with their base labels. The base is read
+ * once and kept on the label (data-base): read again from the text, it would
+ * carry the state mark of the last call, and every call would add another.
+ */
 export const nodesOf = (svg) => [...svg.querySelectorAll('[data-id]')].map((g) => {
   const t = g.querySelector('.diagrama-no-rotulo');
-  return { g, t, base: t.textContent };
+  if (!t.dataset.base) t.dataset.base = t.textContent;
+  return { g, t, base: t.dataset.base };
 });
 
 /** Sets one node's state class and its text mark (st '' clears it). */
