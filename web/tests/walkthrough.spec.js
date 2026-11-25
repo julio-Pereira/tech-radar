@@ -335,3 +335,69 @@ for (const { slug, w, marco } of all) {
     });
   }
 }
+
+// Ajustes pós-Fase 1.7, frente 3: a request that got no answer is a timeout,
+// never a reply drawn for an absence. Every compiled timeout event, in both
+// views, with normal motion: no packet, and "sem resposta" said in text.
+const timeouts = all.flatMap(({ slug, w, marco }) => w.etapas.flatMap((e) => e.eventos)
+  .filter((/** @type {any} */ ev) => ev.tipo === 'timeout').map((/** @type {any} */ ev) => ({ slug, w, marco, ev })));
+
+test('the pilots of open-finance and system-design model the absence as a timeout', () => {
+  expect(timeouts.map((t) => `${t.slug}/${t.w.id}`).sort()).toEqual([
+    'open-finance-brasil/of-iniciacao-ponta-a-ponta',
+    'system-design/sd-pix-resultado-desconhecido',
+  ]);
+});
+
+/**
+ * What moves inside the walkthrough figure, named: Web Animations (packets)
+ * and CSS animations (the layer crossfade). CSS transitions of color and
+ * stroke are styling, not motion, and the page around the figure (an
+ * animated Fase 1.6 diagram in the same milestone, the header) is not the
+ * walkthrough's.
+ */
+const running = (/** @type {import('@playwright/test').Locator} */ figure) => figure.evaluate((fig) => fig.getAnimations({ subtree: true })
+  .filter((a) => !(a instanceof CSSTransition))
+  .map((a) => {
+    const t = /** @type {any} */ (a.effect)?.target;
+    return `${a.constructor.name} ${/** @type {any} */ (a).animationName || ''} ${t ? (t.className?.baseVal ?? t.className) : ''}`.trim();
+  }));
+
+for (const { slug, w, marco, ev } of timeouts) {
+  test(`${slug}/${w.id}: event ${ev.n} (timeout) moves nothing and says "sem resposta"`, async ({ page }) => {
+    await watchCsp(page);
+    // Arrive on the event before, then step into the timeout as a reader would.
+    await page.goto(`/#/learn/${slug}/${marco}/wt/${w.id}/${ev.n - 1}`);
+    const figure = page.locator(`figure.walkthrough[data-walkthrough="${slug}/${w.id}"]`);
+    await expect(figure.locator('.wt-area svg')).toBeVisible();
+    // By keyboard: a mouse click would start the button's hover transition,
+    // which is not the player's.
+    await figure.locator('.wt-area').focus();
+    // The event before has settled (its crossfade on arrival is over).
+    await expect.poll(() => running(figure)).toEqual([]);
+    await page.keyboard.press('ArrowRight');
+    await expect(num(figure)).toHaveText(`Evento ${ev.n} de ${w.total}`);
+    // Normal motion: any other event would be moving a packet right now.
+    expect(await running(figure)).toEqual([]);
+    const de = w.atores.find((/** @type {any} */ a) => a.id === ev.de).rotulo;
+    const para = w.atores.find((/** @type {any} */ a) => a.id === ev.para).rotulo;
+    await expect(figure.locator('.wt-rota')).toHaveText(`${de} ⇢ ${para} · sem resposta`);
+    await expect(figure.locator('.wt-lado [aria-live="polite"]')).toContainText(`Sem resposta de ${para} para ${de}. ${ev.msg}`);
+    const edge = figure.locator(`.wt-area [data-aresta="${ev.de}>${ev.para}"]`);
+    await expect(edge).toHaveClass(/wt-sem-resposta/);
+    await expect(edge.locator('.wt-marca-timeout')).toHaveText('✕ sem resposta');
+
+    await figure.locator('.wt-aba', { hasText: 'Sequência' }).click();
+    const msg = figure.locator('.wt-area .diagrama-mensagem--timeout');
+    await expect(msg).toHaveCount(1);
+    await expect(msg).toHaveClass(/diagrama-percorrida/);
+    await expect(msg.locator('text')).toHaveText(['✕', 'sem resposta']);
+    expect(await msg.locator('line').getAttribute('marker-end')).toBeNull();
+    // The view swap fades in; once it is done, nothing runs on the timeout.
+    await expect.poll(() => running(figure)).toEqual([]);
+
+    await expect(figure.locator('.walkthrough-descricao')).toContainText(`${de} → ${para} (sem resposta): ${ev.msg}`, { useInnerText: false });
+    // @ts-ignore
+    expect(await page.evaluate(() => window.__csp)).toEqual([]);
+  });
+}

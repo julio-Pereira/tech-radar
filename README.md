@@ -410,13 +410,19 @@ etapas:
         para: api
         msg: "kubectl envia o Deployment via HTTPS, autenticado pelo certificado do kubeconfig"
         painel: { id: deployment, linhas: "1-6" }   # N or N-M, inside the panel
-        tipo: sync            # optional, for the sequence view: sync | async | reply
+        tipo: sync            # optional: sync | async | reply | timeout
         anotacao: "≤ 60 caracteres, só neste evento"
         estados: { api: ativo }   # cumulative, the values of Fase 1.6
 ```
 
 An event is a `fluxo` of Fase 1.6: the edge `de → para` must exist **in that direction**
-in the diagram of the step's layer (a watch and a write are two edges). Event numbers run
+in the diagram of the step's layer (a watch and a write are two edges). **A missing answer is
+never a `reply`**: it is `tipo: timeout`, with `de` the one who asked and waited and `para` the
+one who did not answer, on the edge of the original request — and the build fails unless an
+earlier event made that request (`de → para`, `sync` or `async`). The player draws it with no
+packet: the edge dashed with "✕ sem resposta" near the silent end, a dotted arrow that stops
+short of the lifeline in the sequence, `de ⇢ para · sem resposta` on the card, "Sem resposta de
+{para} para {de}" announced, and `(sem resposta)` in the textual description. Event numbers run
 across the whole walkthrough ("evento 14 de 18"); steps have their own. `msg` (≤ 110
 characters) is an assertion in the present with an explicit subject, like a legend.
 Limits: 8 steps, 6 events per step, 30 events, 3 layers (depth 2), 4 panels of 40 lines;

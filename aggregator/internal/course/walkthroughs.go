@@ -36,6 +36,7 @@ const (
 	wtAnotacaoMax     = 60
 	wtTextoPalavras   = 120
 	wtResumoMax       = 200
+	wtSemResposta     = "sem resposta"
 	// The sequence renderer draws at most 6 columns, the most that stays
 	// legible at 360px. With up to 6 actors, every step's sequence shows all
 	// of them, in the declared order, so columns never move between steps;
@@ -138,9 +139,13 @@ type WalkthroughPainelRef struct {
 }
 
 type WalkthroughEvento struct {
-	N        int    `json:"n"`
-	De       string `json:"de"`
-	Para     string `json:"para"`
+	N    int    `json:"n"`
+	De   string `json:"de"`
+	Para string `json:"para"`
+	// Tipo is "timeout" for a request that got no answer (the player draws
+	// no packet and says "sem resposta"); the other types matter only to
+	// the derived sequence, which carries them itself.
+	Tipo     string `json:"tipo,omitempty"`
 	Msg      string `json:"msg"`
 	Anotacao string `json:"anotacao,omitempty"`
 	// Estados is cumulative over the whole walkthrough, like the steps of
@@ -313,6 +318,8 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 	}
 	seenEtapa := map[string]bool{}
 	estados := map[string]string{}
+	// Requests made so far (de>para, sync or async): a timeout waits for one.
+	pedidos := map[string]bool{}
 	n := 0
 	for i, e := range s.Etapas {
 		where := fmt.Sprintf("etapas[%d]", i)
@@ -373,8 +380,18 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 			// Rule 7: sizes.
 			v.texto(what+": msg", ev.Msg, wtMsgMax, true)
 			v.texto(what+": anotacao", ev.Anotacao, wtAnotacaoMax, false)
-			if !diagramaMensagemTipos[ev.Tipo] {
-				v.fail("%s: tipo %q inválido (sync, async ou reply)", what, ev.Tipo)
+			// A timeout is who waited and got nothing: de asked para earlier,
+			// and no answer came. Never a reply drawn for an absence.
+			switch ev.Tipo {
+			case "timeout":
+				if !pedidos[ev.De+">"+ev.Para] {
+					v.fail("%s: timeout sem um pedido anterior %s→%s (sync ou async): só se espera por algo que foi pedido", what, ev.De, ev.Para)
+				}
+			case "", "sync", "async":
+				pedidos[ev.De+">"+ev.Para] = true
+			case "reply":
+			default:
+				v.fail("%s: tipo %q inválido (sync, async, reply ou timeout)", what, ev.Tipo)
 			}
 			// Rule 8: states, with the values and the cumulative semantics
 			// of Fase 1.6.
@@ -388,7 +405,7 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 				}
 				estados[id] = st
 			}
-			out := WalkthroughEvento{N: n, De: ev.De, Para: ev.Para, Msg: strings.TrimSpace(ev.Msg), Anotacao: strings.TrimSpace(ev.Anotacao), Estados: copyMap(estados)}
+			out := WalkthroughEvento{N: n, De: ev.De, Para: ev.Para, Tipo: wtTipoPublico(ev.Tipo), Msg: strings.TrimSpace(ev.Msg), Anotacao: strings.TrimSpace(ev.Anotacao), Estados: copyMap(estados)}
 			// Rule 6: panel lines.
 			if ev.Painel != nil {
 				lines, ok := paineis[ev.Painel.ID]
@@ -414,6 +431,14 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 		return Walkthrough{}, err
 	}
 	return w, nil
+}
+
+// wtTipoPublico keeps in the compiled event only the type the player needs.
+func wtTipoPublico(tipo string) string {
+	if tipo == "timeout" {
+		return tipo
+	}
+	return ""
 }
 
 // trilhaCamada returns the breadcrumb of a layer, root first (rule 5: the
@@ -500,6 +525,9 @@ func derivarSequencia(w Walkthrough, et WalkthroughEtapa, e wtEtapaSpec, d Diagr
 		if rotulo == "" {
 			rotulo = fmt.Sprintf("evento %d", ev.N)
 		}
+		if ev.Tipo == "timeout" {
+			rotulo = wtSemResposta
+		}
 		tipo := e.Eventos[j].Tipo
 		if tipo == "" {
 			tipo = "sync"
@@ -569,7 +597,11 @@ func walkthroughFigureHTML(slug string, w Walkthrough) string {
 		}
 		b.WriteString(`</p>` + et.HTML + `<ol start="` + strconv.Itoa(et.Eventos[0].N) + `">`)
 		for _, ev := range et.Eventos {
-			b.WriteString(`<li>` + html.EscapeString(rotulo[ev.De]) + ` → ` + html.EscapeString(rotulo[ev.Para]) + `: ` + html.EscapeString(ev.Msg))
+			b.WriteString(`<li>` + html.EscapeString(rotulo[ev.De]) + ` → ` + html.EscapeString(rotulo[ev.Para]))
+			if ev.Tipo == "timeout" {
+				b.WriteString(` (` + wtSemResposta + `)`)
+			}
+			b.WriteString(`: ` + html.EscapeString(ev.Msg))
 			if ev.Anotacao != "" {
 				b.WriteString(` (` + html.EscapeString(ev.Anotacao) + `)`)
 			}

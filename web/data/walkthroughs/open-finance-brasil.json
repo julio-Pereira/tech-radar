@@ -358,9 +358,10 @@
             },
             {
               "n": 13,
-              "de": "spi",
-              "para": "det",
-              "msg": "O SPI não responde no prazo: o resultado é desconhecido",
+              "de": "det",
+              "para": "spi",
+              "tipo": "timeout",
+              "msg": "O prazo vence sem resposta do SPI: o resultado é desconhecido",
               "anotacao": "não é falha",
               "estados": {
                 "cons": "removido",
@@ -412,10 +413,10 @@
                 "tipo": "async"
               },
               {
-                "de": "spi",
-                "para": "det",
-                "rotulo": "resultado",
-                "tipo": "reply"
+                "de": "det",
+                "para": "spi",
+                "rotulo": "sem resposta",
+                "tipo": "timeout"
               },
               {
                 "de": "det",

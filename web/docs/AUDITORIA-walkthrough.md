@@ -261,7 +261,9 @@ ilustrativos.
 ## 8. Expansão: `open-finance-brasil` / marco 07, "Uma iniciação de pagamento, do consentimento ao estado terminal"
 
 Domínio regulado: o PR fica aberto para o Julio revisar o conteúdo antes do merge, como no piloto
-7.2. 6 etapas, 19 eventos, 2 camadas (`Ecossistema` e `Detentora`), 9 atores. Vai além do
+7.2. **Aguarda revisão do Julio** (o PR #188 foi mergeado, mas a revisão de conteúdo no celular e no
+desktop continua pendente, como a task de ajustes registra; a correção do evento 13 na seção 9,
+frente 3, também entra nessa revisão). 6 etapas, 19 eventos, 2 camadas (`Ecossistema` e `Detentora`), 9 atores. Vai além do
 diagrama `of-iniciacao` (9 mensagens, que fica) em três pontos que o marco ensina e os invariantes
 testam: o que acontece **dentro** da detentora (conferência de valor e recebedor, consumo do
 consentimento, limites e antifraude, débito, ordem), o **retry com a mesma chave** (invariante 1)
@@ -378,3 +380,64 @@ trilha tem algum diagrama, mesmo que o marco aberto não tenha, e o `diagram-cha
 algum marco da trilha tem gráfico. Isso já era assim antes desta frente. Hidratar só ao expandir
 mudaria o comportamento da timeline (desvios, retorno a conceito, "Continuar") e fica para uma
 task própria.
+
+### Frente 3 — evento `tipo: timeout`
+
+**Problema.** Um pedido que não teve resposta era desenhado como uma **resposta**: um pacote
+viajando de quem não respondeu para quem esperou. A visão contradizia a lição do "resultado
+desconhecido", que aparece em `system-design/09`, `open-finance-brasil/07` e
+`pagamentos-e-liquidacao`.
+
+**Esquema.** `tipo: timeout` passa a valer ao lado de `sync | async | reply`. `de` é quem pediu e
+esperou, `para` é quem não respondeu, e a aresta é a do pedido original (`de → para`). O build
+falha se nenhum evento **anterior** do walkthrough fez esse pedido (`de → para`, `sync`, `async` ou
+sem tipo). Um `reply` não conta como pedido. O `timeout` aceita painel. O evento compilado carrega
+`tipo: "timeout"`, e só ele. A sequência derivada o recebe com o rótulo "sem resposta". Teste:
+`TestWalkthroughTimeout`, com um caso válido e dois inválidos (sem pedido anterior; o anterior era
+só uma resposta).
+
+**Renderização**, toda com texto além do traço:
+
+| Onde | Como |
+| --- | --- |
+| Topologia | A aresta do pedido acende pontilhada (`2 5`, diferente do `6 4` do `reply`), **sem pacote**, com "✕ sem resposta" perto da ponta que não respondeu |
+| Sequência derivada | Seta pontilhada que para 26 px antes da linha de vida do destino, sem ponta de seta, com "✕" e o rótulo "sem resposta" |
+| Cartão | `detentora ⇢ SPI · sem resposta` |
+| `aria-live` | "Evento N de M. Sem resposta de {para} para {de}. {msg}" |
+| Descrição textual | `{de} → {para} (sem resposta): {msg}` |
+| Movimento reduzido | Igual aos outros tipos; aqui já não há pacote |
+
+**Conteúdo.** A varredura dos 5 walkthroughs (`não responde`, `sem resposta`, `não chega`,
+`estoura`, `não volta`, `silêncio`, `não recebe`) achou **dois** eventos que desenhavam uma
+ausência como resposta, e não só o da revisão:
+
+| Walkthrough | Antes | Depois |
+| --- | --- | --- |
+| `of-iniciacao-ponta-a-ponta`, evento 13 | `spi → det`, `reply`: "O SPI não responde no prazo" | `det → spi`, `timeout`: "O prazo vence sem resposta do SPI: o resultado é desconhecido" (pedido anterior: o evento 12, `det → spi`, `async`) |
+| `sd-pix-resultado-desconhecido`, evento 8 | `toxi → gw`: "A consulta cai na mesma latência e não volta no prazo" | `gw → toxi`, `timeout`: "O prazo da consulta vence sem resposta: ela caiu na mesma latência" (pedido anterior: o evento 7, a consulta) |
+
+A contagem e a numeração dos eventos não mudaram (19 e 14), e a prosa das etapas continua valendo.
+Ficaram como estão, porque são eventos reais e não ausências:
+
+- "Sem resposta a tempo, a ITP repete a iniciação…" (`of`, evento 16): é a retentativa em si.
+- "Estoura o timeout, e o pix-gateway responde ao cliente…" (`sd`, evento 5): é uma resposta real
+  ao cliente. Um `gw → toxi` `timeout` antes dele repetiria o que a `msg` já diz, e a task pede o
+  `timeout` ali "só se deixar o roteiro mais claro".
+- "A readiness probe começa. Até ela passar, o Pod não recebe tráfego" (`kubernetes`, evento 15):
+  é a probe começando.
+
+**Testes.** `walkthrough.spec.js` percorre todo evento `timeout` compilado e confere, com movimento
+**normal**:
+- nada se move dentro da figura no evento (nem pacote, nem crossfade);
+- o cartão, o `aria-live`, a marca na topologia, a seta da sequência (sem `marker-end`, com "✕" e
+  "sem resposta") e a descrição textual;
+- zero CSP.
+
+Sem a condição que bloqueia o pacote no timeout, o teste falha com `Animation diagrama-pacote`. A
+conta exclui as transições CSS de cor e traço, que valem para qualquer evento, e o que está fora da
+figura: o diagrama animado `of-iniciacao` (Fase 1.6), no mesmo marco, desenha um pacote ao exibir o
+seu passo 1, comportamento antigo dele. O teste de legibilidade continua percorrendo todos os
+eventos, inclusive os de timeout, nas duas visões, em desktop e em 360 px.
+
+**Orçamento:** `walkthrough-player.js` com 5.392 B (teto 6.000) e o par do renderer com 7.192 B
+(teto 10.000).
