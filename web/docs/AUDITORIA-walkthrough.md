@@ -138,14 +138,19 @@ roda o axe nas duas visões. O `diagram-real.spec.js` deixa os diagramas de cama
 regra "todo diagrama aparece como figura num marco", porque eles aparecem dentro do
 walkthrough e são cobertos pelo teste acima.
 
-### Achados fora do escopo (registrados, não corrigidos aqui)
+### Achados fora do escopo (corrigidos depois, a pedido do Julio)
 
-- `web/js/dom-helpers.js:26` põe `style="width: N%"` na barra de progresso da trilha (CSSOM,
-  permitido pela CSP, mas é um atributo `style`). O teste do walkthrough verifica só a figura e
-  o diálogo.
-- A transição de cor do link ativo no cabeçalho roda mesmo com `prefers-reduced-motion`. Não é
-  movimento, mas aparece em `document.getAnimations()` logo depois da troca de rota; o teste de
-  movimento reduzido espera a página assentar antes de navegar.
+- A barra de progresso da trilha punha `style="width: N%"` (`dom-helpers.js` e `course-view.js`).
+  Agora é um `<progress>` nativo: o preenchimento é o atributo `value`, o papel `progressbar` e o
+  valor acessível vêm do elemento, e o gradiente e a transição continuam pelos pseudo-elementos.
+  O teste de CSP do walkthrough voltou a verificar o **documento inteiro**, sem nenhum `style`;
+  `learn.spec.js` confere o `value` e a ausência de `style` na barra.
+- A transição de cor do link ativo no cabeçalho (`.nav-link`) rodava mesmo com
+  `prefers-reduced-motion`. Agora não roda; o teste de movimento reduzido deixou de esperar a
+  página assentar e confere que a duração é `0s` (falha com o `style.css` anterior, que dá
+  `0.15s, 0.15s`).
+- Continuam com `style`, de propósito: o `desvio.js` põe `--site-header-h` no `<html>` e a prévia
+  de conceito é posicionada em px (`conceitos.js`), os dois com coordenadas que só existem na hora.
 
 ### Candidatos a walkthrough (passo 9 do plano)
 

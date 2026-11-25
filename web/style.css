@@ -84,6 +84,10 @@ h1 {
 }
 
 .nav-link:hover { color: var(--text); }
+/* The active link's color change is a transition too: none with reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .nav-link { transition: none; }
+}
 
 .nav-link.active {
   color: #fff;

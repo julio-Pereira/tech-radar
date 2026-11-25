@@ -229,9 +229,9 @@ test.describe('Walkthrough player', () => {
   test('with reduced motion nothing animates, not even the change of layer', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const figure = await open(page);
-    // The route change fades the header's active link (a color transition
-    // outside the player); let the page settle, then nothing may start.
-    await page.waitForFunction(() => document.getAnimations().length === 0);
+    // Nothing outside the player either: the header's active link has no
+    // transition (it used to fade its color on every route change).
+    expect(await page.locator('.nav-link').first().evaluate((e) => getComputedStyle(e).transitionDuration)).toBe('0s');
     for (let i = 0; i < 12; i++) {
       await figure.locator('.wt-prox').click();
       expect(await page.evaluate(() => document.getAnimations().map((a) => {
@@ -251,9 +251,9 @@ test.describe('Walkthrough player', () => {
     await figure.locator('.wt-etapa-prox').click();
     await figure.locator('.wt-aba', { hasText: 'Sequência' }).click();
     await figure.locator('.wt-prox').click();
-    // The player and what it draws set no style attribute (the course's
-    // progress bar, outside the player, is a separate, older case).
-    expect(await page.evaluate(() => [...document.querySelectorAll('figure.walkthrough [style], dialog [style]')]
+    // No style attribute anywhere on the page, the course's progress bar
+    // included (a native <progress> since the walkthrough audit).
+    expect(await page.evaluate(() => [...document.querySelectorAll('[style]')]
       .map((e) => e.outerHTML.slice(0, 120)))).toEqual([]);
     // @ts-ignore
     expect(await page.evaluate(() => window.__csp)).toEqual([]);
