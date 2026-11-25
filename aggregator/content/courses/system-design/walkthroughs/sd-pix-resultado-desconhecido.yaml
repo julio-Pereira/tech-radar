@@ -107,9 +107,10 @@ etapas:
       - de: gw
         para: toxi
         msg: "O pix-gateway consulta o status da ordem, com o mesmo identificador, em vez de reenviar"
-      - de: toxi
-        para: gw
-        msg: "A consulta cai na mesma latência e não volta no prazo"
+      - de: gw
+        para: toxi
+        tipo: timeout
+        msg: "O prazo da consulta vence sem resposta: ela caiu na mesma latência"
         estados: { toxi: falha }
       - de: gw
         para: ledger

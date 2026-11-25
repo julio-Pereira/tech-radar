@@ -1541,6 +1541,11 @@
 .diagrama-aresta--compensacao .diagrama-aresta { stroke-dasharray: 8 4; stroke: var(--java); }
 .diagrama-aresta--falha .diagrama-aresta { stroke-dasharray: 2 3; stroke: #f87171; }
 .diagrama-mensagem--reply .diagrama-aresta { stroke-dasharray: 6 4; }
+/* A timeout (walkthrough): dotted, not the reply's dash, stopping short of
+   the lifeline it waited on; the ✕ and "sem resposta" say it in text. */
+.diagrama-mensagem--timeout .diagrama-aresta,
+.wt-sem-resposta .diagrama-aresta { stroke-dasharray: 2 5; }
+.diagrama-sem-resposta, .wt-marca-timeout { font-size: 12px; font-weight: 700; fill: var(--text); text-anchor: middle; }
 .diagrama-linha-vida { stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 4 4; }
 
 .diagrama-aresta-rotulo, .diagrama-nota {

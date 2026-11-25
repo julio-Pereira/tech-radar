@@ -343,10 +343,14 @@ function drawSequence(spec, prefix, links) {
       if (m.nota) g.appendChild(label(x1 + 50 * d, my + 34, m.nota, `diagrama-nota ${side}`));
     } else {
       const dir = x2 > x1 ? 1 : -1;
+      // A timeout (walkthrough) never reaches the lifeline it waited on: the
+      // dashed line stops short, with no arrowhead, and a ✕ marks the absence.
+      const t = m.tipo === 'timeout';
       g.appendChild(el('line', {
-        x1, y1: my, x2: x2 - dir * 2, y2: my,
-        class: 'diagrama-aresta', 'marker-end': `url(#${prefix}-${marker})`,
+        x1, y1: my, x2: x2 - dir * (t ? 26 : 2), y2: my, class: 'diagrama-aresta',
+        ...(t ? {} : { 'marker-end': `url(#${prefix}-${marker})` }),
       }));
+      if (t) g.appendChild(label(x2 - dir * 14, my + 5, '✕', 'diagrama-sem-resposta'));
       g.appendChild(label((x1 + x2) / 2, my - 8, m.rotulo, 'diagrama-aresta-rotulo'));
       if (m.nota) g.appendChild(label((x1 + x2) / 2, my + 16, m.nota, 'diagrama-nota'));
     }

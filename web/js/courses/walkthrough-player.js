@@ -7,6 +7,7 @@
 // only, and the Web Animations API, which sets no style attribute.
 import { draw, fitViewBox, openZoom } from './diagram.js';
 import { nodesOf, setState, still, packet, pauseWhenHidden, button, reduceMotion } from './diagram-core.js';
+import { label } from './diagram-svg.js';
 import { setBuildHTML } from '../trusted-html.js';
 
 const EVENT_MS = 2500;
@@ -152,15 +153,25 @@ function attach(figure, slug, w, diagramas) {
   }
 
   // Lights the event on one drawing: cumulative states, the edge (or the
-  // messages so far, in a sequence) and, when `move`, the packet.
+  // messages so far, in a sequence) and, when `move`, the packet. A timeout
+  // lights its request's edge dashed, never moves, and says "sem resposta".
   function light(svg, e, move) {
     still(svg);
+    const t = e.tipo === 'timeout';
+    svg.querySelectorAll('.wt-marca-timeout').forEach((x) => x.remove());
     for (const node of nodesOf(svg)) setState(node, (e.estados || {})[node.g.dataset.id] || '', node.base);
     let path = null;
     for (const g of svg.querySelectorAll('[data-aresta]')) {
       const on = g.dataset.aresta === `${e.de}>${e.para}`;
       g.classList.toggle('diagrama-percorrida', on);
+      g.classList.toggle('wt-sem-resposta', on && t);
       if (on) path = g;
+    }
+    if (t && path && !svg.querySelector('[data-msg]')) {
+      // Near the end that never answered: a text mark, not only a dash.
+      const geo = path.querySelector('.diagrama-aresta');
+      const p = geo.getPointAtLength(geo.getTotalLength() * 0.75);
+      path.appendChild(label(p.x, p.y - 10, '✕ sem resposta', 'wt-marca-timeout'));
     }
     for (const g of svg.querySelectorAll('[data-msg]')) {
       const m = Number(g.dataset.msg);
@@ -168,7 +179,7 @@ function attach(figure, slug, w, diagramas) {
       g.classList.toggle('diagrama-percorrida', m === e.j);
       if (m === e.j) path = g;
     }
-    if (move && path) packet(svg, path.querySelector('.diagrama-aresta'), speed);
+    if (move && path && !t) packet(svg, path.querySelector('.diagrama-aresta'), speed);
   }
 
   function go(to, user = true) {
@@ -233,14 +244,14 @@ function attach(figure, slug, w, diagramas) {
 
     for (const f of faces) {
       f.num.textContent = `Evento ${e.n} de ${events.length}`;
-      f.rota.textContent = `${rotulo[e.de]} → ${rotulo[e.para]}`;
+      f.rota.textContent = e.tipo === 'timeout' ? `${rotulo[e.de]} ⇢ ${rotulo[e.para]} · sem resposta` : `${rotulo[e.de]} → ${rotulo[e.para]}`;
       f.msg.textContent = e.msg;
       f.anot.textContent = e.anotacao || '';
       f.anot.hidden = !e.anotacao;
       for (const [b, off] of [[f.first, i === 0], [f.prev, i === 0], [f.prevE, i === 0], [f.next, i === last], [f.nextE, k === w.etapas.length - 1]]) {
         b.setAttribute('aria-disabled', String(off));
       }
-      f.vivo.textContent = `${novaEtapa ? `Etapa ${k + 1} de ${w.etapas.length}: ${etapa.titulo}. ` : ''}Evento ${e.n} de ${events.length}. ${rotulo[e.de]} para ${rotulo[e.para]}. ${e.msg}`;
+      f.vivo.textContent = `${novaEtapa ? `Etapa ${k + 1} de ${w.etapas.length}: ${etapa.titulo}. ` : ''}Evento ${e.n} de ${events.length}. ${e.tipo === 'timeout' ? `Sem resposta de ${rotulo[e.para]} para ${rotulo[e.de]}` : `${rotulo[e.de]} para ${rotulo[e.para]}`}. ${e.msg}`;
     }
     if (user) link();
   }

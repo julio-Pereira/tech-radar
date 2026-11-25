@@ -365,7 +365,7 @@ func TestWalkthroughSequenciaRespeitaORenderer(t *testing.T) {
 			t.Errorf("etapa %s: %+v", e.ID, s)
 		}
 		for _, m := range s.Mensagens {
-			if len([]rune(m.Rotulo)) > diagramaRotuloMax || !diagramaMensagemTipos[m.Tipo] || m.Tipo == "" {
+			if len([]rune(m.Rotulo)) > diagramaRotuloMax || !(diagramaMensagemTipos[m.Tipo] || m.Tipo == "timeout") || m.Tipo == "" {
 				t.Errorf("etapa %s: mensagem %+v", e.ID, m)
 			}
 		}
@@ -463,4 +463,42 @@ func TestCompileCourseWalkthroughs(t *testing.T) {
 	if _, _, err := compileCourse(dir, bridgeIndex{}, nil, nil, nil); err == nil || !strings.Contains(err.Error(), "wt-nada") {
 		t.Fatalf("an invalid walkthrough must fail the course, got %v", err)
 	}
+}
+
+// ── tipo: timeout (ajustes pós-Fase 1.7, frente 3) ─────────────────────────
+
+// A timeout is who waited and got nothing: it needs an earlier request with
+// the same de and para (sync or async), uses that request's edge, and shows
+// "sem resposta" in the derived sequence and the textual description.
+func TestWalkthroughTimeout(t *testing.T) {
+	valido := wtReplace(t, `      - { de: api, para: db, msg: "A API grava o pedido no banco", estados: { db: novo } }
+`, `      - { de: api, para: db, msg: "A API grava o pedido no banco", estados: { db: novo } }
+      - { de: api, para: db, tipo: timeout, msg: "O prazo vence sem resposta do banco" }
+`)
+	w := wtParse(t, valido)
+	ev := w.Etapas[0].Eventos[2]
+	if ev.Tipo != "timeout" || ev.N != 3 {
+		t.Fatalf("timeout event not compiled: %+v", ev)
+	}
+	if w.Etapas[0].Eventos[0].Tipo != "" {
+		t.Errorf("only timeout is kept on the event: %+v", w.Etapas[0].Eventos[0])
+	}
+	m := w.Etapas[0].Sequencia.Mensagens[2]
+	if m.Tipo != "timeout" || m.Rotulo != "sem resposta" || m.De != "api" || m.Para != "db" {
+		t.Errorf("derived sequence message: %+v", m)
+	}
+	out, _ := expandWalkthroughs("<p>⟦walkthrough:fixture⟧</p>", "trilha", map[string]Walkthrough{"fixture": w}, map[string]bool{})
+	if !strings.Contains(out, "API → banco (sem resposta): O prazo vence sem resposta do banco") {
+		t.Errorf("textual description lacks the timeout: %s", out)
+	}
+
+	// Nothing was asked before: a timeout cannot be the first word.
+	wtFail(t, wtReplace(t, `{ de: cli, para: api, msg: "O cliente envia o pedido"`, `{ de: cli, para: api, tipo: timeout, msg: "O cliente envia o pedido"`),
+		"timeout sem um pedido anterior cli→api")
+	// A reply is not a request: waiting on api→cli after the API answered is wrong.
+	wtFail(t, wtReplace(t, `      - { de: api, para: agente, msg: "O agente vê o pedido do seu nó", tipo: async, estados: { agente: ativo } }
+`, `      - { de: api, para: agente, msg: "O agente vê o pedido do seu nó", tipo: async, estados: { agente: ativo } }
+      - { de: api, para: agente, tipo: timeout, msg: "O agente não confirma" }
+      - { de: agente, para: api, tipo: timeout, msg: "A API nunca respondeu ao agente" }
+`), "timeout sem um pedido anterior agente→api")
 }

@@ -301,9 +301,10 @@
             },
             {
               "n": 8,
-              "de": "toxi",
-              "para": "gw",
-              "msg": "A consulta cai na mesma latência e não volta no prazo",
+              "de": "gw",
+              "para": "toxi",
+              "tipo": "timeout",
+              "msg": "O prazo da consulta vence sem resposta: ela caiu na mesma latência",
               "estados": {
                 "gw": "destaque",
                 "ledger": "novo",
@@ -356,10 +357,10 @@
                 "tipo": "sync"
               },
               {
-                "de": "toxi",
-                "para": "gw",
-                "rotulo": "resposta",
-                "tipo": "sync"
+                "de": "gw",
+                "para": "toxi",
+                "rotulo": "sem resposta",
+                "tipo": "timeout"
               },
               {
                 "de": "gw",
