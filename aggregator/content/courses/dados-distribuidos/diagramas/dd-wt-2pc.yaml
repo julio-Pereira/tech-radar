@@ -1,0 +1,29 @@
+id: dd-wt-2pc
+tipo: topologia
+titulo: "No 2PC, o coordenador é o único que sabe o desfecho, e os locks esperam por ele"
+descricao: >
+  Um servidor de aplicação coordena, por 2PC, o débito no banco do fin-store e a publicação do
+  evento numa fila. Os dois participantes votam ao coordenador e esperam a decisão dele. Enquanto
+  esperam, o banco segura os locks da conta, e outro Pix da mesma conta, que nada tem a ver com a
+  transação, também espera. Sem coordenador, os plantonistas olham as transações preparadas e
+  decidem à mão em cada participante. A reconciliação D+1 compara os lançamentos do banco com os
+  eventos publicados na fila e avisa os plantonistas da divergência.
+nos:
+  - { id: outro, rotulo: "outro Pix", col: 0, row: 0, papel: externo }
+  - { id: coord, rotulo: "coordenador (app)", col: 1, row: 0, papel: destaque }
+  - { id: banco, rotulo: "banco (fin-store)", col: 0, row: 1 }
+  - { id: plantao, rotulo: "plantonistas", col: 1, row: 1, papel: externo }
+  - { id: fila, rotulo: "fila", col: 2, row: 1 }
+  - { id: recon, rotulo: "reconciliação D+1", col: 1, row: 2 }
+arestas:
+  - { de: coord, para: banco, rotulo: "prepare" }
+  - { de: coord, para: fila, rotulo: "prepare" }
+  - { de: banco, para: coord, rotulo: "voto / decisão?" }
+  - { de: fila, para: coord, rotulo: "voto" }
+  - { de: outro, para: banco, rotulo: "débito" }
+  - { de: plantao, para: banco, rotulo: "decide à mão" }
+  - { de: banco, para: plantao, rotulo: "preparadas" }
+  - { de: plantao, para: fila, rotulo: "decide à mão" }
+  - { de: recon, para: banco, rotulo: "lançamentos" }
+  - { de: recon, para: fila, rotulo: "eventos" }
+  - { de: recon, para: plantao, rotulo: "divergência" }

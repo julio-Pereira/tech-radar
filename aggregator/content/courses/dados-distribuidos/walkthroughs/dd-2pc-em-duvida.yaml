@@ -1,0 +1,162 @@
+id: dd-2pc-em-duvida
+titulo: "O 2PC em dúvida, até a reconciliação"
+resumo: "O coordenador cai depois dos sim: locks presos cobram de quem não tem nada a ver, alguém decide à mão, e só a reconciliação vê o estrago."
+
+atores:
+  - { id: coord, rotulo: "coordenador (app)" }
+  - { id: banco, rotulo: "banco (fin-store)" }
+  - { id: fila, rotulo: "fila" }
+  - { id: outro, rotulo: "outro Pix" }
+  - { id: plantao, rotulo: "plantonistas" }
+  - { id: recon, rotulo: "reconciliação D+1" }
+
+camadas:
+  - { id: twopc, rotulo: "2PC banco + fila", diagrama: dd-wt-2pc }
+
+paineis:
+  - id: banco
+    linguagem: sql
+    titulo: "no banco (Postgres)"
+    nota: "Ilustrativo; cada bloco numa sessão própria"
+    conteudo: |
+      -- exige max_prepared_transactions > 0 (o padrão do Postgres é 0)
+      BEGIN;
+      UPDATE conta SET saldo = saldo - 100.00 WHERE id = 'A';
+      PREPARE TRANSACTION 'pix-7f3a';            -- voto sim: intenção durável, locks mantidos
+      -- ... o coordenador cai aqui ...
+      -- outro Pix, em outra sessão (lock_timeout vale 0, desligado, por padrão):
+      SET lock_timeout = '2s';
+      UPDATE conta SET saldo = saldo - 50.00 WHERE id = 'A';
+      -- ERROR:  canceling statement due to lock timeout
+      -- horas depois, o plantonista:
+      SELECT gid, prepared, owner, database FROM pg_prepared_xacts;
+      COMMIT PREPARED 'pix-7f3a';                -- ou ROLLBACK PREPARED, sem saber o que a fila fez
+  - id: recon
+    linguagem: log
+    titulo: "relatório da reconciliação D+1"
+    nota: "Ilustrativo"
+    conteudo: |
+      reconciliação 2026-08-15 (corte 00:00–24:00 BRT), chave: id de negócio
+      fonte A: lançamentos do ledger   fonte B: eventos publicados
+      classe FALTA_LA   pix-7f3a  100.00  lançado, sem evento publicado
+      ação: republicar o evento (automática, idempotente)
+      métrica: divergencias_dia{classe="FALTA_LA"} = 1
+
+etapas:
+  - id: prepare
+    titulo: "Fase 1: prepare"
+    subtitulo: "Cada sim é uma promessa durável"
+    camada: twopc
+    texto: |
+      Cada participante grava a intenção de forma durável e promete que consegue commitar. A
+      partir do sim, segura os locks até receber a decisão do coordenador.
+    eventos:
+      - de: coord
+        para: banco
+        msg: "O coordenador pede ao banco que prepare o débito de 100.00 da conta A"
+        painel: { id: banco, linhas: "2-3" }
+      - de: coord
+        para: fila
+        msg: "E pede à fila que prepare a publicação do evento"
+      - de: banco
+        para: coord
+        tipo: reply
+        msg: "O banco grava a intenção, vota sim e passa a segurar os locks da conta A"
+        painel: { id: banco, linhas: "4" }
+        estados: { banco: destaque }
+      - de: fila
+        para: coord
+        tipo: reply
+        msg: "A fila também vota sim"
+
+  - id: queda
+    titulo: "O coordenador cai"
+    subtitulo: "Depois dos sim, antes do commit"
+    camada: twopc
+    texto: |
+      No protocolo, o participante incerto procura saber o desfecho com o coordenador. Num banco
+      com XA quem faz isso é o recovery do gerenciador de transações; o Postgres sozinho apenas
+      espera. Ninguém pode decidir sozinho: cada um prometeu e não sabe o que o outro votou. Nem
+      perguntar ao outro participante resolve, se ele também votou sim e não recebeu a decisão.
+    eventos:
+      - de: banco
+        para: coord
+        tipo: async
+        msg: "Sem decisão, o banco procura saber o desfecho com o coordenador"
+        estados: { coord: falha }
+        anotacao: "caiu depois dos sim"
+      - de: banco
+        para: coord
+        tipo: timeout
+        msg: "Sem resposta: o banco não pode commitar nem abortar sozinho"
+        anotacao: "prometeu e não sabe o que a fila votou"
+
+  - id: locks-presos
+    titulo: "Locks presos cobram de quem não tem nada a ver"
+    subtitulo: "Contenção, não só uma transação parada"
+    camada: twopc
+    texto: |
+      A transação em dúvida não fica só parada: ela segura os locks da conta A. Qualquer outro
+      pagamento que toque a mesma conta espera por ela, e um pico de latência no coordenador vira
+      contenção em todos os bancos ao mesmo tempo.
+    eventos:
+      - de: outro
+        para: banco
+        msg: "Outro Pix tenta debitar a mesma conta A e espera o lock"
+        painel: { id: banco, linhas: "7-8" }
+      - de: outro
+        para: banco
+        tipo: timeout
+        msg: "O lock_timeout vence, e um pagamento que nada tinha com o 2PC falha"
+        painel: { id: banco, linhas: "9" }
+        estados: { outro: falha }
+
+  - id: decisao-a-mao
+    titulo: "Alguém decide à mão"
+    subtitulo: "Às 3h, sem informação suficiente"
+    camada: twopc
+    texto: |
+      É por isso que o 2PC sobreviveu só em nichos: a transação em dúvida exige gente, às três da
+      manhã, decidindo sem saber o que o outro participante fez. Neste roteiro, cada lado decide
+      de um jeito, e nada no sistema percebe.
+    eventos:
+      - de: plantao
+        para: banco
+        msg: "O plantonista lista as transações preparadas no banco"
+        painel: { id: banco, linhas: "11" }
+      - de: banco
+        para: plantao
+        tipo: reply
+        msg: "Há uma: pix-7f3a, preparada há 3 horas, segurando a conta A"
+      - de: plantao
+        para: banco
+        msg: "Ele decide commitar, sem saber o que a fila fez"
+        painel: { id: banco, linhas: "12" }
+        estados: { banco: ativo }
+      - de: plantao
+        para: fila
+        msg: "Na fila, outro plantão aborta a publicação preparada"
+        anotacao: "decisões divergentes"
+        estados: { fila: removido }
+
+  - id: reconciliacao
+    titulo: "Só a reconciliação vê"
+    subtitulo: "Consistência eventual auditável, não fé"
+    camada: twopc
+    texto: |
+      Duas fontes independentes, chave de negócio, classe e ação por classe. Sem ela, o débito sem
+      evento chegaria ao fechamento sem ninguém saber. É o que o mercado escolheu no lugar do
+      2PC: transação local, saga entre agregados e reconciliação **automatizada**.
+    eventos:
+      - de: recon
+        para: banco
+        msg: "A reconciliação D+1 lê os lançamentos do dia, com corte determinístico"
+        painel: { id: recon, linhas: "1-2" }
+      - de: recon
+        para: fila
+        msg: "E lê os eventos publicados, a segunda fonte, independente"
+      - de: recon
+        para: plantao
+        tipo: async
+        msg: "Classifica pix-7f3a como lançado sem evento, republica e publica a métrica"
+        painel: { id: recon, linhas: "3-5" }

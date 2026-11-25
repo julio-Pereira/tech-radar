@@ -485,7 +485,7 @@ player não usa a linguagem do painel.
 `ESTORNO_FORA_DE_JANELA` e a falha da própria compensação (só na prosa da etapa 7). O ramo feliz
 (`LIQUIDADA → NOTIFICADA`) fica no diagrama `estados`; o ramo `ESCALADA`, só como anotação.
 
-### Proposta no marco 09 — **aguarda checkpoint do Julio**
+### Proposta no marco 09 — aprovada no checkpoint e publicada com o #192
 
 Em commit próprio, neste mesmo PR: a seção "Timeout: cidadão de primeira classe" ganha uma frase
 dizendo que retentar um envio sem resposta é consultar o estado pelo identificador e, só se o PSP
@@ -513,3 +513,65 @@ regra "nenhum JS muda além do que o `sql` exigir" cede a um defeito publicado.
 os `<slug>.json` entraram no repositório com `git add -A`. São saída do build: o deploy
 (`build.yml`) e o CI rodam `go run .` antes de usar `web/`. A pasta entrou no `.gitignore` e os
 arquivos saíram do índice.
+
+## 11. Expansão: `dados-distribuidos` / marco 08, "O 2PC em dúvida, até a reconciliação"
+
+Base `abbf049` (depois do #192). 5 etapas, 15 eventos, 1 camada (`dd-wt-2pc`), 6 atores; com 6
+atores a sequência mostra todos (D2 só corta acima de 6). O diagrama `dd-2pc` (o protocolo, as
+duas fases) **fica**: ele mostra o caminho feliz, e o roteiro mostra o que acontece quando o
+coordenador some no meio. Encaixe: no fim de "Reconciliação como cidadã de primeira classe",
+depois da frase do `BETWEEN` e antes do "Exemplo numa fintech", porque o roteiro liga as duas
+metades do marco (o 2PC que morreu e a reconciliação que ficou no lugar).
+
+### Divergências entre o plano e o marco/projeto
+
+| Plano | Marco / fonte | Publicado |
+| --- | --- | --- |
+| Painel SQL sem `SET lock_timeout` | O `lock_timeout` do Postgres vale 0 por padrão, o que **desliga** o limite: o outro Pix esperaria para sempre e o `ERROR` do painel nunca sairia | linha `SET lock_timeout = '2s';` antes do `UPDATE`, com o comentário do padrão; referências de linha ajustadas (7-8, 9, 11, 12) |
+| Etapa 3 sem prosa | Toda etapa publicada tem `texto` (regra do roteiro, não do compilador) | prosa escrita a partir do parágrafo "Recursos ficam bloqueados durante o prepare" |
+| Painel sem aviso de configuração | `PREPARE TRANSACTION` falha com `max_prepared_transactions = 0`, o padrão | primeira linha do painel diz que exige `max_prepared_transactions > 0` |
+
+### Cada afirmação e a sua fonte no marco 08
+
+| Etapa | Afirmação | Fonte |
+| --- | --- | --- |
+| 1 | No prepare, cada participante grava a intenção de forma durável e promete conseguir commitar | "2PC por dentro", fase 1 |
+| 1, 3 | Entre o sim e a decisão, cada participante segura locks | "Recursos ficam bloqueados durante o prepare" |
+| 2 | Se o coordenador cai depois dos sim, ninguém decide sozinho: cada um prometeu e não sabe o que o outro votou | "O coordenador é SPOF" |
+| 3 | Um pico de latência no coordenador vira contenção em todos os bancos | "Recursos ficam bloqueados durante o prepare" |
+| 4 | A transação `prepared` pendurada, às três da manhã, decidida à mão sem informação suficiente | "A transação em dúvida exige gente" |
+| 4 | 2PC sobreviveu só em nichos, tipicamente banco mais fila com XA | "2PC por dentro", último parágrafo |
+| 5 | Reconciliação: duas fontes independentes, chave de negócio, classe, ação por classe, métrica | "Reconciliação como cidadã de primeira classe", itens 1 a 5 |
+| 5 | Corte temporal determinístico, não `BETWEEN` de hosts diferentes | idem, parágrafo do corte temporal |
+| 5 | Transação local, saga e reconciliação **automatizada** no lugar do 2PC | "O que o mercado escolheu" |
+
+### Notas de precisão (§2.3 do plano)
+
+- **Quem pergunta pelo desfecho.** No protocolo, o participante incerto procura o coordenador. Num
+  ambiente XA, quem faz isso é o recovery do gerenciador de transações (o servidor de aplicação),
+  não o banco. O Postgres sozinho não pergunta nada: a transação preparada só espera um
+  `COMMIT PREPARED` ou `ROLLBACK PREPARED`. A prosa da etapa 2 diz isso, e o evento "o banco
+  procura saber o desfecho" é o do protocolo.
+- **Terminação cooperativa fica fora.** Perguntar ao outro participante só ajuda se ele votou não
+  ou já recebeu a decisão; se ele também votou sim e não sabe, continua bloqueado. A etapa 2
+  menciona isso numa frase, sem modelar o protocolo.
+- **Decisões heurísticas ficam fora.** XA tem `heuristic commit/rollback` e o erro
+  `HeuristicMixedException`; o roteiro mostra o efeito (cada lado decide de um jeito) sem o
+  vocabulário, que o marco não usa.
+- **`max_prepared_transactions`.** O padrão é 0, e com ele `PREPARE TRANSACTION` falha; está na
+  primeira linha do painel.
+
+### Verificação no Postgres (`REL_17_STABLE`, `2a9b6b5`)
+
+| Afirmação do painel | Fonte |
+| --- | --- |
+| `ERROR:  canceling statement due to lock timeout` | `src/backend/tcop/postgres.c`, linha 3405 (`errmsg`) |
+| `lock_timeout` vale 0 por padrão, e 0 desliga | documentação de `lock_timeout` (runtime-config-client) |
+| `max_prepared_transactions` vale 0 por padrão | documentação de `max_prepared_transactions` (runtime-config-resource) |
+| A transação preparada "continua segurando os locks que tinha" | documentação de `PREPARE TRANSACTION` |
+| Colunas `transaction`, `gid`, `prepared`, `owner`, `database` | documentação de `pg_prepared_xacts` |
+
+**Fora, de propósito:** Spanner, Calvin e NewSQL (a "geração seguinte" é texto, não fluxo), o
+recovery XA modelado como ator, e a saga que substituiria o 2PC (é o roteiro de
+`arquitetura-eventos/09`). A classe `FALTA_LA` do relatório é o "falta lá" da classificação do
+marco, escrita como identificador.
