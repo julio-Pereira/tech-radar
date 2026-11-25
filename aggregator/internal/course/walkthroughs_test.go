@@ -502,3 +502,14 @@ func TestWalkthroughTimeout(t *testing.T) {
       - { de: agente, para: api, tipo: timeout, msg: "A API nunca respondeu ao agente" }
 `), "timeout sem um pedido anterior agente→api")
 }
+
+// Painel de SQL (expansão do walkthrough: saga e 2PC): sql é uma linguagem
+// de painel como as outras, sem highlight (D7); uma desconhecida continua
+// sendo recusada.
+func TestWalkthroughPainelSQL(t *testing.T) {
+	w := wtParse(t, wtReplace(t, "    linguagem: yaml\n", "    linguagem: sql\n"))
+	if w.Paineis[0].Linguagem != "sql" {
+		t.Fatalf("sql panel not compiled: %+v", w.Paineis[0])
+	}
+	wtFail(t, wtReplace(t, "    linguagem: yaml\n", "    linguagem: plsql\n"), `linguagem "plsql" inválida (yaml, bash, texto, json, go, java, log ou sql)`)
+}

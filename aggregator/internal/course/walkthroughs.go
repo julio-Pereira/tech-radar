@@ -50,7 +50,7 @@ var (
 	walkthroughBlockRe         = regexp.MustCompile(`<p>⟦walkthrough:([^⟧<]*)⟧</p>`)
 	walkthroughFenceIndentedRe = regexp.MustCompile("(?m)^(?:[ \t]|>|[*+-][ \t]|\\d+[.)][ \t])[ \t>*+\\-]*```walkthrough")
 	wtLinhasRe                 = regexp.MustCompile(`^([1-9][0-9]*)(?:-([1-9][0-9]*))?$`)
-	wtLinguagens               = map[string]bool{"yaml": true, "bash": true, "texto": true, "json": true, "go": true, "java": true, "log": true}
+	wtLinguagens               = map[string]bool{"yaml": true, "bash": true, "texto": true, "json": true, "go": true, "java": true, "log": true, "sql": true}
 )
 
 // Source schema (YAML).
@@ -290,7 +290,7 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 		v.texto(fmt.Sprintf("painel %q: titulo", p.ID), p.Titulo, wtPainelTituloMax, true)
 		v.texto(fmt.Sprintf("painel %q: nota", p.ID), p.Nota, wtAnotacaoMax, false)
 		if !wtLinguagens[p.Linguagem] {
-			v.fail("painel %q: linguagem %q inválida (yaml, bash, texto, json, go, java ou log)", p.ID, p.Linguagem)
+			v.fail("painel %q: linguagem %q inválida (yaml, bash, texto, json, go, java, log ou sql)", p.ID, p.Linguagem)
 		}
 		var linhas []string
 		if strings.TrimSpace(p.Conteudo) == "" {

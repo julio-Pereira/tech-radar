@@ -323,6 +323,11 @@ for (const { slug, w, marco } of all) {
                 out.push(`${where}: "${t.textContent}" sai do viewBox`);
               }
             }
+            // A node carries at most one state mark, however many events
+            // re-apply the cumulative states.
+            for (const t of svg.querySelectorAll('.diagrama-no-rotulo')) {
+              if (/^[●+↓∅✕○★▶] [●+↓∅✕○★▶] /.test(t.textContent || '')) out.push(`${where}: marca repetida em "${t.textContent}"`);
+            }
             return out;
           }, `${aba} evento ${n}`));
           if (n < w.total) await page.keyboard.press('ArrowRight');
@@ -343,10 +348,10 @@ const timeouts = all.flatMap(({ slug, w, marco }) => w.etapas.flatMap((e) => e.e
   .filter((/** @type {any} */ ev) => ev.tipo === 'timeout').map((/** @type {any} */ ev) => ({ slug, w, marco, ev })));
 
 test('the pilots of open-finance and system-design model the absence as a timeout', () => {
-  expect(timeouts.map((t) => `${t.slug}/${t.w.id}`).sort()).toEqual([
-    'open-finance-brasil/of-iniciacao-ponta-a-ponta',
-    'system-design/sd-pix-resultado-desconhecido',
-  ]);
+  // The two events fixed in frente 3 stay timeouts; new walkthroughs may add more.
+  const ids = timeouts.map((t) => `${t.slug}/${t.w.id}`);
+  expect(ids).toContain('open-finance-brasil/of-iniciacao-ponta-a-ponta');
+  expect(ids).toContain('system-design/sd-pix-resultado-desconhecido');
 });
 
 /**

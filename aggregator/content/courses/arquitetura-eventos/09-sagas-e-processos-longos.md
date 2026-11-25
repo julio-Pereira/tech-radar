@@ -109,6 +109,10 @@ falhou.
 Toda saga precisa de:
 
 - **Prazo por passo**, com ação definida ao estourar: retentar, compensar ou escalar.
+  Retentar um envio que ficou sem resposta é **consultar antes de reenviar**: perguntar ao PSP
+  pelo estado da ordem com o identificador dela e, só se ele não tiver registro, reenviar com o
+  **mesmo** identificador. Reenviar às cegas pode virar dois pagamentos; é o resultado
+  desconhecido de `system-design/09`, agora dentro da saga.
 - **Temporizador como evento.** "Passaram-se 30 minutos" é um fato que dispara uma política,
   exatamente como qualquer outro evento (marco 03).
 - **Alerta por idade**, não por erro: "sagas abertas há mais de 30 minutos" (marco 11).
@@ -149,6 +153,14 @@ uma decisão de negócio escrita sobre quem absorve a diferença.
 
 Repare no que aconteceu: o processo manual não sumiu. Ele passou a ser **visível, contável e
 alertável**, que é o máximo que a arquitetura pode fazer por uma decisão que é de negócio.
+
+O roteiro abaixo segue uma liquidação do `fin-flow` em que o PSP fica em silêncio: do registro
+da saga à compensação, com o temporizador, a pergunta do atendimento e a retentativa que consulta
+antes de reenviar.
+
+```walkthrough
+ae-saga-sem-resposta
+```
 
 ## Hands-on
 

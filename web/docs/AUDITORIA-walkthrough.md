@@ -441,3 +441,75 @@ eventos, inclusive os de timeout, nas duas visões, em desktop e em 360 px.
 
 **Orçamento:** `walkthrough-player.js` com 5.392 B (teto 6.000) e o par do renderer com 7.192 B
 (teto 10.000).
+
+## 10. Expansão: `arquitetura-eventos` / marco 09, "Uma liquidação que o PSP deixa sem resposta"
+
+Base `c57d297`. 7 etapas, 26 eventos, 1 camada (`ae-wt-saga`), 9 atores; a sequência mostra por
+etapa só os atores que usa (D2), de 3 a 4 colunas. O diagrama `ae-saga-orquestrada` (estados, 8
+passos) **fica**: ele mostra para onde a saga vai, e o roteiro mostra quem faz o quê para ela ir.
+Encaixe: no fim do "Exemplo numa fintech", antes do "Hands-on", como o plano pede.
+
+**Pré-requisito:** `sql` entrou em `wtLinguagens`, sem highlight (D7), com
+`TestWalkthroughPainelSQL` (aceita `sql` e recusa uma linguagem desconhecida). Nenhum JS mudou: o
+player não usa a linguagem do painel.
+
+### Divergências entre o plano e o marco (o marco vence)
+
+| Plano | Marco / projeto | Publicado |
+| --- | --- | --- |
+| Painel `timer`, linhas "3-9" | O SQL do próprio plano tem 8 linhas; "3-9" quebraria a regra 6 | linhas "2-8" (do `SELECT` ao `FOR UPDATE`) |
+| Aresta `orq → sagadb` "grava estado" | O evento 15 é uma **leitura** ("lê a saga"), e o rótulo aparece na sequência | "grava / lê estado" |
+| Evento 1: "o pix-gateway pede ao fin-flow a liquidação" | O `PROJETO.md` diz que o `fin-flow` **consome** `payments.initiated` do `pix-gateway` | "O pix-gateway publica payments.initiated, e o fin-flow abre a liquidação" |
+| Ator `ledger` | O `PROJETO.md` chama o vizinho de `ledger-core` (síncrono, idempotente por chave de negócio) | rótulo `ledger-core` |
+| Risco por pedido e resposta | O `PROJETO.md` lista `payments.authorized` como evento consumido; o marco descreve a orquestração como "comandar os passos" | pedido e resposta, como o marco ensina; a divergência fica registrada aqui |
+
+### Cada afirmação e a sua fonte no marco 09
+
+| Etapa | Afirmação | Fonte |
+| --- | --- | --- |
+| 1 | A saga é um registro com id, estado, passo, tentativa, prazo e histórico, consultável; "onde está?" vira uma consulta | "A saga é uma máquina de estado persistida"; tutorial, item 1 |
+| 1, 5 | `settlement-8f2c`, `correlation_id`, `GET /sagas/{correlationId}` | registro de exemplo do marco; tutorial, itens 1 e 5 |
+| 2 | O histórico é escrito na mesma transação em que muda o estado, como o outbox/inbox do marco 08 | tutorial, item 3 |
+| 2 | Reservar saldo tem a compensação "liberar reserva"; risco é só leitura, sem compensação | "Exemplo numa fintech", tabela dos passos |
+| 3 | O envio ao PSP é o pivot step; o irreversível vem o mais tarde possível | "Compensação é semântica", "Pivot step"; tabela dos passos |
+| 3 | Nenhuma saga aberta fica sem prazo | invariante 2 |
+| 4 | O modo de falha mais comum é silêncio, sem exceção nem alerta; "passaram-se 30 minutos" é um fato que dispara uma política | "Timeout: cidadão de primeira classe" |
+| 4 | Temporizador como job que busca sagas com prazo estourado | tutorial, item 4 |
+| 5 | Numa fintech alguém sempre pergunta: cliente, atendimento, regulador | "Coreografia × orquestração" |
+| 6 | Ao estourar o prazo: retentar, compensar ou escalar; esgotou → `ESCALADA` | "Timeout"; diagrama `ae-saga-orquestrada` |
+| 6 | **Consultar antes de reenviar, com o mesmo identificador** | **não está no marco**: vem de `system-design/09` e `open-finance-brasil/07`; a frase proposta abaixo o leva para o marco |
+| 6, 7 | O PSP rejeita → `COMPENSANDO` → reserva liberada → `CANCELADA` | diagrama `ae-saga-orquestrada` |
+| 7 | Compensação acrescenta (transação nova, registro próprio), pode falhar e tem retentativa; notificar vem depois, nunca antes | "Compensação é semântica, não rollback" |
+
+**Fora, de propósito:** coreografia, Temporal e Camunda, o `kill -9` do desafio (é do leitor), o
+`ESTORNO_FORA_DE_JANELA` e a falha da própria compensação (só na prosa da etapa 7). O ramo feliz
+(`LIQUIDADA → NOTIFICADA`) fica no diagrama `estados`; o ramo `ESCALADA`, só como anotação.
+
+### Proposta no marco 09 — **aguarda checkpoint do Julio**
+
+Em commit próprio, neste mesmo PR: a seção "Timeout: cidadão de primeira classe" ganha uma frase
+dizendo que retentar um envio sem resposta é consultar o estado pelo identificador e, só se o PSP
+não tiver registro, reenviar com o mesmo identificador, com a ponte para `system-design/09`. Sem
+ela, o marco diz "prazo estoura → retentar" e o roteiro ensina "consultar antes de reenviar". As
+duas coisas são compatíveis, mas só o roteiro diz isso.
+
+### Dois defeitos achados ao preparar o PR do 2PC, corrigidos neste PR
+
+**1. Marcas de estado repetidas nos rótulos (player, desde o #183).** O teste de legibilidade
+falhou no roteiro do 2PC com "★ ★ ★ ★ ★ ★ ★ ★ banco (fin-store)" saindo do `viewBox`. A causa:
+`light()` chama `nodesOf(svg)` a cada evento, e `nodesOf` lia o texto **atual** do rótulo como
+"base". Depois do primeiro estado, a base já trazia a marca, e cada evento que reaplica os estados
+cumulativos acrescentava outra. O player da Fase 1.6 não sofria disso porque lê a base uma vez só.
+O defeito estava em **todos** os walkthroughs publicados com estados; nos anteriores, os rótulos
+eram curtos e não chegavam a sair do `viewBox`, então o teste não pegava. A correção é no núcleo
+(`diagram-core.js`): `nodesOf` guarda o texto original em `data-base` na primeira leitura. O
+teste de legibilidade passou a recusar um rótulo de nó com duas marcas seguidas. Com o núcleo
+antigo, 12 dos 14 casos falham (6 dos 7 walkthroughs, em desktop e em 360 px); com a correção,
+passam os 14, e a suíte da Fase 1.6 continua verde. Esta é a única mudança de JS do PR, e a
+regra "nenhum JS muda além do que o `sql` exigir" cede a um defeito publicado.
+
+**2. JSON compilado dos walkthroughs versionado (desde o #183).** O `.gitignore` ignorava
+`web/data/diagramas/`, `courses/` e os outros dados gerados, mas não `web/data/walkthroughs/`, e
+os `<slug>.json` entraram no repositório com `git add -A`. São saída do build: o deploy
+(`build.yml`) e o CI rodam `go run .` antes de usar `web/`. A pasta entrou no `.gitignore` e os
+arquivos saíram do índice.
