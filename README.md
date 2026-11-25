@@ -372,7 +372,9 @@ it full screen in a modal dialog — the main path on a phone. `web/tests/diagra
 opens every compiled diagram and fails on a label outside the drawing, two labels on top
 of each other, a line over a box, a figure that scrolls on a 1280px desktop, or a CSP
 violation. The renderer and its primitives have a budget of **10 KB gzip** together,
-checked by a test.
+checked by a test; what not every diagram uses stays out of it and loads on first use:
+Ampliar (`diagram-zoom.js`, on the first click) and the `grafico` type (`diagram-chart.js`,
+only on a track with a chart), each with its own ceiling.
 
 **Walkthroughs by events** (Fase 1.7). When the lesson is a long chain of cause and
 effect between components — from `kubectl apply` to a Pod receiving traffic, a Pix end to

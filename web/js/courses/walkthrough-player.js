@@ -302,9 +302,11 @@ function attach(figure, slug, w, diagramas) {
   tabS.addEventListener('click', () => setView(true));
   // Ampliar: the view full screen, with its own card and controls (the
   // class diagrama-player makes openZoom remove them on close).
-  zoom.addEventListener('click', () => {
+  zoom.addEventListener('click', async () => {
     const v = view(events[i]);
-    const svg = openZoom(v.spec, v.spec.titulo, zoom);
+    // The dialog module is downloaded on the first click; if play moved on
+    // meanwhile, go() below redraws the zoomed view for the current event.
+    const svg = await openZoom(v.spec, v.spec.titulo, zoom);
     const dlg = svg.closest('dialog');
     const f = face();
     const bar = make('div', 'diagrama-player wt-zoom');

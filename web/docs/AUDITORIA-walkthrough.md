@@ -322,3 +322,59 @@ orçamento que a frente 1 libera, e a frente 2 não mexe no renderer, então a t
 - **Não feito:** a comparação de screenshot da barra em Chromium, Firefox e WebKit. O aceite a pede
   "se já estiverem configurados", e o `playwright.config.js` só tem o projeto `chromium`. O
   Firefox usa `::-moz-progress-bar`, que está no CSS, mas não foi verificado em navegador.
+
+### Frente 1 — orçamento do renderer
+
+**Medição** (gzip do arquivo menos gzip sem a função; aproximado, porque o gzip não é aditivo).
+O par `diagram.js` + `diagram-svg.js` estava em 9.952 de 10.000 B, e o `diagram.js` sozinho em
+8.586 B:
+
+| Bloco | ≈ B gzip | Quem usa |
+| --- | --- | --- |
+| `drawChart` + `axisScale` + `niceStep` + `point` + `wireChartKeys` + `fmt`, `MARKS`, `CH_*` | ≈ 2.060 | só `grafico` |
+| `drawSequence` | 705 | `sequencia` e a visão de sequência do walkthrough |
+| `drawGraph` + `drawEdge` + `drawNode` | ≈ 1.370 | `topologia`, `fluxo`, `estados` e o walkthrough |
+| `drawInto` | 547 | toda figura |
+| `zoomDialog` + `openZoom` | ≈ 566 | só ao clicar em Ampliar |
+| `fitViewBox` | 229 | toda figura e o walkthrough |
+| `resumeReturnPoint` | 226 | desvio de conceito |
+| demais (catálogo, `draw`, larguras, links de conceito, utilitários) | < 125 cada | todos |
+
+**Decisão: Opção A.** Saem do caminho crítico os dois blocos que nem todo marco usa:
+
+- `diagram-zoom.js`: o diálogo do Ampliar, baixado por `import()` no primeiro clique. O
+  `diagram.js` mantém `openZoom` exportado, agora devolvendo uma Promise; o walkthrough espera
+  por ela (se o play avançou enquanto o módulo descia, o `go()` seguinte redesenha a visão
+  ampliada).
+- `diagram-chart.js`: o tipo `grafico`, baixado pelo `renderDiagrams` só quando uma figura é um
+  gráfico.
+- O `drawSequence` fica: o walkthrough o usa e o caminho seria assíncrono num ponto (a troca de
+  visão) que hoje é síncrono.
+
+**Resultado:** o par foi de 9.952 para **7.042 B**, com 2.958 B de folga sob o teto de 10.000,
+que **não muda** (a Opção B, subir o teto, não foi necessária). Tetos novos em
+`diagram-budget.spec.js`: `diagram-zoom.js` com 1.097 B (teto 1.500) e `diagram-chart.js` com
+3.132 B (teto 3.500). O `walkthrough-player.js` foi para 5.104 B (teto 6.000).
+
+**Achado ao mover o Ampliar, e corrigido.** Sob carga, `diagram.spec.js:99` falhou uma vez: depois
+do Esc, ainda havia um `svg` no diálogo. A causa é a ordem que a especificação do `<dialog>` define:
+`close()` devolve o foco na hora e dispara o evento `close` uma tarefa depois. O teste espera o
+foco voltar e conta os `svg` sem esperar, e a limpeza rodava no handler de `close`. A corrida já
+existia (isolado, o teste passava 6 vezes seguidas com o código antigo e com o novo). Agora a
+limpeza roda **antes** de fechar, nos três caminhos: Esc (evento `cancel`), botão Fechar e clique
+fora. O evento `close` continua disparando para quem depende dele, como a pausa dos players.
+Depois disso, o teste do Ampliar e os do walkthrough passaram 20 de 20 com `--repeat-each 10
+--workers 6`.
+
+**Testes:** as suítes da Fase 1.6 e do walkthrough passam **sem alteração de teste** (103 de 103:
+`diagram*`, `walkthrough`, `a11y`, `higiene`). `diagram-lazy.spec.js` é novo e cobre três casos:
+num marco sem diagrama, nenhum dos módulos novos desce; num marco com diagrama numa trilha sem
+gráfico, só desce o `diagram.js`, e o `diagram-zoom.js` desce no primeiro clique em Ampliar; numa
+trilha com gráfico, desce o `diagram-chart.js`.
+
+**Achado fora do escopo.** A visão da trilha monta o corpo de todos os marcos ao abrir (escondidos
+até expandir), e o `hydrateDiagrams` roda para cada um. Por isso o `diagram.js` desce assim que a
+trilha tem algum diagrama, mesmo que o marco aberto não tenha, e o `diagram-chart.js` desce se
+algum marco da trilha tem gráfico. Isso já era assim antes desta frente. Hidratar só ao expandir
+mudaria o comportamento da timeline (desvios, retorno a conceito, "Continuar") e fica para uma
+task própria.

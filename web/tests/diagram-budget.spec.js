@@ -23,3 +23,16 @@ test('walkthrough-player.js stays within 6 KB gzip (the shared core apart)', () 
   const size = zlib.gzipSync(fs.readFileSync(path.join(__dirname, '..', 'js', 'courses', 'walkthrough-player.js'))).length;
   expect(size).toBeLessThanOrEqual(6_000);
 });
+
+// Ajustes pós-Fase 1.7, frente 1: Ampliar and the grafico type left the
+// critical path (they load on first use), freeing about 2.9 KB of the
+// renderer's 10 KB. Each lazy module has its own ceiling.
+test('diagram-zoom.js (Ampliar, loaded on the first click) stays within 1.5 KB gzip', () => {
+  const size = zlib.gzipSync(fs.readFileSync(path.join(__dirname, '..', 'js', 'courses', 'diagram-zoom.js'))).length;
+  expect(size).toBeLessThanOrEqual(1_500);
+});
+
+test('diagram-chart.js (the grafico type, loaded only for a chart) stays within 3.5 KB gzip', () => {
+  const size = zlib.gzipSync(fs.readFileSync(path.join(__dirname, '..', 'js', 'courses', 'diagram-chart.js'))).length;
+  expect(size).toBeLessThanOrEqual(3_500);
+});
