@@ -56,6 +56,12 @@ test.describe('Course view (#/learn/<slug>)', () => {
     await firstNode.locator('.node-check').check();
 
     await expect(page.locator('.course-progress .progress-label')).toContainText('1 de');
+    // A native <progress>: the fill is its value, never a style attribute.
+    const bar = page.locator('.course-progress progress.progress');
+    const label = await page.locator('.course-progress .progress-label').textContent();
+    await expect(bar).toHaveJSProperty('value', Number((label || '').split('%')[0]));
+    await expect(bar).not.toHaveAttribute('style', /.*/);
+    await expect(bar).toHaveAttribute('aria-label', /% concluído$/);
 
     await page.reload();
     await expect(page.locator('.timeline-node').first()).toHaveClass(/done/);

@@ -540,3 +540,14 @@ main:focus-visible {
 .site-footer a {
   color: var(--accent-hover);
 }
+
+/* ── Reduced motion, globally ─────────────────────────────────────────────
+   One rule instead of one per component: with reduced motion no CSS
+   transition or animation runs anywhere, including ones added later (the
+   header's active link used to fade its color on every route change).
+   Web Animations started from JS (the diagram packets) check the media
+   query themselves. Pseudo-elements a universal selector cannot reach,
+   like ::-webkit-progress-value, are listed in course.css. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

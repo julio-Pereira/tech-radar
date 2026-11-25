@@ -164,8 +164,7 @@ function buildCourseView(course, marcoId, conceitoId) {
     const set = getProgress(course.slug);
     const done = countDone(set, course.milestones);
     const pct = percent(done, total);
-    bar.style.width = `${pct}%`;
-    wrapper.setAttribute('aria-valuenow', String(pct));
+    bar.value = pct;
     wrapper.setAttribute('aria-label', `Progresso em ${course.title}: ${pct}% concluído`);
     progressLabel.textContent = `${pct}% • ${done} de ${total} marcos`;
 

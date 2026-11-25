@@ -138,18 +138,26 @@
 }
 
 /* ── Progress bar (shared by cards and course header) ────────────────────── */
+/* A native <progress>: the fill is its value, never a style attribute. */
 .progress {
+  display: block;
+  width: 100%;
   height: 6px;
+  border: 0;
   border-radius: 3px;
   background: var(--surface2);
   overflow: hidden;
+  appearance: none;
 }
-
-.progress-bar {
-  height: 100%;
+.progress::-webkit-progress-bar { background: var(--surface2); border-radius: 3px; }
+.progress::-webkit-progress-value {
   border-radius: 3px;
   background: linear-gradient(90deg, var(--accent), var(--accent-hover));
   transition: width 0.3s ease;
+}
+.progress::-moz-progress-bar {
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
 }
 
 .progress-label {
@@ -1384,10 +1392,9 @@
 
 /* ── Reduced motion ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .progress-bar,
-  .node-dot,
-  .node-marker::before,
-  .course-card { transition: none; }
+  /* The global rule in style.css covers elements and ::before/::after; the
+     progress bar's fill is a pseudo-element it cannot reach. */
+  .progress::-webkit-progress-value { transition: none; }
 }
 
 /* ── Diagramas tipados (diagram.js) ─────────────────────────────────────── */

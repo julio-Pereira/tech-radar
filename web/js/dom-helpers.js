@@ -7,25 +7,20 @@ export function percent(done, total) {
 }
 
 /**
- * Builds a progress bar; returns { wrapper, bar } so callers can update
- * width. `label` names the bar for assistive tech (e.g. "Trilha X: 40%
- * concluído") — axe-core's aria-progressbar-name rule requires every
- * progressbar to have one.
+ * Builds a progress bar: a native <progress>, so the fill comes from its
+ * value attribute and never from a style attribute (CSP style-src 'self'),
+ * and the progressbar role and value come with the element. Returns
+ * { wrapper, bar }, both the same element, so callers update `bar.value`.
+ * `label` names the bar for assistive tech (e.g. "Trilha X: 40% concluído")
+ * — axe-core's progressbar-name rule requires one.
  */
 export function buildProgressBar(pct, label) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'progress';
-  wrapper.setAttribute('role', 'progressbar');
-  wrapper.setAttribute('aria-valuemin', '0');
-  wrapper.setAttribute('aria-valuemax', '100');
-  wrapper.setAttribute('aria-valuenow', String(pct));
-  wrapper.setAttribute('aria-label', label || `${pct}% concluído`);
-
-  const bar = document.createElement('div');
-  bar.className = 'progress-bar';
-  bar.style.width = `${pct}%`;
-  wrapper.appendChild(bar);
-  return { wrapper, bar };
+  const bar = document.createElement('progress');
+  bar.className = 'progress';
+  bar.max = 100;
+  bar.value = pct;
+  bar.setAttribute('aria-label', label || `${pct}% concluído`);
+  return { wrapper: bar, bar };
 }
 
 // course.yaml's `level` is free text written in English by convention
