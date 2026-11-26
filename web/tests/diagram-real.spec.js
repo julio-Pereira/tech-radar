@@ -49,6 +49,10 @@ async function openAll(page, slug) {
     await expect(figures.first()).toBeVisible();
     await expect(node.locator('figure.diagrama svg')).toHaveCount(await figures.count());
   }
+  // fitViewBox runs from a ResizeObserver once the figure has layout, and
+  // WebKit may deliver it a frame after the click: measure only after every
+  // drawn figure has been fitted.
+  await expect(page.locator('figure.diagrama-desenhado .diagrama-area > svg:not([data-ajustado])')).toHaveCount(0);
 }
 
 test('the build produced diagram data', () => {
@@ -107,7 +111,7 @@ for (const slug of slugs) {
         const texts = [...svg.querySelectorAll('text')].map((t) => ({ t: t.textContent, r: band(t) }));
         for (const { t, r } of texts) {
           if (r.left < box.left - 1 || r.right > box.right + 1 || r.top < box.top - 1 || r.bottom > box.bottom + 1) {
-            problems.push(`${id}: rótulo "${t}" sai do viewBox`);
+            problems.push(`${id}: rótulo "${t}" sai do viewBox (${[r.left, r.right, r.top, r.bottom].map(Math.round)} em ${[box.left, box.right, box.top, box.bottom].map(Math.round)}, viewBox ${svg.getAttribute("viewBox")})`);
           }
         }
         for (let i = 0; i < texts.length; i++) {
