@@ -114,6 +114,10 @@ type walkthroughSpec struct {
 type WalkthroughAtor struct {
 	ID     string `json:"id"`
 	Rotulo string `json:"rotulo"`
+	// Icone comes from the actor's node in the layer diagrams (Fase 1.8):
+	// one source, no field in the walkthrough.
+	Icone string `json:"icone,omitempty"`
+	Forma string `json:"forma,omitempty"`
 }
 
 type WalkthroughCamada struct {
@@ -245,7 +249,7 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 	for i, a := range s.Atores {
 		v.id(fmt.Sprintf("atores[%d]", i), a.ID, atores)
 		v.rotulo(fmt.Sprintf("ator %q", a.ID), a.Rotulo)
-		w.Atores = append(w.Atores, WalkthroughAtor(a))
+		w.Atores = append(w.Atores, WalkthroughAtor{ID: a.ID, Rotulo: a.Rotulo})
 	}
 
 	// Rules 2 and 5, and the layer limits.
@@ -278,6 +282,7 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 		}
 		w.Camadas = append(w.Camadas, WalkthroughCamada{ID: c.ID, Rotulo: c.Rotulo, Diagrama: c.Diagrama, Trilha: trilha})
 	}
+	v.iconesDosAtores(&w, s.Camadas, diagramas)
 
 	// Panels and their limits.
 	paineis := map[string]int{} // id → number of lines
@@ -441,6 +446,36 @@ func wtTipoPublico(tipo string) string {
 	return ""
 }
 
+// iconesDosAtores gives each actor the icon of its node in the layer
+// diagrams. An actor drawn with different icons in two layers is an error:
+// the reader would see one component change kind between zoom levels. A
+// layer where the node has no icon does not count (gradual retrofit).
+func (v *diagramaValidator) iconesDosAtores(w *Walkthrough, camadas []wtCamadaSpec, diagramas map[string]Diagrama) {
+	type origem struct{ icone, forma, camada string }
+	por := map[string]origem{}
+	for _, c := range camadas {
+		d, ok := diagramas[c.Diagrama]
+		if !ok || d.Tipo != "topologia" {
+			continue
+		}
+		for _, n := range d.Nos {
+			if n.Icone == "" {
+				continue
+			}
+			if o, seen := por[n.ID]; !seen {
+				por[n.ID] = origem{n.Icone, n.Forma, c.ID}
+			} else if o.icone != n.Icone {
+				v.fail("ator %q: icone %q na camada %q e %q na camada %q (um componente não muda de tipo entre camadas)", n.ID, o.icone, o.camada, n.Icone, c.ID)
+			}
+		}
+	}
+	for i, a := range w.Atores {
+		if o, ok := por[a.ID]; ok {
+			w.Atores[i].Icone, w.Atores[i].Forma = o.icone, o.forma
+		}
+	}
+}
+
 // trilhaCamada returns the breadcrumb of a layer, root first (rule 5: the
 // parent exists and there is no cycle).
 func (v *diagramaValidator) trilhaCamada(c wtCamadaSpec, camadas map[string]wtCamadaSpec) ([]string, bool) {
@@ -513,7 +548,7 @@ func derivarSequencia(w Walkthrough, et WalkthroughEtapa, e wtEtapaSpec, d Diagr
 	seq := Diagrama{ID: w.ID + "-" + et.ID, Tipo: "sequencia", Titulo: et.Titulo}
 	for _, a := range w.Atores {
 		if todos || usados[a.ID] {
-			seq.Participantes = append(seq.Participantes, DiagramaParticipante{ID: a.ID, Rotulo: a.Rotulo})
+			seq.Participantes = append(seq.Participantes, DiagramaParticipante{ID: a.ID, Rotulo: a.Rotulo, Icone: a.Icone, Forma: a.Forma})
 		}
 	}
 	rotulos := map[string]string{}

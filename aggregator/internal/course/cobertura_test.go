@@ -25,8 +25,13 @@ func TestCoberturaCountsWhatTheReaderSees(t *testing.T) {
 	write("02-b.md", "Só prosa, e um ASCII esquecido:\n\n```\nA --> B\n```\n")
 	write("03-c.md", "Mesmo diagrama de novo, contado uma vez.\n\n```diagrama\nanimado\n```\n")
 	write("04-d.md", "> **Stub.** Este marco ainda não tem conteúdo.\n")
-	write("diagramas/animado.yaml", "id: animado\ntipo: topologia\nanimacao:\n  - legenda: x\n")
+	// Fase 1.8: 1 of the 3 topologia nodes has an icon.
+	write("diagramas/animado.yaml", "id: animado\ntipo: topologia\nnos:\n  - { id: a, icone: banco }\n  - { id: b }\n  - { id: c }\nanimacao:\n  - legenda: x\n")
 	write("diagramas/curva.yaml", "id: curva\ntipo: grafico\n")
+	// A walkthrough layer counts for icons (2 more nodes, 1 with icon), not
+	// for the diagram total.
+	write("diagramas/camada.yaml", "id: camada\ntipo: topologia\nnos:\n  - { id: x, icone: fila }\n  - { id: y }\n")
+	write("walkthroughs/w.yaml", "id: w\ncamadas:\n  - { id: c, diagrama: camada }\n")
 
 	rows, err := Cobertura(dir)
 	if err != nil {
@@ -36,7 +41,8 @@ func TestCoberturaCountsWhatTheReaderSees(t *testing.T) {
 		t.Fatalf("want 1 track, got %d", len(rows))
 	}
 	r := rows[0]
-	if r.Marcos != 4 || r.Stubs != 1 || r.ComDiagrama != 2 || r.Diagramas != 2 || r.Animados != 1 || r.Graficos != 1 || r.ASCII != 1 {
+	if r.Marcos != 4 || r.Stubs != 1 || r.ComDiagrama != 2 || r.Diagramas != 2 || r.Animados != 1 || r.Graficos != 1 || r.ASCII != 1 ||
+		r.Componentes != 5 || r.ComIcone != 2 {
 		t.Fatalf("unexpected row: %+v", r)
 	}
 	if r.Minimo() != 2 {
@@ -46,7 +52,7 @@ func TestCoberturaCountsWhatTheReaderSees(t *testing.T) {
 		t.Fatalf("milestones without diagram: %v (a stub is not listed)", r.SemDiagrama)
 	}
 	md := CoberturaMarkdown(rows)
-	for _, want := range []string{"| `t` | 4 | 1 | 2 | 2 | 2 | 1 | 1 | 1 |", "- `t` (1): 02-b"} {
+	for _, want := range []string{"| `t` | 4 | 1 | 2 | 2 | 2 | 1 | 1 | 1 | 40% (2/5) |", "- `t` (1): 02-b"} {
 		if !strings.Contains(md, want) {
 			t.Fatalf("report is missing %q:\n%s", want, md)
 		}
