@@ -32,17 +32,26 @@ export function still(svg) {
   svg.querySelectorAll('.diagrama-pacote').forEach((d) => d.remove());
 }
 
-/** Runs a packet along an edge path; nothing with reduced motion. */
+/**
+ * Runs a packet along an edge path; nothing with reduced motion. The packet
+ * is decoration: WebKit throws InvalidStateError measuring a path it has not
+ * laid out yet (a figure still being mounted), and then there is no packet,
+ * never a step left half drawn.
+ */
 export function packet(svg, geo, speed) {
   if (reduceMotion()) return;
-  const len = geo.getTotalLength();
+  const frames = [];
+  try {
+    const len = geo.getTotalLength();
+    for (let k = 0; k <= 12; k++) {
+      const p = geo.getPointAtLength((len * k) / 12);
+      frames.push({ transform: `translate(${p.x}px, ${p.y}px)` });
+    }
+  } catch {
+    return;
+  }
   const dot = el('circle', { r: 5, class: 'diagrama-pacote' });
   svg.appendChild(dot);
-  const frames = [];
-  for (let k = 0; k <= 12; k++) {
-    const p = geo.getPointAtLength((len * k) / 12);
-    frames.push({ transform: `translate(${p.x}px, ${p.y}px)` });
-  }
   dot.animate(frames, { duration: 1400 / speed, easing: 'ease-in-out', fill: 'forwards' })
     .finished.then(() => dot.remove(), () => dot.remove());
 }

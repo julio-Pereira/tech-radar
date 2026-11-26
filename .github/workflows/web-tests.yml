@@ -90,11 +90,11 @@ jobs:
         working-directory: web
         run: npm run test:unit
 
-      # Chromium only — Playwright's own cache key already covers the browser
-      # directory, so a Firefox/WebKit download never happens.
-      - name: Install Playwright's Chromium
+      # Chromium runs the whole suite; Firefox and WebKit run only the
+      # cross-engine files listed in playwright.config.js (CROSS_ENGINE).
+      - name: Install Playwright's browsers
         working-directory: web
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Run Playwright + axe-core
         working-directory: web
