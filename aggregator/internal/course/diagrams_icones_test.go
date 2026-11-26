@@ -135,3 +135,13 @@ func TestIconeWalkthroughHeranca(t *testing.T) {
 		t.Fatalf("different icons across layers: %v", err)
 	}
 }
+
+// The layout mirror adds the icon's 20px to the cell, like diagram.js, only
+// when the diagram has an icon: a diagram without one keeps its layout.
+func TestIconeLargura(t *testing.T) {
+	sem := mustParse(t, topologiaYAML(""), nil)
+	com := mustParse(t, strings.Replace(topologiaYAML(""), "papel: externo }", "papel: externo, icone: fila }", 1), nil)
+	if d := newGridLayout(com).cellW - newGridLayout(sem).cellW; d != layoutIconeW {
+		t.Fatalf("an icon widens the cell by %v, want %v", d, layoutIconeW)
+	}
+}

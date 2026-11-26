@@ -15,7 +15,7 @@ import (
 // the figure. In a diagram about storage the ledger is "banco"; in a diagram
 // of services it is "servico".
 
-// Shapes. "caixa" is the node box as drawn before Fase 1.8 (rx 8); the
+// Shapes. "caixa" is the node box as drawn before Fase 1.8 (rx 6 in topologia); the
 // others are drawn inside that same rectangle, so anchors and layout do not
 // change.
 const (

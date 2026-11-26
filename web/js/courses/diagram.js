@@ -1,6 +1,6 @@
 // Typed diagrams for a figure.diagrama. createElementNS, CSS classes only
 // (CSP). 10 KB gzip with diagram-svg.js: no type annotations.
-import { el, label, rect, arrowDefs, edgeBetween, clipToBox } from './diagram-svg.js';
+import { el, label, rect, shape, icon, arrowDefs, edgeBetween, clipToBox } from './diagram-svg.js';
 import { startDesvio, returnToPoint } from './desvio.js';
 
 // Keep in sync with aggregator/internal/course/diagrams_layout.go.
@@ -16,6 +16,7 @@ const MARGIN = 40;
 const GROUP_PAD = 12;
 const GROUP_LABEL = 20;
 const FIT_PAD = 8; // room kept around labels that stick out of the boxes
+const ICON_W = 20; // Fase 1.8: a 16px icon left of the label, and its gap
 
 const SEQ_HEAD = 40;
 const SEQ_STEP = 46;
@@ -158,7 +159,8 @@ function cellWidthFor(spec) {
   const steps = spec.animacao || [];
   const labels = [...(spec.nos || []).map((n) => n.rotulo), ...steps.flatMap((p) => Object.values(p.rotulos || {}))];
   const longest = Math.max(0, ...labels.map((l) => l.length)) + (steps.length ? 2 : 0);
-  return Math.max(CELL_W_MIN, Math.min(CELL_W_MAX, Math.ceil(longest * NODE_CHAR_W + 28)));
+  return Math.max(CELL_W_MIN, Math.min(CELL_W_MAX, Math.ceil(longest * NODE_CHAR_W + 28)))
+    + ((spec.nos || []).some((n) => n.icone) ? ICON_W : 0);
 }
 
 function gapFor(spec) {
@@ -282,9 +284,11 @@ function drawNode(no, p, tipo, final, links) {
   const radius = tipo === 'estados' ? 22 : tipo === 'fluxo' ? 14 : 6;
   const cls = `diagrama-no${no.papel ? ` diagrama-no--${no.papel}` : ''}`;
   const g = el('g', { class: cls, 'data-id': no.id });
-  g.appendChild(hidden(rect(p, 'diagrama-no-caixa', radius)));
+  g.appendChild(hidden(shape(p, no.forma, radius)));
   if (final) g.appendChild(hidden(rect({ x: p.x + 4, y: p.y + 4, w: p.w - 8, h: p.h - 8 }, 'diagrama-no-final', radius - 4)));
-  g.appendChild(hidden(label(p.cx, p.cy + 5, no.rotulo, 'diagrama-no-rotulo')));
+  // Decorative: the label stays the accessible name.
+  if (no.icone) g.appendChild(hidden(icon(no.icone, p.x + 10, p.cy - 8)));
+  g.appendChild(hidden(label(p.cx + (no.icone ? ICON_W / 2 : 0), p.cy + 5, no.rotulo, 'diagrama-no-rotulo')));
   return no.href && links ? conceptLink(no, g) : g;
 }
 
@@ -306,7 +310,9 @@ function drawSequence(spec, prefix, links) {
   const SEQ_COL = Math.max(150, Math.min(200, Math.ceil(Math.max(len(parts, 'rotulo') * NODE_CHAR_W + 40, len(msgs, 'rotulo') * CHAR_W + 24))));
   const colOf = new Map(parts.map((p, i) => [p.id, MARGIN + i * SEQ_COL + SEQ_COL / 2]));
 
-  let y = MARGIN + SEQ_HEAD + 34;
+  // Fase 1.8: the icon sits above the label, in a taller header.
+  const head = SEQ_HEAD + (parts.some((p) => p.icone) ? 18 : 0);
+  let y = MARGIN + head + 34;
   const rows = msgs.map((m) => {
     const row = { m, y };
     y += SEQ_STEP + (m.nota ? SEQ_NOTE : 0) + (m.de === m.para ? 16 : 0);
@@ -319,11 +325,12 @@ function drawSequence(spec, prefix, links) {
 
   for (const p of parts) {
     const cx = (colOf.get(p.id));
-    svg.appendChild(hidden(el('line', { x1: cx, y1: MARGIN + SEQ_HEAD, x2: cx, y2: height - MARGIN / 2, class: 'diagrama-linha-vida' })));
-    const box = { x: cx - (SEQ_COL - 24) / 2, y: MARGIN, w: SEQ_COL - 24, h: SEQ_HEAD, cx, cy: MARGIN + SEQ_HEAD / 2 };
+    svg.appendChild(hidden(el('line', { x1: cx, y1: MARGIN + head, x2: cx, y2: height - MARGIN / 2, class: 'diagrama-linha-vida' })));
+    const box = { x: cx - (SEQ_COL - 24) / 2, y: MARGIN, w: SEQ_COL - 24, h: head, cx, cy: MARGIN + head / 2 };
     const g = el('g', { class: `diagrama-no${p.papel ? ` diagrama-no--${p.papel}` : ''}` });
-    g.appendChild(hidden(rect(box, 'diagrama-no-caixa', 6)));
-    g.appendChild(hidden(label(cx, box.cy + 5, p.rotulo, 'diagrama-no-rotulo')));
+    g.appendChild(hidden(shape(box, p.forma)));
+    if (p.icone) g.appendChild(hidden(icon(p.icone, cx - 8, MARGIN + 6)));
+    g.appendChild(hidden(label(cx, box.cy + (p.icone ? 14 : 5), p.rotulo, 'diagrama-no-rotulo')));
     svg.appendChild(p.href && links ? conceptLink(p, g) : g);
   }
 

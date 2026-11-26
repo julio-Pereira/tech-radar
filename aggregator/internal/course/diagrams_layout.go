@@ -25,6 +25,7 @@ const (
 	layoutSeqColMin  = 150.0
 	layoutSeqColMax  = 200.0
 	layoutChartW     = 640.0
+	layoutIconeW     = 20.0 // Fase 1.8: icon and gap left of the label
 
 	// Above this natural width the drawing no longer fits the widened figure
 	// on a 1280px desktop (C1).
@@ -60,6 +61,12 @@ func newGridLayout(d Diagrama) gridLayout {
 		longest += 2
 	}
 	cellW := math.Max(layoutCellWMin, math.Min(layoutCellWMax, math.Ceil(float64(longest)*layoutNodeCharW+28)))
+	for _, n := range d.Nos {
+		if n.Icone != "" {
+			cellW += layoutIconeW
+			break
+		}
+	}
 	rowOf := map[string]int{}
 	for _, n := range d.Nos {
 		rowOf[n.ID] = n.Row

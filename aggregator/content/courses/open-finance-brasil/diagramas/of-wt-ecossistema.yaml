@@ -8,10 +8,10 @@ descricao: >
   consulta o estado quando ele não responde no prazo e devolve à ITP o estado terminal, por
   resposta ou por notificação.
 nos:
-  - { id: cliente, rotulo: "cliente (app da detentora)", col: 1, row: 0, papel: externo }
-  - { id: itp, rotulo: "ITP", col: 0, row: 1 }
-  - { id: det, rotulo: "detentora", col: 1, row: 1, papel: destaque }
-  - { id: spi, rotulo: "SPI", col: 2, row: 1, papel: externo }
+  - { id: cliente, rotulo: "cliente (app da detentora)", col: 1, row: 0, papel: externo, icone: cliente }
+  - { id: itp, rotulo: "ITP", col: 0, row: 1, icone: instituicao }
+  - { id: det, rotulo: "detentora", col: 1, row: 1, papel: destaque, icone: instituicao }
+  - { id: spi, rotulo: "SPI", col: 2, row: 1, papel: externo, icone: instituicao }
 arestas:
   - { de: itp, para: det, rotulo: "pede" }
   - { de: det, para: itp, rotulo: "responde" }

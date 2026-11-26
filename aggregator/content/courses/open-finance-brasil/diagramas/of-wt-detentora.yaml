@@ -9,12 +9,12 @@ descricao: >
 grupos:
   - { id: det, rotulo: "detentora", col: 1, row: 0, cols: 2, rows: 3 }
 nos:
-  - { id: itp, rotulo: "ITP", col: 0, row: 1, papel: externo }
-  - { id: antifraude, rotulo: "limites e antifraude", grupo: det, col: 1, row: 0 }
-  - { id: pag, rotulo: "API de pagamentos", grupo: det, col: 1, row: 1, papel: destaque }
-  - { id: cons, rotulo: "consentimentos", grupo: det, col: 2, row: 1 }
-  - { id: ledger, rotulo: "fin-books (contas)", grupo: det, col: 1, row: 2 }
-  - { id: rails, rotulo: "fin-rails (Pix)", grupo: det, col: 2, row: 2 }
+  - { id: itp, rotulo: "ITP", col: 0, row: 1, papel: externo, icone: instituicao }
+  - { id: antifraude, rotulo: "limites e antifraude", grupo: det, col: 1, row: 0, icone: servico }
+  - { id: pag, rotulo: "API de pagamentos", grupo: det, col: 1, row: 1, papel: destaque, icone: gateway }
+  - { id: cons, rotulo: "consentimentos", grupo: det, col: 2, row: 1, icone: servico }
+  - { id: ledger, rotulo: "fin-books (contas)", grupo: det, col: 1, row: 2, icone: banco }
+  - { id: rails, rotulo: "fin-rails (Pix)", grupo: det, col: 2, row: 2, icone: servico }
 arestas:
   - { de: itp, para: pag, rotulo: "inicia" }
   - { de: pag, para: cons, rotulo: "confere" }
