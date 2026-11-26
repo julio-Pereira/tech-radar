@@ -111,6 +111,13 @@ E o detalhe operacional que decide se ela funciona: **corte temporal claro**. Co
 ontem" exige saber exatamente onde o dia começa e termina nas duas fontes — e o marco 01 já
 explicou por que isso não pode ser `BETWEEN` de timestamps de hosts diferentes.
 
+O roteiro abaixo liga as duas metades deste marco: um 2PC que fica em dúvida, o que ele cobra de
+quem não tem nada a ver, a decisão à mão e a reconciliação que, só ela, vê o resultado.
+
+```walkthrough
+dd-2pc-em-duvida
+```
+
 ## Exemplo numa fintech
 
 **Transferência entre duas contas do mesmo banco.** Débito e crédito são dois lançamentos da
