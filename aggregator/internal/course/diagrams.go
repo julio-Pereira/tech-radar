@@ -83,6 +83,7 @@ type diagramaNo struct {
 	Row      int    `yaml:"row"`
 	Papel    string `yaml:"papel"`
 	Conceito string `yaml:"conceito"`
+	Icone    string `yaml:"icone"` // Fase 1.8: topologia only
 }
 
 type diagramaAresta struct {
@@ -114,6 +115,7 @@ type diagramaParticipante struct {
 	Rotulo   string `yaml:"rotulo"`
 	Papel    string `yaml:"papel"`
 	Conceito string `yaml:"conceito"`
+	Icone    string `yaml:"icone"` // Fase 1.8
 }
 
 type diagramaMensagem struct {
@@ -171,6 +173,9 @@ type DiagramaNo struct {
 	Papel    string `json:"papel,omitempty"`
 	Conceito string `json:"conceito,omitempty"`
 	Href     string `json:"href,omitempty"`
+	// Icone and the shape the catalog gives it (diagrams_icones.go).
+	Icone string `json:"icone,omitempty"`
+	Forma string `json:"forma,omitempty"`
 }
 
 type DiagramaAresta struct {
@@ -187,6 +192,9 @@ type DiagramaParticipante struct {
 	Papel    string `json:"papel,omitempty"`
 	Conceito string `json:"conceito,omitempty"`
 	Href     string `json:"href,omitempty"`
+	// Icone and the shape the catalog gives it (diagrams_icones.go).
+	Icone string `json:"icone,omitempty"`
+	Forma string `json:"forma,omitempty"`
 }
 
 type DiagramaMensagem struct {
@@ -424,7 +432,8 @@ func parseDiagrama(data []byte, fileID string, conceitos *conceitoSet) (Diagrama
 			v.rotulo(fmt.Sprintf("participante %q", p.ID), p.Rotulo)
 			v.papel(p.ID, p.Papel)
 			href := v.conceito(p.ID, p.Conceito, conceitos)
-			d.Participantes = append(d.Participantes, DiagramaParticipante{ID: p.ID, Rotulo: p.Rotulo, Papel: p.Papel, Conceito: p.Conceito, Href: href})
+			forma := v.icone(fmt.Sprintf("participante %q", p.ID), p.Icone)
+			d.Participantes = append(d.Participantes, DiagramaParticipante{ID: p.ID, Rotulo: p.Rotulo, Papel: p.Papel, Conceito: p.Conceito, Href: href, Icone: p.Icone, Forma: forma})
 		}
 		for i, m := range s.Mensagens {
 			v.ref(fmt.Sprintf("mensagens[%d].de", i), m.De, ids)
@@ -599,7 +608,15 @@ func (v *diagramaValidator) grid(grupos []diagramaGrupo, nos []diagramaNo, field
 			}
 		}
 		href := v.conceito(fmt.Sprintf("%q", n.ID), n.Conceito, conceitos)
-		out = append(out, DiagramaNo{ID: n.ID, Rotulo: n.Rotulo, Col: n.Col, Row: n.Row, Papel: n.Papel, Conceito: n.Conceito, Href: href})
+		// Icons only where a node is a component (plan §2): the nodes of a
+		// fluxo are activities, the ones of estados are states.
+		var forma string
+		if field == "nos" {
+			forma = v.icone(fmt.Sprintf("%q", n.ID), n.Icone)
+		} else if n.Icone != "" {
+			v.fail("%q: icone só vale em topologia e sequencia (em %s, os nós não são componentes)", n.ID, field)
+		}
+		out = append(out, DiagramaNo{ID: n.ID, Rotulo: n.Rotulo, Col: n.Col, Row: n.Row, Papel: n.Papel, Conceito: n.Conceito, Href: href, Icone: n.Icone, Forma: forma})
 	}
 	for id := range ids {
 		if groupIDs[id] {

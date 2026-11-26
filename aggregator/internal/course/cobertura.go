@@ -37,6 +37,20 @@ type CoberturaTrilha struct {
 	Animados  int
 	Graficos  int
 	ASCII     int
+	// Fase 1.8: nodes that can carry an icon (topologia nodes, sequencia
+	// participants, walkthrough layers included) and how many do.
+	// Informative, like the rest.
+	Componentes int
+	ComIcone    int
+}
+
+// Icones is the share of component nodes with an icon, as "N% (a/b)", or
+// "—" when the track draws no component.
+func (c CoberturaTrilha) Icones() string {
+	if c.Componentes == 0 {
+		return "—"
+	}
+	return fmt.Sprintf("%d%% (%d/%d)", c.ComIcone*100/c.Componentes, c.ComIcone, c.Componentes)
 }
 
 // Gatilho is a milestone without a diagram and the signs its prose shows.
@@ -107,23 +121,62 @@ func coberturaTrilha(dir string) (CoberturaTrilha, error) {
 		}
 	}
 	row.Diagramas = len(used)
-	for id := range used {
+	// The layer diagrams of the walkthroughs are drawn too, without a
+	// ```diagrama fence: they count for icons, not for the diagram total.
+	camadas := map[string]bool{}
+	wts, _ := filepath.Glob(filepath.Join(dir, "walkthroughs", "*.yaml"))
+	for _, f := range wts {
+		data, err := os.ReadFile(f)
+		if err != nil {
+			continue
+		}
+		var w struct {
+			Camadas []struct {
+				Diagrama string `yaml:"diagrama"`
+			} `yaml:"camadas"`
+		}
+		if yaml.Unmarshal(data, &w) != nil {
+			continue // the compiler reports it
+		}
+		for _, c := range w.Camadas {
+			if !used[c.Diagrama] {
+				camadas[c.Diagrama] = true
+			}
+		}
+	}
+	for id := range camadas {
+		used[id] = false
+	}
+	for id, citado := range used {
 		data, err := os.ReadFile(filepath.Join(dir, "diagramas", id+".yaml"))
 		if err != nil {
 			continue // the compiler reports a dangling reference
 		}
+		type componente struct {
+			Icone string `yaml:"icone"`
+		}
 		var d struct {
-			Tipo     string    `yaml:"tipo"`
-			Animacao yaml.Node `yaml:"animacao"`
+			Tipo          string       `yaml:"tipo"`
+			Animacao      yaml.Node    `yaml:"animacao"`
+			Nos           []componente `yaml:"nos"`
+			Participantes []componente `yaml:"participantes"`
 		}
 		if yaml.Unmarshal(data, &d) != nil {
 			continue
 		}
-		if d.Tipo == "grafico" {
+		if citado && d.Tipo == "grafico" {
 			row.Graficos++
 		}
-		if !d.Animacao.IsZero() {
+		if citado && !d.Animacao.IsZero() {
 			row.Animados++
+		}
+		if d.Tipo == "topologia" || d.Tipo == "sequencia" {
+			for _, n := range append(d.Nos, d.Participantes...) {
+				row.Componentes++
+				if n.Icone != "" {
+					row.ComIcone++
+				}
+			}
 		}
 	}
 	return row, nil
@@ -190,15 +243,16 @@ func CoberturaMarkdown(rows []CoberturaTrilha) string {
 	fmt.Fprintf(&b, "# Cobertura visual das trilhas\n\n")
 	fmt.Fprintf(&b, "%d trilhas, %d diagramas, %d abaixo do mínimo, %d diagramas ASCII.\n\n", len(rows), total, abaixo, ascii)
 	b.WriteString("Mínimo: ⌈marcos com prosa / 2⌉. Stubs (marcos sem prosa ainda) não contam.\n\n")
-	b.WriteString("| Trilha | Marcos | Stubs | Com diagrama | Diagramas | Mín. | Animados | Gráficos | ASCII |\n")
-	b.WriteString("|---|---:|---:|---:|---:|---:|---:|---:|---:|\n")
+	b.WriteString("Ícones: nós de `topologia` e participantes de `sequencia` com `icone` (Fase 1.8); informativo.\n\n")
+	b.WriteString("| Trilha | Marcos | Stubs | Com diagrama | Diagramas | Mín. | Animados | Gráficos | ASCII | Ícones |\n")
+	b.WriteString("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n")
 	for _, r := range rows {
 		diag := fmt.Sprint(r.Diagramas)
 		if r.Diagramas < r.Minimo() {
 			diag += " ⚠"
 		}
-		fmt.Fprintf(&b, "| `%s` | %d | %d | %d | %s | %d | %d | %d | %d |\n",
-			r.Slug, r.Marcos, r.Stubs, r.ComDiagrama, diag, r.Minimo(), r.Animados, r.Graficos, r.ASCII)
+		fmt.Fprintf(&b, "| `%s` | %d | %d | %d | %s | %d | %d | %d | %d | %s |\n",
+			r.Slug, r.Marcos, r.Stubs, r.ComDiagrama, diag, r.Minimo(), r.Animados, r.Graficos, r.ASCII, r.Icones())
 	}
 	b.WriteString("\n## Marcos com prosa e sem diagrama\n\n")
 	any := false

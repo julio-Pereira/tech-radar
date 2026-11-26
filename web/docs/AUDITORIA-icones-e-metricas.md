@@ -43,3 +43,33 @@ fixa a barra em 50%, tira o screenshot e lê os pixels num canvas. Em 75% da lar
 ser a do trilho (`--surface2`); em 25%, não. Assim prova que `::-webkit-progress-value` e
 `::-moz-progress-bar` pintam o preenchimento nos três motores. Os screenshots vão anexados ao
 relatório do Playwright, para comparar lado a lado.
+
+## 3. PR 2 — Catálogo, esquema, validação e cobertura (§3.1, §3.2)
+
+**O que entra:**
+- **Catálogo:** `diagrams_icones.go` traz os 13 ícones do plano, cada um com a sua forma fixa. É o único lugar do catálogo.
+- **Esquema:** `icone` opcional em `diagramaNo` e em `diagramaParticipante`.
+- **JSON compilado:** cada nó e participante com ícone leva `icone` **e** `forma`. O front lê a forma pronta e nunca a deduz.
+- **Walkthrough:** cada ator recebe o ícone do seu nó nos diagramas de camada, e a sequência derivada herda esse ícone.
+- **Cobertura:** `cmd/cobertura` ganha a coluna "Ícones".
+
+Nenhum diagrama muda neste PR: o front ainda não desenha ícone (é o PR 3) e nenhum YAML tem `icone` por enquanto.
+
+### Decisões e divergências
+
+| Plano | Código / decisão |
+| --- | --- |
+| `cliente` e `pessoa` em "caixa arredondada"; `servico` em "caixa (atual)" | A caixa atual **já** é arredondada (`rect` com `rx` 8). Para as duas se distinguirem, a forma de `cliente` e `pessoa` se chama `arredondada` e será uma pílula (raio = metade da altura). `caixa` continua sendo a caixa de hoje. |
+| "Catálogo exportado no JSON compilado" | Exportado **por nó**: `icone` e `forma` ao lado de `papel`. Não há tabela global no JSON; o front não precisa de uma, e um nó sem ícone não leva nenhum dos dois campos. |
+| Erro "ator com ícones diferentes em camadas diferentes" | Uma camada em que o nó do ator **não** tem ícone não conta. Com o retrofit gradual (§3.5), um ator pode ter ícone numa camada antes da outra; o erro é só quando duas camadas dizem tipos diferentes. |
+| `icone` só em `topologia` | `grid()` é compartilhado por `topologia`, `fluxo` e `estados`. O ícone só é aceito quando o campo é `nos`; em `passos` (fluxo) e `estados`, o erro explica que ali os nós não são componentes. |
+| Cobertura: "percentual de nós com ícone por trilha" | A conta inclui os nós de `topologia`, os participantes de `sequencia` e também os diagramas de camada dos walkthroughs. Esses não são citados por um bloco ```` ```diagrama ````, mas aparecem para o leitor; eles entram só na conta de ícones, não no total de diagramas. |
+
+### Testes Go (`diagrams_icones_test.go`, `cobertura_test.go`)
+
+- O catálogo tem os 13 ícones, cada um com a sua forma.
+- `topologia` e `sequencia` válidas compilam `icone` e `forma`; `papel` convive com `icone`; um nó sem ícone não leva os campos no JSON.
+- Um ícone fora do catálogo é erro, em nó e em participante.
+- Um ícone em `estados` ou em `fluxo` é erro; o mesmo diagrama sem o ícone compila.
+- Walkthrough: o ator herda o ícone, e a sequência derivada também. O mesmo ícone em duas camadas é válido; ícones diferentes, erro.
+- Cobertura: conta componentes e ícones, inclusive numa camada de walkthrough, sem mudar o total de diagramas.
