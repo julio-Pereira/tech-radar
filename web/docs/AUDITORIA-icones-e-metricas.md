@@ -59,7 +59,7 @@ Nenhum diagrama muda neste PR: o front ainda não desenha ícone (é o PR 3) e n
 
 | Plano | Código / decisão |
 | --- | --- |
-| `cliente` e `pessoa` em "caixa arredondada"; `servico` em "caixa (atual)" | A caixa atual **já** é arredondada (`rect` com `rx` 8). Para as duas se distinguirem, a forma de `cliente` e `pessoa` se chama `arredondada` e será uma pílula (raio = metade da altura). `caixa` continua sendo a caixa de hoje. |
+| `cliente` e `pessoa` em "caixa arredondada"; `servico` em "caixa (atual)" | A caixa atual **já** é arredondada (`rect` com `rx` 6 em `topologia`). Para as duas se distinguirem, a forma de `cliente` e `pessoa` se chama `arredondada` e será uma pílula (raio = metade da altura). `caixa` continua sendo a caixa de hoje. |
 | "Catálogo exportado no JSON compilado" | Exportado **por nó**: `icone` e `forma` ao lado de `papel`. Não há tabela global no JSON; o front não precisa de uma, e um nó sem ícone não leva nenhum dos dois campos. |
 | Erro "ator com ícones diferentes em camadas diferentes" | Uma camada em que o nó do ator **não** tem ícone não conta. Com o retrofit gradual (§3.5), um ator pode ter ícone numa camada antes da outra; o erro é só quando duas camadas dizem tipos diferentes. |
 | `icone` só em `topologia` | `grid()` é compartilhado por `topologia`, `fluxo` e `estados`. O ícone só é aceito quando o campo é `nos`; em `passos` (fluxo) e `estados`, o erro explica que ali os nós não são componentes. |
@@ -73,3 +73,62 @@ Nenhum diagrama muda neste PR: o front ainda não desenha ícone (é o PR 3) e n
 - Um ícone em `estados` ou em `fluxo` é erro; o mesmo diagrama sem o ícone compila.
 - Walkthrough: o ator herda o ícone, e a sequência derivada também. O mesmo ícone em duas camadas é válido; ícones diferentes, erro.
 - Cobertura: conta componentes e ícones, inclusive numa camada de walkthrough, sem mudar o total de diagramas.
+
+## 4. PR 3 — Sprite, formas e renderização, nas camadas dos 7 walkthroughs (§3.3, §3.5 item 1)
+
+### O que entra
+
+- **`web/assets/icones.svg`:** 13 `<symbol id="i-<icone>">`, todos desenhados para o projeto. Grade de 24×24, traço de 1,5, pontas e junções arredondadas, só `path`, `circle` e `rect`, sem texto, cor por `currentColor`. São **892 B gzip**, com teto de 4 KB em `diagram-budget.spec.js`.
+- **`diagram-svg.js`:**
+  - `shape()` desenha a forma do nó dentro do retângulo atual, de modo que âncoras e layout não mudam;
+  - `icon()` cria o `<use href="assets/icones.svg#i-…">`, same-origin, sem atributo `style`.
+- **`diagram.js`:**
+  - **Topologia:** o ícone de 16 px fica na borda esquerda da caixa (`x + 10`), e o rótulo desloca 10 px.
+  - **Sequência:** o ícone vai acima do rótulo, num cabeçalho 18 px mais alto, só quando algum participante tem ícone.
+  - O ícone é `aria-hidden`; o nome acessível continua sendo o rótulo.
+- **Largura:** `cellWidthFor` (JS) e `newGridLayout` (Go) somam 20 px **só** quando o diagrama tem ícone. Nenhum diagrama sem ícone muda de layout. Nenhuma camada passou do aviso de 1.100 px.
+- **CSS:** o ícone em `--text-muted`, e a linha interna da `borda-dupla`.
+
+### `<use>` externo nos três motores
+
+A alternativa do plano (embutir os `<symbol>` no JSON) **não foi necessária**. O `<use>` externo desenha nos três motores: no Chromium, no Firefox e no WebKit (este pelo servidor HTTPS do PR 1). O "Ampliar" também desenha nos três.
+
+`icones.spec.js` prova isso pelos pixels: o screenshot do `<use>` precisa ter tinta. Sem o arquivo de ícones, o teste falha.
+
+Nota de teste: no WebKit, o `screenshot` do Playwright injeta um estilo que a CSP recusa (`style-src-elem inline`). Isso acontece também em `main`, sem ícones. Por isso o teste lê as violações de CSP **antes** de qualquer screenshot.
+
+### Formas
+
+| Forma | Desenho |
+| --- | --- |
+| `caixa` | `rect`, como antes (`rx` 6 em `topologia`) |
+| `arredondada` | `rect` com `rx` = metade da altura (pílula) |
+| `hexagono` | `path` de 6 lados, com recuo de 12 px |
+| `cilindro` | `path`: corpo mais a borda frontal do topo (elipse de 6 px) |
+| `cilindro-baixo` | `cilindro` recuado 6 px em cima e embaixo, elipse de 5 px |
+| `tubo` | `path` horizontal com tampas elípticas de 8 px e a borda da tampa direita |
+| `canto-dobrado` | `path` com o canto superior direito dobrado em 12 px |
+| `borda-dupla` | `rect` mais um `rect` interno recuado 4 px (`.diagrama-no-borda`) |
+
+A classe `.diagrama-no-caixa` continua na forma (seja `rect` ou `path`). Por isso os estados (`diagrama-est-*`), o `papel` e os testes de "aresta atravessa caixa" valem sem mudança.
+
+### Ícones nas camadas: o papel na figura
+
+| Diagrama | Ícones |
+| --- | --- |
+| `k8s-wt-cluster` | `kubectl` cliente · `etcd` banco · `api`, `sched`, `kcm`, `worker`, `worker2` plataforma · `proxy` rede |
+| `k8s-wt-node` | `api`, `kubelet`, `cri` plataforma · `cni` rede · `pod` servico |
+| `pg-wt-ecossistema` | `pagador` cliente · `recebedor` pessoa · `psp-pa`, `psp-pb`, `dict`, `spi` instituicao · `liq` banco |
+| `pg-wt-psp` | `pagador` cliente · `gateway` gateway · `orq`, `antifraude` servico · `razao` banco |
+| `sa-wt-code-pkce` | `titular` cliente · `atacante` pessoa · `client`, `api` servico · `as` identidade |
+| `sd-wt-falha` | `cliente` cliente · `gw` servico · `toxi` rede · `spi` instituicao · `ledger` banco · `conc` job · `arquivo` arquivo |
+| `of-wt-ecossistema` | `cliente` cliente · `itp`, `det`, `spi` instituicao |
+| `of-wt-detentora` | `itp` instituicao · `pag` gateway · `antifraude`, `cons`, `rails` servico · `ledger` banco |
+| `ae-wt-saga` | `gw`, `risco`, `orq`, `ledger`, `notif` servico · `psp` instituicao · `atend` pessoa · `sagadb` banco · `timer` job |
+| `dd-wt-2pc` | `outro`, `coord` servico · `banco` banco · `plantao` pessoa · `fila` fila · `recon` job |
+
+A regra do §6 do plano aparece na tabela:
+- **Ledger, dois ícones:** em `sd-wt-falha`, `of-wt-detentora` e `pg-wt-psp`, o ledger é onde o débito fica gravado, então é `banco`. Em `ae-wt-saga`, é o serviço síncrono que reserva e libera, então é `servico`.
+- **Atores em duas camadas:** `api` (kubernetes), `itp` (open finance) e `pagador` (pagamentos) aparecem em duas camadas com o mesmo ícone, como o compilador exige.
+
+Cobertura depois deste PR: as 7 trilhas com walkthrough têm entre 16% e 48% dos nós com ícone (`go run ./cmd/cobertura`).

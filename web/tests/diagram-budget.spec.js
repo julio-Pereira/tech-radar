@@ -36,3 +36,9 @@ test('diagram-chart.js (the grafico type, loaded only for a chart) stays within 
   const size = zlib.gzipSync(fs.readFileSync(path.join(__dirname, '..', 'js', 'courses', 'diagram-chart.js'))).length;
   expect(size).toBeLessThanOrEqual(3_500);
 });
+
+// Fase 1.8: the icon sprite, fetched once by the first <use>.
+test('assets/icones.svg (the icon sprite) stays within 4 KB gzip', () => {
+  const size = zlib.gzipSync(fs.readFileSync(path.join(__dirname, '..', 'assets', 'icones.svg'))).length;
+  expect(size).toBeLessThanOrEqual(4_000);
+});

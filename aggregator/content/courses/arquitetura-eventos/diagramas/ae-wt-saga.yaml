@@ -9,15 +9,15 @@ descricao: >
   O atendimento pergunta onde está o pagamento e recebe o estado por uma consulta. Por último, a
   notificação avisa o cliente.
 nos:
-  - { id: gw, rotulo: "pix-gateway", col: 0, row: 0, papel: externo }
-  - { id: risco, rotulo: "risco", col: 1, row: 0 }
-  - { id: psp, rotulo: "PSP", col: 2, row: 0, papel: externo }
-  - { id: atend, rotulo: "atendimento", col: 0, row: 1, papel: externo }
-  - { id: orq, rotulo: "fin-flow (orquestrador)", col: 1, row: 1, papel: destaque }
-  - { id: ledger, rotulo: "ledger-core", col: 2, row: 1 }
-  - { id: notif, rotulo: "notificação", col: 0, row: 2 }
-  - { id: sagadb, rotulo: "tabela saga", col: 1, row: 2 }
-  - { id: timer, rotulo: "temporizador (job)", col: 2, row: 2 }
+  - { id: gw, rotulo: "pix-gateway", col: 0, row: 0, papel: externo, icone: servico }
+  - { id: risco, rotulo: "risco", col: 1, row: 0, icone: servico }
+  - { id: psp, rotulo: "PSP", col: 2, row: 0, papel: externo, icone: instituicao }
+  - { id: atend, rotulo: "atendimento", col: 0, row: 1, papel: externo, icone: pessoa }
+  - { id: orq, rotulo: "fin-flow (orquestrador)", col: 1, row: 1, papel: destaque, icone: servico }
+  - { id: ledger, rotulo: "ledger-core", col: 2, row: 1, icone: servico }
+  - { id: notif, rotulo: "notificação", col: 0, row: 2, icone: servico }
+  - { id: sagadb, rotulo: "tabela saga", col: 1, row: 2, icone: banco }
+  - { id: timer, rotulo: "temporizador (job)", col: 2, row: 2, icone: job }
 arestas:
   - { de: gw, para: orq, rotulo: "liquidar" }
   - { de: orq, para: sagadb, rotulo: "grava / lê estado" }

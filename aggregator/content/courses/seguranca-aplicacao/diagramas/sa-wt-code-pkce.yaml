@@ -9,11 +9,11 @@ descricao: >
   server, recebe o access_token e valida a assinatura com as chaves públicas do JWKS do fin-idp.
   Um atacante com um refresh token roubado também fala direto com o fin-idp.
 nos:
-  - { id: titular, rotulo: "titular (navegador)", col: 1, row: 0, papel: externo }
-  - { id: atacante, rotulo: "atacante", col: 2, row: 0, papel: externo }
-  - { id: client, rotulo: "pix-gateway (client)", col: 0, row: 1, papel: destaque }
-  - { id: as, rotulo: "fin-idp", col: 2, row: 1, papel: destaque }
-  - { id: api, rotulo: "API /payments", col: 1, row: 2 }
+  - { id: titular, rotulo: "titular (navegador)", col: 1, row: 0, papel: externo, icone: cliente }
+  - { id: atacante, rotulo: "atacante", col: 2, row: 0, papel: externo, icone: pessoa }
+  - { id: client, rotulo: "pix-gateway (client)", col: 0, row: 1, papel: destaque, icone: servico }
+  - { id: as, rotulo: "fin-idp", col: 2, row: 1, papel: destaque, icone: identidade }
+  - { id: api, rotulo: "API /payments", col: 1, row: 2, icone: servico }
 arestas:
   - { de: client, para: titular, rotulo: "redireciona" }
   - { de: titular, para: client, rotulo: "callback" }

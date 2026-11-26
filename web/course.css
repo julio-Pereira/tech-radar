@@ -1527,6 +1527,10 @@
 
 .diagrama-no-caixa { fill: var(--surface2); stroke: var(--text-muted); stroke-width: 1.5; }
 .diagrama-no-final { fill: none; stroke: var(--text-muted); stroke-width: 1.5; }
+/* Fase 1.8: the inner line of "borda-dupla" (another institution) and the
+   component icon, drawn in currentColor from the sprite. */
+.diagrama-no-borda { fill: none; stroke: var(--text-muted); stroke-width: 1; }
+.diagrama-no-icone { color: var(--text-muted); }
 .diagrama-no-rotulo { fill: var(--text); font-size: 13px; font-family: inherit; text-anchor: middle; }
 .diagrama-no--destaque .diagrama-no-caixa { stroke: var(--accent-hover); stroke-width: 3; fill: color-mix(in srgb, var(--accent) 22%, var(--surface2)); }
 .diagrama-no--destaque .diagrama-no-rotulo { font-weight: 700; }

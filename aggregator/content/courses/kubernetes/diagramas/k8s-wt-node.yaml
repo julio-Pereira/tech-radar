@@ -10,11 +10,11 @@ descricao: >
 grupos:
   - { id: no, rotulo: "fin-platform-worker2", col: 0, row: 1, cols: 3, rows: 2 }
 nos:
-  - { id: api, rotulo: "kube-apiserver", col: 1, row: 0, papel: externo }
-  - { id: kubelet, rotulo: "kubelet", grupo: no, col: 1, row: 1, papel: destaque }
-  - { id: cni, rotulo: "plugin CNI", grupo: no, col: 0, row: 2 }
-  - { id: cri, rotulo: "containerd", grupo: no, col: 1, row: 2 }
-  - { id: pod, rotulo: "pix-gateway-…-x2k8p", grupo: no, col: 2, row: 2 }
+  - { id: api, rotulo: "kube-apiserver", col: 1, row: 0, papel: externo, icone: plataforma }
+  - { id: kubelet, rotulo: "kubelet", grupo: no, col: 1, row: 1, papel: destaque, icone: plataforma }
+  - { id: cni, rotulo: "plugin CNI", grupo: no, col: 0, row: 2, icone: rede }
+  - { id: cri, rotulo: "containerd", grupo: no, col: 1, row: 2, icone: plataforma }
+  - { id: pod, rotulo: "pix-gateway-…-x2k8p", grupo: no, col: 2, row: 2, icone: servico }
 arestas:
   - { de: api, para: kubelet, rotulo: "watch do nó" }
   - { de: kubelet, para: api, rotulo: "status" }

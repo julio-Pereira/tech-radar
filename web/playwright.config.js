@@ -8,6 +8,7 @@ const CROSS_ENGINE = [
   /a11y\.spec\.js$/,
   /csp\.spec\.js$/,
   /progress-bar\.spec\.js$/,
+  /icones\.spec\.js$/,
 ];
 
 module.exports = defineConfig({

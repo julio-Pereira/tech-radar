@@ -37,6 +37,40 @@ export function rect(box, cls, rx = 8) {
 }
 
 /**
+ * A node's outline in its shape (Fase 1.8), always inside the node's box, so
+ * edge anchors and layout stay the same. The compiler picks the shape from
+ * the icon; "caixa" (or none) is the plain rounded box.
+ * @param {{x: number, y: number, w: number, h: number}} p
+ * @param {string} [forma]
+ * @param {number} [rx]
+ */
+export function shape(p, forma, rx = 6) {
+  const { x, y, w, h } = p;
+  const r = x + w;
+  const b = y + h;
+  const cy = y + h / 2;
+  const cls = 'diagrama-no-caixa';
+  // A cylinder: body plus the front rim of its top (an open subpath).
+  const cyl = (t, e) => `M${x},${t + e}A${w / 2},${e} 0 0 1 ${r},${t + e}V${b - (t - y) - e}A${w / 2},${e} 0 0 1 ${x},${b - (t - y) - e}ZM${x},${t + e}A${w / 2},${e} 0 0 0 ${r},${t + e}`;
+  const d = {
+    hexagono: `M${x + 12},${y}H${r - 12}L${r},${cy}L${r - 12},${b}H${x + 12}L${x},${cy}Z`,
+    cilindro: cyl(y, 6),
+    'cilindro-baixo': cyl(y + 6, 5),
+    tubo: `M${x + 8},${y}H${r - 8}A8,${h / 2} 0 0 1 ${r - 8},${b}H${x + 8}A8,${h / 2} 0 0 1 ${x + 8},${y}ZM${r - 8},${y}A8,${h / 2} 0 0 0 ${r - 8},${b}`,
+    'canto-dobrado': `M${x},${y}H${r - 12}L${r},${y + 12}V${b}H${x}ZM${r - 12},${y}V${y + 12}H${r}`,
+  }[forma || ''];
+  if (d) return el('path', { d, class: cls });
+  const box = rect(p, cls, forma === 'arredondada' ? h / 2 : rx);
+  if (forma !== 'borda-dupla') return box;
+  const g = el('g');
+  g.append(box, rect({ x: x + 4, y: y + 4, w: w - 8, h: h - 8 }, 'diagrama-no-borda', Math.max(rx - 3, 2)));
+  return g;
+}
+
+/** The component icon (Fase 1.8): a same-origin <use> of the sprite. */
+export const icon = (name, x, y) => el('use', { href: `assets/icones.svg#i-${name}`, x, y, width: 16, height: 16, class: 'diagrama-no-icone' });
+
+/**
  * Arrowhead markers. Ids must be unique per page (several diagrams on one
  * milestone), so the caller passes a prefix.
  * @param {string} prefix

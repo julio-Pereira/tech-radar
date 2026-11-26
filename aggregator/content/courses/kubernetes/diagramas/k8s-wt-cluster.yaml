@@ -12,14 +12,14 @@ grupos:
   - { id: cp, rotulo: "control plane", col: 1, row: 0, cols: 2, rows: 2 }
   - { id: nos, rotulo: "nós de trabalho", col: 0, row: 2, cols: 3, rows: 2 }
 nos:
-  - { id: kubectl, rotulo: "kubectl", col: 0, row: 1, papel: externo }
-  - { id: etcd, rotulo: "etcd", grupo: cp, col: 1, row: 0 }
-  - { id: api, rotulo: "kube-apiserver", grupo: cp, col: 1, row: 1, papel: destaque }
-  - { id: sched, rotulo: "kube-scheduler", grupo: cp, col: 2, row: 0 }
-  - { id: kcm, rotulo: "kube-controller-manager", grupo: cp, col: 2, row: 1 }
-  - { id: proxy, rotulo: "kube-proxy (cada nó)", grupo: nos, col: 1, row: 2 }
-  - { id: worker, rotulo: "fin-platform-worker", grupo: nos, col: 0, row: 3 }
-  - { id: worker2, rotulo: "fin-platform-worker2", grupo: nos, col: 2, row: 3, papel: destaque }
+  - { id: kubectl, rotulo: "kubectl", col: 0, row: 1, papel: externo, icone: cliente }
+  - { id: etcd, rotulo: "etcd", grupo: cp, col: 1, row: 0, icone: banco }
+  - { id: api, rotulo: "kube-apiserver", grupo: cp, col: 1, row: 1, papel: destaque, icone: plataforma }
+  - { id: sched, rotulo: "kube-scheduler", grupo: cp, col: 2, row: 0, icone: plataforma }
+  - { id: kcm, rotulo: "kube-controller-manager", grupo: cp, col: 2, row: 1, icone: plataforma }
+  - { id: proxy, rotulo: "kube-proxy (cada nó)", grupo: nos, col: 1, row: 2, icone: rede }
+  - { id: worker, rotulo: "fin-platform-worker", grupo: nos, col: 0, row: 3, icone: plataforma }
+  - { id: worker2, rotulo: "fin-platform-worker2", grupo: nos, col: 2, row: 3, papel: destaque, icone: plataforma }
 arestas:
   - { de: kubectl, para: api, rotulo: "apply" }
   - { de: api, para: kubectl, rotulo: "201 Created" }

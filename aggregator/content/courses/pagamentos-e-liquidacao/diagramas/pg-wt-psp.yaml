@@ -10,11 +10,11 @@ descricao: >
 grupos:
   - { id: psp, rotulo: "PSP do pagador", col: 1, row: 0, cols: 3, rows: 2 }
 nos:
-  - { id: pagador, rotulo: "pagador (app)", col: 0, row: 0, papel: externo }
-  - { id: gateway, rotulo: "pix-gateway", grupo: psp, col: 1, row: 0 }
-  - { id: orq, rotulo: "orquestrador", grupo: psp, col: 2, row: 0, papel: destaque }
-  - { id: antifraude, rotulo: "antifraude", grupo: psp, col: 3, row: 0 }
-  - { id: razao, rotulo: "razão", grupo: psp, col: 2, row: 1 }
+  - { id: pagador, rotulo: "pagador (app)", col: 0, row: 0, papel: externo, icone: cliente }
+  - { id: gateway, rotulo: "pix-gateway", grupo: psp, col: 1, row: 0, icone: gateway }
+  - { id: orq, rotulo: "orquestrador", grupo: psp, col: 2, row: 0, papel: destaque, icone: servico }
+  - { id: antifraude, rotulo: "antifraude", grupo: psp, col: 3, row: 0, icone: servico }
+  - { id: razao, rotulo: "razão", grupo: psp, col: 2, row: 1, icone: banco }
 arestas:
   - { de: gateway, para: orq, rotulo: "pedido" }
   - { de: orq, para: gateway, rotulo: "estado" }

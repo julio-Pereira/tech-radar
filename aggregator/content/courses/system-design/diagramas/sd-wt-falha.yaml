@@ -9,13 +9,13 @@ descricao: >
   pagamentos que ficaram em verificação, e o ledger devolve o estado terminal ao pix-gateway, que
   notifica o cliente.
 nos:
-  - { id: cliente, rotulo: "cliente (app)", col: 0, row: 0, papel: externo }
-  - { id: gw, rotulo: "pix-gateway", col: 1, row: 0, papel: destaque }
-  - { id: toxi, rotulo: "Toxiproxy", col: 2, row: 0 }
-  - { id: spi, rotulo: "fake do SPI", col: 3, row: 0, papel: externo }
-  - { id: ledger, rotulo: "ledger", col: 1, row: 1 }
-  - { id: conc, rotulo: "conciliação D+1", col: 2, row: 1 }
-  - { id: arquivo, rotulo: "arquivo do SPI", col: 3, row: 1 }
+  - { id: cliente, rotulo: "cliente (app)", col: 0, row: 0, papel: externo, icone: cliente }
+  - { id: gw, rotulo: "pix-gateway", col: 1, row: 0, papel: destaque, icone: servico }
+  - { id: toxi, rotulo: "Toxiproxy", col: 2, row: 0, icone: rede }
+  - { id: spi, rotulo: "fake do SPI", col: 3, row: 0, papel: externo, icone: instituicao }
+  - { id: ledger, rotulo: "ledger", col: 1, row: 1, icone: banco }
+  - { id: conc, rotulo: "conciliação D+1", col: 2, row: 1, icone: job }
+  - { id: arquivo, rotulo: "arquivo do SPI", col: 3, row: 1, icone: arquivo }
 arestas:
   - { de: cliente, para: gw, rotulo: "pede" }
   - { de: gw, para: cliente, rotulo: "estado" }
