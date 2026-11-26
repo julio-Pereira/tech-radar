@@ -88,7 +88,23 @@ for (const slug of slugs) {
         const area = /** @type {HTMLElement} */ (figure.querySelector('.diagrama-area'));
         if (area.scrollWidth > area.clientWidth + 1) problems.push(`${id}: rola na horizontal (${area.scrollWidth} > ${area.clientWidth})`);
         const box = svg.getBoundingClientRect();
-        const texts = [...svg.querySelectorAll('text')].map((t) => ({ t: t.textContent, r: t.getBoundingClientRect() }));
+        // Engines differ on a <text>'s box: Firefox gives the whole line box
+        // (about 1.9em tall, against 1.2em in Chromium) and its ink overflow
+        // (about 4px wider on each side), on the same centre. Every engine is
+        // measured on the same band: the advance width by 1.2em, centred.
+        const band = (/** @type {SVGTextElement} */ t) => {
+          const b = t.getBoundingClientRect();
+          const m = t.getScreenCTM();
+          const k = m ? Math.hypot(m.a, m.b) : 1;
+          const em = parseFloat(getComputedStyle(t).fontSize) * k;
+          const w = t.getComputedTextLength() * k;
+          const cx = (b.left + b.right) / 2; const cy = (b.top + b.bottom) / 2;
+          // A chart's vertical axis title is turned 90°: swap the band.
+          return m && Math.abs(m.b) > Math.abs(m.a)
+            ? new DOMRect(cx - 0.6 * em, cy - w / 2, 1.2 * em, w)
+            : new DOMRect(cx - w / 2, cy - 0.6 * em, w, 1.2 * em);
+        };
+        const texts = [...svg.querySelectorAll('text')].map((t) => ({ t: t.textContent, r: band(t) }));
         for (const { t, r } of texts) {
           if (r.left < box.left - 1 || r.right > box.right + 1 || r.top < box.top - 1 || r.bottom > box.bottom + 1) {
             problems.push(`${id}: rótulo "${t}" sai do viewBox`);
@@ -154,9 +170,25 @@ for (const slug of slugs) {
           const id = /** @type {HTMLElement} */ (fig).dataset.diagrama;
           const svg = /** @type {SVGSVGElement} */ (fig.querySelector('svg'));
           const box = svg.getBoundingClientRect();
+          // Engines differ on a <text>'s box: Firefox gives the whole line box
+          // (about 1.9em tall, against 1.2em in Chromium) and its ink overflow
+          // (about 4px wider on each side), on the same centre. Every engine is
+          // measured on the same band: the advance width by 1.2em, centred.
+          const band = (/** @type {SVGTextElement} */ t) => {
+            const b = t.getBoundingClientRect();
+            const m = t.getScreenCTM();
+            const k = m ? Math.hypot(m.a, m.b) : 1;
+            const em = parseFloat(getComputedStyle(t).fontSize) * k;
+            const w = t.getComputedTextLength() * k;
+            const cx = (b.left + b.right) / 2; const cy = (b.top + b.bottom) / 2;
+            // A chart's vertical axis title is turned 90°: swap the band.
+            return m && Math.abs(m.b) > Math.abs(m.a)
+              ? new DOMRect(cx - 0.6 * em, cy - w / 2, 1.2 * em, w)
+              : new DOMRect(cx - w / 2, cy - 0.6 * em, w, 1.2 * em);
+          };
           const texts = [...svg.querySelectorAll('text')]
             .filter((t) => !t.closest('.diagrama-oculto'))
-            .map((t) => ({ t: t.textContent, r: t.getBoundingClientRect() }));
+            .map((t) => ({ t: t.textContent, r: band(t) }));
           for (const { t, r } of texts) {
             if (r.left < box.left - 1 || r.right > box.right + 1 || r.top < box.top - 1 || r.bottom > box.bottom + 1) out.push(`${id} passo ${n}: "${t}" sai do viewBox`);
           }

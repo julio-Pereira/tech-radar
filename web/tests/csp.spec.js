@@ -62,5 +62,7 @@ test('Trusted Types está em vigor: HTML de string fora da política é recusado
       return String(e);
     }
   });
-  expect(resultado).toMatch(/TrustedHTML|Trusted Type/i);
+  // Each engine words the refusal its own way: Chromium and WebKit name
+  // TrustedHTML, Firefox says "Sink type mismatch violation blocked by CSP".
+  expect(resultado).toMatch(/TrustedHTML|Trusted Type|Sink type mismatch/i);
 });
