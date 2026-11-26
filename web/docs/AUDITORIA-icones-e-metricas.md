@@ -132,3 +132,18 @@ A regra do §6 do plano aparece na tabela:
 - **Atores em duas camadas:** `api` (kubernetes), `itp` (open finance) e `pagador` (pagamentos) aparecem em duas camadas com o mesmo ícone, como o compilador exige.
 
 Cobertura depois deste PR: as 7 trilhas com walkthrough têm entre 16% e 48% dos nós com ícone (`go run ./cmd/cobertura`).
+
+## 5. PR 4 — Spike "2.5D leve" (§3.4): **aguarda decisão do Julio**
+
+Tudo do spike está em `spikes/icones-25d/`, fora do build e do CI: o README com as medidas, as capturas lado a lado em desktop e 360 px, `resultados.json` e o código que mede. O resumo:
+
+| Medida | A (plano) | B (2.5D leve) |
+| --- | --- | --- |
+| Bytes gzip a mais | 0 | +162 B |
+| Contraste (axe) | 0 violação | 0 violação |
+| Rótulos e faces no `viewBox` | ok | ok |
+| Pontas de seta que chegam pela direita ou por baixo | visíveis | cobertas pela face (5 dos cerca de 9 px) |
+
+**Recomendação: A.** A B esconde a direção de setas, que é informação. Consertar exigiria mexer nas âncoras das arestas, o que a §3.3 do plano proíbe, e a profundidade quase não aparece no tema escuro. Sem decisão, fica a A, já em produção.
+
+Decisão do Julio: _pendente_.
