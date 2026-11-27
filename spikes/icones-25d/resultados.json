@@ -1,0 +1,89 @@
+{
+  "bytesGzipB": 162,
+  "resultados": [
+    {
+      "diagrama": "k8s-wt-cluster",
+      "largura": 1280,
+      "variante": "A",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "k8s-wt-cluster",
+      "largura": 1280,
+      "variante": "B",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "k8s-wt-cluster",
+      "largura": 360,
+      "variante": "A",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "k8s-wt-cluster",
+      "largura": 360,
+      "variante": "B",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "sd-wt-falha",
+      "largura": 1280,
+      "variante": "A",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "sd-wt-falha",
+      "largura": 1280,
+      "variante": "B",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "sd-wt-falha",
+      "largura": 360,
+      "variante": "A",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "sd-wt-falha",
+      "largura": 360,
+      "variante": "B",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "ae-wt-saga",
+      "largura": 1280,
+      "variante": "A",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "ae-wt-saga",
+      "largura": 1280,
+      "variante": "B",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "ae-wt-saga",
+      "largura": 360,
+      "variante": "A",
+      "fora": [],
+      "contraste": []
+    },
+    {
+      "diagrama": "ae-wt-saga",
+      "largura": 360,
+      "variante": "B",
+      "fora": [],
+      "contraste": []
+    }
+  ]
+}
