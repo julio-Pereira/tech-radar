@@ -10,9 +10,9 @@ descricao: >
   code_verifier: um code interceptado não vale nada sem ele. Na resposta, o nonce dentro do
   id_token protege contra replay.
 participantes:
-  - { id: titular, rotulo: "titular (navegador)", papel: externo }
-  - { id: client, rotulo: "client pix-gateway", papel: destaque }
-  - { id: as, rotulo: "fin-idp" }
+  - { id: titular, rotulo: "titular (navegador)", papel: externo, icone: cliente }
+  - { id: client, rotulo: "client pix-gateway", papel: destaque, icone: servico }
+  - { id: as, rotulo: "fin-idp", icone: identidade }
 mensagens:
   - { de: client, para: client, rotulo: "gera verifier e state" }
   - { de: client, para: as, rotulo: "PAR: parâmetros", nota: "back-channel, com code_challenge" }

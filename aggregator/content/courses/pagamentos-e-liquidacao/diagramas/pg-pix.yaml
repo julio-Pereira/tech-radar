@@ -9,10 +9,10 @@ descricao: >
   contas de liquidação e confirma aos dois lados. O valor viaja como texto decimal com duas
   casas.
 participantes:
-  - { id: pa, rotulo: "PSP do pagador" }
-  - { id: dict, rotulo: "DICT", papel: externo }
-  - { id: spi, rotulo: "SPI", papel: destaque }
-  - { id: pb, rotulo: "PSP do recebedor" }
+  - { id: pa, rotulo: "PSP do pagador", icone: instituicao }
+  - { id: dict, rotulo: "DICT", papel: externo, icone: instituicao }
+  - { id: spi, rotulo: "SPI", papel: destaque, icone: instituicao }
+  - { id: pb, rotulo: "PSP do recebedor", icone: instituicao }
 mensagens:
   - { de: pa, para: pb, rotulo: "busca payload do QR", tipo: sync }
   - { de: pb, para: pa, rotulo: "valor e chave", tipo: reply }

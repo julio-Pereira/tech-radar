@@ -12,13 +12,13 @@ grupos:
   - { id: cp, rotulo: "control plane", col: 1, row: 0, cols: 2, rows: 2 }
   - { id: no, rotulo: "nó de trabalho", col: 1, row: 3, cols: 2, rows: 1 }
 nos:
-  - { id: kubectl, rotulo: "kubectl apply", col: 0, row: 1, papel: externo }
-  - { id: etcd, rotulo: "etcd", grupo: cp, col: 1, row: 0 }
-  - { id: api, rotulo: "API server", grupo: cp, col: 1, row: 1, papel: destaque }
-  - { id: scheduler, rotulo: "scheduler", grupo: cp, col: 2, row: 0 }
-  - { id: controllers, rotulo: "controller-manager", grupo: cp, col: 2, row: 1 }
-  - { id: kubelet, rotulo: "kubelet", grupo: no, col: 1, row: 3 }
-  - { id: pod, rotulo: "containers do pod", grupo: no, col: 2, row: 3 }
+  - { id: kubectl, rotulo: "kubectl apply", col: 0, row: 1, papel: externo, icone: cliente }
+  - { id: etcd, rotulo: "etcd", grupo: cp, col: 1, row: 0, icone: banco }
+  - { id: api, rotulo: "API server", grupo: cp, col: 1, row: 1, papel: destaque, icone: plataforma }
+  - { id: scheduler, rotulo: "scheduler", grupo: cp, col: 2, row: 0, icone: plataforma }
+  - { id: controllers, rotulo: "controller-manager", grupo: cp, col: 2, row: 1, icone: plataforma }
+  - { id: kubelet, rotulo: "kubelet", grupo: no, col: 1, row: 3, icone: plataforma }
+  - { id: pod, rotulo: "containers do pod", grupo: no, col: 2, row: 3, icone: servico }
 arestas:
   - { de: kubectl, para: api, rotulo: "declara" }
   - { de: api, para: etcd, rotulo: "persiste" }

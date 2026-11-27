@@ -7,7 +7,7 @@ atores:
   - { id: psp-pa, rotulo: "PSP do pagador" }
   - { id: dict, rotulo: "DICT" }
   - { id: spi, rotulo: "SPI" }
-  - { id: liq, rotulo: "contas de liquidação" }
+  - { id: liq, rotulo: "liquidação no BACEN" }
   - { id: psp-pb, rotulo: "PSP do recebedor" }
   - { id: recebedor, rotulo: "recebedor (loja)" }
   - { id: gateway, rotulo: "pix-gateway" }

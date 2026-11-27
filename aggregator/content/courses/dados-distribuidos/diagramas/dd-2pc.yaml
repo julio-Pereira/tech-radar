@@ -9,10 +9,10 @@ descricao: >
   até alguém decidir à mão se commita ou aborta, sem informação suficiente para ter
   certeza.
 participantes:
-  - { id: coord, rotulo: "coordenador", papel: destaque }
-  - { id: banco, rotulo: "banco" }
-  - { id: fila, rotulo: "fila" }
-  - { id: humano, rotulo: "operador", papel: externo }
+  - { id: coord, rotulo: "coordenador", papel: destaque, icone: servico }
+  - { id: banco, rotulo: "banco", icone: banco }
+  - { id: fila, rotulo: "fila", icone: fila }
+  - { id: humano, rotulo: "operador", papel: externo, icone: pessoa }
 mensagens:
   - { de: coord, para: banco, rotulo: "prepare" }
   - { de: coord, para: fila, rotulo: "prepare" }
