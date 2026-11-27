@@ -1968,6 +1968,19 @@ a.diagrama-conceito.conceito-retorno .diagrama-no-caixa { stroke: var(--accent-h
 .wt-rota { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 0.85rem; overflow-wrap: anywhere; }
 .wt-msg { font-size: 0.95rem; }
 .wt-anot { font-size: 0.85rem; color: var(--text-muted); font-style: italic; }
+/* Fase 1.8: the next step, named at the end of each step. */
+.wt-cartao .wt-seguir { margin-top: 0.3rem; font-size: 0.85rem; color: var(--text-muted); }
+/* The legend of packet types: a drawn sample (line, packet, head) and its
+   name; the line style says the type, never color alone. */
+.wt-legenda { flex-basis: 100%; list-style: none; margin: 0.4rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-size: 0.8rem; color: var(--text-muted); }
+.wt-leg { display: inline-flex; align-items: center; gap: 0.35rem; }
+.wt-leg-amostra { display: inline-flex; align-items: center; color: var(--accent-hover); font-size: 0.7rem; }
+.wt-leg-amostra::before { content: ''; width: 1.4rem; margin-right: 0.15rem; border-top: 2px solid var(--text-muted); }
+.wt-leg-amostra::after { content: '▸'; margin-left: 0.15rem; color: var(--text-muted); font-size: 0.9rem; }
+.wt-leg--async .wt-leg-amostra::after, .wt-leg--reply .wt-leg-amostra::after { content: '▹'; }
+.wt-leg--reply .wt-leg-amostra::before { border-top-style: dashed; }
+.wt-leg--timeout .wt-leg-amostra::before { border-top-style: dotted; }
+.wt-leg--timeout .wt-leg-amostra::after { content: none; }
 .wt-controles { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .wt-etapa-pos { margin: 0; font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 0.6rem; flex-wrap: wrap; }
 .wt-etapa-titulo { margin: 0.3rem 0 0; font-weight: 600; }

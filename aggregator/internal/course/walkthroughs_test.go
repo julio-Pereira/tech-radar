@@ -513,3 +513,21 @@ func TestWalkthroughPainelSQL(t *testing.T) {
 	}
 	wtFail(t, wtReplace(t, "    linguagem: yaml\n", "    linguagem: plsql\n"), `linguagem "plsql" inválida (yaml, bash, texto, json, go, java, log ou sql)`)
 }
+
+// Fase 1.8, §4.1: the legend lists only the types used, in a fixed order,
+// with an untyped event counted as a sync request.
+func TestWalkthroughLegenda(t *testing.T) {
+	w := wtParse(t, wtValido)
+	if got := strings.Join(w.Legenda, ","); got != "sync,async,reply" {
+		t.Fatalf("legenda %q, want sync,async,reply", got)
+	}
+	timeout := wtReplace(t, `{ de: agente, para: api, msg: "O agente reporta o status", painel: { id: pedido, linhas: "3" } }`,
+		`{ de: api, para: agente, msg: "O agente não responde", tipo: timeout }`)
+	if got := strings.Join(wtParse(t, timeout).Legenda, ","); got != "sync,async,reply,timeout" {
+		t.Fatalf("legenda with a timeout %q", got)
+	}
+	soSync := wtComEtapas(wtEtapas(1, 2))
+	if got := strings.Join(wtParse(t, soSync).Legenda, ","); got != "sync" {
+		t.Fatalf("legenda of a sync-only walkthrough %q", got)
+	}
+}

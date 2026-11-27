@@ -179,6 +179,10 @@ type Walkthrough struct {
 	Paineis []WalkthroughPainel `json:"paineis,omitempty"`
 	Etapas  []WalkthroughEtapa  `json:"etapas"`
 	Total   int                 `json:"total"`
+	// Legenda lists the packet types this walkthrough uses, in a fixed
+	// order (Fase 1.8, §4.1): the player shows only these, without scanning
+	// the events.
+	Legenda []string `json:"legenda"`
 }
 
 // WalkthroughsFile is data/walkthroughs/<slug>.json.
@@ -431,6 +435,7 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 		w.Etapas = append(w.Etapas, et)
 	}
 	w.Total = n
+	w.Legenda = wtLegenda(w.Etapas)
 
 	if err := v.err(); err != nil {
 		return Walkthrough{}, err
@@ -439,6 +444,24 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 }
 
 // wtTipoPublico keeps in the compiled event only the type the player needs.
+// wtLegenda returns the event types used, in the order sync, async, reply,
+// timeout. An event with no type is a sync request, as in the sequence.
+func wtLegenda(etapas []WalkthroughEtapa) []string {
+	usados := map[string]bool{}
+	for _, et := range etapas {
+		for _, m := range et.Sequencia.Mensagens {
+			usados[m.Tipo] = true
+		}
+	}
+	out := []string{}
+	for _, t := range []string{"sync", "async", "reply", "timeout"} {
+		if usados[t] {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
 func wtTipoPublico(tipo string) string {
 	if tipo == "timeout" {
 		return tipo
