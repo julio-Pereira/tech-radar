@@ -1981,6 +1981,17 @@ a.diagrama-conceito.conceito-retorno .diagrama-no-caixa { stroke: var(--accent-h
 .wt-leg--reply .wt-leg-amostra::before { border-top-style: dashed; }
 .wt-leg--timeout .wt-leg-amostra::before { border-top-style: dotted; }
 .wt-leg--timeout .wt-leg-amostra::after { content: none; }
+/* Fase 1.8: metric cards above the view. The card an event changed gets a
+   border and a visible ▲, never color alone; nothing animates. */
+.wt-metricas { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.4rem; }
+.wt-metrica { flex: 1 1 0; min-width: 0; display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 0.35rem; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); }
+.wt-metrica-icone { grid-row: span 2; width: 16px; height: 16px; color: var(--text-muted); }
+.wt-metrica-rotulo { grid-column: 1 / -1; font-size: 0.72rem; line-height: 1.25; color: var(--text-muted); overflow-wrap: anywhere; }
+.wt-metrica-icone + .wt-metrica-rotulo { grid-column: 2 / -1; }
+.wt-metrica-valor { font-weight: 700; font-variant-numeric: tabular-nums; }
+.wt-metrica-marca { visibility: hidden; font-size: 0.7rem; color: var(--accent-hover); }
+.wt-metrica-mudou { border-color: var(--accent-hover); }
+.wt-metrica-mudou .wt-metrica-marca { visibility: visible; }
 .wt-controles { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .wt-etapa-pos { margin: 0; font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 0.6rem; flex-wrap: wrap; }
 .wt-etapa-titulo { margin: 0.3rem 0 0; font-weight: 600; }

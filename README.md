@@ -456,6 +456,26 @@ A deep link lands paused on one event: `#/learn/<slug>/<marco>/wt/<id>/<evento>`
 4th segment is `wt`, which is why no concept may have that id); moving inside the player
 replaces the entry instead of adding history.
 
+**Accumulated metrics** (Fase 1.8). A walkthrough can declare up to 3 `metricas`. Each has:
+- `id`;
+- `rotulo`, at most 18 characters;
+- optional `unidade`, up to 4 characters: `s`, `min`, `h`, `R$`, `%`…;
+- `casas` (0–4);
+- optional `max`, shown as "N de M";
+- optional `icone`, from the catalog.
+
+An event changes them with `metricas: { transito: "=120.00", envios: "+1" }`: `=N` sets, `+N` adds, and the value is cumulative, like the states. A metric shows "—" until the first event that sets it. The compiler computes every value after every event and writes it as text (decimal comma; `R$` before the number, the other units after it). The player only shows it, with no arithmetic and no animation.
+
+The build fails on:
+- an unknown metric;
+- an operation that is neither `+N` nor `=N`;
+- more decimal places than `casas`;
+- a negative time or money value;
+- a value past `max`;
+- a declared metric no event sets.
+
+The cards live in `walkthrough-metricas.js` (≤ 1 KB gzip), downloaded only for a walkthrough with metrics. The card an event changed is marked with ▲, never by color alone. `aria-live` adds only the metrics that changed, and the textual description lists the values after each event. **Every number needs a source** in the milestone, a panel or the hands-on. If there is none (a timeout the content never quantifies, say), that metric does not exist.
+
 **Walkthrough or animated diagram.** Use a walkthrough when the process has **more than
 12 steps, or changes scale** (cluster → node), **or needs a panel** that ties an event to
 the YAML, the command or the log the reader sees; anything shorter stays an animated

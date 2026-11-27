@@ -34,6 +34,11 @@ paineis:
       p-0042  idem k-9b1e  ESTADO            EM_VERIFICACAO  prazo: conciliação D+1
       p-0042  idem k-9b1e  EFETIVA  -120.00  LIQUIDADO       origem: conciliação D+1
 
+metricas:
+  - { id: transito, rotulo: "Em trânsito", unidade: "R$", casas: 2 }
+  - { id: envios, rotulo: "Envios ao SPI" }
+  - { id: dias, rotulo: "Dias desde o envio" }
+
 etapas:
   - id: pedido
     titulo: "O pedido e a reserva"
@@ -50,6 +55,7 @@ etapas:
       - de: gw
         para: ledger
         msg: "O pix-gateway valida limite e antifraude e reserva: débito de 120.00 em trânsito"
+        metricas: { transito: "=120.00" }
         painel: { id: ledger, linhas: "1" }
         estados: { ledger: novo }
 
@@ -66,6 +72,7 @@ etapas:
       - de: gw
         para: toxi
         msg: "O pix-gateway envia a ordem ao SPI, que no teste passa pelo Toxiproxy"
+        metricas: { envios: "=1", dias: "=0" }
         painel: { id: toxi, linhas: "1-2" }
       - de: toxi
         para: spi
@@ -131,6 +138,7 @@ etapas:
       - de: conc
         para: arquivo
         msg: "A conciliação D+1 lê o arquivo de liquidação publicado pelo SPI"
+        metricas: { dias: "+1" }
       - de: arquivo
         para: conc
         tipo: reply
@@ -138,6 +146,7 @@ etapas:
       - de: conc
         para: ledger
         msg: "A conciliação resolve no ledger: o débito em trânsito vira definitivo, LIQUIDADO"
+        metricas: { transito: "=0" }
         painel: { id: ledger, linhas: "4" }
         anotacao: "se não estivesse no arquivo, REVERTIDO"
         estados: { ledger: ativo }

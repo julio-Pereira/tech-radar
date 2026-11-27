@@ -145,6 +145,16 @@ function attach(figure, slug, w, diagramas) {
   lado.append(main.cartao, main.ctl, etapaPos, titulo, sub, prosa, painel, main.vivo);
   root.append(visao, lado);
   figure.querySelector('.walkthrough-resumo').after(root);
+  // Fase 1.8: the metric cards, in a module of their own (lazy).
+  let M = null;
+  if (w.metricas) {
+    import('./walkthrough-metricas.js').then((m) => {
+      M = m;
+      main.met = m.cartoes(w);
+      visao.prepend(main.met.el);
+      main.met.set(events[i]);
+    });
+  }
 
   let i = 0;
   let k = -1;
@@ -268,7 +278,8 @@ function attach(figure, slug, w, diagramas) {
       for (const [b, off] of [[f.first, i === 0], [f.prev, i === 0], [f.prevE, i === 0], [f.next, i === last], [f.nextE, k === w.etapas.length - 1]]) {
         b.setAttribute('aria-disabled', String(off));
       }
-      f.vivo.textContent = `${novaEtapa ? `Etapa ${k + 1} de ${w.etapas.length}: ${etapa.titulo}. ` : ''}Evento ${e.n} de ${events.length}. ${e.tipo === 'timeout' ? `Sem resposta de ${rotulo[e.para]} para ${rotulo[e.de]}` : `${rotulo[e.de]} para ${rotulo[e.para]}`}. ${e.msg}`;
+      const mt = f.met ? f.met.set(e) : '';
+      f.vivo.textContent = `${novaEtapa ? `Etapa ${k + 1} de ${w.etapas.length}: ${etapa.titulo}. ` : ''}Evento ${e.n} de ${events.length}. ${e.tipo === 'timeout' ? `Sem resposta de ${rotulo[e.para]} para ${rotulo[e.de]}` : `${rotulo[e.de]} para ${rotulo[e.para]}`}. ${e.msg}${mt}`;
     }
     if (user) link();
   }
@@ -339,6 +350,10 @@ function attach(figure, slug, w, diagramas) {
     const f = face();
     const bar = make('div', 'diagrama-player wt-zoom');
     bar.append(f.cartao, f.ctl, f.vivo);
+    if (M) {
+      f.met = M.cartoes(w);
+      bar.prepend(f.met.el);
+    }
     bar.addEventListener('keydown', onKey);
     dlg.append(bar);
     zoomed = { svg, spec: v.spec };

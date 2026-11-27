@@ -438,3 +438,65 @@ for (const { slug, w, marco } of all) {
     }
   });
 }
+
+// Fase 1.8, §4.3: metric cards on the sd pilot. Values come compiled, as
+// text; the card an event changed carries a class and a text mark; aria-live
+// says only what changed; nothing animates.
+test.describe('Métricas acumuladas (piloto sd-pix-resultado-desconhecido)', () => {
+  const MSLUG = 'system-design';
+  const MMARCO = 'caso-pix-ponta-a-ponta';
+  const MWT = 'sd-pix-resultado-desconhecido';
+  const fig = (page) => page.locator(`figure.walkthrough[data-walkthrough="${MSLUG}/${MWT}"]`);
+  const card = (page, rotulo) => fig(page).locator('.wt-visao .wt-metrica', { hasText: rotulo });
+
+  test('cards start without value, follow the compiled values and mark the change', async ({ page }) => {
+    await page.goto(`/#/learn/${MSLUG}/${MMARCO}/wt/${MWT}/1`);
+    const transito = card(page, 'Em trânsito');
+    await expect(transito.locator('.wt-metrica-valor')).toHaveText('—');
+    await expect(fig(page).locator('.wt-metrica')).toHaveCount(3);
+    await fig(page).locator('.wt-lado .wt-prox').click();
+    await expect(transito.locator('.wt-metrica-valor')).toHaveText('R$ 120,00');
+    await expect(transito).toHaveClass(/wt-metrica-mudou/);
+    await expect(transito.locator('.wt-metrica-marca')).toBeVisible();
+    await expect(fig(page).locator('.wt-lado .sr-only')).toContainText('Em trânsito: R$ 120,00.');
+    // The next event changes another card: this one keeps its value, unmarked.
+    await fig(page).locator('.wt-lado .wt-prox').click();
+    await expect(transito).not.toHaveClass(/wt-metrica-mudou/);
+    await expect(transito.locator('.wt-metrica-valor')).toHaveText('R$ 120,00');
+    await expect(card(page, 'Envios ao SPI').locator('.wt-metrica-valor')).toHaveText('1');
+    expect(await fig(page).locator('.wt-metricas').evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+    // The consultation never resends, and the conciliation, a day later, settles.
+    await page.goto(`/#/learn/${MSLUG}/${MMARCO}/wt/${MWT}/12`);
+    await expect(card(page, 'Envios ao SPI').locator('.wt-metrica-valor')).toHaveText('1');
+    await expect(card(page, 'Dias desde o envio').locator('.wt-metrica-valor')).toHaveText('1');
+    await expect(transito.locator('.wt-metrica-valor')).toHaveText('R$ 0,00');
+  });
+
+  test('at 360px the cards fit without sideways scroll and the view stays within 45vh', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 760 });
+    await page.goto(`/#/learn/${MSLUG}/${MMARCO}/wt/${MWT}/2`);
+    await expect(fig(page).locator('.wt-metrica')).toHaveCount(3);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+    const h = await fig(page).locator('.wt-area').evaluate((el) => el.getBoundingClientRect().height);
+    expect(h).toBeLessThanOrEqual(760 * 0.45 + 1);
+  });
+
+  test('Ampliar shows the cards too', async ({ page }) => {
+    await page.goto(`/#/learn/${MSLUG}/${MMARCO}/wt/${MWT}/2`);
+    await expect(fig(page).locator('.wt-metrica')).toHaveCount(3);
+    await fig(page).locator('.diagrama-ampliar').click();
+    const dialog = page.locator('dialog.diagrama-dialogo');
+    await expect(dialog.locator('.wt-metrica', { hasText: 'Em trânsito' }).locator('.wt-metrica-valor')).toHaveText('R$ 120,00');
+  });
+
+  test('the metrics module is downloaded only for a walkthrough with metricas', async ({ page }) => {
+    const loaded = [];
+    page.on('request', (r) => { if (r.url().includes('walkthrough-metricas')) loaded.push(r.url()); });
+    await page.goto(`/#/learn/${SLUG}/${MARCO}/wt/${WT}/1`);
+    await expect(page.locator(`figure.walkthrough[data-walkthrough="${SLUG}/${WT}"] .wt-area svg`)).toBeVisible();
+    expect(loaded).toEqual([]);
+    await page.goto(`/#/learn/${MSLUG}/${MMARCO}/wt/${MWT}/1`);
+    await expect(fig(page).locator('.wt-metrica')).toHaveCount(3);
+    expect(loaded.length).toBe(1);
+  });
+});
