@@ -466,6 +466,36 @@ prose — replicas, node names, the one Pod followed — and with the rest of th
 not new ones). A panel that shows tool output that was not captured from a real run says
 so in its `nota` ("Saída ilustrativa").
 
+**Icons by component type** (Fase 1.8). A node of a `topologia` or a participant of a
+`sequencia` can carry `icone:` from a closed catalog of 13. Each icon fixes the node's shape,
+so the author picks only the icon:
+
+| `icone` | For | Shape |
+|---|---|---|
+| `cliente` | app, browser, device, `kubectl` | pill |
+| `pessoa` | end customer, support, on-call, operator | pill |
+| `servico` | application service (`pix-gateway`, `fin-flow`, an API) | box |
+| `gateway` | API gateway, ingress, edge | box |
+| `rede` | DNS, load balancer, proxy, `kube-proxy`, CNI, Toxiproxy | hexagon |
+| `banco` | relational or document database, `etcd`, a ledger as storage | cylinder |
+| `cache` | Redis, local cache | short cylinder |
+| `fila` | Kafka, queue, topic, event bus | horizontal tube |
+| `job` | timer, cron, reconciliation, batch | box |
+| `arquivo` | object, settlement file, backup | folded corner |
+| `identidade` | IdP, authorization server, HSM, KMS | box |
+| `plataforma` | control-plane components, scheduler, kubelet, runtime | box |
+| `instituicao` | SPI/BACEN, a third-party PSP, DICT, a data holder seen from outside | double border |
+
+The catalog lives in `aggregator/internal/course/diagrams_icones.go`; the icons are authored
+symbols in `web/assets/icones.svg`, drawn in `currentColor` and decorative (the label stays
+the accessible name).
+
+- **What an icon is not:** an icon says **what** the component is; `papel` says **how** it takes part in that figure. The two coexist.
+- **Where icons are refused:** in a `fluxo` (nodes are activities) or in `estados` (nodes are states), `icone` is a build error. So is an icon outside the catalog, and a walkthrough actor drawn with different icons in two layers. A walkthrough has no icon field of its own: actors inherit it from their layer node.
+- **Choosing between two icons:** the icon describes the component's role **in that figure**. In a diagram about storage the ledger is `banco`; in a diagram of services it is `servico`.
+- **Width:** a diagram with icons is 20 px wider per cell. If that crosses the 1,100 px warning, shorten a label; never raise the ceiling.
+- **Convention:** every **new** `topologia` and `sequencia` has an icon on every node. The older diagrams get them track by track, when the track is revisited; the "Ícones" column of `go run ./cmd/cobertura` shows how far each track is.
+
 **Illustrations** (what isn't a graph — the anatomy of a log record, say) are authored
 images in `content/courses/<trilha>/assets/` (`svg`, `png` or `webp`, at most 200 KB),
 referenced as `![alt text](assets/file.svg)` with a non-empty alt. Remote images and

@@ -9,10 +9,10 @@ descricao: >
   SPI não responde no prazo, o resultado é desconhecido: a detentora consulta, nunca reenvia.
   Ao liquidar, notifica a ITP; notificação duplicada ou fora de ordem não muda o estado terminal.
 participantes:
-  - { id: itp, rotulo: "ITP" }
-  - { id: cliente, rotulo: "cliente" }
-  - { id: det, rotulo: "detentora", papel: destaque }
-  - { id: spi, rotulo: "SPI", papel: externo }
+  - { id: itp, rotulo: "ITP", icone: instituicao }
+  - { id: cliente, rotulo: "cliente", icone: cliente }
+  - { id: det, rotulo: "detentora", papel: destaque, icone: instituicao }
+  - { id: spi, rotulo: "SPI", papel: externo, icone: instituicao }
 mensagens:
   - { de: itp, para: det, rotulo: "consentimento", tipo: sync, nota: "valor, recebedor, conta exatos" }
   - { de: cliente, para: det, rotulo: "autenticação forte", tipo: sync }

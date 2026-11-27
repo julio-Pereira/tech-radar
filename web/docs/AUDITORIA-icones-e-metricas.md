@@ -147,3 +147,37 @@ Tudo do spike está em `spikes/icones-25d/`, fora do build e do CI: o README com
 **Recomendação: A.** A B esconde a direção de setas, que é informação. Consertar exigiria mexer nas âncoras das arestas, o que a §3.3 do plano proíbe, e a profundidade quase não aparece no tema escuro. Sem decisão, fica a A, já em produção.
 
 Decisão do Julio: _pendente_.
+
+Merge do #197 em 27 nov 2026, sem uma escolha registrada entre A e B. Pelo plano, vale a **A**; a decisão continua aberta para o Julio.
+
+## 6. PR 5 — Ícones nos diagramas dos marcos com walkthrough e convenção no README (§3.5, itens 2 e 3)
+
+### Retrofit
+
+São 7 marcos com walkthrough, um diagrama em cada. **Cinco** recebem ícones; dois são `estados`, que o compilador recusa (§3.2). Os ícones seguem os das camadas dos walkthroughs, para o mesmo componente não mudar de tipo entre a figura do marco e o roteiro.
+
+| Marco | Diagrama | Ícones |
+| --- | --- | --- |
+| `kubernetes/01` | `k8s-control-plane` (topologia) | `kubectl` cliente · `etcd` banco · `api`, `scheduler`, `controllers`, `kubelet` plataforma · `pod` servico |
+| `pagamentos-e-liquidacao/02` | `pg-pix` (sequencia) | `pa`, `dict`, `spi`, `pb` instituicao |
+| `seguranca-aplicacao/05` | `sa-code-pkce-par` (sequencia) | `titular` cliente · `client` servico · `as` identidade |
+| `open-finance-brasil/07` | `of-iniciacao` (sequencia) | `itp`, `det`, `spi` instituicao · `cliente` cliente |
+| `dados-distribuidos/08` | `dd-2pc` (sequencia) | `coord` servico · `banco` banco · `fila` fila · `humano` pessoa |
+| `system-design/09` | `sd-pix-estados` (estados) | — (estados não leva ícone) |
+| `arquitetura-eventos/09` | `ae-saga-orquestrada` (estados) | — (idem) |
+
+### Defeito do PR #196, corrigido aqui
+
+`pg-wt-ecossistema` passou a 1.113 px de largura natural com os 20 px do ícone, acima do aviso de 1.100. O aviso saiu no build do #196, mas ficou escondido entre os avisos das fontes de feed (que o proxy bloqueia aqui), e eu não o vi.
+
+Como o plano manda, encurtei o rótulo e não subi o teto: "contas de liquidação" (20 caracteres) virou "liquidação no BACEN" (19). O novo nome mantém o conceito do marco 02, que se liquida no BACEN, e não introduz o termo "conta PI", que a trilha não usa. O ator do walkthrough `pg-um-pix-por-dentro` mudou junto, para os dois nomes baterem. O build agora não emite nenhum aviso de largura.
+
+### Convenção
+
+O README ganhou a seção "Icons by component type", com:
+- o catálogo e as formas;
+- a diferença entre `icone` e `papel`;
+- os erros de build;
+- a regra do papel na figura (o ledger como `banco` ou `servico`);
+- a regra da largura (encurtar o rótulo, nunca o teto);
+- a convenção: todo `topologia` e `sequencia` **novo** tem ícone em todos os nós, e os antigos migram trilha a trilha, guiados pela coluna "Ícones" da cobertura.

@@ -14,7 +14,7 @@ nos:
   - { id: recebedor, rotulo: "recebedor (loja)", col: 3, row: 0, papel: externo, icone: pessoa }
   - { id: dict, rotulo: "DICT", col: 0, row: 1, icone: instituicao }
   - { id: spi, rotulo: "SPI", col: 2, row: 1, papel: destaque, icone: instituicao }
-  - { id: liq, rotulo: "contas de liquidação", col: 2, row: 2, icone: banco }
+  - { id: liq, rotulo: "liquidação no BACEN", col: 2, row: 2, icone: banco }
 arestas:
   - { de: pagador, para: psp-pa, rotulo: "confirma" }
   - { de: psp-pa, para: pagador, rotulo: "mostra" }
