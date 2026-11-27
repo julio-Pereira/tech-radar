@@ -12,6 +12,7 @@ import { setBuildHTML } from '../trusted-html.js';
 
 const EVENT_MS = 2500;
 const SPEEDS = [1, 2, 0.5];
+const LEGENDA = { sync: 'pedido', async: 'evento assíncrono', reply: 'resposta', timeout: 'sem resposta' };
 let seq = 0;
 
 const json = (url) => fetch(url).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
@@ -71,7 +72,18 @@ function attach(figure, slug, w, diagramas) {
   const zoom = make('button', 'diagrama-ampliar', 'Ampliar');
   zoom.type = 'button';
   zoom.setAttribute('aria-label', 'Ampliar a visão');
-  visao.append(trilha, tabs, area, zoom);
+  // Fase 1.8: a legend of the packet types this walkthrough uses (compiled),
+  // each with a drawn sample and its name, never color alone.
+  const legenda = make('ul', 'wt-legenda');
+  legenda.setAttribute('aria-label', 'Legenda');
+  for (const t of w.legenda || []) {
+    const li = make('li', `wt-leg wt-leg--${t}`);
+    const amostra = make('span', 'wt-leg-amostra', t === 'timeout' ? '✕' : '●');
+    amostra.setAttribute('aria-hidden', 'true');
+    li.append(amostra, LEGENDA[t]);
+    legenda.append(li);
+  }
+  visao.append(trilha, tabs, area, legenda, zoom);
 
   // A face is the event card, the controls and the live region. The figure
   // has one; Ampliar builds a second inside the dialog (the page behind a
@@ -80,7 +92,7 @@ function attach(figure, slug, w, diagramas) {
   function face() {
     const f = {
       cartao: make('div', 'wt-cartao'), num: make('p', 'wt-num'), rota: make('p', 'wt-rota'),
-      msg: make('p', 'wt-msg'), anot: make('p', 'wt-anot'), ctl: make('div', 'wt-controles'), vivo: make('p', 'sr-only'),
+      msg: make('p', 'wt-msg'), anot: make('p', 'wt-anot'), seguir: make('p', 'wt-seguir'), ctl: make('div', 'wt-controles'), vivo: make('p', 'sr-only'),
       first: button('wt-inicio', '⏮', 'Início'),
       prevE: button('wt-etapa-ant', '«', 'Etapa anterior'),
       prev: button('wt-ant', '◀', 'Evento anterior'),
@@ -89,7 +101,7 @@ function attach(figure, slug, w, diagramas) {
       nextE: button('wt-etapa-prox', '»', 'Próxima etapa'),
       speed: button('wt-velocidade', speedLabel(), `Velocidade: ${speedLabel()}`),
     };
-    f.cartao.append(f.num, f.rota, f.msg, f.anot);
+    f.cartao.append(f.num, f.rota, f.msg, f.anot, f.seguir);
     f.ctl.setAttribute('role', 'group');
     f.ctl.setAttribute('aria-label', 'Controles do roteiro');
     f.ctl.append(f.first, f.prevE, f.prev, f.play, f.next, f.nextE, f.speed);
@@ -226,7 +238,7 @@ function attach(figure, slug, w, diagramas) {
 
 
     if (novaEtapa) {
-      etapaTxt.textContent = `Etapa ${k + 1} de ${w.etapas.length}`;
+      etapaTxt.textContent = `Etapa ${k + 1} de ${w.etapas.length} · ${etapa.titulo}`;
       pontos.textContent = w.etapas.map((_, x) => (x === k ? '●' : '○')).join(' ');
       titulo.textContent = etapa.titulo;
       sub.textContent = etapa.subtitulo || '';
@@ -242,12 +254,17 @@ function attach(figure, slug, w, diagramas) {
       code.replaceChildren(...p.linhas.map((l, x) => make('span', x + 1 >= e.painel.de && x + 1 <= e.painel.ate ? 'wt-linha wt-linha-on' : 'wt-linha', `${l}\n`)));
     }
 
+    const prox = w.etapas[k + 1];
     for (const f of faces) {
       f.num.textContent = `Evento ${e.n} de ${events.length}`;
       f.rota.textContent = e.tipo === 'timeout' ? `${rotulo[e.de]} ⇢ ${rotulo[e.para]} · sem resposta` : `${rotulo[e.de]} → ${rotulo[e.para]}`;
       f.msg.textContent = e.msg;
       f.anot.textContent = e.anotacao || '';
       f.anot.hidden = !e.anotacao;
+      // At the end of a step, the card names the next one (Fase 1.8, §4.2).
+      f.seguir.hidden = e.j < etapa.eventos.length - 1;
+      f.seguir.textContent = prox ? `A seguir: ${prox.titulo}` : 'Fim do roteiro';
+      f.nextE.setAttribute('aria-label', prox ? `Próxima etapa: ${prox.titulo}` : 'Próxima etapa');
       for (const [b, off] of [[f.first, i === 0], [f.prev, i === 0], [f.prevE, i === 0], [f.next, i === last], [f.nextE, k === w.etapas.length - 1]]) {
         b.setAttribute('aria-disabled', String(off));
       }

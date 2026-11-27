@@ -406,3 +406,35 @@ for (const { slug, w, marco, ev } of timeouts) {
     expect(await page.evaluate(() => window.__csp)).toEqual([]);
   });
 }
+
+// Fase 1.8, §4.1 and §4.2: the legend shows only the packet types used, each
+// with a drawn sample and its name; the end of every step names the next one
+// in the card and in the » button; the indicator carries the step's title.
+const NOMES = { sync: 'pedido', async: 'evento assíncrono', reply: 'resposta', timeout: 'sem resposta' };
+for (const { slug, w, marco } of all) {
+  test(`${slug}/${w.id}: legend of the types used, and the next step named at the end of each step`, async ({ page }) => {
+    await page.goto(`/#/learn/${slug}/${marco}/wt/${w.id}/1`);
+    const figure = page.locator(`figure.walkthrough[data-walkthrough="${slug}/${w.id}"]`);
+    await expect(figure.locator('.wt-area svg')).toBeVisible();
+    const usados = [...new Set(w.etapas.flatMap((e) => e.sequencia.mensagens.map((m) => m.tipo)))];
+    expect([...w.legenda].sort()).toEqual(usados.sort());
+    await expect(figure.locator('.wt-leg')).toHaveText(w.legenda.map((t) => new RegExp(`${NOMES[t]}$`)));
+    await expect(figure.locator('.wt-leg-amostra').first()).toHaveAttribute('aria-hidden', 'true');
+
+    let n = 0;
+    for (const [k, etapa] of w.etapas.entries()) {
+      const prox = w.etapas[k + 1];
+      // First event of the step: the next step is not announced yet.
+      await page.goto(`/#/learn/${slug}/${marco}/wt/${w.id}/${n + 1}`);
+      await expect(figure.locator('.wt-etapa-pos')).toContainText(`Etapa ${k + 1} de ${w.etapas.length} · ${etapa.titulo}`);
+      if (etapa.eventos.length > 1) await expect(figure.locator('.wt-lado .wt-seguir')).toBeHidden();
+      // Last event of the step.
+      n += etapa.eventos.length;
+      await page.goto(`/#/learn/${slug}/${marco}/wt/${w.id}/${n}`);
+      const seguir = figure.locator('.wt-lado .wt-seguir');
+      await expect(seguir).toBeVisible();
+      await expect(seguir).toHaveText(prox ? `A seguir: ${prox.titulo}` : 'Fim do roteiro');
+      await expect(figure.locator('.wt-lado .wt-etapa-prox')).toHaveAttribute('aria-label', prox ? `Próxima etapa: ${prox.titulo}` : 'Próxima etapa');
+    }
+  });
+}

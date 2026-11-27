@@ -181,3 +181,28 @@ O README ganhou a seção "Icons by component type", com:
 - a regra do papel na figura (o ledger como `banco` ou `servico`);
 - a regra da largura (encurtar o rótulo, nunca o teto);
 - a convenção: todo `topologia` e `sequencia` **novo** tem ícone em todos os nós, e os antigos migram trilha a trilha, guiados pela coluna "Ícones" da cobertura.
+
+## 7. PR 6 — Legenda dos tipos de pacote e nome do próximo passo (§4.1, §4.2)
+
+### Legenda (§4.1)
+
+- **Compilador:** `Walkthrough.Legenda` traz os tipos usados, em ordem fixa (`sync`, `async`, `reply`, `timeout`). A lista sai das mensagens das sequências derivadas, em que um evento sem tipo já é `sync`. Assim o front não varre os eventos. Teste: `TestWalkthroughLegenda`.
+- **Player:** uma lista abaixo da visão, só com esses tipos. Cada item tem uma amostra `aria-hidden` e o nome: "pedido", "evento assíncrono", "resposta", "sem resposta".
+- **A amostra repete o que a sequência desenha:**
+  - o traço: contínuo; tracejado em `reply`; pontilhado em `timeout`;
+  - a ponta: cheia em `sync`; aberta em `async` e `reply`; nenhuma em `timeout`;
+  - o pacote: ● nos tipos que andam; ✕ em `timeout`, que não anda.
+- O tipo nunca é dito só por cor.
+
+**Divergência:** o plano fala em "a forma do pacote" por tipo. No player, o pacote é **o mesmo círculo** em todos os tipos; o que muda é o traço e a ponta. A legenda mostra o que o leitor vê. Ela não inventa formas de pacote que o desenho não tem.
+
+### Próximo passo (§4.2)
+
+- O `»` ganha `aria-label="Próxima etapa: {título}"`. Na última etapa, fica "Próxima etapa", com `aria-disabled`.
+- No **último evento de cada etapa**, o cartão mostra "A seguir: {título da próxima}", ou "Fim do roteiro" na última. Nos outros eventos, a linha fica escondida.
+- O indicador passa a "Etapa 3 de 7 · {título}".
+- Teste em `walkthrough.spec.js`, nos 7 walkthroughs: a legenda bate com os tipos usados, e, em cada etapa, o primeiro e o último evento mostram a linha e o `aria-label` certos.
+
+### Orçamento
+
+`walkthrough-player.js`: de 5.416 para **5.770 B gzip** (teto 6.000). Sobram 230 B. Por isso as métricas (§4.3) vão para um módulo lazy com teto próprio, como o plano prevê.
