@@ -42,6 +42,11 @@ paineis:
       ação: republicar o evento (automática, idempotente)
       métrica: divergencias_dia{classe="FALTA_LA"} = 1
 
+metricas:
+  - { id: locks, rotulo: "Tempo com locks", unidade: h }
+  - { id: duvida, rotulo: "Em dúvida" }
+  - { id: falhos, rotulo: "Pix que falharam" }
+
 etapas:
   - id: prepare
     titulo: "Fase 1: prepare"
@@ -62,6 +67,7 @@ etapas:
         para: coord
         tipo: reply
         msg: "O banco grava a intenção, vota sim e passa a segurar os locks da conta A"
+        metricas: { locks: "=0" }
         painel: { id: banco, linhas: "4" }
         estados: { banco: destaque }
       - de: fila
@@ -83,6 +89,7 @@ etapas:
         para: coord
         tipo: async
         msg: "Sem decisão, o banco procura saber o desfecho com o coordenador"
+        metricas: { duvida: "=1" }
         estados: { coord: falha }
         anotacao: "caiu depois dos sim"
       - de: banco
@@ -108,6 +115,7 @@ etapas:
         para: banco
         tipo: timeout
         msg: "O lock_timeout vence, e um pagamento que nada tinha com o 2PC falha"
+        metricas: { falhos: "+1" }
         painel: { id: banco, linhas: "9" }
         estados: { outro: falha }
 
@@ -128,6 +136,7 @@ etapas:
         para: plantao
         tipo: reply
         msg: "Há uma: pix-7f3a, preparada há 3 horas, segurando a conta A"
+        metricas: { locks: "=3" }
       - de: plantao
         para: banco
         msg: "Ele decide commitar, sem saber o que a fila fez"
@@ -136,6 +145,7 @@ etapas:
       - de: plantao
         para: fila
         msg: "Na fila, outro plantão aborta a publicação preparada"
+        metricas: { duvida: "=0" }
         anotacao: "decisões divergentes"
         estados: { fila: removido }
 

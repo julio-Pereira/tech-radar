@@ -206,3 +206,43 @@ O README ganhou a seção "Icons by component type", com:
 ### Orçamento
 
 `walkthrough-player.js`: de 5.416 para **5.770 B gzip** (teto 6.000). Sobram 230 B. Por isso as métricas (§4.3) vão para um módulo lazy com teto próprio, como o plano prevê.
+
+## 8. PR 7 — Métricas acumuladas e os 2 pilotos (§4.3)
+
+### O que entra
+
+- **Compilador** (`walkthroughs_metricas.go`):
+  - O bloco `metricas` aceita até 3 métricas, e cada evento muda valores com `+N` ou `=N`.
+  - Os valores são acumulados como inteiros ×10⁴, sem erro de ponto flutuante, e cada evento leva o **texto** pronto (vírgula decimal, ponto de milhar, "N de M" com `max`) mais a lista `mudou`.
+  - A descrição textual (`<details>`) acrescenta os valores depois de cada evento que os muda.
+  - Testes: as operações, o acúmulo, `max`, a descrição, um walkthrough sem métricas e 11 casos de erro.
+- **Player:** os cartões ficam num módulo lazy, `walkthrough-metricas.js` (838 B gzip, teto de 1 KB), baixado só quando o walkthrough tem `metricas`. `walkthrough-player.js` fica em 5.916 B (teto 6.000).
+  - Os cartões ficam acima da visão e também no "Ampliar".
+  - O cartão que mudou ganha borda e um ▲ visível; nada anima.
+  - O `aria-live` acrescenta só o que mudou ("Em trânsito: R$ 120,00.").
+  - Em 360 px, os três cartões dividem uma linha (o rótulo quebra), sem rolagem lateral, e a visão segue em até 45vh.
+
+### Divergência: as métricas do piloto `sd` (o marco vence)
+
+O plano pedia "Desde o envio" (s) e "Em trânsito" (R$), com "os 8 s e o timeout". Só que **nem o marco 09, nem os painéis, nem o hands-on dão o valor do timeout**: o texto diz "acima do timeout configurado". Um número no evento do timeout seria inventado, e a §6 do plano proíbe isso. Além disso, "desde o envio" em segundos não alcança a conciliação, que acontece em D+1.
+
+No lugar, entram três métricas com fonte, que contam a mesma lição: o dinheiro fica em trânsito enquanto o tempo passa, até a conciliação, e nunca se reenvia.
+
+| Métrica | Evento → valor | Fonte |
+| --- | --- | --- |
+| Em trânsito (R$) | 2 → R$ 120,00 · 12 → R$ 0,00 | painel `ledger`, linhas 1 (RESERVA -120.00 EM_TRANSITO) e 4 (EFETIVA, LIQUIDADO) |
+| Envios ao SPI | 3 → 1, e **fica 1** na consulta (eventos 7–9) | etapa "Consultar, nunca reenviar"; marco 09, "nunca é assumir que falhou e tentar de novo" |
+| Dias desde o envio | 3 → 0 · 10 → 1 | etapa 5, "No dia seguinte, a conciliação…"; marco 09, conciliação D+1 |
+
+### Piloto `dd` (§4.3)
+
+O plano pedia "Locks presos há" (min) e "Transações em dúvida". Entram estas, e mais uma terceira, com fonte.
+
+| Métrica | Evento → valor | Fonte |
+| --- | --- | --- |
+| Tempo com locks (h) | 3 → 0 h · 10 → 3 h | evento 3 ("passa a segurar os locks"); evento 10, "preparada há 3 horas" |
+| Em dúvida | 5 → 1 · 12 → 0 | etapa 2 (o coordenador cai depois dos sim); evento 12 (o segundo plantão decide) |
+| Pix que falharam | 8 → 1 | evento 8 e painel `banco`, linha 9 (`ERROR: canceling statement due to lock timeout`) |
+
+- A unidade é `h`, não `min` como no plano: a fonte diz "3 horas", e 180 min seria a mesma coisa num número menos legível.
+- Depois do `COMMIT PREPARED` (evento 11), o cartão continua em "3 h". Ele mede o tempo **total** com locks, não o tempo de agora; o rótulo diz "Tempo com locks", não "presos há".

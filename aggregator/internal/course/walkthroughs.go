@@ -88,6 +88,7 @@ type wtEventoSpec struct {
 	Anotacao string            `yaml:"anotacao"`
 	Estados  map[string]string `yaml:"estados"`
 	Painel   *wtPainelRefSpec  `yaml:"painel"`
+	Metricas map[string]string `yaml:"metricas"` // Fase 1.8: "+N" or "=N"
 }
 
 type wtEtapaSpec struct {
@@ -100,13 +101,14 @@ type wtEtapaSpec struct {
 }
 
 type walkthroughSpec struct {
-	ID      string         `yaml:"id"`
-	Titulo  string         `yaml:"titulo"`
-	Resumo  string         `yaml:"resumo"`
-	Atores  []wtAtorSpec   `yaml:"atores"`
-	Camadas []wtCamadaSpec `yaml:"camadas"`
-	Paineis []wtPainelSpec `yaml:"paineis"`
-	Etapas  []wtEtapaSpec  `yaml:"etapas"`
+	ID       string          `yaml:"id"`
+	Titulo   string          `yaml:"titulo"`
+	Resumo   string          `yaml:"resumo"`
+	Atores   []wtAtorSpec    `yaml:"atores"`
+	Camadas  []wtCamadaSpec  `yaml:"camadas"`
+	Paineis  []wtPainelSpec  `yaml:"paineis"`
+	Metricas []wtMetricaSpec `yaml:"metricas"`
+	Etapas   []wtEtapaSpec   `yaml:"etapas"`
 }
 
 // Compiled schema (JSON), written to data/walkthroughs/<slug>.json.
@@ -156,6 +158,10 @@ type WalkthroughEvento struct {
 	// Fase 1.6: jumping to an event never replays the ones before it.
 	Estados map[string]string     `json:"estados,omitempty"`
 	Painel  *WalkthroughPainelRef `json:"painel,omitempty"`
+	// Metricas holds, as text, every metric with a value after this event
+	// (cumulative); Mudou lists the ones this event changed (Fase 1.8).
+	Metricas map[string]string `json:"metricas,omitempty"`
+	Mudou    []string          `json:"mudou,omitempty"`
 }
 
 type WalkthroughEtapa struct {
@@ -183,6 +189,9 @@ type Walkthrough struct {
 	// order (Fase 1.8, §4.1): the player shows only these, without scanning
 	// the events.
 	Legenda []string `json:"legenda"`
+	// Metricas are the cards' definitions; absent, the player does not
+	// download the metrics module.
+	Metricas []WalkthroughMetrica `json:"metricas,omitempty"`
 }
 
 // WalkthroughsFile is data/walkthroughs/<slug>.json.
@@ -287,6 +296,10 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 		w.Camadas = append(w.Camadas, WalkthroughCamada{ID: c.ID, Rotulo: c.Rotulo, Diagrama: c.Diagrama, Trilha: trilha})
 	}
 	v.iconesDosAtores(&w, s.Camadas, diagramas)
+
+	// Fase 1.8: accumulated metrics, computed here (§4.3).
+	var metricas map[string]*wtMetricaEstado
+	w.Metricas, metricas = v.metricasDef(s.Metricas)
 
 	// Panels and their limits.
 	paineis := map[string]int{} // id → number of lines
@@ -415,6 +428,7 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 				estados[id] = st
 			}
 			out := WalkthroughEvento{N: n, De: ev.De, Para: ev.Para, Tipo: wtTipoPublico(ev.Tipo), Msg: strings.TrimSpace(ev.Msg), Anotacao: strings.TrimSpace(ev.Anotacao), Estados: copyMap(estados)}
+			out.Metricas, out.Mudou = v.metricasEvento(what, ev.Metricas, w.Metricas, metricas)
 			// Rule 6: panel lines.
 			if ev.Painel != nil {
 				lines, ok := paineis[ev.Painel.ID]
@@ -436,6 +450,7 @@ func parseWalkthrough(data []byte, fileID string, diagramas map[string]Diagrama)
 	}
 	w.Total = n
 	w.Legenda = wtLegenda(w.Etapas)
+	v.metricasNaoUsadas(w.Metricas, metricas)
 
 	if err := v.err(); err != nil {
 		return Walkthrough{}, err
@@ -662,6 +677,9 @@ func walkthroughFigureHTML(slug string, w Walkthrough) string {
 			b.WriteString(`: ` + html.EscapeString(ev.Msg))
 			if ev.Anotacao != "" {
 				b.WriteString(` (` + html.EscapeString(ev.Anotacao) + `)`)
+			}
+			if len(ev.Mudou) > 0 {
+				b.WriteString(` — ` + html.EscapeString(wtMetricasTexto(w.Metricas, ev)))
 			}
 			b.WriteString(`</li>`)
 		}
